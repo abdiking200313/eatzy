@@ -1,8 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'config/theme.dart';
 import 'screens/welcome.dart';
 
-void main() {
+void main() async{
+  //supabase setup
+  await Supabase.initialize(
+    url: 'https://atifebcufurziatglazv.supabase.co',
+    anonKey: 'sb_publishable_yAtGwxHkT3zbplDDUUtINA_CSLboW2j',
+  );
+
   runApp(const ChowFlowApp());
 }
 

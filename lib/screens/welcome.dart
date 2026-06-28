@@ -1,3 +1,4 @@
+import 'package:chowflow/screens/login.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../config/theme.dart';
@@ -120,7 +121,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                       boxShadow: [
                         BoxShadow(
                           color: AppColors.primary.withOpacityValue(0.3),
-                          blurRadius: 0,
+                          blurRadius: 30,
                           offset: const Offset(0, 8),
                         ),
                       ],
@@ -168,14 +169,31 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                             color: AppColors.onSurfaceVariant,
                           ),
                         ),
-                        TextSpan(
-                          text: 'Log In',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.primary,
+                          WidgetSpan(
+                            child: TextButton(  
+                              onPressed: () {
+                                // TODO: Navigate to login screen
+                                // Navigator.of(context).pushNamed('/login');
+                                // or use:
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(builder: (context) => LoginScreen()),
+                                );
+                              },
+                              style: TextButton.styleFrom(
+                                padding: EdgeInsets.zero,
+                                minimumSize: Size.zero,
+                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                              ),
+                              child: Text(
+                                'Log In',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.primary,
+                                ),
+                              ),
+                            ),
                           ),
-                        ),
                       ],
                     ),
                   ),
