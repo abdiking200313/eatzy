@@ -1,8 +1,9 @@
+import 'package:chowflow/screens/categories.dart';
 import 'package:flutter/material.dart';
 import '../config/theme.dart';
-import 'home.dart';
-import 'favorites.dart';
 import 'cart.dart';
+//import 'categories.dart';
+import 'home.dart';
 import 'profile.dart';
 
 class MainAppScreen extends StatefulWidget {
@@ -15,17 +16,33 @@ class MainAppScreen extends StatefulWidget {
 class _MainAppScreenState extends State<MainAppScreen> {
   int _selectedIndex = 0;
 
-  final List<Widget> _screens = [
-    const HomeScreen(),
-    const FavoritesScreenFull(),
-    const CartScreenFull(),
-    const ProfileScreenFull(),
+  static const List<_NavigationItem> _navigationItems = [
+    _NavigationItem(
+      label: 'Home',
+      icon: Icons.home,
+      screen: HomeScreen(),
+    ),
+    _NavigationItem(
+      label: 'Categories',
+      icon: Icons.category,
+      screen: CategoriesScreen(),
+    ),
+    _NavigationItem(
+      label: 'Cart',
+      icon: Icons.shopping_cart,
+      screen: CartScreenFull(),
+    ),
+    _NavigationItem(
+      label: 'Profile',
+      icon: Icons.person,
+      screen: ProfileScreenFull(),
+    ),
   ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: _screens[_selectedIndex],
+      body: _navigationItems[_selectedIndex].screen,
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         onTap: (index) => setState(() => _selectedIndex = index),
@@ -33,13 +50,27 @@ class _MainAppScreenState extends State<MainAppScreen> {
         backgroundColor: AppColors.surface,
         selectedItemColor: AppColors.primary,
         unselectedItemColor: AppColors.outline,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.favorite), label: 'Fav'),
-          BottomNavigationBarItem(icon: Icon(Icons.shopping_cart), label: 'Cart'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
-        ],
+        items: _navigationItems
+            .map(
+              (item) => BottomNavigationBarItem(
+                icon: Icon(item.icon),
+                label: item.label,
+              ),
+            )
+            .toList(),
       ),
     );
   }
+}
+
+class _NavigationItem {
+  const _NavigationItem({
+    required this.label,
+    required this.icon,
+    required this.screen,
+  });
+
+  final String label;
+  final IconData icon;
+  final Widget screen;
 }

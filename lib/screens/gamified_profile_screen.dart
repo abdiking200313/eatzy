@@ -1,13 +1,32 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import '../config/theme.dart';
+import '../widgets/app_misc.dart';
 
 class GamifiedProfileScreenFull extends StatelessWidget {
   const GamifiedProfileScreenFull({super.key});
 
+  static const String _imageUrl =
+      'https://lh3.googleusercontent.com/aida-public/AB6AXuAFRHg36EQATUqDhYD94R_K05G_f_-4ocNsdVBQUVTX8xvKbpdmSknU7GmZePTgv4lBF85k0RDyrmnlfs2PK53uCy3GJCX-D--qbu1fE71RUty6lSxYRFbaGWOOlbJXVqBEcr0UyXTpyWdZPmjRyEUF1OHHnMx-xCvUUimbd_auXDxH-k66vULm46he9xSs-oD00XaZzS3nF9H6yAXrF6_RTe3YZfKuK56TfbmvM9woXHeOrwZGm0mMP7mewgHD325vsNshlQvqaSTD';
+
+  static const List<_Achievement> _achievements = [
+    _Achievement(icon: Icons.emoji_events, label: 'First Order', unlocked: true),
+    _Achievement(icon: Icons.star, label: 'Top Reviewer', unlocked: true),
+    _Achievement(icon: Icons.local_fire_department, label: '7-Day Streak', unlocked: true),
+    _Achievement(icon: Icons.workspace_premium, label: 'Premium Member', unlocked: true),
+    _Achievement(icon: Icons.restaurant, label: 'Food Lover'),
+    _Achievement(icon: Icons.military_tech, label: 'VIP'),
+  ];
+
+  static const List<_LeaderboardEntry> _leaders = [
+    _LeaderboardEntry(rank: 1, name: 'Zainab Okafor', points: '12,450 pts', highlighted: true),
+    _LeaderboardEntry(rank: 2, name: 'Your Rank', points: '8,250 pts'),
+    _LeaderboardEntry(rank: 3, name: 'Chidi Ukaegbu', points: '7,890 pts'),
+  ];
+
   @override
   Widget build(BuildContext context) {
+    final progressWidth = (MediaQuery.of(context).size.width - 40) * 0.82;
+
     return Scaffold(
       backgroundColor: AppColors.surface,
       body: CustomScrollView(
@@ -18,39 +37,22 @@ class GamifiedProfileScreenFull extends StatelessWidget {
             expandedHeight: 300,
             flexibleSpace: FlexibleSpaceBar(
               background: Container(
-                decoration: BoxDecoration(
+                decoration: const BoxDecoration(
                   gradient: AppColors.fireSunGradient,
                 ),
                 child: SafeArea(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      CachedNetworkImage(
-                        imageUrl:
-                            'https://lh3.googleusercontent.com/aida-public/AB6AXuAFRHg36EQATUqDhYD94R_K05G_f_-4ocNsdVBQUVTX8xvKbpdmSknU7GmZePTgv4lBF85k0RDyrmnlfs2PK53uCy3GJCX-D--qbu1fE71RUty6lSxYRFbaGWOOlbJXVqBEcr0UyXTpyWdZPmjRyEUF1OHHnMx-xCvUUimbd_auXDxH-k66vULm46he9xSs-oD00XaZzS3nF9H6yAXrF6_RTe3YZfKuK56TfbmvM9woXHeOrwZGm0mMP7mewgHD325vsNshlQvqaSTD',
-                        imageBuilder: (context, imageProvider) =>
-                            CircleAvatar(
-                          backgroundImage: imageProvider,
-                          radius: 50,
-                        ),
-                        placeholder: (context, url) =>
-                            const CircleAvatar(radius: 50),
-                        errorWidget: (context, url, error) =>
-                            const CircleAvatar(radius: 50),
-                      ),
+                      const NetworkAvatar(imageUrl: _imageUrl, radius: 50),
                       const SizedBox(height: AppSpacing.lg),
                       Text(
                         'Amara Johnson',
-                        style: GoogleFonts.epilogue(
-                          fontSize: 24,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white,
-                        ),
+                        style: AppTextStyles.h3().copyWith(color: Colors.white),
                       ),
                       Text(
                         'Level 5 - Food Connoisseur',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 12,
+                        style: AppTextStyles.labelSm().copyWith(
                           color: Colors.white.withOpacityValue(0.8),
                         ),
                       ),
@@ -64,112 +66,59 @@ class GamifiedProfileScreenFull extends StatelessWidget {
             child: Padding(
               padding: const EdgeInsets.all(AppSpacing.lg),
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Experience Bar
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  Text('Experience Points', style: AppTextStyles.cardTitleSm()),
+                  const SizedBox(height: AppSpacing.xs),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'Experience Points',
-                            style: GoogleFonts.epilogue(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                          Text(
-                            '2,450/3,000',
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 12,
-                              color: AppColors.onSurfaceVariant,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: AppSpacing.base),
-                      Container(
-                        height: 12,
-                        decoration: BoxDecoration(
-                          color: AppColors.surfaceContainer,
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: Stack(
-                          children: [
-                            Container(
-                              height: 12,
-                              width:
-                                  (MediaQuery.of(context).size.width - 40) *
-                                      0.82,
-                              decoration: BoxDecoration(
-                                gradient: AppColors.fireSunGradient,
-                                borderRadius:
-                                    BorderRadius.circular(6),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
+                      Text('2,450/3,000', style: AppTextStyles.bodySecondary()),
+                      Text('82%', style: AppTextStyles.labelBold().copyWith(color: AppColors.primary)),
                     ],
+                  ),
+                  const SizedBox(height: AppSpacing.base),
+                  Container(
+                    height: 12,
+                    decoration: BoxDecoration(
+                      color: AppColors.surfaceContainer,
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Stack(
+                      children: [
+                        Container(
+                          width: progressWidth,
+                          decoration: BoxDecoration(
+                            gradient: AppColors.fireSunGradient,
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                   const SizedBox(height: AppSpacing.xl),
-                  // Achievements
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Achievements',
-                        style: GoogleFonts.epilogue(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      const SizedBox(height: AppSpacing.lg),
-                      GridView.builder(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        gridDelegate:
-                            const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 3,
-                          crossAxisSpacing: AppSpacing.lg,
-                          mainAxisSpacing: AppSpacing.lg,
-                        ),
-                        itemCount: 6,
-                        itemBuilder: (context, index) {
-                          return _buildAchievementBadge(
-                            ['🏆', '⭐', '🔥', '💎', '🎖️', '👑'][index],
-                            ['First Order', 'Top Reviewer', '7-Day Streak',
-                              'Premium Member', 'Food Lover', 'VIP'][index],
-                            index < 4,
-                          );
-                        },
-                      ),
-                    ],
+                  Text('Achievements', style: AppTextStyles.sectionTitle()),
+                  const SizedBox(height: AppSpacing.lg),
+                  GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 3,
+                      crossAxisSpacing: AppSpacing.lg,
+                      mainAxisSpacing: AppSpacing.lg,
+                    ),
+                    itemCount: _achievements.length,
+                    itemBuilder: (context, index) => _AchievementCard(
+                      achievement: _achievements[index],
+                    ),
                   ),
                   const SizedBox(height: AppSpacing.xl),
-                  // Leaderboard
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Leaderboard',
-                        style: GoogleFonts.epilogue(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      const SizedBox(height: AppSpacing.lg),
-                      _buildLeaderboardEntry(1, 'Zainab Okafor',
-                          '12,450 pts', true),
-                      const SizedBox(height: AppSpacing.base),
-                      _buildLeaderboardEntry(2, 'Your Rank',
-                          '8,250 pts', false),
-                      const SizedBox(height: AppSpacing.base),
-                      _buildLeaderboardEntry(3, 'Chidi Ukaegbu',
-                          '7,890 pts', false),
-                    ],
-                  ),
+                  Text('Leaderboard', style: AppTextStyles.sectionTitle()),
+                  const SizedBox(height: AppSpacing.lg),
+                  for (final entry in _leaders) ...[
+                    _LeaderboardCard(entry: entry),
+                    if (entry != _leaders.last) const SizedBox(height: AppSpacing.base),
+                  ],
                 ],
               ),
             ),
@@ -178,15 +127,18 @@ class GamifiedProfileScreenFull extends StatelessWidget {
       ),
     );
   }
+}
 
-  Widget _buildAchievementBadge(
-    String emoji,
-    String label,
-    bool isUnlocked,
-  ) {
+class _AchievementCard extends StatelessWidget {
+  const _AchievementCard({required this.achievement});
+
+  final _Achievement achievement;
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: isUnlocked
+        color: achievement.unlocked
             ? AppColors.secondaryContainer
             : AppColors.surfaceContainer,
         borderRadius: BorderRadius.circular(16),
@@ -194,37 +146,36 @@ class GamifiedProfileScreenFull extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text(
-            emoji,
-            style: const TextStyle(fontSize: 28),
+          Icon(
+            achievement.icon,
+            size: 28,
+            color: achievement.unlocked ? AppColors.onSurface : AppColors.onSurfaceVariant,
           ),
           const SizedBox(height: AppSpacing.xs),
           Text(
-            label,
+            achievement.label,
             textAlign: TextAlign.center,
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: 10,
-              fontWeight: FontWeight.w600,
-              color: isUnlocked
-                  ? AppColors.onSurface
-                  : AppColors.onSurfaceVariant,
+            style: AppTextStyles.labelSm().copyWith(
+              color: achievement.unlocked ? AppColors.onSurface : AppColors.onSurfaceVariant,
             ),
           ),
         ],
       ),
     );
   }
+}
 
-  Widget _buildLeaderboardEntry(
-    int rank,
-    String name,
-    String points,
-    bool isHighlighted,
-  ) {
+class _LeaderboardCard extends StatelessWidget {
+  const _LeaderboardCard({required this.entry});
+
+  final _LeaderboardEntry entry;
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
-        color: isHighlighted
+        color: entry.highlighted
             ? AppColors.secondaryContainer
             : AppColors.surfaceContainer,
         borderRadius: BorderRadius.circular(12),
@@ -232,35 +183,47 @@ class GamifiedProfileScreenFull extends StatelessWidget {
       child: Row(
         children: [
           Text(
-            '#$rank',
-            style: GoogleFonts.epilogue(
-              fontSize: 14,
-              fontWeight: FontWeight.w700,
-              color: isHighlighted
-                  ? AppColors.onSurface
-                  : AppColors.onSurfaceVariant,
+            '#${entry.rank}',
+            style: AppTextStyles.cardTitleSm().copyWith(
+              color: entry.highlighted ? AppColors.onSurface : AppColors.onSurfaceVariant,
             ),
           ),
           const SizedBox(width: AppSpacing.lg),
           Expanded(
-            child: Text(
-              name,
-              style: GoogleFonts.epilogue(
-                fontSize: 14,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
+            child: Text(entry.name, style: AppTextStyles.cardTitleSm()),
           ),
           Text(
-            points,
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: 12,
-              fontWeight: FontWeight.w700,
-              color: AppColors.primary,
-            ),
+            entry.points,
+            style: AppTextStyles.labelBold().copyWith(color: AppColors.primary),
           ),
         ],
       ),
     );
   }
+}
+
+class _Achievement {
+  const _Achievement({
+    required this.icon,
+    required this.label,
+    this.unlocked = false,
+  });
+
+  final IconData icon;
+  final String label;
+  final bool unlocked;
+}
+
+class _LeaderboardEntry {
+  const _LeaderboardEntry({
+    required this.rank,
+    required this.name,
+    required this.points,
+    this.highlighted = false,
+  });
+
+  final int rank;
+  final String name;
+  final String points;
+  final bool highlighted;
 }

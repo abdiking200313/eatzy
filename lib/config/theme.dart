@@ -48,6 +48,7 @@ class AppColors {
   static const Color onErrorContainer = Color(0xFF93000A);
   static const Color background = Color(0xFFFCF9F8);
   static const Color onBackground = Color(0xFF1C1B1B);
+
   static const LinearGradient fireSunGradient = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
@@ -77,69 +78,142 @@ class AppRadii {
 }
 
 class AppTextStyles {
+  static TextStyle screenTitle() => GoogleFonts.epilogue(
+        fontSize: 28,
+        fontWeight: FontWeight.w700,
+        color: AppColors.onSurface,
+      );
+
+  static TextStyle sectionTitle() => GoogleFonts.epilogue(
+        fontSize: 20,
+        fontWeight: FontWeight.w700,
+        color: AppColors.onSurface,
+      );
+
+  static TextStyle cardTitle() => GoogleFonts.epilogue(
+        fontSize: 16,
+        fontWeight: FontWeight.w700,
+        color: AppColors.onSurface,
+      );
+
+  static TextStyle cardTitleSm() => GoogleFonts.epilogue(
+        fontSize: 14,
+        fontWeight: FontWeight.w700,
+        color: AppColors.onSurface,
+      );
+
   static TextStyle h1() => GoogleFonts.epilogue(
-    fontSize: 40,
-    fontWeight: FontWeight.w800,
-    height: 1.1,
-    letterSpacing: -0.02,
-    color: AppColors.onBackground,
-  );
+        fontSize: 40,
+        fontWeight: FontWeight.w800,
+        height: 1.1,
+        letterSpacing: -0.02,
+        color: AppColors.onBackground,
+      );
 
   static TextStyle h2() => GoogleFonts.epilogue(
-    fontSize: 32,
-    fontWeight: FontWeight.w700,
-    height: 1.2,
-    letterSpacing: -0.01,
-    color: AppColors.onBackground,
-  );
+        fontSize: 32,
+        fontWeight: FontWeight.w700,
+        height: 1.2,
+        letterSpacing: -0.01,
+        color: AppColors.onBackground,
+      );
 
   static TextStyle h3() => GoogleFonts.epilogue(
-    fontSize: 24,
-    fontWeight: FontWeight.w700,
-    height: 1.2,
-    color: AppColors.onBackground,
-  );
+        fontSize: 24,
+        fontWeight: FontWeight.w700,
+        height: 1.2,
+        color: AppColors.onBackground,
+      );
 
   static TextStyle bodyLg() => GoogleFonts.plusJakartaSans(
-    fontSize: 18,
-    fontWeight: FontWeight.w500,
-    height: 1.5,
-    color: AppColors.onBackground,
-  );
+        fontSize: 18,
+        fontWeight: FontWeight.w500,
+        height: 1.5,
+        color: AppColors.onBackground,
+      );
 
   static TextStyle bodyMd() => GoogleFonts.plusJakartaSans(
-    fontSize: 16,
-    fontWeight: FontWeight.w400,
-    height: 1.5,
-    color: AppColors.onBackground,
-  );
+        fontSize: 16,
+        fontWeight: FontWeight.w400,
+        height: 1.5,
+        color: AppColors.onBackground,
+      );
+
+  static TextStyle bodySecondary() => GoogleFonts.plusJakartaSans(
+        fontSize: 14,
+        fontWeight: FontWeight.w400,
+        color: AppColors.onSurfaceVariant,
+      );
 
   static TextStyle labelBold() => GoogleFonts.plusJakartaSans(
-    fontSize: 14,
-    fontWeight: FontWeight.w700,
-    height: 1.2,
-    color: AppColors.onBackground,
-  );
+        fontSize: 14,
+        fontWeight: FontWeight.w700,
+        height: 1.2,
+        color: AppColors.onBackground,
+      );
 
   static TextStyle labelSm() => GoogleFonts.plusJakartaSans(
-    fontSize: 12,
-    fontWeight: FontWeight.w600,
-    height: 1.2,
-    color: AppColors.onBackground,
-  );
+        fontSize: 12,
+        fontWeight: FontWeight.w600,
+        height: 1.2,
+        color: AppColors.onBackground,
+      );
+
+  static TextStyle buttonLabel() => GoogleFonts.epilogue(
+        fontSize: 16,
+        fontWeight: FontWeight.w700,
+        color: AppColors.onPrimary,
+      );
+
+  static TextStyle actionLink() => GoogleFonts.plusJakartaSans(
+        fontSize: 12,
+        fontWeight: FontWeight.w700,
+        color: AppColors.primary,
+      );
 }
 
 ThemeData buildAppTheme() {
+  final baseTextTheme = GoogleFonts.plusJakartaSansTextTheme();
+
   return ThemeData(
     useMaterial3: false,
     scaffoldBackgroundColor: AppColors.surface,
     primaryColor: AppColors.primary,
-    fontFamily: 'Plus Jakarta Sans',
+    colorScheme: const ColorScheme.light(
+      primary: AppColors.primary,
+      onPrimary: AppColors.onPrimary,
+      secondary: AppColors.secondary,
+      onSecondary: AppColors.onSecondary,
+      error: AppColors.error,
+      onError: AppColors.onError,
+      surface: AppColors.surface,
+      onSurface: AppColors.onSurface,
+    ),
+    textTheme: baseTextTheme.copyWith(
+      displayLarge: AppTextStyles.h1(),
+      displayMedium: AppTextStyles.h2(),
+      displaySmall: AppTextStyles.h3(),
+      headlineSmall: AppTextStyles.screenTitle(),
+      titleLarge: AppTextStyles.sectionTitle(),
+      titleMedium: AppTextStyles.cardTitle(),
+      titleSmall: AppTextStyles.cardTitleSm(),
+      bodyLarge: AppTextStyles.bodyLg(),
+      bodyMedium: AppTextStyles.bodyMd(),
+      bodySmall: AppTextStyles.bodySecondary(),
+      labelLarge: AppTextStyles.buttonLabel(),
+      labelMedium: AppTextStyles.labelBold(),
+      labelSmall: AppTextStyles.labelSm(),
+    ),
+    appBarTheme: AppBarTheme(
+      backgroundColor: AppColors.surface,
+      elevation: 0,
+      foregroundColor: AppColors.onSurface,
+      titleTextStyle: AppTextStyles.screenTitle(),
+    ),
   );
 }
 
 extension ColorHelpers on Color {
-  /// Replace deprecated `withOpacity` use with this helper.
-  /// Converts an opacity value in 0..1 to an alpha int.
-  Color withOpacityValue(double opacity) => withAlpha((opacity * 255).round());
+  Color withOpacityValue(double opacity) =>
+      withAlpha((opacity * 255).round());
 }

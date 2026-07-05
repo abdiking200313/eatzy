@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../config/theme.dart';
+import '../widgets/app_cards.dart';
+import '../widgets/app_scaffold.dart';
 
 class SettingsScreenFull extends StatefulWidget {
-  const SettingsScreenFull({Key? key}) : super(key: key);
+  const SettingsScreenFull({super.key});
 
   @override
   State<SettingsScreenFull> createState() => _SettingsScreenFullState();
@@ -17,226 +18,143 @@ class _SettingsScreenFullState extends State<SettingsScreenFull> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.surface,
-      appBar: AppBar(
-        backgroundColor: AppColors.surface,
-        elevation: 0,
-        centerTitle: false,
-        title: Text(
-          'Settings',
-          style: GoogleFonts.epilogue(
-            fontSize: 28,
-            fontWeight: FontWeight.w700,
-            color: AppColors.onSurface,
-          ),
-        ),
-        foregroundColor: AppColors.onSurface,
-      ),
+    return AppScaffold(
+      title: 'Settings',
       body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.md),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Notifications Section
-              _buildSectionTitle('Notifications'),
-              const SizedBox(height: AppSpacing.md),
-              _buildToggleItem(
-                'Push Notifications',
-                'Get notifications about your orders',
-                pushNotifications,
-                (value) {
-                  setState(() {
-                    pushNotifications = value;
-                  });
-                },
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              _buildToggleItem(
-                'Email Notifications',
-                'Receive updates via email',
-                emailNotifications,
-                (value) {
-                  setState(() {
-                    emailNotifications = value;
-                  });
-                },
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              _buildToggleItem(
-                'Promotional Emails',
-                'Get exclusive deals and offers',
-                promotionalEmails,
-                (value) {
-                  setState(() {
-                    promotionalEmails = value;
-                  });
-                },
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              _buildToggleItem(
-                'Order Updates',
-                'Receive order status updates',
-                orderUpdates,
-                (value) {
-                  setState(() {
-                    orderUpdates = value;
-                  });
-                },
-              ),
-              const SizedBox(height: AppSpacing.lg),
-
-              // Account Section
-              _buildSectionTitle('Account'),
-              const SizedBox(height: AppSpacing.md),
-              _buildSettingItem(
-                'Email Address',
-                'user@example.com',
-                Icons.email_outlined,
-                () {},
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              _buildSettingItem(
-                'Phone Number',
-                '+1 234 567 8900',
-                Icons.phone_outlined,
-                () {},
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              _buildSettingItem(
-                'Change Password',
-                'Update your password',
-                Icons.lock_outlined,
-                () {},
-              ),
-              const SizedBox(height: AppSpacing.lg),
-
-              // Preferences Section
-              _buildSectionTitle('Preferences'),
-              const SizedBox(height: AppSpacing.md),
-              _buildSettingItem(
-                'Language',
-                'English',
-                Icons.language_outlined,
-                () {},
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              _buildSettingItem(
-                'Currency',
-                'USD',
-                Icons.attach_money_outlined,
-                () {},
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              _buildSettingItem(
-                'Theme',
-                'Light',
-                Icons.brightness_7_outlined,
-                () {},
-              ),
-              const SizedBox(height: AppSpacing.lg),
-
-              // Support Section
-              _buildSectionTitle('Support'),
-              const SizedBox(height: AppSpacing.md),
-              _buildSettingItem(
-                'About Us',
-                'Learn about ChowFlow',
-                Icons.info_outlined,
-                () {},
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              _buildSettingItem(
-                'Privacy Policy',
-                'Read our privacy policy',
-                Icons.privacy_tip_outlined,
-                () {},
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              _buildSettingItem(
-                'Terms & Conditions',
-                'Review our terms',
-                Icons.description_outlined,
-                () {},
-              ),
-              const SizedBox(height: AppSpacing.lg),
-
-              // Logout Button
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () {},
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.error,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(AppRadii.lg),
-                    ),
-                  ),
-                  child: Text(
-                    'Logout',
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: AppSpacing.lg),
-            ],
-          ),
+        padding: const EdgeInsets.all(AppSpacing.md),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SectionTitle('Notifications', fontSize: 18),
+            const SizedBox(height: AppSpacing.md),
+            _ToggleCard(
+              title: 'Push Notifications',
+              subtitle: 'Get notifications about your orders',
+              value: pushNotifications,
+              onChanged: (value) => setState(() => pushNotifications = value),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            _ToggleCard(
+              title: 'Email Notifications',
+              subtitle: 'Receive updates via email',
+              value: emailNotifications,
+              onChanged: (value) => setState(() => emailNotifications = value),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            _ToggleCard(
+              title: 'Promotional Emails',
+              subtitle: 'Get exclusive deals and offers',
+              value: promotionalEmails,
+              onChanged: (value) => setState(() => promotionalEmails = value),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            _ToggleCard(
+              title: 'Order Updates',
+              subtitle: 'Receive order status updates',
+              value: orderUpdates,
+              onChanged: (value) => setState(() => orderUpdates = value),
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            const SectionTitle('Account', fontSize: 18),
+            const SizedBox(height: AppSpacing.md),
+            const _SettingCard(
+              title: 'Email Address',
+              subtitle: 'user@example.com',
+              icon: Icons.email_outlined,
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            const _SettingCard(
+              title: 'Phone Number',
+              subtitle: '+1 234 567 8900',
+              icon: Icons.phone_outlined,
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            const _SettingCard(
+              title: 'Change Password',
+              subtitle: 'Update your password',
+              icon: Icons.lock_outlined,
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            const SectionTitle('Preferences', fontSize: 18),
+            const SizedBox(height: AppSpacing.md),
+            const _SettingCard(
+              title: 'Language',
+              subtitle: 'English',
+              icon: Icons.language_outlined,
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            const _SettingCard(
+              title: 'Currency',
+              subtitle: 'USD',
+              icon: Icons.attach_money_outlined,
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            const _SettingCard(
+              title: 'Theme',
+              subtitle: 'Light',
+              icon: Icons.brightness_7_outlined,
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            const SectionTitle('Support', fontSize: 18),
+            const SizedBox(height: AppSpacing.md),
+            const _SettingCard(
+              title: 'About Us',
+              subtitle: 'Learn about ChowFlow',
+              icon: Icons.info_outlined,
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            const _SettingCard(
+              title: 'Privacy Policy',
+              subtitle: 'Read our privacy policy',
+              icon: Icons.privacy_tip_outlined,
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            const _SettingCard(
+              title: 'Terms & Conditions',
+              subtitle: 'Review our terms',
+              icon: Icons.description_outlined,
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            PrimaryButton(
+              label: 'Logout',
+              onPressed: () {},
+              color: AppColors.error,
+            ),
+            const SizedBox(height: AppSpacing.lg),
+          ],
         ),
       ),
     );
   }
+}
 
-  Widget _buildSectionTitle(String title) {
-    return Text(
-      title,
-      style: GoogleFonts.epilogue(
-        fontSize: 18,
-        fontWeight: FontWeight.w700,
-        color: AppColors.onSurface,
-      ),
-    );
-  }
+class _ToggleCard extends StatelessWidget {
+  const _ToggleCard({
+    required this.title,
+    required this.subtitle,
+    required this.value,
+    required this.onChanged,
+  });
 
-  Widget _buildToggleItem(
-    String title,
-    String subtitle,
-    bool value,
-    Function(bool) onChanged,
-  ) {
-    return Container(
-      padding: const EdgeInsets.all(AppSpacing.md),
-      decoration: BoxDecoration(
-        color: AppColors.surfaceContainerLow,
-        border: Border.all(color: AppColors.outlineVariant),
-        borderRadius: BorderRadius.circular(AppRadii.lg),
-      ),
+  final String title;
+  final String subtitle;
+  final bool value;
+  final ValueChanged<bool> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return OutlinedCard(
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  title,
-                  style: GoogleFonts.epilogue(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.onSurface,
-                  ),
-                ),
+                Text(title, style: AppTextStyles.cardTitleSm()),
                 const SizedBox(height: AppSpacing.xs),
                 Text(
                   subtitle,
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w400,
+                  style: AppTextStyles.labelSm().copyWith(
                     color: AppColors.onSurfaceVariant,
                   ),
                 ),
@@ -257,63 +175,48 @@ class _SettingsScreenFullState extends State<SettingsScreenFull> {
       ),
     );
   }
+}
 
-  Widget _buildSettingItem(
-    String title,
-    String subtitle,
-    IconData icon,
-    VoidCallback onTap,
-  ) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        decoration: BoxDecoration(
-          color: AppColors.surfaceContainerLow,
-          border: Border.all(color: AppColors.outlineVariant),
-          borderRadius: BorderRadius.circular(AppRadii.lg),
-        ),
-        child: Row(
-          children: [
-            Icon(
-              icon,
-              color: AppColors.primary,
-              size: 24,
-            ),
-            const SizedBox(width: AppSpacing.md),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: GoogleFonts.epilogue(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.onSurface,
-                    ),
+class _SettingCard extends StatelessWidget {
+  const _SettingCard({
+    required this.title,
+    required this.subtitle,
+    required this.icon,
+  });
+
+  final String title;
+  final String subtitle;
+  final IconData icon;
+
+  @override
+  Widget build(BuildContext context) {
+    return OutlinedCard(
+      child: Row(
+        children: [
+          Icon(icon, color: AppColors.primary, size: 24),
+          const SizedBox(width: AppSpacing.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: AppTextStyles.cardTitleSm()),
+                const SizedBox(height: AppSpacing.xs),
+                Text(
+                  subtitle,
+                  style: AppTextStyles.labelSm().copyWith(
+                    color: AppColors.onSurfaceVariant,
                   ),
-                  const SizedBox(height: AppSpacing.xs),
-                  Text(
-                    subtitle,
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w400,
-                      color: AppColors.onSurfaceVariant,
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
-            Icon(
-              Icons.arrow_forward_ios,
-              color: AppColors.onSurfaceVariant,
-              size: 16,
-            ),
-          ],
-        ),
+          ),
+          const Icon(
+            Icons.arrow_forward_ios,
+            color: AppColors.onSurfaceVariant,
+            size: 16,
+          ),
+        ],
       ),
     );
   }
 }
-

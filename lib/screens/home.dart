@@ -1,15 +1,70 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:go_router/go_router.dart';
+import '../app/app_router.dart';
 import '../config/theme.dart';
+import '../widgets/app_cards.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({Key? key}) : super(key: key);
+  const HomeScreen({super.key});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  static const List<_Category> _categories = [
+    _Category(label: 'Burgers', icon: Icons.lunch_dining),
+    _Category(label: 'Pizza', icon: Icons.local_pizza),
+    _Category(label: 'Sushi', icon: Icons.set_meal),
+    _Category(label: 'African', icon: Icons.rice_bowl),
+    _Category(label: 'Desserts', icon: Icons.cake),
+  ];
+
+  static const List<_Restaurant> _restaurants = [
+    _Restaurant(
+      name: 'Premium Restaurant 1',
+      rating: '4.5',
+      reviews: '50+ reviews',
+      price: 'NGN 1,500',
+      distance: '2 km away',
+    ),
+    _Restaurant(
+      name: 'Premium Restaurant 2',
+      rating: '4.6',
+      reviews: '50+ reviews',
+      price: 'NGN 1,700',
+      distance: '3 km away',
+    ),
+    _Restaurant(
+      name: 'Premium Restaurant 3',
+      rating: '4.7',
+      reviews: '50+ reviews',
+      price: 'NGN 1,900',
+      distance: '4 km away',
+    ),
+    _Restaurant(
+      name: 'Premium Restaurant 4',
+      rating: '4.8',
+      reviews: '50+ reviews',
+      price: 'NGN 2,100',
+      distance: '5 km away',
+    ),
+    _Restaurant(
+      name: 'Premium Restaurant 5',
+      rating: '4.9',
+      reviews: '50+ reviews',
+      price: 'NGN 2,300',
+      distance: '6 km away',
+    ),
+    _Restaurant(
+      name: 'Premium Restaurant 6',
+      rating: '5.0',
+      reviews: '50+ reviews',
+      price: 'NGN 2,500',
+      distance: '7 km away',
+    ),
+  ];
+
   int _selectedCategory = 0;
 
   @override
@@ -21,11 +76,7 @@ class _HomeScreenState extends State<HomeScreen> {
         elevation: 0,
         title: Text(
           'ChowFlow',
-          style: GoogleFonts.epilogue(
-            fontSize: 24,
-            fontWeight: FontWeight.w800,
-            color: AppColors.primary,
-          ),
+          style: AppTextStyles.h3().copyWith(color: AppColors.primary),
         ),
         actions: [
           IconButton(
@@ -42,276 +93,240 @@ class _HomeScreenState extends State<HomeScreen> {
               padding: const EdgeInsets.all(AppSpacing.lg),
               child: Column(
                 children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.md),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(50),
-                      border: Border.all(color: AppColors.outlineVariant),
-                    ),
-                    child: Row(
+                  OutlinedCard(
+                    backgroundColor: Colors.white,
+                    borderRadius: 50,
+                    child: const Row(
                       children: [
-                        const Icon(Icons.search, color: AppColors.outlineVariant),
-                        const SizedBox(width: AppSpacing.md),
+                        Icon(Icons.search, color: AppColors.outlineVariant),
+                        SizedBox(width: AppSpacing.md),
                         Expanded(
                           child: Text(
                             'Search restaurants...',
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 14,
-                              color: AppColors.outlineVariant,
-                            ),
+                            style: TextStyle(color: AppColors.outlineVariant),
                           ),
                         ),
                       ],
                     ),
                   ),
                   const SizedBox(height: AppSpacing.lg),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Categories',
-                        style: GoogleFonts.epilogue(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.onSurface,
-                        ),
-                      ),
-                      TextButton(
-                        onPressed: () {},
-                        child: Text(
-                          'See All',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.primary,
-                          ),
-                        ),
-                      ),
-                    ],
+                  _SectionHeader(
+                    title: 'Categories',
+                    actionLabel: 'See All',
+                    onPressed: () => context.push(AppRoutes.categories),
                   ),
                   const SizedBox(height: AppSpacing.md),
                   SizedBox(
                     height: 100,
-                    child: ListView(
+                    child: ListView.separated(
                       scrollDirection: Axis.horizontal,
-                      children: [
-                        'Burgers',
-                        'Pizza',
-                        'Sushi',
-                        'African',
-                        'Desserts',
-                      ].map((category) {
-                        int idx = ['Burgers', 'Pizza', 'Sushi', 'African', 'Desserts'].indexOf(category);
-                        return Padding(
-                          padding: const EdgeInsets.only(right: AppSpacing.md),
-                          child: Column(
-                            children: [
-                              GestureDetector(
-                                onTap: () => setState(() => _selectedCategory = idx),
-                                child: Container(
-                                  width: 80,
-                                  height: 80,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    gradient: _selectedCategory == idx
-                                        ? AppColors.fireSunGradient
-                                        : null,
-                                    color: _selectedCategory == idx
-                                        ? null
-                                        : AppColors.surfaceContainer,
-                                  ),
-                                  child: Center(
-                                    child: Text(
-                                      _getEmoji(category),
-                                      style: const TextStyle(fontSize: 40),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(height: AppSpacing.base),
-                              Text(
-                                category,
-                                style: GoogleFonts.plusJakartaSans(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w500,
-                                  color: _selectedCategory == idx
-                                      ? AppColors.primary
-                                      : AppColors.onSurfaceVariant,
-                                ),
-                              ),
-                            ],
-                          ),
-                        );
-                      }).toList(),
+                      itemCount: _categories.length,
+                      separatorBuilder: (_, __) => const SizedBox(width: AppSpacing.md),
+                      itemBuilder: (context, index) => _CategoryChip(
+                        category: _categories[index],
+                        isSelected: _selectedCategory == index,
+                        onTap: () => setState(() => _selectedCategory = index),
+                      ),
                     ),
                   ),
                   const SizedBox(height: AppSpacing.xl),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Trending Now',
-                        style: GoogleFonts.epilogue(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.onSurface,
-                        ),
-                      ),
-                      TextButton(
-                        onPressed: () {},
-                        child: Text(
-                          'View All',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.primary,
-                          ),
-                        ),
-                      ),
-                    ],
+                  _SectionHeader(
+                    title: 'Trending Now',
+                    actionLabel: 'View All',
+                    onPressed: () => context.push(AppRoutes.explore),
                   ),
                 ],
               ),
             ),
           ),
-          SliverList(
-            delegate: SliverChildBuilderDelegate(
-              (context, index) {
-                return Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.lg,
-                    vertical: AppSpacing.md,
-                  ),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(16),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacityValue(0.08),
-                          blurRadius: 0,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
+          SliverPadding(
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+            sliver: SliverList(
+              delegate: SliverChildBuilderDelegate(
+                (context, index) => Padding(
+                  padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                  child: _RestaurantCard(restaurant: _restaurants[index]),
+                ),
+                childCount: _restaurants.length,
+              ),
+            ),
+          ),
+          const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.lg)),
+        ],
+      ),
+    );
+  }
+}
+
+class _SectionHeader extends StatelessWidget {
+  const _SectionHeader({
+    required this.title,
+    required this.actionLabel,
+    required this.onPressed,
+  });
+
+  final String title;
+  final String actionLabel;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(title, style: AppTextStyles.sectionTitle()),
+        TextButton(
+          onPressed: onPressed,
+          child: Text(actionLabel, style: AppTextStyles.actionLink()),
+        ),
+      ],
+    );
+  }
+}
+
+class _CategoryChip extends StatelessWidget {
+  const _CategoryChip({
+    required this.category,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  final _Category category;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        GestureDetector(
+          onTap: onTap,
+          child: Container(
+            width: 80,
+            height: 80,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: isSelected ? AppColors.fireSunGradient : null,
+              color: isSelected ? null : AppColors.surfaceContainer,
+            ),
+            child: Icon(
+              category.icon,
+              size: 34,
+              color: isSelected ? Colors.white : AppColors.primary,
+            ),
+          ),
+        ),
+        const SizedBox(height: AppSpacing.base),
+        Text(
+          category.label,
+          style: AppTextStyles.labelSm().copyWith(
+            color: isSelected ? AppColors.primary : AppColors.onSurfaceVariant,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _RestaurantCard extends StatelessWidget {
+  const _RestaurantCard({required this.restaurant});
+
+  final _Restaurant restaurant;
+
+  @override
+  Widget build(BuildContext context) {
+    return OutlinedCard(
+      backgroundColor: Colors.white,
+      borderRadius: 16,
+      borderColor: Colors.transparent,
+      padding: EdgeInsets.zero,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            height: 180,
+            decoration: const BoxDecoration(
+              color: AppColors.primaryContainer,
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(16),
+                topRight: Radius.circular(16),
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(AppSpacing.lg),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(restaurant.name, style: AppTextStyles.sectionTitle()),
+                const SizedBox(height: AppSpacing.sm),
+                Row(
+                  children: [
+                    const Icon(Icons.star_rounded, color: Color(0xFFFFC107), size: 18),
+                    const SizedBox(width: AppSpacing.xs),
+                    Text(
+                      '${restaurant.rating} · ${restaurant.reviews}',
+                      style: AppTextStyles.labelSm().copyWith(
+                        color: AppColors.onSurfaceVariant,
+                      ),
                     ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        ClipRRect(
-                          borderRadius: const BorderRadius.only(
-                            topLeft: Radius.circular(16),
-                            topRight: Radius.circular(16),
-                          ),
-                          child: Image.network(
-                            'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&h=300&fit=crop',
-                            height: 180,
-                            width: double.infinity,
-                            fit: BoxFit.cover,
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.all(AppSpacing.lg),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Premium Restaurant ${index + 1}',
-                                style: GoogleFonts.epilogue(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w700,
-                                  color: AppColors.onSurface,
-                                ),
-                              ),
-                              const SizedBox(height: AppSpacing.sm),
-                              Row(
-                                children: [
-                                  const Icon(Icons.star_rounded,
-                                      color: Color(0xFFFFC107), size: 18),
-                                  const SizedBox(width: AppSpacing.xs),
-                                  Text(
-                                    '4.${5 + index} · 50+ reviews',
-                                    style: GoogleFonts.plusJakartaSans(
-                                      fontSize: 12,
-                                      color: AppColors.onSurfaceVariant,
-                                    ),
-                                  ),
-                                  const Spacer(),
-                                  Text(
-                                    '₦${1500 + index * 200}',
-                                    style: GoogleFonts.epilogue(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w700,
-                                      color: AppColors.primary,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: AppSpacing.md),
-                              Row(
-                                children: [
-                                  Icon(Icons.location_on_outlined,
-                                      color: AppColors.primary, size: 16),
-                                  const SizedBox(width: AppSpacing.xs),
-                                  Expanded(
-                                    child: Text(
-                                      '${2 + index} km away',
-                                      style: GoogleFonts.plusJakartaSans(
-                                        fontSize: 12,
-                                        color: AppColors.onSurfaceVariant,
-                                      ),
-                                    ),
-                                  ),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: AppSpacing.md,
-                                      vertical: AppSpacing.xs,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: AppColors.primaryContainer,
-                                      borderRadius: BorderRadius.circular(20),
-                                    ),
-                                    child: Text(
-                                      'Order',
-                                      style: GoogleFonts.plusJakartaSans(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w700,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
+                    const Spacer(),
+                    Text(
+                      restaurant.price,
+                      style: AppTextStyles.cardTitleSm().copyWith(
+                        color: AppColors.primary,
+                      ),
                     ),
-                  ),
-                );
-              },
-              childCount: 6,
+                  ],
+                ),
+                const SizedBox(height: AppSpacing.md),
+                Row(
+                  children: [
+                    const Icon(Icons.location_on_outlined, color: AppColors.primary, size: 16),
+                    const SizedBox(width: AppSpacing.xs),
+                    Expanded(
+                      child: Text(
+                        restaurant.distance,
+                        style: AppTextStyles.labelSm().copyWith(
+                          color: AppColors.onSurfaceVariant,
+                        ),
+                      ),
+                    ),
+                    PrimaryButton(
+                      label: 'Order',
+                      onPressed: () => context.push(AppRoutes.checkout),
+                      fullWidth: false,
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
         ],
       ),
     );
   }
+}
 
-  String _getEmoji(String category) {
-    switch (category) {
-      case 'Burgers':
-        return '🍔';
-      case 'Pizza':
-        return '🍕';
-      case 'Sushi':
-        return '🍣';
-      case 'African':
-        return '🍲';
-      case 'Desserts':
-        return '🍰';
-      default:
-        return '🍽️';
-    }
-  }
+class _Category {
+  const _Category({required this.label, required this.icon});
+
+  final String label;
+  final IconData icon;
+}
+
+class _Restaurant {
+  const _Restaurant({
+    required this.name,
+    required this.rating,
+    required this.reviews,
+    required this.price,
+    required this.distance,
+  });
+
+  final String name;
+  final String rating;
+  final String reviews;
+  final String price;
+  final String distance;
 }

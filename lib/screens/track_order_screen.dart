@@ -1,82 +1,53 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import '../config/theme.dart';
+import '../widgets/app_cards.dart';
+import '../widgets/app_misc.dart';
+import '../widgets/app_scaffold.dart';
 
 class TrackOrderScreenFull extends StatelessWidget {
   const TrackOrderScreenFull({super.key});
 
+  static const String _courierImageUrl =
+      'https://lh3.googleusercontent.com/aida-public/AB6AXuAFRHg36EQATUqDhYD94R_K05G_f_-4ocNsdVBQUVTX8xvKbpdmSknU7GmZePTgv4lBF85k0RDyrmnlfs2PK53uCy3GJCX-D--qbu1fE71RUty6lSxYRFbaGWOOlbJXVqBEcr0UyXTpyWdZPmjRyEUF1OHHnMx-xCvUUimbd_auXDxH-k66vULm46he9xSs-oD00XaZzS3nF9H6yAXrF6_RTe3YZfKuK56TfbmvM9woXHeOrwZGm0mMP7mewgHD325vsNshlQvqaSTD';
+
+  static const List<_TimelineStep> _steps = [
+    _TimelineStep(label: 'Order Confirmed', isCompleted: true, hasConnector: true),
+    _TimelineStep(label: 'Preparing', isCompleted: true, hasConnector: true),
+    _TimelineStep(label: 'Out for Delivery', isCompleted: true, hasConnector: false),
+    _TimelineStep(label: 'Delivered', isCompleted: false, hasConnector: false),
+  ];
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.surface,
-      appBar: AppBar(
-        title: Text(
-          'Track Order',
-          style: GoogleFonts.epilogue(
-            fontSize: 24,
-            fontWeight: FontWeight.w700,
-            color: AppColors.onSurface,
-          ),
-        ),
-        backgroundColor: AppColors.surface,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.onSurface),
-          onPressed: () => Navigator.pop(context),
-        ),
-      ),
+    return AppScaffold(
+      title: 'Track Order',
+      showBackButton: true,
       body: ListView(
         padding: const EdgeInsets.all(AppSpacing.lg),
         children: [
-          // Order Card
-          Container(
-            padding: const EdgeInsets.all(AppSpacing.lg),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppColors.outlineVariant),
-            ),
+          OutlinedCard(
+            backgroundColor: Colors.white,
+            borderRadius: 16,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      'Order #45782',
-                      style: GoogleFonts.epilogue(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: AppSpacing.base,
-                        vertical: AppSpacing.xs,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppColors.secondaryContainer,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Text(
-                        'On the way',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.onSurface,
-                        ),
-                      ),
+                    Text('Order #45782', style: AppTextStyles.cardTitle()),
+                    const StatusPill(
+                      label: 'On the way',
+                      backgroundColor: AppColors.secondaryContainer,
+                      foregroundColor: AppColors.onSurface,
                     ),
                   ],
                 ),
                 const SizedBox(height: AppSpacing.lg),
-                _buildProgressTimeline(),
+                for (final step in _steps) _TimelineStepRow(step: step),
               ],
             ),
           ),
           const SizedBox(height: AppSpacing.xl),
-          // Delivery Person Card
           Container(
             padding: const EdgeInsets.all(AppSpacing.lg),
             decoration: BoxDecoration(
@@ -85,18 +56,9 @@ class TrackOrderScreenFull extends StatelessWidget {
             ),
             child: Row(
               children: [
-                CachedNetworkImage(
-                  imageUrl:
-                      'https://lh3.googleusercontent.com/aida-public/AB6AXuAFRHg36EQATUqDhYD94R_K05G_f_-4ocNsdVBQUVTX8xvKbpdmSknU7GmZePTgv4lBF85k0RDyrmnlfs2PK53uCy3GJCX-D--qbu1fE71RUty6lSxYRFbaGWOOlbJXVqBEcr0UyXTpyWdZPmjRyEUF1OHHnMx-xCvUUimbd_auXDxH-k66vULm46he9xSs-oD00XaZzS3nF9H6yAXrF6_RTe3YZfKuK56TfbmvM9woXHeOrwZGm0mMP7mewgHD325vsNshlQvqaSTD',
-                  imageBuilder: (context, imageProvider) =>
-                      CircleAvatar(
-                    backgroundImage: imageProvider,
-                    radius: 35,
-                  ),
-                  placeholder: (context, url) =>
-                      const CircleAvatar(radius: 35),
-                  errorWidget: (context, url, error) =>
-                      const CircleAvatar(radius: 35),
+                const NetworkAvatar(
+                  imageUrl: _courierImageUrl,
+                  radius: 35,
                 ),
                 const SizedBox(width: AppSpacing.lg),
                 Expanded(
@@ -105,29 +67,23 @@ class TrackOrderScreenFull extends StatelessWidget {
                     children: [
                       Text(
                         'Delivery Partner',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 12,
+                        style: AppTextStyles.labelSm().copyWith(
                           color: Colors.white.withOpacityValue(0.8),
                         ),
                       ),
                       Text(
                         'Yusuf Adeyemi',
-                        style: GoogleFonts.epilogue(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
+                        style: AppTextStyles.cardTitle().copyWith(
                           color: Colors.white,
                         ),
                       ),
                       Row(
                         children: [
-                          const Icon(Icons.star,
-                              size: 14,
-                              color: Colors.white),
+                          const Icon(Icons.star, size: 14, color: Colors.white),
                           const SizedBox(width: AppSpacing.xs),
                           Text(
                             '4.9',
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 12,
+                            style: AppTextStyles.labelSm().copyWith(
                               color: Colors.white,
                             ),
                           ),
@@ -144,28 +100,21 @@ class TrackOrderScreenFull extends StatelessWidget {
             ),
           ),
           const SizedBox(height: AppSpacing.xl),
-          // Estimated Arrival
-          Container(
-            padding: const EdgeInsets.all(AppSpacing.lg),
-            decoration: BoxDecoration(
-              color: AppColors.surfaceContainer,
-              borderRadius: BorderRadius.circular(16),
-            ),
+          OutlinedCard(
+            backgroundColor: AppColors.surfaceContainer,
+            borderRadius: 16,
             child: Column(
               children: [
                 Text(
                   'Estimated Arrival',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 12,
+                  style: AppTextStyles.labelSm().copyWith(
                     color: AppColors.onSurfaceVariant,
                   ),
                 ),
                 const SizedBox(height: AppSpacing.base),
                 Text(
                   '12 minutes',
-                  style: GoogleFonts.epilogue(
-                    fontSize: 32,
-                    fontWeight: FontWeight.w700,
+                  style: AppTextStyles.h2().copyWith(
                     color: AppColors.primary,
                   ),
                 ),
@@ -176,54 +125,65 @@ class TrackOrderScreenFull extends StatelessWidget {
       ),
     );
   }
+}
 
-  Widget _buildProgressTimeline() {
-    return Column(
-      children: [
-        _buildTimelineStep('Order Confirmed', true, true),
-        _buildTimelineStep('Preparing', true, true),
-        _buildTimelineStep('Out for Delivery', true, false),
-        _buildTimelineStep('Delivered', false, false),
-      ],
-    );
-  }
+class _TimelineStepRow extends StatelessWidget {
+  const _TimelineStepRow({required this.step});
 
-  Widget _buildTimelineStep(String label, bool isCompleted, bool hasConnector) {
-    return Row(
-      children: [
-        Column(
-          children: [
-            Container(
-              width: 20,
-              height: 20,
-              decoration: BoxDecoration(
-                color: isCompleted ? AppColors.primary : AppColors.outlineVariant,
-                borderRadius: BorderRadius.circular(50),
-              ),
-              child: isCompleted
-                  ? const Icon(Icons.check, size: 12, color: Colors.white)
-                  : null,
-            ),
-            if (hasConnector)
+  final _TimelineStep step;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.base),
+      child: Row(
+        children: [
+          Column(
+            children: [
               Container(
-                width: 2,
-                height: 40,
-                color: AppColors.primary,
+                width: 20,
+                height: 20,
+                decoration: BoxDecoration(
+                  color: step.isCompleted
+                      ? AppColors.primary
+                      : AppColors.outlineVariant,
+                  borderRadius: BorderRadius.circular(AppRadii.full),
+                ),
+                child: step.isCompleted
+                    ? const Icon(Icons.check, size: 12, color: Colors.white)
+                    : null,
               ),
-          ],
-        ),
-        const SizedBox(width: AppSpacing.lg),
-        Text(
-          label,
-          style: GoogleFonts.plusJakartaSans(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-            color: isCompleted
-                ? AppColors.onSurface
-                : AppColors.onSurfaceVariant,
+              if (step.hasConnector)
+                Container(
+                  width: 2,
+                  height: 40,
+                  color: AppColors.primary,
+                ),
+            ],
           ),
-        ),
-      ],
+          const SizedBox(width: AppSpacing.lg),
+          Text(
+            step.label,
+            style: AppTextStyles.labelBold().copyWith(
+              color: step.isCompleted
+                  ? AppColors.onSurface
+                  : AppColors.onSurfaceVariant,
+            ),
+          ),
+        ],
+      ),
     );
   }
+}
+
+class _TimelineStep {
+  const _TimelineStep({
+    required this.label,
+    required this.isCompleted,
+    required this.hasConnector,
+  });
+
+  final String label;
+  final bool isCompleted;
+  final bool hasConnector;
 }

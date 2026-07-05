@@ -1,44 +1,30 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../config/theme.dart';
+import '../widgets/app_cards.dart';
+import '../widgets/app_scaffold.dart';
 
-class ExploreScreen extends StatefulWidget {
+class ExploreScreen extends StatelessWidget {
   const ExploreScreen({super.key});
 
-  @override
-  State<ExploreScreen> createState() => _ExploreScreenState();
-}
+  static const List<_Dish> _dishes = [
+    _Dish(name: 'Smoky Party Jollof', price: 'NGN 2,500'),
+    _Dish(name: 'Grilled Chicken Bowl', price: 'NGN 3,200'),
+    _Dish(name: 'Pepper Soup Pot', price: 'NGN 2,900'),
+    _Dish(name: 'Suya Rice Special', price: 'NGN 3,100'),
+    _Dish(name: 'Amala Feast', price: 'NGN 2,700'),
+    _Dish(name: 'Burger & Fries Box', price: 'NGN 3,400'),
+  ];
 
-class _ExploreScreenState extends State<ExploreScreen> {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.surface,
-      appBar: AppBar(
-        title: Text(
-          'Explore',
-          style: GoogleFonts.epilogue(
-            fontSize: 24,
-            fontWeight: FontWeight.w700,
-            color: AppColors.onSurface,
-          ),
-        ),
-        backgroundColor: AppColors.surface,
-        elevation: 0,
-      ),
+    return AppScaffold(
+      title: 'Explore',
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(AppSpacing.lg),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Explore Popular Dishes',
-              style: GoogleFonts.epilogue(
-                fontSize: 20,
-                fontWeight: FontWeight.w700,
-                color: AppColors.onSurface,
-              ),
-            ),
+            const SectionTitle('Explore Popular Dishes'),
             const SizedBox(height: AppSpacing.lg),
             GridView.builder(
               shrinkWrap: true,
@@ -49,66 +35,66 @@ class _ExploreScreenState extends State<ExploreScreen> {
                 mainAxisSpacing: AppSpacing.lg,
                 childAspectRatio: 0.8,
               ),
-              itemCount: 6,
-              itemBuilder: (context, index) {
-                return Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.05),
-                        blurRadius: 0,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Container(
-                        height: 120,
-                        decoration: BoxDecoration(
-                          borderRadius: const BorderRadius.only(
-                            topLeft: Radius.circular(16),
-                            topRight: Radius.circular(16),
-                          ),
-                          color: AppColors.primaryContainer,
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.all(AppSpacing.base),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Delicious Dish',
-                              style: GoogleFonts.epilogue(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w700,
-                                color: AppColors.onSurface,
-                              ),
-                            ),
-                            const SizedBox(height: AppSpacing.xs),
-                            Text(
-                              '₦2,500',
-                              style: GoogleFonts.epilogue(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w700,
-                                color: AppColors.primary,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              },
+              itemCount: _dishes.length,
+              itemBuilder: (context, index) => _DishCard(dish: _dishes[index]),
             ),
           ],
         ),
       ),
     );
   }
+}
+
+class _DishCard extends StatelessWidget {
+  const _DishCard({required this.dish});
+
+  final _Dish dish;
+
+  @override
+  Widget build(BuildContext context) {
+    return OutlinedCard(
+      backgroundColor: Colors.white,
+      borderRadius: 16,
+      borderColor: Colors.transparent,
+      padding: EdgeInsets.zero,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            height: 120,
+            decoration: const BoxDecoration(
+              color: AppColors.primaryContainer,
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(16),
+                topRight: Radius.circular(16),
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(AppSpacing.base),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(dish.name, style: AppTextStyles.cardTitleSm()),
+                const SizedBox(height: AppSpacing.xs),
+                Text(
+                  dish.price,
+                  style: AppTextStyles.cardTitle().copyWith(
+                    color: AppColors.primary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _Dish {
+  const _Dish({required this.name, required this.price});
+
+  final String name;
+  final String price;
 }

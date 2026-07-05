@@ -1,11 +1,11 @@
-import 'package:chowflow/screens/login.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:go_router/go_router.dart';
+import '../app/app_router.dart';
 import '../config/theme.dart';
+import '../widgets/app_cards.dart';
 import 'onboarding_page1.dart';
 import 'onboarding_page2.dart';
 import 'onboarding_page3.dart';
-import 'main_app.dart';
 
 class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({super.key});
@@ -15,8 +15,22 @@ class WelcomeScreen extends StatefulWidget {
 }
 
 class _WelcomeScreenState extends State<WelcomeScreen> {
+  static const List<Widget> _pages = [
+    OnboardingPage1(),
+    OnboardingPage2(),
+    OnboardingPage3(),
+  ];
+
   late PageController _pageController;
   int _currentPage = 0;
+
+  void _openMainApp() {
+    context.go(AppRoutes.mainApp);
+  }
+
+  void _openLogin() {
+    context.push(AppRoutes.login);
+  }
 
   @override
   void initState() {
@@ -40,11 +54,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
             onPageChanged: (index) {
               setState(() => _currentPage = index);
             },
-            children: const [
-              OnboardingPage1(),
-              OnboardingPage2(),
-              OnboardingPage3(),
-            ],
+            children: _pages,
           ),
           Positioned(
             top: 0,
@@ -57,26 +67,16 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
               titleSpacing: AppSpacing.lg,
               title: Text(
                 'ChowFlow',
-                style: GoogleFonts.epilogue(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w800,
+                style: AppTextStyles.h3().copyWith(
                   color: AppColors.primary,
                 ),
               ),
               actions: [
                 TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pushReplacement(
-                      MaterialPageRoute(
-                        builder: (context) => const MainAppScreen(),
-                      ),
-                    );
-                  },
+                  onPressed: _openMainApp,
                   child: Text(
                     'Skip',
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
+                    style: AppTextStyles.labelBold().copyWith(
                       color: AppColors.primary,
                     ),
                   ),
@@ -96,8 +96,9 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: List.generate(
-                      3,
-                      (index) => Container(
+                      _pages.length,
+                      (index) => AnimatedContainer(
+                        duration: const Duration(milliseconds: 180),
                         width: index == _currentPage ? 32 : 8,
                         height: 8,
                         margin: const EdgeInsets.symmetric(
@@ -113,50 +114,14 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                     ),
                   ),
                   const SizedBox(height: AppSpacing.xl),
-                  Container(
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      gradient: AppColors.fireSunGradient,
-                      borderRadius: BorderRadius.circular(50),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.primary.withOpacityValue(0.3),
-                          blurRadius: 30,
-                          offset: const Offset(0, 8),
-                        ),
-                      ],
+                  GradientActionButton(
+                    label: 'Get Started',
+                    onPressed: _openMainApp,
+                    icon: const Icon(
+                      Icons.arrow_forward,
+                      color: AppColors.onPrimary,
                     ),
-                    child: Material(
-                      color: Colors.transparent,
-                      child: InkWell(
-                        onTap: () {
-                          Navigator.of(context).pushReplacement(
-                            MaterialPageRoute(
-                              builder: (context) => const MainAppScreen(),
-                            ),
-                          );
-                        },
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 20),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                'Get Started',
-                                style: GoogleFonts.epilogue(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w700,
-                                  color: AppColors.onPrimary,
-                                ),
-                              ),
-                              const SizedBox(width: AppSpacing.base),
-                              const Icon(Icons.arrow_forward,
-                                  color: AppColors.onPrimary),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
+                    fontSize: 18,
                   ),
                   const SizedBox(height: AppSpacing.lg),
                   RichText(
@@ -164,36 +129,24 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                       children: [
                         TextSpan(
                           text: 'Already have an account? ',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 12,
+                          style: AppTextStyles.labelSm().copyWith(
                             color: AppColors.onSurfaceVariant,
                           ),
                         ),
-                          WidgetSpan(
-                            child: TextButton(  
-                              onPressed: () {
-                                // TODO: Navigate to login screen
-                                // Navigator.of(context).pushNamed('/login');
-                                // or use:
-                                Navigator.of(context).push(
-                                  MaterialPageRoute(builder: (context) => LoginScreen()),
-                                );
-                              },
-                              style: TextButton.styleFrom(
-                                padding: EdgeInsets.zero,
-                                minimumSize: Size.zero,
-                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                              ),
-                              child: Text(
-                                'Log In',
-                                style: GoogleFonts.plusJakartaSans(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w700,
-                                  color: AppColors.primary,
-                                ),
-                              ),
+                        WidgetSpan(
+                          child: TextButton(
+                            onPressed: _openLogin,
+                            style: TextButton.styleFrom(
+                              padding: EdgeInsets.zero,
+                              minimumSize: Size.zero,
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            ),
+                            child: Text(
+                              'Log In',
+                              style: AppTextStyles.actionLink(),
                             ),
                           ),
+                        ),
                       ],
                     ),
                   ),

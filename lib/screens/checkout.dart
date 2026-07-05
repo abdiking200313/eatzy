@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../config/theme.dart';
+import '../widgets/app_cards.dart';
+import '../widgets/app_misc.dart';
+import '../widgets/app_scaffold.dart';
 
 class CheckoutScreenFull extends StatefulWidget {
   const CheckoutScreenFull({super.key});
@@ -10,57 +12,46 @@ class CheckoutScreenFull extends StatefulWidget {
 }
 
 class _CheckoutScreenFullState extends State<CheckoutScreenFull> {
+  static const List<_CheckoutItem> _items = [
+    _CheckoutItem(name: 'Jollof Rice', price: 'NGN 2,500', quantity: 2),
+    _CheckoutItem(name: 'Grilled Chicken', price: 'NGN 4,500', quantity: 1),
+    _CheckoutItem(name: 'Plantain Chips', price: 'NGN 1,500', quantity: 1),
+  ];
+
+  static const List<_PaymentChoice> _paymentOptions = [
+    _PaymentChoice(title: 'Credit Card', subtitle: 'Visa ending in 4242'),
+    _PaymentChoice(title: 'Digital Wallet', subtitle: 'Google Pay'),
+    _PaymentChoice(title: 'Cash', subtitle: 'Pay on delivery'),
+  ];
+
   int _selectedPayment = 0;
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.surface,
-      appBar: AppBar(
-        title: Text(
-          'Checkout',
-          style: GoogleFonts.epilogue(
-            fontSize: 24,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-        backgroundColor: AppColors.surface,
-        elevation: 0,
-      ),
+    return AppScaffold(
+      title: 'Checkout',
+      showBackButton: true,
       body: ListView(
         padding: const EdgeInsets.all(AppSpacing.lg),
         children: [
-          // Order Summary
-          Container(
-            padding: const EdgeInsets.all(AppSpacing.lg),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppColors.outlineVariant),
-            ),
+          OutlinedCard(
+            backgroundColor: Colors.white,
+            borderRadius: 16,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'Order Summary',
-                  style: GoogleFonts.epilogue(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.onSurface,
-                  ),
-                ),
+                const SectionTitle('Order Summary', fontSize: 18),
                 const SizedBox(height: AppSpacing.lg),
-                _buildOrderItem('Jollof Rice', '₦2,500', 2),
-                const SizedBox(height: AppSpacing.md),
-                _buildOrderItem('Grilled Chicken', '₦4,500', 1),
-                const SizedBox(height: AppSpacing.md),
-                _buildOrderItem('Plantain Chips', '₦1,500', 1),
+                for (final item in _items) ...[
+                  _CheckoutItemRow(item: item),
+                  if (item != _items.last) const SizedBox(height: AppSpacing.md),
+                ],
                 const Divider(height: 32),
-                _buildSummaryRow('Subtotal', '₦14,500'),
+                const SummaryRow(label: 'Subtotal', value: 'NGN 14,500'),
                 const SizedBox(height: AppSpacing.md),
-                _buildSummaryRow('Tax', '₦1,450'),
+                const SummaryRow(label: 'Tax', value: 'NGN 1,450'),
                 const SizedBox(height: AppSpacing.md),
-                _buildSummaryRow('Delivery Fee', '₦1,000'),
+                const SummaryRow(label: 'Delivery Fee', value: 'NGN 1,000'),
                 const SizedBox(height: AppSpacing.md),
                 Container(
                   padding: const EdgeInsets.all(AppSpacing.md),
@@ -70,19 +61,13 @@ class _CheckoutScreenFullState extends State<CheckoutScreenFull> {
                   ),
                   child: Row(
                     children: [
-                      const Icon(Icons.local_offer_outlined,
-                          color: AppColors.primary),
+                      const Icon(Icons.local_offer_outlined, color: AppColors.primary),
                       const SizedBox(width: AppSpacing.sm),
                       Expanded(
                         child: TextField(
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 14,
-                            color: AppColors.onSurface,
-                          ),
                           decoration: InputDecoration(
                             hintText: 'Enter promo code',
-                            hintStyle: GoogleFonts.plusJakartaSans(
-                              fontSize: 12,
+                            hintStyle: AppTextStyles.labelSm().copyWith(
                               color: AppColors.onSurfaceVariant,
                             ),
                             border: InputBorder.none,
@@ -91,86 +76,39 @@ class _CheckoutScreenFullState extends State<CheckoutScreenFull> {
                       ),
                       TextButton(
                         onPressed: () {},
-                        child: Text(
-                          'Apply',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.primary,
-                          ),
-                        ),
+                        child: Text('Apply', style: AppTextStyles.actionLink()),
                       ),
                     ],
                   ),
                 ),
                 const SizedBox(height: AppSpacing.lg),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.md,
-                    vertical: AppSpacing.md,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppColors.surfaceContainerLow,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Total',
-                        style: GoogleFonts.epilogue(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.onSurface,
-                        ),
-                      ),
-                      Text(
-                        '₦16,950',
-                        style: GoogleFonts.epilogue(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.primary,
-                        ),
-                      ),
-                    ],
+                OutlinedCard(
+                  backgroundColor: AppColors.surfaceContainerLow,
+                  borderColor: Colors.transparent,
+                  borderRadius: 12,
+                  child: const SummaryRow(
+                    label: 'Total',
+                    value: 'NGN 16,950',
+                    isBold: true,
                   ),
                 ),
               ],
             ),
           ),
           const SizedBox(height: AppSpacing.xl),
-          // Delivery Address
-          Container(
-            padding: const EdgeInsets.all(AppSpacing.lg),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppColors.outlineVariant),
-            ),
+          OutlinedCard(
+            backgroundColor: Colors.white,
+            borderRadius: 16,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      'Delivery Address',
-                      style: GoogleFonts.epilogue(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.onSurface,
-                      ),
-                    ),
+                    const SectionTitle('Delivery Address', fontSize: 18),
                     TextButton(
                       onPressed: () {},
-                      child: Text(
-                        'Change',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.primary,
-                        ),
-                      ),
+                      child: Text('Change', style: AppTextStyles.actionLink()),
                     ),
                   ],
                 ),
@@ -183,20 +121,10 @@ class _CheckoutScreenFullState extends State<CheckoutScreenFull> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            'Home',
-                            style: GoogleFonts.epilogue(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w700,
-                              color: AppColors.onSurface,
-                            ),
-                          ),
+                          Text('Home', style: AppTextStyles.cardTitleSm()),
                           Text(
                             '123 Lekki Street, Lagos',
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 12,
-                              color: AppColors.onSurfaceVariant,
-                            ),
+                            style: AppTextStyles.bodySecondary(),
                           ),
                         ],
                       ),
@@ -207,75 +135,48 @@ class _CheckoutScreenFullState extends State<CheckoutScreenFull> {
             ),
           ),
           const SizedBox(height: AppSpacing.xl),
-          // Payment Method
-          Container(
-            padding: const EdgeInsets.all(AppSpacing.lg),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppColors.outlineVariant),
-            ),
+          OutlinedCard(
+            backgroundColor: Colors.white,
+            borderRadius: 16,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'Payment Method',
-                  style: GoogleFonts.epilogue(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.onSurface,
-                  ),
-                ),
+                const SectionTitle('Payment Method', fontSize: 18),
                 const SizedBox(height: AppSpacing.lg),
-                _buildPaymentOption(0, 'Credit Card', 'Visa ending in 4242'),
-                const SizedBox(height: AppSpacing.md),
-                _buildPaymentOption(1, 'Digital Wallet', 'Google Pay'),
-                const SizedBox(height: AppSpacing.md),
-                _buildPaymentOption(2, 'Cash', 'Pay on delivery'),
+                for (final option in _paymentOptions) ...[
+                  _PaymentOptionTile(
+                    title: option.title,
+                    subtitle: option.subtitle,
+                    isSelected: _paymentOptions.indexOf(option) == _selectedPayment,
+                    onTap: () => setState(
+                      () => _selectedPayment = _paymentOptions.indexOf(option),
+                    ),
+                  ),
+                  if (option != _paymentOptions.last)
+                    const SizedBox(height: AppSpacing.md),
+                ],
               ],
             ),
           ),
           const SizedBox(height: AppSpacing.xl),
-          // Complete Order Button
-          Container(
-            width: double.infinity,
-            decoration: BoxDecoration(
-              gradient: AppColors.fireSunGradient,
-              borderRadius: BorderRadius.circular(50),
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.primary.withOpacityValue(0.3),
-                  blurRadius: 0,
-                  offset: const Offset(0, 8),
-                ),
-              ],
-            ),
-            child: Material(
-              color: Colors.transparent,
-              child: InkWell(
-                onTap: () {},
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  child: Text(
-                    'Complete Order',
-                    textAlign: TextAlign.center,
-                    style: GoogleFonts.epilogue(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-              ),
-            ),
+          GradientActionButton(
+            label: 'Complete Order',
+            onPressed: () {},
           ),
           const SizedBox(height: AppSpacing.xl),
         ],
       ),
     );
   }
+}
 
-  Widget _buildOrderItem(String name, String price, int qty) {
+class _CheckoutItemRow extends StatelessWidget {
+  const _CheckoutItemRow({required this.item});
+
+  final _CheckoutItem item;
+
+  @override
+  Widget build(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -283,72 +184,43 @@ class _CheckoutScreenFullState extends State<CheckoutScreenFull> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                name,
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                  color: AppColors.onSurface,
-                ),
-              ),
-              Text(
-                'x$qty',
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 12,
-                  color: AppColors.onSurfaceVariant,
-                ),
-              ),
+              Text(item.name, style: AppTextStyles.labelBold()),
+              Text('x${item.quantity}', style: AppTextStyles.bodySecondary()),
             ],
           ),
         ),
         Text(
-          price,
-          style: GoogleFonts.epilogue(
-            fontSize: 14,
-            fontWeight: FontWeight.w700,
-            color: AppColors.primary,
-          ),
+          item.price,
+          style: AppTextStyles.cardTitleSm().copyWith(color: AppColors.primary),
         ),
       ],
     );
   }
+}
 
-  Widget _buildSummaryRow(String label, String value) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          label,
-          style: GoogleFonts.plusJakartaSans(
-            fontSize: 14,
-            color: AppColors.onSurfaceVariant,
-          ),
-        ),
-        Text(
-          value,
-          style: GoogleFonts.epilogue(
-            fontSize: 14,
-            fontWeight: FontWeight.w700,
-            color: AppColors.onSurface,
-          ),
-        ),
-      ],
-    );
-  }
+class _PaymentOptionTile extends StatelessWidget {
+  const _PaymentOptionTile({
+    required this.title,
+    required this.subtitle,
+    required this.isSelected,
+    required this.onTap,
+  });
 
-  Widget _buildPaymentOption(int index, String title, String subtitle) {
+  final String title;
+  final String subtitle;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () => setState(() => _selectedPayment = index),
+      onTap: onTap,
       child: Container(
         padding: const EdgeInsets.all(AppSpacing.md),
         decoration: BoxDecoration(
-          color: _selectedPayment == index
-              ? AppColors.primaryContainer
-              : AppColors.surfaceContainer,
+          color: isSelected ? AppColors.primaryContainer : AppColors.surfaceContainer,
           borderRadius: BorderRadius.circular(12),
-          border: _selectedPayment == index
-              ? Border.all(color: AppColors.primary, width: 2)
-              : null,
+          border: isSelected ? Border.all(color: AppColors.primary, width: 2) : null,
         ),
         child: Row(
           children: [
@@ -358,13 +230,11 @@ class _CheckoutScreenFullState extends State<CheckoutScreenFull> {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: _selectedPayment == index
-                      ? AppColors.primary
-                      : AppColors.outline,
+                  color: isSelected ? AppColors.primary : AppColors.outline,
                   width: 2,
                 ),
               ),
-              child: _selectedPayment == index
+              child: isSelected
                   ? Center(
                       child: Container(
                         width: 12,
@@ -384,21 +254,14 @@ class _CheckoutScreenFullState extends State<CheckoutScreenFull> {
                 children: [
                   Text(
                     title,
-                    style: GoogleFonts.epilogue(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      color: _selectedPayment == index
-                          ? Colors.white
-                          : AppColors.onSurface,
+                    style: AppTextStyles.cardTitleSm().copyWith(
+                      color: isSelected ? Colors.white : AppColors.onSurface,
                     ),
                   ),
                   Text(
                     subtitle,
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 12,
-                      color: _selectedPayment == index
-                          ? Colors.white70
-                          : AppColors.onSurfaceVariant,
+                    style: AppTextStyles.labelSm().copyWith(
+                      color: isSelected ? Colors.white70 : AppColors.onSurfaceVariant,
                     ),
                   ),
                 ],
@@ -409,4 +272,26 @@ class _CheckoutScreenFullState extends State<CheckoutScreenFull> {
       ),
     );
   }
+}
+
+class _CheckoutItem {
+  const _CheckoutItem({
+    required this.name,
+    required this.price,
+    required this.quantity,
+  });
+
+  final String name;
+  final String price;
+  final int quantity;
+}
+
+class _PaymentChoice {
+  const _PaymentChoice({
+    required this.title,
+    required this.subtitle,
+  });
+
+  final String title;
+  final String subtitle;
 }

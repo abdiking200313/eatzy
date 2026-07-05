@@ -1,251 +1,216 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../config/theme.dart';
+import '../widgets/app_cards.dart';
+import '../widgets/app_scaffold.dart';
 
 class SupportScreenFull extends StatelessWidget {
   const SupportScreenFull({super.key});
 
+  static const List<_SupportTopic> _helpTopics = [
+    _SupportTopic(
+      icon: Icons.shopping_bag_outlined,
+      title: 'Orders & Delivery',
+      subtitle: 'Track orders, delivery issues',
+    ),
+    _SupportTopic(
+      icon: Icons.payment,
+      title: 'Payment & Wallet',
+      subtitle: 'Refunds, payment methods',
+    ),
+    _SupportTopic(
+      icon: Icons.restaurant,
+      title: 'Restaurants & Food',
+      subtitle: 'Menu, allergies, restaurant info',
+    ),
+    _SupportTopic(
+      icon: Icons.account_circle_outlined,
+      title: 'Account',
+      subtitle: 'Profile, login, passwords',
+    ),
+  ];
+
+  static const List<_SupportTopic> _contactOptions = [
+    _SupportTopic(
+      icon: Icons.mail_outline,
+      title: 'Email Us',
+      subtitle: 'support@chowflow.com',
+    ),
+    _SupportTopic(
+      icon: Icons.phone_outlined,
+      title: 'Call Us',
+      subtitle: '+234 XXX XXXX XXXX',
+    ),
+    _SupportTopic(
+      icon: Icons.chat_outlined,
+      title: 'Live Chat',
+      subtitle: 'Chat with our team 9AM - 9PM',
+    ),
+  ];
+
+  static const List<_FaqItem> _faqItems = [
+    _FaqItem(
+      question: 'How do I track my order?',
+      answer:
+          'You can track your order in real-time from the Track Order section. You\'ll receive updates at each stage.',
+    ),
+    _FaqItem(
+      question: 'What if my food is late?',
+      answer:
+          'If your order is delayed, contact our support team for immediate assistance and compensation.',
+    ),
+    _FaqItem(
+      question: 'Can I change my order?',
+      answer: 'You can modify your order up to 2 minutes after placing it.',
+    ),
+  ];
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.surface,
-      appBar: AppBar(
-        title: Text(
-          'Help & Support',
-          style: GoogleFonts.epilogue(
-            fontSize: 24,
-            fontWeight: FontWeight.w700,
-            color: AppColors.onSurface,
-          ),
-        ),
-        backgroundColor: AppColors.surface,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.onSurface),
-          onPressed: () => Navigator.pop(context),
-        ),
-      ),
+    return AppScaffold(
+      title: 'Help & Support',
+      showBackButton: true,
       body: ListView(
         padding: const EdgeInsets.all(AppSpacing.lg),
         children: [
-          // Quick Help Section
-          Text(
-            'How can we help?',
-            style: GoogleFonts.epilogue(
-              fontSize: 20,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
+          const SectionTitle('How can we help?'),
           const SizedBox(height: AppSpacing.lg),
-          _buildHelpCard(
-            Icons.shopping_bag_outlined,
-            'Orders & Delivery',
-            'Track orders, delivery issues',
-          ),
-          const SizedBox(height: AppSpacing.lg),
-          _buildHelpCard(
-            Icons.payment,
-            'Payment & Wallet',
-            'Refunds, payment methods',
-          ),
-          const SizedBox(height: AppSpacing.lg),
-          _buildHelpCard(
-            Icons.restaurant,
-            'Restaurants & Food',
-            'Menu, allergies, restaurant info',
-          ),
-          const SizedBox(height: AppSpacing.lg),
-          _buildHelpCard(
-            Icons.account_circle_outlined,
-            'Account',
-            'Profile, login, passwords',
-          ),
+          for (final topic in _helpTopics) ...[
+            _HelpCard(topic: topic),
+            if (topic != _helpTopics.last) const SizedBox(height: AppSpacing.lg),
+          ],
           const SizedBox(height: AppSpacing.xl),
-          // Contact Support
-          Text(
-            'Need more help?',
-            style: GoogleFonts.epilogue(
-              fontSize: 18,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
+          const SectionTitle('Need more help?', fontSize: 18),
           const SizedBox(height: AppSpacing.lg),
-          _buildContactOption(
-            Icons.mail_outline,
-            'Email Us',
-            'support@chowflow.com',
-          ),
-          const SizedBox(height: AppSpacing.lg),
-          _buildContactOption(
-            Icons.phone_outlined,
-            'Call Us',
-            '+234 XXX XXXX XXXX',
-          ),
-          const SizedBox(height: AppSpacing.lg),
-          _buildContactOption(
-            Icons.chat_outlined,
-            'Live Chat',
-            'Chat with our team 9AM - 9PM',
-          ),
+          for (final topic in _contactOptions) ...[
+            _ContactCard(topic: topic),
+            if (topic != _contactOptions.last)
+              const SizedBox(height: AppSpacing.lg),
+          ],
           const SizedBox(height: AppSpacing.xl),
-          // FAQ
-          Text(
-            'Frequently Asked Questions',
-            style: GoogleFonts.epilogue(
-              fontSize: 18,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
+          const SectionTitle('Frequently Asked Questions', fontSize: 18),
           const SizedBox(height: AppSpacing.lg),
-          _buildFAQItem(
-            'How do I track my order?',
-            'You can track your order in real-time from the Track Order section. You\'ll receive updates at each stage.',
-          ),
-          const SizedBox(height: AppSpacing.lg),
-          _buildFAQItem(
-            'What if my food is late?',
-            'If your order is delayed, contact our support team for immediate assistance and compensation.',
-          ),
-          const SizedBox(height: AppSpacing.lg),
-          _buildFAQItem(
-            'Can I change my order?',
-            'You can modify your order up to 2 minutes after placing it.',
-          ),
+          for (final faq in _faqItems) ...[
+            _FaqCard(item: faq),
+            if (faq != _faqItems.last) const SizedBox(height: AppSpacing.lg),
+          ],
         ],
       ),
     );
   }
+}
 
-  Widget _buildHelpCard(IconData icon, String title, String subtitle) {
-    return Container(
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.outlineVariant),
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: () {},
-          child: Row(
-            children: [
-              Container(
-                width: 50,
-                height: 50,
-                decoration: BoxDecoration(
-                  color: AppColors.primaryContainer.withOpacityValue(0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(icon, color: AppColors.primary),
-              ),
-              const SizedBox(width: AppSpacing.lg),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: GoogleFonts.epilogue(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    Text(
-                      subtitle,
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 12,
-                        color: AppColors.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const Icon(Icons.arrow_forward_ios, size: 16),
-            ],
+class _HelpCard extends StatelessWidget {
+  const _HelpCard({required this.topic});
+
+  final _SupportTopic topic;
+
+  @override
+  Widget build(BuildContext context) {
+    return OutlinedCard(
+      backgroundColor: Colors.white,
+      borderRadius: 16,
+      child: Row(
+        children: [
+          Container(
+            width: 50,
+            height: 50,
+            decoration: BoxDecoration(
+              color: AppColors.primaryContainer.withOpacityValue(0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(topic.icon, color: AppColors.primary),
           ),
-        ),
+          const SizedBox(width: AppSpacing.lg),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(topic.title, style: AppTextStyles.cardTitleSm()),
+                Text(
+                  topic.subtitle,
+                  style: AppTextStyles.labelSm().copyWith(
+                    color: AppColors.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const Icon(Icons.arrow_forward_ios, size: 16),
+        ],
       ),
     );
   }
+}
 
-  Widget _buildContactOption(IconData icon, String title, String value) {
+class _ContactCard extends StatelessWidget {
+  const _ContactCard({required this.topic});
+
+  final _SupportTopic topic;
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
         gradient: AppColors.fireSunGradient,
         borderRadius: BorderRadius.circular(16),
       ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: () {},
-          child: Row(
-            children: [
-              Container(
-                width: 45,
-                height: 45,
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacityValue(0.2),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(icon, color: Colors.white),
-              ),
-              const SizedBox(width: AppSpacing.lg),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: GoogleFonts.epilogue(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.white,
-                      ),
-                    ),
-                    Text(
-                      value,
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 12,
-                        color: Colors.white.withOpacityValue(0.8),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const Icon(Icons.arrow_forward_ios,
-                  size: 16, color: Colors.white),
-            ],
+      child: Row(
+        children: [
+          Container(
+            width: 45,
+            height: 45,
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacityValue(0.2),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(topic.icon, color: Colors.white),
           ),
-        ),
+          const SizedBox(width: AppSpacing.lg),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  topic.title,
+                  style: AppTextStyles.cardTitleSm().copyWith(
+                    color: Colors.white,
+                  ),
+                ),
+                Text(
+                  topic.subtitle,
+                  style: AppTextStyles.labelSm().copyWith(
+                    color: Colors.white.withOpacityValue(0.8),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.white),
+        ],
       ),
     );
   }
+}
 
-  Widget _buildFAQItem(String question, String answer) {
-    return Container(
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.outlineVariant),
-      ),
+class _FaqCard extends StatelessWidget {
+  const _FaqCard({required this.item});
+
+  final _FaqItem item;
+
+  @override
+  Widget build(BuildContext context) {
+    return OutlinedCard(
+      backgroundColor: Colors.white,
+      borderRadius: 12,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            question,
-            style: GoogleFonts.epilogue(
-              fontSize: 14,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
+          Text(item.question, style: AppTextStyles.cardTitleSm()),
           const SizedBox(height: AppSpacing.base),
           Text(
-            answer,
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: 12,
+            item.answer,
+            style: AppTextStyles.labelSm().copyWith(
               color: AppColors.onSurfaceVariant,
               height: 1.5,
             ),
@@ -254,4 +219,26 @@ class SupportScreenFull extends StatelessWidget {
       ),
     );
   }
+}
+
+class _SupportTopic {
+  const _SupportTopic({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+  });
+
+  final IconData icon;
+  final String title;
+  final String subtitle;
+}
+
+class _FaqItem {
+  const _FaqItem({
+    required this.question,
+    required this.answer,
+  });
+
+  final String question;
+  final String answer;
 }

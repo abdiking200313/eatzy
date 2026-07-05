@@ -137,6 +137,7 @@ class AppTextField extends StatefulWidget {
   final TextEditingController? controller;
   final TextInputType keyboardType;
   final IconData? prefixIcon;
+  final bool obscureText;
 
   const AppTextField({
     super.key,
@@ -144,6 +145,7 @@ class AppTextField extends StatefulWidget {
     this.controller,
     this.keyboardType = TextInputType.text,
     this.prefixIcon,
+    this.obscureText = false,
   });
 
   @override
@@ -171,6 +173,7 @@ class _AppTextFieldState extends State<AppTextField> {
       controller: widget.controller,
       keyboardType: widget.keyboardType,
       focusNode: _focusNode,
+      obscureText: widget.obscureText,
       decoration: InputDecoration(
         hintText: widget.hint,
         hintStyle: AppTextStyles.bodyMd().copyWith(

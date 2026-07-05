@@ -1,326 +1,242 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:go_router/go_router.dart';
+import '../app/app_router.dart';
 import '../config/theme.dart';
+import '../widgets/app_cards.dart';
+import '../widgets/app_misc.dart';
+import '../widgets/app_scaffold.dart';
 
 class OrdersScreenFull extends StatefulWidget {
-  const OrdersScreenFull({Key? key}) : super(key: key);
+  const OrdersScreenFull({super.key});
 
   @override
   State<OrdersScreenFull> createState() => _OrdersScreenFullState();
 }
 
 class _OrdersScreenFullState extends State<OrdersScreenFull> {
+  static const List<_Order> _activeOrders = [
+    _Order(
+      id: '1000',
+      vendor: 'Pizza Palace',
+      amount: 'USD 25.99',
+      status: 'In Progress',
+      isActive: true,
+    ),
+    _Order(
+      id: '1001',
+      vendor: 'Pizza Palace',
+      amount: 'USD 30.99',
+      status: 'In Progress',
+      isActive: true,
+    ),
+    _Order(
+      id: '1002',
+      vendor: 'Pizza Palace',
+      amount: 'USD 35.99',
+      status: 'In Progress',
+      isActive: true,
+    ),
+  ];
+
+  static const List<_Order> _completedOrders = [
+    _Order(
+      id: '2000',
+      vendor: 'Burger House',
+      amount: 'USD 30.99',
+      status: 'Delivered',
+    ),
+    _Order(
+      id: '2001',
+      vendor: 'Burger House',
+      amount: 'USD 38.99',
+      status: 'Delivered',
+    ),
+    _Order(
+      id: '2002',
+      vendor: 'Burger House',
+      amount: 'USD 46.99',
+      status: 'Delivered',
+    ),
+    _Order(
+      id: '2003',
+      vendor: 'Burger House',
+      amount: 'USD 54.99',
+      status: 'Delivered',
+    ),
+    _Order(
+      id: '2004',
+      vendor: 'Burger House',
+      amount: 'USD 62.99',
+      status: 'Delivered',
+    ),
+  ];
+
   int _selectedTabIndex = 0;
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.surface,
-      appBar: AppBar(
-        backgroundColor: AppColors.surface,
-        elevation: 0,
-        centerTitle: false,
-        title: Text(
-          'Orders',
-          style: GoogleFonts.epilogue(
-            fontSize: 28,
-            fontWeight: FontWeight.w700,
-            color: AppColors.onSurface,
-          ),
-        ),
-        foregroundColor: AppColors.onSurface,
-      ),
+    final selectedOrders =
+        _selectedTabIndex == 0 ? _activeOrders : _completedOrders;
+
+    return AppScaffold(
+      title: 'Orders',
       body: Column(
         children: [
-          // Tab buttons
-          Container(
+          Padding(
             padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-            decoration: BoxDecoration(
-              border: Border(
-                bottom: BorderSide(
-                  color: AppColors.outlineVariant,
-                  width: 1,
-                ),
-              ),
-            ),
             child: Row(
               children: [
                 Expanded(
-                  child: GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        _selectedTabIndex = 0;
-                      });
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
-                      decoration: BoxDecoration(
-                        border: Border(
-                          bottom: BorderSide(
-                            color: _selectedTabIndex == 0
-                                ? AppColors.primary
-                                : Colors.transparent,
-                            width: 2,
-                          ),
-                        ),
-                      ),
-                      child: Center(
-                        child: Text(
-                          'Active',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: _selectedTabIndex == 0
-                                ? AppColors.primary
-                                : AppColors.onSurfaceVariant,
-                          ),
-                        ),
-                      ),
-                    ),
+                  child: _OrdersTab(
+                    label: 'Active',
+                    isSelected: _selectedTabIndex == 0,
+                    onTap: () => setState(() => _selectedTabIndex = 0),
                   ),
                 ),
                 Expanded(
-                  child: GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        _selectedTabIndex = 1;
-                      });
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
-                      decoration: BoxDecoration(
-                        border: Border(
-                          bottom: BorderSide(
-                            color: _selectedTabIndex == 1
-                                ? AppColors.primary
-                                : Colors.transparent,
-                            width: 2,
-                          ),
-                        ),
-                      ),
-                      child: Center(
-                        child: Text(
-                          'Completed',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: _selectedTabIndex == 1
-                                ? AppColors.primary
-                                : AppColors.onSurfaceVariant,
-                          ),
-                        ),
-                      ),
-                    ),
+                  child: _OrdersTab(
+                    label: 'Completed',
+                    isSelected: _selectedTabIndex == 1,
+                    onTap: () => setState(() => _selectedTabIndex = 1),
                   ),
                 ),
               ],
             ),
           ),
-          // Content
           Expanded(
-            child: _selectedTabIndex == 0
-                ? _buildActiveOrdersList()
-                : _buildCompletedOrdersList(),
+            child: ListView.separated(
+              padding: const EdgeInsets.all(AppSpacing.md),
+              itemCount: selectedOrders.length,
+              separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.md),
+              itemBuilder: (context, index) => _OrderCard(
+                order: selectedOrders[index],
+              ),
+            ),
           ),
         ],
       ),
     );
   }
+}
 
-  Widget _buildActiveOrdersList() {
-    return ListView.builder(
-      padding: const EdgeInsets.all(AppSpacing.md),
-      itemCount: 3,
-      itemBuilder: (context, index) {
-        return Container(
-          margin: const EdgeInsets.only(bottom: AppSpacing.md),
-          decoration: BoxDecoration(
-            color: AppColors.surfaceContainerLow,
-            border: Border.all(
-              color: AppColors.outlineVariant,
-              width: 1,
+class _OrdersTab extends StatelessWidget {
+  const _OrdersTab({
+    required this.label,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+        decoration: BoxDecoration(
+          border: Border(
+            bottom: BorderSide(
+              color: isSelected ? AppColors.primary : Colors.transparent,
+              width: 2,
             ),
-            borderRadius: BorderRadius.circular(AppRadii.lg),
           ),
-          padding: const EdgeInsets.all(AppSpacing.md),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+        ),
+        child: Center(
+          child: Text(
+            label,
+            style: AppTextStyles.labelBold().copyWith(
+              color: isSelected
+                  ? AppColors.primary
+                  : AppColors.onSurfaceVariant,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _OrderCard extends StatelessWidget {
+  const _OrderCard({required this.order});
+
+  final _Order order;
+
+  @override
+  Widget build(BuildContext context) {
+    final isActive = order.isActive;
+
+    return OutlinedCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Order #${1000 + index}',
-                    style: GoogleFonts.epilogue(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.onSurface,
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: AppSpacing.sm,
-                      vertical: AppSpacing.xs,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppColors.primaryContainer,
-                      borderRadius: BorderRadius.circular(AppRadii.full),
-                    ),
-                    child: Text(
-                      'In Progress',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.onPrimaryContainer,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              Text(
-                'Pizza Palace',
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                  color: AppColors.onSurfaceVariant,
-                ),
-              ),
-              const SizedBox(height: AppSpacing.xs),
-              Text(
-                '\$${25 + index * 5}.99',
-                style: GoogleFonts.epilogue(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.primary,
-                ),
-              ),
-              const SizedBox(height: AppSpacing.md),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () {},
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(AppRadii.lg),
-                    ),
-                  ),
-                  child: Text(
-                    'Track Order',
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
+              Text('Order #${order.id}', style: AppTextStyles.cardTitle()),
+              StatusPill(
+                label: order.status,
+                backgroundColor: isActive
+                    ? AppColors.primaryContainer
+                    : AppColors.secondary.withOpacityValue(0.2),
+                foregroundColor: isActive
+                    ? AppColors.onPrimaryContainer
+                    : AppColors.secondary,
+                fontSize: 11,
               ),
             ],
           ),
-        );
-      },
-    );
-  }
-
-  Widget _buildCompletedOrdersList() {
-    return ListView.builder(
-      padding: const EdgeInsets.all(AppSpacing.md),
-      itemCount: 5,
-      itemBuilder: (context, index) {
-        return Container(
-          margin: const EdgeInsets.only(bottom: AppSpacing.md),
-          decoration: BoxDecoration(
-            color: AppColors.surfaceContainerLow,
-            border: Border.all(
-              color: AppColors.outlineVariant,
-              width: 1,
+          const SizedBox(height: AppSpacing.sm),
+          Text(order.vendor, style: AppTextStyles.bodySecondary()),
+          const SizedBox(height: AppSpacing.xs),
+          Text(
+            order.amount,
+            style: AppTextStyles.h3().copyWith(
+              fontSize: 18,
+              color: isActive ? AppColors.primary : AppColors.onSurface,
             ),
-            borderRadius: BorderRadius.circular(AppRadii.lg),
           ),
-          padding: const EdgeInsets.all(AppSpacing.md),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Order #${2000 + index}',
-                    style: GoogleFonts.epilogue(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.onSurface,
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: AppSpacing.sm,
-                      vertical: AppSpacing.xs,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppColors.secondary.withOpacityValue(0.2),
-                      borderRadius: BorderRadius.circular(AppRadii.full),
-                    ),
-                    child: Text(
-                      'Delivered',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.secondary,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              Text(
-                'Burger House',
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                  color: AppColors.onSurfaceVariant,
-                ),
-              ),
-              const SizedBox(height: AppSpacing.xs),
-              Text(
-                '\$${30 + index * 8}.99',
-                style: GoogleFonts.epilogue(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.onSurface,
-                ),
-              ),
-              const SizedBox(height: AppSpacing.md),
-              SizedBox(
-                width: double.infinity,
-                child: OutlinedButton(
-                  onPressed: () {},
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: AppColors.primary,
-                    side: BorderSide(
-                      color: AppColors.primary,
-                      width: 1.5,
-                    ),
-                    padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(AppRadii.lg),
-                    ),
-                  ),
-                  child: Text(
-                    'Reorder',
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                    ),
+          const SizedBox(height: AppSpacing.md),
+          if (isActive)
+            PrimaryButton(
+              label: 'Track Order',
+              onPressed: () => context.push(AppRoutes.trackOrder),
+            )
+          else
+            OutlinedCard(
+              onTap: () => context.push(AppRoutes.checkout),
+              padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+              backgroundColor: Colors.transparent,
+              borderColor: AppColors.primary,
+              child: Center(
+                child: Text(
+                  'Reorder',
+                  style: AppTextStyles.labelBold().copyWith(
+                    color: AppColors.primary,
                   ),
                 ),
               ),
-            ],
-          ),
-        );
-      },
+            ),
+        ],
+      ),
     );
   }
+}
+
+class _Order {
+  const _Order({
+    required this.id,
+    required this.vendor,
+    required this.amount,
+    required this.status,
+    this.isActive = false,
+  });
+
+  final String id;
+  final String vendor;
+  final String amount;
+  final String status;
+  final bool isActive;
 }

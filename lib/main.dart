@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'app/app_router.dart';
 import 'config/theme.dart';
-import 'screens/welcome.dart';
 
-void main() async{
-  //supabase setup
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
   await Supabase.initialize(
     url: 'https://atifebcufurziatglazv.supabase.co',
     anonKey: 'sb_publishable_yAtGwxHkT3zbplDDUUtINA_CSLboW2j',
@@ -18,15 +19,11 @@ class ChowFlowApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return MaterialApp.router(
       title: 'ChowFlow',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        scaffoldBackgroundColor: AppColors.surface,
-        primaryColor: AppColors.primary,
-        useMaterial3: false,
-      ),
-      home: const WelcomeScreen(),
+      theme: buildAppTheme(),
+      routerConfig: AppRouter.router,
     );
   }
 }
