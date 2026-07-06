@@ -40,24 +40,22 @@ class OnboardingPage extends StatelessWidget {
               if (badge != null) badge!,
             ],
           ),
-          const SizedBox(height: AppSpacing.xl),
+          const SizedBox(height: TwSpacing.x8),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+            padding: const EdgeInsets.symmetric(horizontal: TwSpacing.x5),
             child: Column(
               children: [
                 Text(
                   title,
                   textAlign: TextAlign.center,
-                  style: AppTextStyles.h2().copyWith(
-                    color: AppColors.onSurface,
-                  ),
+                  style: TwText.text3xl().copyWith(color: TwColors.text),
                 ),
-                const SizedBox(height: AppSpacing.sm),
+                const SizedBox(height: TwSpacing.x3),
                 Text(
                   description,
                   textAlign: TextAlign.center,
-                  style: AppTextStyles.bodyMd().copyWith(
-                    color: AppColors.onSurfaceVariant,
+                  style: TwText.textBase().copyWith(
+                    color: TwColors.textMuted,
                     height: 1.5,
                   ),
                 ),

@@ -18,14 +18,8 @@ class WalletScreenFull extends StatelessWidget {
       subtitle: '**** **** **** 4829',
       isDefault: true,
     ),
-    _PaymentMethod(
-      title: 'Master Card',
-      subtitle: '**** **** **** 2156',
-    ),
-    _PaymentMethod(
-      title: 'Bank Transfer',
-      subtitle: 'GTBank - Amara Johnson',
-    ),
+    _PaymentMethod(title: 'Master Card', subtitle: '**** **** **** 2156'),
+    _PaymentMethod(title: 'Bank Transfer', subtitle: 'GTBank - Amara Johnson'),
   ];
 
   static const List<_WalletTransaction> _transactions = [
@@ -50,12 +44,12 @@ class WalletScreenFull extends StatelessWidget {
       title: 'My Wallet',
       showBackButton: true,
       body: ListView(
-        padding: const EdgeInsets.all(AppSpacing.lg),
+        padding: const EdgeInsets.all(TwSpacing.x5),
         children: [
           Container(
-            padding: const EdgeInsets.all(AppSpacing.xl),
+            padding: const EdgeInsets.all(TwSpacing.x8),
             decoration: BoxDecoration(
-              gradient: AppColors.fireSunGradient,
+              gradient: TwColors.primaryGradient,
               borderRadius: BorderRadius.circular(20),
             ),
             child: Column(
@@ -63,45 +57,43 @@ class WalletScreenFull extends StatelessWidget {
               children: [
                 Text(
                   'Available Balance',
-                  style: AppTextStyles.labelSm().copyWith(
+                  style: TwText.textXs().copyWith(
                     color: Colors.white.withOpacityValue(0.8),
                   ),
                 ),
-                const SizedBox(height: AppSpacing.base),
+                const SizedBox(height: TwSpacing.x2),
                 Text(
                   'NGN 15,750.50',
-                  style: AppTextStyles.h1().copyWith(
-                    color: Colors.white,
-                  ),
+                  style: TwText.text3xl().copyWith(color: Colors.white),
                 ),
-                const SizedBox(height: AppSpacing.xl),
+                const SizedBox(height: TwSpacing.x8),
                 Row(
                   children: [
                     for (final action in _actions) ...[
                       Expanded(child: _WalletActionButton(action: action)),
                       if (action != _actions.last)
-                        const SizedBox(width: AppSpacing.lg),
+                        const SizedBox(width: TwSpacing.x5),
                     ],
                   ],
                 ),
               ],
             ),
           ),
-          const SizedBox(height: AppSpacing.xl),
+          const SizedBox(height: TwSpacing.x8),
           const SectionTitle('Payment Methods', fontSize: 18),
-          const SizedBox(height: AppSpacing.lg),
+          const SizedBox(height: TwSpacing.x5),
           for (final method in _paymentMethods) ...[
             _PaymentMethodCard(method: method),
             if (method != _paymentMethods.last)
-              const SizedBox(height: AppSpacing.lg),
+              const SizedBox(height: TwSpacing.x5),
           ],
-          const SizedBox(height: AppSpacing.xl),
+          const SizedBox(height: TwSpacing.x8),
           const SectionTitle('Recent Transactions', fontSize: 18),
-          const SizedBox(height: AppSpacing.lg),
+          const SizedBox(height: TwSpacing.x5),
           for (final transaction in _transactions) ...[
             _TransactionRow(transaction: transaction),
             if (transaction != _transactions.last)
-              const SizedBox(height: AppSpacing.lg),
+              const SizedBox(height: TwSpacing.x5),
           ],
         ],
       ),
@@ -126,12 +118,10 @@ class _WalletActionButton extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(action.icon, color: Colors.white),
-          const SizedBox(width: AppSpacing.base),
+          const SizedBox(width: TwSpacing.x2),
           Text(
             action.label,
-            style: AppTextStyles.labelBold().copyWith(
-              color: Colors.white,
-            ),
+            style: TwText.fontBoldSm().copyWith(color: Colors.white),
           ),
         ],
       ),
@@ -149,23 +139,20 @@ class _PaymentMethodCard extends StatelessWidget {
     return OutlinedCard(
       backgroundColor: Colors.white,
       borderRadius: 16,
-      borderColor:
-          method.isDefault ? AppColors.primary : AppColors.outlineVariant,
+      borderColor: method.isDefault ? TwColors.primary : TwColors.borderStrong,
       borderWidth: method.isDefault ? 2 : 1,
       child: Row(
         children: [
-          const Icon(Icons.payment, color: AppColors.primary),
-          const SizedBox(width: AppSpacing.lg),
+          const Icon(Icons.payment, color: TwColors.primary),
+          const SizedBox(width: TwSpacing.x5),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(method.title, style: AppTextStyles.cardTitleSm()),
+                Text(method.title, style: TwText.fontBoldSm()),
                 Text(
                   method.subtitle,
-                  style: AppTextStyles.labelSm().copyWith(
-                    color: AppColors.onSurfaceVariant,
-                  ),
+                  style: TwText.textXs().copyWith(color: TwColors.textMuted),
                 ),
               ],
             ),
@@ -173,7 +160,7 @@ class _PaymentMethodCard extends StatelessWidget {
           if (method.isDefault)
             const StatusPill(
               label: 'Default',
-              backgroundColor: AppColors.primary,
+              backgroundColor: TwColors.primary,
               foregroundColor: Colors.white,
               fontSize: 10,
             ),
@@ -193,41 +180,34 @@ class _TransactionRow extends StatelessWidget {
     return Row(
       children: [
         if (transaction.imageUrl != null)
-          NetworkAvatar(
-            imageUrl: transaction.imageUrl!,
-            radius: 25,
-          )
+          NetworkAvatar(imageUrl: transaction.imageUrl!, radius: 25)
         else
           Container(
             width: 50,
             height: 50,
             decoration: BoxDecoration(
-              color: AppColors.secondaryContainer,
-              borderRadius: BorderRadius.circular(AppRadii.full),
+              color: TwColors.amber400,
+              borderRadius: BorderRadius.circular(TwRadius.full),
             ),
-            child: const Icon(Icons.add, color: AppColors.onSurface),
+            child: const Icon(Icons.add, color: TwColors.text),
           ),
-        const SizedBox(width: AppSpacing.lg),
+        const SizedBox(width: TwSpacing.x5),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(transaction.title, style: AppTextStyles.cardTitleSm()),
+              Text(transaction.title, style: TwText.fontBoldSm()),
               Text(
                 transaction.subtitle,
-                style: AppTextStyles.labelSm().copyWith(
-                  color: AppColors.onSurfaceVariant,
-                ),
+                style: TwText.textXs().copyWith(color: TwColors.textMuted),
               ),
             ],
           ),
         ),
         Text(
           transaction.amount,
-          style: AppTextStyles.labelBold().copyWith(
-            color: transaction.isCredit
-                ? AppColors.secondary
-                : AppColors.onSurface,
+          style: TwText.fontBoldSm().copyWith(
+            color: transaction.isCredit ? TwColors.secondary : TwColors.text,
           ),
         ),
       ],
@@ -236,10 +216,7 @@ class _TransactionRow extends StatelessWidget {
 }
 
 class _WalletAction {
-  const _WalletAction({
-    required this.icon,
-    required this.label,
-  });
+  const _WalletAction({required this.icon, required this.label});
 
   final IconData icon;
   final String label;

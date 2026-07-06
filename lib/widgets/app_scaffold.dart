@@ -27,17 +27,17 @@ class AppScaffold extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.surface,
+      backgroundColor: TwColors.bg,
       resizeToAvoidBottomInset: resizeToAvoidBottomInset,
       appBar: AppBar(
-        backgroundColor: AppColors.surface,
+        backgroundColor: TwColors.bg,
         elevation: 0,
         centerTitle: false,
-        title: Text(title, style: AppTextStyles.screenTitle()),
-        foregroundColor: AppColors.onSurface,
+        title: Text(title, style: TwText.text3xl()),
+        foregroundColor: TwColors.text,
         leading: showBackButton
             ? IconButton(
-                icon: const Icon(Icons.arrow_back, color: AppColors.onSurface),
+                icon: const Icon(Icons.arrow_back, color: TwColors.text),
                 onPressed: () {
                   if (context.canPop()) {
                     context.pop();
@@ -66,8 +66,8 @@ class SectionTitle extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       title,
-      style: AppTextStyles.sectionTitle().copyWith(
-        color: color ?? AppColors.onSurface,
+      style: TwText.textXl().copyWith(
+        color: color ?? TwColors.text,
         fontSize: fontSize,
       ),
     );

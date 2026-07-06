@@ -3,13 +3,13 @@ import 'package:flutter/material.dart';
 import '../config/theme.dart';
 
 /// A neutral, outlined card used across screens. Defaults to the
-/// [AppColors.surfaceContainerLow] background with an outline.
+/// [TwColors.cardMuted] background with an outline.
 class OutlinedCard extends StatelessWidget {
   const OutlinedCard({
     super.key,
     required this.child,
-    this.padding = const EdgeInsets.all(AppSpacing.lg),
-    this.borderRadius = AppRadii.lg,
+    this.padding = const EdgeInsets.all(TwSpacing.x5),
+    this.borderRadius = TwRadius.lg,
     this.backgroundColor,
     this.borderColor,
     this.borderWidth = 1,
@@ -29,9 +29,9 @@ class OutlinedCard extends StatelessWidget {
     final card = Container(
       padding: padding,
       decoration: BoxDecoration(
-        color: backgroundColor ?? AppColors.surfaceContainerLow,
+        color: backgroundColor ?? TwColors.cardMuted,
         border: Border.all(
-          color: borderColor ?? AppColors.outlineVariant,
+          color: borderColor ?? TwColors.borderStrong,
           width: borderWidth,
         ),
         borderRadius: BorderRadius.circular(borderRadius),
@@ -61,8 +61,8 @@ class GradientActionButton extends StatelessWidget {
     this.icon,
     this.fullWidth = true,
     this.padding = const EdgeInsets.symmetric(
-      vertical: AppSpacing.lg,
-      horizontal: AppSpacing.lg,
+      vertical: TwSpacing.x5,
+      horizontal: TwSpacing.x5,
     ),
     this.borderRadius = 50,
     this.fontSize,
@@ -82,11 +82,11 @@ class GradientActionButton extends StatelessWidget {
       width: fullWidth ? double.infinity : null,
       padding: padding,
       decoration: BoxDecoration(
-        gradient: AppColors.fireSunGradient,
+        gradient: TwColors.primaryGradient,
         borderRadius: BorderRadius.circular(borderRadius),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primary.withOpacityValue(0.3),
+            color: TwColors.primary.withOpacityValue(0.3),
             blurRadius: 0,
             offset: const Offset(0, 8),
           ),
@@ -96,11 +96,8 @@ class GradientActionButton extends StatelessWidget {
         mainAxisSize: fullWidth ? MainAxisSize.max : MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text(
-            label,
-            style: AppTextStyles.buttonLabel().copyWith(fontSize: fontSize),
-          ),
-          if (icon != null) ...[const SizedBox(width: AppSpacing.base), icon!],
+          Text(label, style: TwText.button().copyWith(fontSize: fontSize)),
+          if (icon != null) ...[const SizedBox(width: TwSpacing.x2), icon!],
         ],
       ),
     );
@@ -139,20 +136,17 @@ class PrimaryButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final button = Container(
       width: fullWidth ? double.infinity : null,
-      padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
+      padding: const EdgeInsets.symmetric(vertical: TwSpacing.x5),
       decoration: BoxDecoration(
-        color: color ?? AppColors.primary,
-        borderRadius: BorderRadius.circular(AppRadii.lg),
+        color: color ?? TwColors.primary,
+        borderRadius: BorderRadius.circular(TwRadius.lg),
       ),
       child: Row(
         mainAxisSize: fullWidth ? MainAxisSize.max : MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text(
-            label,
-            style: AppTextStyles.buttonLabel().copyWith(color: foregroundColor),
-          ),
-          if (icon != null) ...[const SizedBox(width: AppSpacing.base), icon!],
+          Text(label, style: TwText.button().copyWith(color: foregroundColor)),
+          if (icon != null) ...[const SizedBox(width: TwSpacing.x2), icon!],
         ],
       ),
     );
@@ -161,7 +155,7 @@ class PrimaryButton extends StatelessWidget {
       color: Colors.transparent,
       child: InkWell(
         onTap: onPressed,
-        borderRadius: BorderRadius.circular(AppRadii.lg),
+        borderRadius: BorderRadius.circular(TwRadius.lg),
         child: button,
       ),
     );

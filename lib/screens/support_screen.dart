@@ -70,28 +70,28 @@ class SupportScreenFull extends StatelessWidget {
       title: 'Help & Support',
       showBackButton: true,
       body: ListView(
-        padding: const EdgeInsets.all(AppSpacing.lg),
+        padding: const EdgeInsets.all(TwSpacing.x5),
         children: [
           const SectionTitle('How can we help?'),
-          const SizedBox(height: AppSpacing.lg),
+          const SizedBox(height: TwSpacing.x5),
           for (final topic in _helpTopics) ...[
             _HelpCard(topic: topic),
-            if (topic != _helpTopics.last) const SizedBox(height: AppSpacing.lg),
+            if (topic != _helpTopics.last) const SizedBox(height: TwSpacing.x5),
           ],
-          const SizedBox(height: AppSpacing.xl),
+          const SizedBox(height: TwSpacing.x8),
           const SectionTitle('Need more help?', fontSize: 18),
-          const SizedBox(height: AppSpacing.lg),
+          const SizedBox(height: TwSpacing.x5),
           for (final topic in _contactOptions) ...[
             _ContactCard(topic: topic),
             if (topic != _contactOptions.last)
-              const SizedBox(height: AppSpacing.lg),
+              const SizedBox(height: TwSpacing.x5),
           ],
-          const SizedBox(height: AppSpacing.xl),
+          const SizedBox(height: TwSpacing.x8),
           const SectionTitle('Frequently Asked Questions', fontSize: 18),
-          const SizedBox(height: AppSpacing.lg),
+          const SizedBox(height: TwSpacing.x5),
           for (final faq in _faqItems) ...[
             _FaqCard(item: faq),
-            if (faq != _faqItems.last) const SizedBox(height: AppSpacing.lg),
+            if (faq != _faqItems.last) const SizedBox(height: TwSpacing.x5),
           ],
         ],
       ),
@@ -115,22 +115,20 @@ class _HelpCard extends StatelessWidget {
             width: 50,
             height: 50,
             decoration: BoxDecoration(
-              color: AppColors.primaryContainer.withOpacityValue(0.1),
+              color: TwColors.primaryAccent.withOpacityValue(0.1),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(topic.icon, color: AppColors.primary),
+            child: Icon(topic.icon, color: TwColors.primary),
           ),
-          const SizedBox(width: AppSpacing.lg),
+          const SizedBox(width: TwSpacing.x5),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(topic.title, style: AppTextStyles.cardTitleSm()),
+                Text(topic.title, style: TwText.fontBoldSm()),
                 Text(
                   topic.subtitle,
-                  style: AppTextStyles.labelSm().copyWith(
-                    color: AppColors.onSurfaceVariant,
-                  ),
+                  style: TwText.textXs().copyWith(color: TwColors.textMuted),
                 ),
               ],
             ),
@@ -150,9 +148,9 @@ class _ContactCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(AppSpacing.lg),
+      padding: const EdgeInsets.all(TwSpacing.x5),
       decoration: BoxDecoration(
-        gradient: AppColors.fireSunGradient,
+        gradient: TwColors.primaryGradient,
         borderRadius: BorderRadius.circular(16),
       ),
       child: Row(
@@ -166,20 +164,18 @@ class _ContactCard extends StatelessWidget {
             ),
             child: Icon(topic.icon, color: Colors.white),
           ),
-          const SizedBox(width: AppSpacing.lg),
+          const SizedBox(width: TwSpacing.x5),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   topic.title,
-                  style: AppTextStyles.cardTitleSm().copyWith(
-                    color: Colors.white,
-                  ),
+                  style: TwText.fontBoldSm().copyWith(color: Colors.white),
                 ),
                 Text(
                   topic.subtitle,
-                  style: AppTextStyles.labelSm().copyWith(
+                  style: TwText.textXs().copyWith(
                     color: Colors.white.withOpacityValue(0.8),
                   ),
                 ),
@@ -206,12 +202,12 @@ class _FaqCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(item.question, style: AppTextStyles.cardTitleSm()),
-          const SizedBox(height: AppSpacing.base),
+          Text(item.question, style: TwText.fontBoldSm()),
+          const SizedBox(height: TwSpacing.x2),
           Text(
             item.answer,
-            style: AppTextStyles.labelSm().copyWith(
-              color: AppColors.onSurfaceVariant,
+            style: TwText.textXs().copyWith(
+              color: TwColors.textMuted,
               height: 1.5,
             ),
           ),
@@ -234,10 +230,7 @@ class _SupportTopic {
 }
 
 class _FaqItem {
-  const _FaqItem({
-    required this.question,
-    required this.answer,
-  });
+  const _FaqItem({required this.question, required this.answer});
 
   final String question;
   final String answer;

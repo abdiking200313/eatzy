@@ -41,30 +41,27 @@ class StatusPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bg = backgroundColor ?? AppColors.primaryContainer;
-    final fg = foregroundColor ?? AppColors.onPrimaryContainer;
+    final bg = backgroundColor ?? TwColors.primaryAccent;
+    final fg = foregroundColor ?? TwColors.orange900;
     return Container(
       padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.sm,
-        vertical: AppSpacing.xs,
+        horizontal: TwSpacing.x3,
+        vertical: TwSpacing.x1,
       ),
       decoration: BoxDecoration(
         color: bg,
-        borderRadius: BorderRadius.circular(AppRadii.full),
+        borderRadius: BorderRadius.circular(TwRadius.full),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           if (icon != null) ...[
             Icon(icon, color: fg, size: fontSize + 2),
-            const SizedBox(width: AppSpacing.xs),
+            const SizedBox(width: TwSpacing.x1),
           ],
           Text(
             label,
-            style: AppTextStyles.labelSm().copyWith(
-              color: fg,
-              fontSize: fontSize,
-            ),
+            style: TwText.textXs().copyWith(color: fg, fontSize: fontSize),
           ),
         ],
       ),
@@ -87,12 +84,10 @@ class SummaryRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final labelStyle = isBold
-        ? AppTextStyles.cardTitle()
-        : AppTextStyles.bodySecondary();
+    final labelStyle = isBold ? TwText.fontBoldBase() : TwText.textSm();
     final valueStyle = isBold
-        ? AppTextStyles.cardTitle().copyWith(color: AppColors.primary)
-        : AppTextStyles.cardTitleSm();
+        ? TwText.fontBoldBase().copyWith(color: TwColors.primary)
+        : TwText.fontBoldSm();
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [

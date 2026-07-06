@@ -75,15 +75,16 @@ class _OrdersScreenFullState extends State<OrdersScreenFull> {
 
   @override
   Widget build(BuildContext context) {
-    final selectedOrders =
-        _selectedTabIndex == 0 ? _activeOrders : _completedOrders;
+    final selectedOrders = _selectedTabIndex == 0
+        ? _activeOrders
+        : _completedOrders;
 
     return AppScaffold(
       title: 'Orders',
       body: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+            padding: const EdgeInsets.symmetric(horizontal: TwSpacing.x4),
             child: Row(
               children: [
                 Expanded(
@@ -105,12 +106,11 @@ class _OrdersScreenFullState extends State<OrdersScreenFull> {
           ),
           Expanded(
             child: ListView.separated(
-              padding: const EdgeInsets.all(AppSpacing.md),
+              padding: const EdgeInsets.all(TwSpacing.x4),
               itemCount: selectedOrders.length,
-              separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.md),
-              itemBuilder: (context, index) => _OrderCard(
-                order: selectedOrders[index],
-              ),
+              separatorBuilder: (_, __) => const SizedBox(height: TwSpacing.x4),
+              itemBuilder: (context, index) =>
+                  _OrderCard(order: selectedOrders[index]),
             ),
           ),
         ],
@@ -135,11 +135,11 @@ class _OrdersTab extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+        padding: const EdgeInsets.symmetric(vertical: TwSpacing.x4),
         decoration: BoxDecoration(
           border: Border(
             bottom: BorderSide(
-              color: isSelected ? AppColors.primary : Colors.transparent,
+              color: isSelected ? TwColors.primary : Colors.transparent,
               width: 2,
             ),
           ),
@@ -147,10 +147,8 @@ class _OrdersTab extends StatelessWidget {
         child: Center(
           child: Text(
             label,
-            style: AppTextStyles.labelBold().copyWith(
-              color: isSelected
-                  ? AppColors.primary
-                  : AppColors.onSurfaceVariant,
+            style: TwText.fontBoldSm().copyWith(
+              color: isSelected ? TwColors.primary : TwColors.textMuted,
             ),
           ),
         ),
@@ -175,30 +173,30 @@ class _OrderCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Order #${order.id}', style: AppTextStyles.cardTitle()),
+              Text('Order #${order.id}', style: TwText.fontBoldBase()),
               StatusPill(
                 label: order.status,
                 backgroundColor: isActive
-                    ? AppColors.primaryContainer
-                    : AppColors.secondary.withOpacityValue(0.2),
+                    ? TwColors.primaryAccent
+                    : TwColors.secondary.withOpacityValue(0.2),
                 foregroundColor: isActive
-                    ? AppColors.onPrimaryContainer
-                    : AppColors.secondary,
+                    ? TwColors.orange900
+                    : TwColors.secondary,
                 fontSize: 11,
               ),
             ],
           ),
-          const SizedBox(height: AppSpacing.sm),
-          Text(order.vendor, style: AppTextStyles.bodySecondary()),
-          const SizedBox(height: AppSpacing.xs),
+          const SizedBox(height: TwSpacing.x3),
+          Text(order.vendor, style: TwText.textSm()),
+          const SizedBox(height: TwSpacing.x1),
           Text(
             order.amount,
-            style: AppTextStyles.h3().copyWith(
+            style: TwText.text2xl().copyWith(
               fontSize: 18,
-              color: isActive ? AppColors.primary : AppColors.onSurface,
+              color: isActive ? TwColors.primary : TwColors.text,
             ),
           ),
-          const SizedBox(height: AppSpacing.md),
+          const SizedBox(height: TwSpacing.x4),
           if (isActive)
             PrimaryButton(
               label: 'Track Order',
@@ -207,15 +205,13 @@ class _OrderCard extends StatelessWidget {
           else
             OutlinedCard(
               onTap: () => context.push(AppRoutes.checkout),
-              padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+              padding: const EdgeInsets.symmetric(vertical: TwSpacing.x3),
               backgroundColor: Colors.transparent,
-              borderColor: AppColors.primary,
+              borderColor: TwColors.primary,
               child: Center(
                 child: Text(
                   'Reorder',
-                  style: AppTextStyles.labelBold().copyWith(
-                    color: AppColors.primary,
-                  ),
+                  style: TwText.fontBoldSm().copyWith(color: TwColors.primary),
                 ),
               ),
             ),

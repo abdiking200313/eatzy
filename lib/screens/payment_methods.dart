@@ -35,7 +35,7 @@ class PaymentMethodsScreenFull extends StatelessWidget {
       title: 'Payment Methods',
       showBackButton: true,
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(AppSpacing.md),
+        padding: const EdgeInsets.all(TwSpacing.x4),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -44,13 +44,13 @@ class PaymentMethodsScreenFull extends StatelessWidget {
               onPressed: () {},
               icon: const Icon(Icons.add, color: Colors.white, size: 20),
             ),
-            const SizedBox(height: AppSpacing.lg),
+            const SizedBox(height: TwSpacing.x5),
             const SectionTitle('Saved Cards'),
-            const SizedBox(height: AppSpacing.md),
+            const SizedBox(height: TwSpacing.x4),
             for (final method in _paymentMethods) ...[
               _PaymentMethodCard(method: method),
               if (method != _paymentMethods.last)
-                const SizedBox(height: AppSpacing.md),
+                const SizedBox(height: TwSpacing.x4),
             ],
           ],
         ),
@@ -67,8 +67,7 @@ class _PaymentMethodCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return OutlinedCard(
-      borderColor:
-          method.isDefault ? AppColors.primary : AppColors.outlineVariant,
+      borderColor: method.isDefault ? TwColors.primary : TwColors.borderStrong,
       borderWidth: method.isDefault ? 2 : 1,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -78,17 +77,17 @@ class _PaymentMethodCard extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  Icon(method.icon, color: AppColors.primary, size: 24),
-                  const SizedBox(width: AppSpacing.sm),
+                  Icon(method.icon, color: TwColors.primary, size: 24),
+                  const SizedBox(width: TwSpacing.x3),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(method.type, style: AppTextStyles.cardTitleSm()),
+                      Text(method.type, style: TwText.fontBoldSm()),
                       const SizedBox(height: 2),
                       Text(
                         '**** ${method.lastFour}',
-                        style: AppTextStyles.labelSm().copyWith(
-                          color: AppColors.onSurfaceVariant,
+                        style: TwText.textXs().copyWith(
+                          color: TwColors.textMuted,
                         ),
                       ),
                     ],
@@ -98,22 +97,22 @@ class _PaymentMethodCard extends StatelessWidget {
               if (method.isDefault)
                 const StatusPill(
                   label: 'Default',
-                  backgroundColor: AppColors.primaryContainer,
-                  foregroundColor: AppColors.onPrimaryContainer,
+                  backgroundColor: TwColors.primaryAccent,
+                  foregroundColor: TwColors.orange900,
                   fontSize: 10,
                 ),
             ],
           ),
-          const SizedBox(height: AppSpacing.md),
+          const SizedBox(height: TwSpacing.x4),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Expires', style: AppTextStyles.labelSm()),
+                  Text('Expires', style: TwText.textXs()),
                   const SizedBox(height: 2),
-                  Text(method.expiry, style: AppTextStyles.cardTitleSm()),
+                  Text(method.expiry, style: TwText.fontBoldSm()),
                 ],
               ),
               Row(
@@ -122,29 +121,29 @@ class _PaymentMethodCard extends StatelessWidget {
                     OutlinedCard(
                       onTap: () {},
                       padding: const EdgeInsets.symmetric(
-                        horizontal: AppSpacing.sm,
-                        vertical: AppSpacing.xs,
+                        horizontal: TwSpacing.x3,
+                        vertical: TwSpacing.x1,
                       ),
                       backgroundColor: Colors.transparent,
-                      borderColor: AppColors.outline,
-                      borderRadius: AppRadii.md,
+                      borderColor: TwColors.textMuted,
+                      borderRadius: TwRadius.md,
                       child: Text(
                         'Set Default',
-                        style: AppTextStyles.labelSm().copyWith(
-                          color: AppColors.onSurfaceVariant,
+                        style: TwText.textXs().copyWith(
+                          color: TwColors.textMuted,
                         ),
                       ),
                     ),
-                  const SizedBox(width: AppSpacing.sm),
+                  const SizedBox(width: TwSpacing.x3),
                   OutlinedCard(
                     onTap: () {},
-                    padding: const EdgeInsets.all(AppSpacing.xs),
+                    padding: const EdgeInsets.all(TwSpacing.x1),
                     backgroundColor: Colors.transparent,
-                    borderColor: AppColors.error,
-                    borderRadius: AppRadii.md,
+                    borderColor: TwColors.error,
+                    borderRadius: TwRadius.md,
                     child: const Icon(
                       Icons.delete_outline,
-                      color: AppColors.error,
+                      color: TwColors.error,
                       size: 16,
                     ),
                   ),

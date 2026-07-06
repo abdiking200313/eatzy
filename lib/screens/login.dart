@@ -32,9 +32,9 @@ class _LoginScreenState extends State<LoginScreen> {
       );
     } catch (error) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Login failed: $error')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Login failed: $error')));
     }
   }
 
@@ -46,38 +46,35 @@ class _LoginScreenState extends State<LoginScreen> {
       resizeToAvoidBottomInset: true,
       body: Center(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(AppSpacing.lg),
+          padding: const EdgeInsets.all(TwSpacing.x5),
           child: OutlinedCard(
             backgroundColor: Colors.white,
             borderRadius: 16,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Welcome back', style: AppTextStyles.h3()),
-                const SizedBox(height: AppSpacing.xs),
+                Text('Welcome back', style: TwText.text2xl()),
+                const SizedBox(height: TwSpacing.x1),
                 Text(
                   'Sign in to continue your orders and rewards.',
-                  style: AppTextStyles.bodySecondary(),
+                  style: TwText.textSm(),
                 ),
-                const SizedBox(height: AppSpacing.lg),
+                const SizedBox(height: TwSpacing.x5),
                 AppTextField(
                   controller: _emailController,
                   hint: 'Email',
                   keyboardType: TextInputType.emailAddress,
                   prefixIcon: Icons.email_outlined,
                 ),
-                const SizedBox(height: AppSpacing.md),
+                const SizedBox(height: TwSpacing.x4),
                 AppTextField(
                   controller: _passwordController,
                   hint: 'Password',
                   prefixIcon: Icons.lock_outlined,
                   obscureText: true,
                 ),
-                const SizedBox(height: AppSpacing.xl),
-                GradientActionButton(
-                  label: 'Login',
-                  onPressed: _login,
-                ),
+                const SizedBox(height: TwSpacing.x8),
+                GradientActionButton(label: 'Login', onPressed: _login),
               ],
             ),
           ),

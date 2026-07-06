@@ -64,24 +64,22 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
               backgroundColor: Colors.transparent,
               elevation: 0,
               leading: null,
-              titleSpacing: AppSpacing.lg,
+              titleSpacing: TwSpacing.x5,
               title: Text(
                 'ChowFlow',
-                style: AppTextStyles.h3().copyWith(
-                  color: AppColors.primary,
-                ),
+                style: TwText.text2xl().copyWith(color: TwColors.primary),
               ),
               actions: [
                 TextButton(
                   onPressed: _openMainApp,
                   child: Text(
                     'Skip',
-                    style: AppTextStyles.labelBold().copyWith(
-                      color: AppColors.primary,
+                    style: TwText.fontBoldSm().copyWith(
+                      color: TwColors.primary,
                     ),
                   ),
                 ),
-                const SizedBox(width: AppSpacing.lg),
+                const SizedBox(width: TwSpacing.x5),
               ],
             ),
           ),
@@ -90,7 +88,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
             left: 0,
             right: 0,
             child: Container(
-              padding: const EdgeInsets.all(AppSpacing.lg),
+              padding: const EdgeInsets.all(TwSpacing.x5),
               child: Column(
                 children: [
                   Row(
@@ -102,35 +100,35 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                         width: index == _currentPage ? 32 : 8,
                         height: 8,
                         margin: const EdgeInsets.symmetric(
-                          horizontal: AppSpacing.base,
+                          horizontal: TwSpacing.x2,
                         ),
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(4),
                           color: index == _currentPage
-                              ? AppColors.primary
-                              : AppColors.outlineVariant,
+                              ? TwColors.primary
+                              : TwColors.borderStrong,
                         ),
                       ),
                     ),
                   ),
-                  const SizedBox(height: AppSpacing.xl),
+                  const SizedBox(height: TwSpacing.x8),
                   GradientActionButton(
                     label: 'Get Started',
                     onPressed: _openMainApp,
                     icon: const Icon(
                       Icons.arrow_forward,
-                      color: AppColors.onPrimary,
+                      color: TwColors.onPrimary,
                     ),
                     fontSize: 18,
                   ),
-                  const SizedBox(height: AppSpacing.lg),
+                  const SizedBox(height: TwSpacing.x5),
                   RichText(
                     text: TextSpan(
                       children: [
                         TextSpan(
                           text: 'Already have an account? ',
-                          style: AppTextStyles.labelSm().copyWith(
-                            color: AppColors.onSurfaceVariant,
+                          style: TwText.textXs().copyWith(
+                            color: TwColors.textMuted,
                           ),
                         ),
                         WidgetSpan(
@@ -141,10 +139,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                               minimumSize: Size.zero,
                               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                             ),
-                            child: Text(
-                              'Log In',
-                              style: AppTextStyles.actionLink(),
-                            ),
+                            child: Text('Log In', style: TwText.link()),
                           ),
                         ),
                       ],

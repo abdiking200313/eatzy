@@ -22,15 +22,15 @@ class FireSunGradientButton extends StatelessWidget {
       child: Container(
         width: isFullWidth ? double.infinity : null,
         padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.lg,
-          vertical: AppSpacing.lg,
+          horizontal: TwSpacing.x5,
+          vertical: TwSpacing.x5,
         ),
         decoration: BoxDecoration(
-          gradient: AppColors.fireSunGradient,
-          borderRadius: BorderRadius.circular(AppRadii.full),
+          gradient: TwColors.primaryGradient,
+          borderRadius: BorderRadius.circular(TwRadius.full),
           boxShadow: [
             BoxShadow(
-              color: AppColors.primary.withOpacityValue(0.3),
+              color: TwColors.primary.withOpacityValue(0.3),
               blurRadius: 0,
               offset: const Offset(0, 8),
             ),
@@ -42,14 +42,9 @@ class FireSunGradientButton extends StatelessWidget {
           children: [
             Text(
               label,
-              style: AppTextStyles.h3().copyWith(
-                color: AppColors.onPrimary,
-              ),
+              style: TwText.text2xl().copyWith(color: TwColors.onPrimary),
             ),
-            if (icon != null) ...[
-              const SizedBox(width: AppSpacing.base),
-              icon!,
-            ],
+            if (icon != null) ...[const SizedBox(width: TwSpacing.x2), icon!],
           ],
         ),
       ),
@@ -66,8 +61,8 @@ class PremiumCard extends StatelessWidget {
   const PremiumCard({
     super.key,
     required this.child,
-    this.padding = const EdgeInsets.all(AppSpacing.lg),
-    this.borderRadius = AppRadii.lg,
+    this.padding = const EdgeInsets.all(TwSpacing.x5),
+    this.borderRadius = TwRadius.lg,
     this.useGlassmorphism = false,
   });
 
@@ -78,13 +73,10 @@ class PremiumCard extends StatelessWidget {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(borderRadius),
         color: useGlassmorphism
-            ? AppColors.surface.withOpacityValue(0.7)
-            : AppColors.surfaceContainer,
+            ? TwColors.bg.withOpacityValue(0.7)
+            : TwColors.cardMuted,
         border: useGlassmorphism
-            ? Border.all(
-                color: AppColors.onSurface.withOpacityValue(0.1),
-                width: 1,
-              )
+            ? Border.all(color: TwColors.text.withOpacityValue(0.1), width: 1)
             : null,
       ),
       child: child,
@@ -110,21 +102,17 @@ class ChowFlowChip extends StatelessWidget {
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.lg,
-          vertical: AppSpacing.base,
+          horizontal: TwSpacing.x5,
+          vertical: TwSpacing.x2,
         ),
         decoration: BoxDecoration(
-          color: isSelected
-              ? AppColors.primary
-              : AppColors.secondaryFixed,
-          borderRadius: BorderRadius.circular(AppRadii.full),
+          color: isSelected ? TwColors.primary : TwColors.secondarySoft,
+          borderRadius: BorderRadius.circular(TwRadius.full),
         ),
         child: Text(
           label,
-          style: AppTextStyles.labelBold().copyWith(
-            color: isSelected
-                ? AppColors.onPrimary
-                : AppColors.primary,
+          style: TwText.fontBoldSm().copyWith(
+            color: isSelected ? TwColors.onPrimary : TwColors.primary,
           ),
         ),
       ),
@@ -176,34 +164,26 @@ class _AppTextFieldState extends State<AppTextField> {
       obscureText: widget.obscureText,
       decoration: InputDecoration(
         hintText: widget.hint,
-        hintStyle: AppTextStyles.bodyMd().copyWith(
-          color: AppColors.outline,
-        ),
+        hintStyle: TwText.textBase().copyWith(color: TwColors.textMuted),
         prefixIcon: widget.prefixIcon != null
-            ? Icon(
-                widget.prefixIcon,
-                color: AppColors.outline,
-              )
+            ? Icon(widget.prefixIcon, color: TwColors.textMuted)
             : null,
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppRadii.lg),
-          borderSide: const BorderSide(color: AppColors.outlineVariant),
+          borderRadius: BorderRadius.circular(TwRadius.lg),
+          borderSide: const BorderSide(color: TwColors.borderStrong),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppRadii.lg),
-          borderSide: const BorderSide(color: AppColors.outlineVariant),
+          borderRadius: BorderRadius.circular(TwRadius.lg),
+          borderSide: const BorderSide(color: TwColors.borderStrong),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppRadii.lg),
-          borderSide: const BorderSide(
-            color: AppColors.primary,
-            width: 2,
-          ),
+          borderRadius: BorderRadius.circular(TwRadius.lg),
+          borderSide: const BorderSide(color: TwColors.primary, width: 2),
         ),
         filled: true,
-        fillColor: AppColors.surfaceContainerLow,
+        fillColor: TwColors.cardMuted,
       ),
-      style: AppTextStyles.bodyMd(),
+      style: TwText.textBase(),
     );
   }
 }
@@ -217,7 +197,7 @@ class GlassmorphContainer extends StatelessWidget {
     super.key,
     required this.child,
     this.blurAmount = 20.0,
-    this.padding = const EdgeInsets.all(AppSpacing.lg),
+    this.padding = const EdgeInsets.all(TwSpacing.x5),
   });
 
   @override
@@ -225,10 +205,10 @@ class GlassmorphContainer extends StatelessWidget {
     return Container(
       padding: padding,
       decoration: BoxDecoration(
-        color: AppColors.surface.withOpacityValue(0.7),
-        borderRadius: BorderRadius.circular(AppRadii.lg),
+        color: TwColors.bg.withOpacityValue(0.7),
+        borderRadius: BorderRadius.circular(TwRadius.lg),
         border: Border.all(
-          color: AppColors.onSurface.withOpacityValue(0.1),
+          color: TwColors.text.withOpacityValue(0.1),
           width: 1,
         ),
       ),

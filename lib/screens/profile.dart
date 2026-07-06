@@ -42,7 +42,7 @@ import '../widgets/app_scaffold.dart';
 //     return AppScaffold(
 //       title: 'Profile',
 //       body: SingleChildScrollView(
-//         padding: const EdgeInsets.all(AppSpacing.lg),
+//         padding: const EdgeInsets.all(TwSpacing.x5),
 //         child: Column(
 //           children: [
 //             Container(
@@ -50,18 +50,18 @@ import '../widgets/app_scaffold.dart';
 //               height: 100,
 //               decoration: const BoxDecoration(
 //                 shape: BoxShape.circle,
-//                 color: AppColors.primaryContainer,
+//                 color: TwColors.primaryAccent,
 //               ),
 //               child: const Icon(Icons.person, size: 50),
 //             ),
-//             const SizedBox(height: AppSpacing.lg),
-//             Text('Amara Johnson', style: AppTextStyles.h3()),
-//             const SizedBox(height: AppSpacing.base),
+//             const SizedBox(height: TwSpacing.x5),
+//             Text('Amara Johnson', style: TwText.text2xl()),
+//             const SizedBox(height: TwSpacing.x2),
 //             Text(
 //               'amara@example.com',
-//               style: AppTextStyles.bodySecondary(),
+//               style: TwText.textSm(),
 //             ),
-//             const SizedBox(height: AppSpacing.xl),
+//             const SizedBox(height: TwSpacing.x8),
 //             OutlinedCard(
 //               backgroundColor: Colors.white,
 //               borderRadius: 16,
@@ -90,8 +90,8 @@ import '../widgets/app_scaffold.dart';
 //   Widget build(BuildContext context) {
 //     return ListTile(
 //       contentPadding: EdgeInsets.zero,
-//       leading: Icon(option.icon, color: AppColors.primary),
-//       title: Text(option.title, style: AppTextStyles.cardTitle()),
+//       leading: Icon(option.icon, color: TwColors.primary),
+//       title: Text(option.title, style: TwText.fontBoldBase()),
 //       trailing: const Icon(Icons.arrow_forward_ios, size: 16),
 //       onTap: option.route == null ? null : () => context.push(option.route!),
 //     );
@@ -157,14 +157,8 @@ class ProfileScreenFull extends StatelessWidget {
       route: AppRoutes.wallet,
       trailingText: '\$120.50',
     ),
-    _ProfileOption(
-      title: 'Coupons & Offers',
-      icon: Icons.local_offer_outlined,
-    ),
-    _ProfileOption(
-      title: 'Notifications',
-      icon: Icons.notifications_none,
-    ),
+    _ProfileOption(title: 'Coupons & Offers', icon: Icons.local_offer_outlined),
+    _ProfileOption(title: 'Notifications', icon: Icons.notifications_none),
     _ProfileOption(
       title: 'Help & Support',
       icon: Icons.help_outline,
@@ -182,7 +176,7 @@ class ProfileScreenFull extends StatelessWidget {
     return AppScaffold(
       title: 'Profile',
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(AppSpacing.lg),
+        padding: const EdgeInsets.all(TwSpacing.x5),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -193,7 +187,7 @@ class ProfileScreenFull extends StatelessWidget {
                   height: 90,
                   decoration: const BoxDecoration(
                     shape: BoxShape.circle,
-                    color: AppColors.primary,
+                    color: TwColors.primary,
                   ),
                   child: const Icon(
                     Icons.person,
@@ -201,13 +195,13 @@ class ProfileScreenFull extends StatelessWidget {
                     color: Colors.black87,
                   ),
                 ),
-                const SizedBox(width: AppSpacing.lg),
+                const SizedBox(width: TwSpacing.x5),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
                       children: [
-                        Text('Amara Johnson', style: AppTextStyles.h3()),
+                        Text('Amara Johnson', style: TwText.text2xl()),
                         const SizedBox(width: 6),
                         const Icon(
                           Icons.verified,
@@ -217,10 +211,7 @@ class ProfileScreenFull extends StatelessWidget {
                       ],
                     ),
                     const SizedBox(height: 6),
-                    Text(
-                      'amara@example.com',
-                      style: AppTextStyles.bodySecondary(),
-                    ),
+                    Text('amara@example.com', style: TwText.textSm()),
                     const SizedBox(height: 10),
                     Container(
                       padding: const EdgeInsets.symmetric(
@@ -228,19 +219,22 @@ class ProfileScreenFull extends StatelessWidget {
                         vertical: 8,
                       ),
                       decoration: BoxDecoration(
-                        color: AppColors.primary.withOpacityValue(0.08),
+                        color: TwColors.primary.withOpacityValue(0.08),
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: const Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.workspace_premium,
-                              color: AppColors.primary, size: 18),
+                          Icon(
+                            Icons.workspace_premium,
+                            color: TwColors.primary,
+                            size: 18,
+                          ),
                           SizedBox(width: 6),
                           Text(
                             'Gold Member',
                             style: TextStyle(
-                              color: AppColors.primary,
+                              color: TwColors.primary,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -252,7 +246,7 @@ class ProfileScreenFull extends StatelessWidget {
               ],
             ),
 
-            const SizedBox(height: AppSpacing.xl),
+            const SizedBox(height: TwSpacing.x8),
 
             OutlinedCard(
               backgroundColor: Colors.white,
@@ -260,8 +254,8 @@ class ProfileScreenFull extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Orders', style: AppTextStyles.cardTitle()),
-                  const SizedBox(height: AppSpacing.lg),
+                  Text('Orders', style: TwText.fontBoldBase()),
+                  const SizedBox(height: TwSpacing.x5),
                   Row(
                     children: [
                       for (final stat in _orderStats)
@@ -272,7 +266,7 @@ class ProfileScreenFull extends StatelessWidget {
               ),
             ),
 
-            const SizedBox(height: AppSpacing.lg),
+            const SizedBox(height: TwSpacing.x5),
 
             OutlinedCard(
               backgroundColor: Colors.white,
@@ -287,7 +281,7 @@ class ProfileScreenFull extends StatelessWidget {
               ),
             ),
 
-            const SizedBox(height: AppSpacing.lg),
+            const SizedBox(height: TwSpacing.x5),
 
             OutlinedCard(
               backgroundColor: Colors.white,
@@ -318,14 +312,18 @@ class _OrderItem extends StatelessWidget {
       borderRadius: BorderRadius.circular(12),
       onTap: stat.route == null ? null : () => context.push(stat.route!),
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
+        padding: const EdgeInsets.symmetric(vertical: TwSpacing.x1),
         child: Column(
           children: [
-            Icon(stat.icon, color: AppColors.primary, size: 30),
+            Icon(stat.icon, color: TwColors.primary, size: 30),
             const SizedBox(height: 10),
-            Text(stat.title, style: AppTextStyles.cardTitle(), textAlign: TextAlign.center),
+            Text(
+              stat.title,
+              style: TwText.fontBoldBase(),
+              textAlign: TextAlign.center,
+            ),
             const SizedBox(height: 6),
-            Text(stat.count, style: AppTextStyles.bodySecondary()),
+            Text(stat.count, style: TwText.textSm()),
           ],
         ),
       ),
@@ -342,18 +340,18 @@ class _ProfileOptionTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListTile(
       contentPadding: EdgeInsets.zero,
-      leading: Icon(option.icon, color: AppColors.primary),
+      leading: Icon(option.icon, color: TwColors.primary),
       title: Text(
         option.title,
-        style: AppTextStyles.cardTitle().copyWith(
-          color: option.isLogout ? AppColors.primary : null,
+        style: TwText.fontBoldBase().copyWith(
+          color: option.isLogout ? TwColors.primary : null,
         ),
       ),
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           if (option.trailingText != null)
-            Text(option.trailingText!, style: AppTextStyles.bodySecondary()),
+            Text(option.trailingText!, style: TwText.textSm()),
           const SizedBox(width: 8),
           const Icon(Icons.arrow_forward_ios, size: 16),
         ],

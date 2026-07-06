@@ -19,12 +19,12 @@ class CategoriesScreen extends StatelessWidget {
       title: 'Categories',
       showBackButton: true,
       body: Padding(
-        padding: const EdgeInsets.all(AppSpacing.lg),
+        padding: const EdgeInsets.all(TwSpacing.x5),
         child: GridView.builder(
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 1,
-            crossAxisSpacing: AppSpacing.lg,
-            mainAxisSpacing: AppSpacing.lg,
+            crossAxisSpacing: TwSpacing.x5,
+            mainAxisSpacing: TwSpacing.x5,
             childAspectRatio: 1.4,
           ),
           itemCount: _categories.length,
@@ -35,7 +35,7 @@ class CategoriesScreen extends StatelessWidget {
               child: Text(
                 _categories[index],
                 textAlign: TextAlign.center,
-                style: AppTextStyles.cardTitle(),
+                style: TwText.fontBoldBase(),
               ),
             ),
           ),

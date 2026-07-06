@@ -70,27 +70,27 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.surface,
+      backgroundColor: TwColors.bg,
       appBar: AppBar(
-        backgroundColor: AppColors.surface,
+        backgroundColor: TwColors.bg,
         elevation: 0,
         title: Text(
           'ChowFlow',
-          style: AppTextStyles.h3().copyWith(color: AppColors.primary),
+          style: TwText.text2xl().copyWith(color: TwColors.primary),
         ),
         actions: [
           IconButton(
             onPressed: () {},
-            icon: const Icon(Icons.notifications_none, color: AppColors.primary),
+            icon: const Icon(Icons.notifications_none, color: TwColors.primary),
           ),
-          const SizedBox(width: AppSpacing.base),
+          const SizedBox(width: TwSpacing.x2),
         ],
       ),
       body: CustomScrollView(
         slivers: [
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.all(AppSpacing.lg),
+              padding: const EdgeInsets.all(TwSpacing.x5),
               child: Column(
                 children: [
                   OutlinedCard(
@@ -98,30 +98,31 @@ class _HomeScreenState extends State<HomeScreen> {
                     borderRadius: 50,
                     child: const Row(
                       children: [
-                        Icon(Icons.search, color: AppColors.outlineVariant),
-                        SizedBox(width: AppSpacing.md),
+                        Icon(Icons.search, color: TwColors.borderStrong),
+                        SizedBox(width: TwSpacing.x4),
                         Expanded(
                           child: Text(
                             'Search restaurants...',
-                            style: TextStyle(color: AppColors.outlineVariant),
+                            style: TextStyle(color: TwColors.borderStrong),
                           ),
                         ),
                       ],
                     ),
                   ),
-                  const SizedBox(height: AppSpacing.lg),
+                  const SizedBox(height: TwSpacing.x5),
                   _SectionHeader(
                     title: 'Categories',
                     actionLabel: 'See All',
                     onPressed: () => context.push(AppRoutes.categories),
                   ),
-                  const SizedBox(height: AppSpacing.md),
+                  const SizedBox(height: TwSpacing.x4),
                   SizedBox(
                     height: 100,
                     child: ListView.separated(
                       scrollDirection: Axis.horizontal,
                       itemCount: _categories.length,
-                      separatorBuilder: (_, __) => const SizedBox(width: AppSpacing.md),
+                      separatorBuilder: (_, __) =>
+                          const SizedBox(width: TwSpacing.x4),
                       itemBuilder: (context, index) => _CategoryChip(
                         category: _categories[index],
                         isSelected: _selectedCategory == index,
@@ -129,7 +130,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                   ),
-                  const SizedBox(height: AppSpacing.xl),
+                  const SizedBox(height: TwSpacing.x8),
                   _SectionHeader(
                     title: 'Trending Now',
                     actionLabel: 'View All',
@@ -140,18 +141,18 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           SliverPadding(
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+            padding: const EdgeInsets.symmetric(horizontal: TwSpacing.x5),
             sliver: SliverList(
               delegate: SliverChildBuilderDelegate(
                 (context, index) => Padding(
-                  padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                  padding: const EdgeInsets.only(bottom: TwSpacing.x4),
                   child: _RestaurantCard(restaurant: _restaurants[index]),
                 ),
                 childCount: _restaurants.length,
               ),
             ),
           ),
-          const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.lg)),
+          const SliverToBoxAdapter(child: SizedBox(height: TwSpacing.x5)),
         ],
       ),
     );
@@ -174,10 +175,10 @@ class _SectionHeader extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(title, style: AppTextStyles.sectionTitle()),
+        Text(title, style: TwText.textXl()),
         TextButton(
           onPressed: onPressed,
-          child: Text(actionLabel, style: AppTextStyles.actionLink()),
+          child: Text(actionLabel, style: TwText.link()),
         ),
       ],
     );
@@ -206,21 +207,21 @@ class _CategoryChip extends StatelessWidget {
             height: 80,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              gradient: isSelected ? AppColors.fireSunGradient : null,
-              color: isSelected ? null : AppColors.surfaceContainer,
+              gradient: isSelected ? TwColors.primaryGradient : null,
+              color: isSelected ? null : TwColors.cardMuted,
             ),
             child: Icon(
               category.icon,
               size: 34,
-              color: isSelected ? Colors.white : AppColors.primary,
+              color: isSelected ? Colors.white : TwColors.primary,
             ),
           ),
         ),
-        const SizedBox(height: AppSpacing.base),
+        const SizedBox(height: TwSpacing.x2),
         Text(
           category.label,
-          style: AppTextStyles.labelSm().copyWith(
-            color: isSelected ? AppColors.primary : AppColors.onSurfaceVariant,
+          style: TwText.textXs().copyWith(
+            color: isSelected ? TwColors.primary : TwColors.textMuted,
           ),
         ),
       ],
@@ -246,7 +247,7 @@ class _RestaurantCard extends StatelessWidget {
           Container(
             height: 180,
             decoration: const BoxDecoration(
-              color: AppColors.primaryContainer,
+              color: TwColors.primaryAccent,
               borderRadius: BorderRadius.only(
                 topLeft: Radius.circular(16),
                 topRight: Radius.circular(16),
@@ -254,41 +255,49 @@ class _RestaurantCard extends StatelessWidget {
             ),
           ),
           Padding(
-            padding: const EdgeInsets.all(AppSpacing.lg),
+            padding: const EdgeInsets.all(TwSpacing.x5),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(restaurant.name, style: AppTextStyles.sectionTitle()),
-                const SizedBox(height: AppSpacing.sm),
+                Text(restaurant.name, style: TwText.textXl()),
+                const SizedBox(height: TwSpacing.x3),
                 Row(
                   children: [
-                    const Icon(Icons.star_rounded, color: Color(0xFFFFC107), size: 18),
-                    const SizedBox(width: AppSpacing.xs),
+                    const Icon(
+                      Icons.star_rounded,
+                      color: Color(0xFFFFC107),
+                      size: 18,
+                    ),
+                    const SizedBox(width: TwSpacing.x1),
                     Text(
                       '${restaurant.rating} · ${restaurant.reviews}',
-                      style: AppTextStyles.labelSm().copyWith(
-                        color: AppColors.onSurfaceVariant,
+                      style: TwText.textXs().copyWith(
+                        color: TwColors.textMuted,
                       ),
                     ),
                     const Spacer(),
                     Text(
                       restaurant.price,
-                      style: AppTextStyles.cardTitleSm().copyWith(
-                        color: AppColors.primary,
+                      style: TwText.fontBoldSm().copyWith(
+                        color: TwColors.primary,
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: AppSpacing.md),
+                const SizedBox(height: TwSpacing.x4),
                 Row(
                   children: [
-                    const Icon(Icons.location_on_outlined, color: AppColors.primary, size: 16),
-                    const SizedBox(width: AppSpacing.xs),
+                    const Icon(
+                      Icons.location_on_outlined,
+                      color: TwColors.primary,
+                      size: 16,
+                    ),
+                    const SizedBox(width: TwSpacing.x1),
                     Expanded(
                       child: Text(
                         restaurant.distance,
-                        style: AppTextStyles.labelSm().copyWith(
-                          color: AppColors.onSurfaceVariant,
+                        style: TwText.textXs().copyWith(
+                          color: TwColors.textMuted,
                         ),
                       ),
                     ),

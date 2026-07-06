@@ -19,13 +19,11 @@ class OnboardingPage2 extends StatelessWidget {
         top: 16,
         left: 16,
         child: Container(
-          padding: const EdgeInsets.all(AppSpacing.base),
+          padding: const EdgeInsets.all(TwSpacing.x2),
           decoration: BoxDecoration(
             color: Colors.white.withOpacityValue(0.2),
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: Colors.white.withOpacityValue(0.3),
-            ),
+            border: Border.all(color: Colors.white.withOpacityValue(0.3)),
           ),
           child: Column(
             children: [
@@ -33,27 +31,22 @@ class OnboardingPage2 extends StatelessWidget {
                 width: 40,
                 height: 40,
                 decoration: BoxDecoration(
-                  color: AppColors.secondary,
-                  borderRadius: BorderRadius.circular(AppRadii.full),
+                  color: TwColors.secondary,
+                  borderRadius: BorderRadius.circular(TwRadius.full),
                 ),
-                child: const Icon(
-                  Icons.electric_scooter,
-                  color: Colors.white,
-                ),
+                child: const Icon(Icons.electric_scooter, color: Colors.white),
               ),
-              const SizedBox(height: AppSpacing.sm),
+              const SizedBox(height: TwSpacing.x3),
               Text(
                 'ETA',
-                style: AppTextStyles.labelSm().copyWith(
+                style: TwText.textXs().copyWith(
                   color: Colors.white.withOpacityValue(0.8),
                   letterSpacing: 1,
                 ),
               ),
               Text(
                 '12 Minutes',
-                style: AppTextStyles.labelBold().copyWith(
-                  color: Colors.white,
-                ),
+                style: TwText.fontBoldSm().copyWith(color: Colors.white),
               ),
             ],
           ),

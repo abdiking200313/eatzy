@@ -21,33 +21,33 @@ class CartScreenFull extends StatelessWidget {
     return AppScaffold(
       title: 'My Cart',
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(AppSpacing.lg),
+        padding: const EdgeInsets.all(TwSpacing.x5),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SectionTitle('Items in Cart'),
-            const SizedBox(height: AppSpacing.lg),
+            const SizedBox(height: TwSpacing.x5),
             for (final item in _items) ...[
               _CartItemCard(item: item),
-              if (item != _items.last) const SizedBox(height: AppSpacing.lg),
+              if (item != _items.last) const SizedBox(height: TwSpacing.x5),
             ],
-            const SizedBox(height: AppSpacing.xl),
+            const SizedBox(height: TwSpacing.x8),
             OutlinedCard(
               backgroundColor: Colors.white,
               borderRadius: 16,
               child: Column(
                 children: const [
                   SummaryRow(label: 'Subtotal', value: 'NGN 14,000'),
-                  SizedBox(height: AppSpacing.lg),
+                  SizedBox(height: TwSpacing.x5),
                   SummaryRow(label: 'Delivery', value: 'NGN 1,000'),
-                  SizedBox(height: AppSpacing.lg),
+                  SizedBox(height: TwSpacing.x5),
                   Divider(),
-                  SizedBox(height: AppSpacing.lg),
+                  SizedBox(height: TwSpacing.x5),
                   SummaryRow(label: 'Total', value: 'NGN 15,000', isBold: true),
                 ],
               ),
             ),
-            const SizedBox(height: AppSpacing.xl),
+            const SizedBox(height: TwSpacing.x8),
             GradientActionButton(
               label: 'Checkout',
               onPressed: () => context.push(AppRoutes.checkout),
@@ -77,27 +77,25 @@ class _CartItemCard extends StatelessWidget {
             height: 80,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(12),
-              color: AppColors.primaryContainer,
+              color: TwColors.primaryAccent,
             ),
           ),
-          const SizedBox(width: AppSpacing.lg),
+          const SizedBox(width: TwSpacing.x5),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(item.name, style: AppTextStyles.cardTitle()),
-                const SizedBox(height: AppSpacing.xs),
+                Text(item.name, style: TwText.fontBoldBase()),
+                const SizedBox(height: TwSpacing.x1),
                 Text(
                   '${item.price} x ${item.quantity}',
-                  style: AppTextStyles.cardTitleSm().copyWith(
-                    color: AppColors.primary,
-                  ),
+                  style: TwText.fontBoldSm().copyWith(color: TwColors.primary),
                 ),
               ],
             ),
           ),
           IconButton(
-            icon: const Icon(Icons.close, color: AppColors.primary),
+            icon: const Icon(Icons.close, color: TwColors.primary),
             onPressed: () {},
           ),
         ],

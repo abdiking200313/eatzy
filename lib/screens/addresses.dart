@@ -15,7 +15,8 @@ class AddressesScreenFull extends StatelessWidget {
     ),
     _SavedAddress(
       label: 'Work',
-      address: '456 Business Avenue, Suite 800\nFinancial District, New York, NY 10004',
+      address:
+          '456 Business Avenue, Suite 800\nFinancial District, New York, NY 10004',
     ),
     _SavedAddress(
       label: 'Mom\'s Place',
@@ -29,7 +30,7 @@ class AddressesScreenFull extends StatelessWidget {
       title: 'Saved Addresses',
       showBackButton: true,
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(AppSpacing.md),
+        padding: const EdgeInsets.all(TwSpacing.x4),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -38,11 +39,11 @@ class AddressesScreenFull extends StatelessWidget {
               onPressed: () {},
               icon: const Icon(Icons.add, color: Colors.white, size: 20),
             ),
-            const SizedBox(height: AppSpacing.lg),
+            const SizedBox(height: TwSpacing.x5),
             for (final address in _addresses) ...[
               _AddressCard(address: address),
               if (address != _addresses.last)
-                const SizedBox(height: AppSpacing.md),
+                const SizedBox(height: TwSpacing.x4),
             ],
           ],
         ),
@@ -59,8 +60,7 @@ class _AddressCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return OutlinedCard(
-      borderColor:
-          address.isDefault ? AppColors.primary : AppColors.outlineVariant,
+      borderColor: address.isDefault ? TwColors.primary : TwColors.borderStrong,
       borderWidth: address.isDefault ? 2 : 1,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -68,42 +68,37 @@ class _AddressCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(address.label, style: AppTextStyles.cardTitle()),
+              Text(address.label, style: TwText.fontBoldBase()),
               if (address.isDefault)
                 const StatusPill(
                   label: 'Default',
-                  backgroundColor: AppColors.primaryContainer,
-                  foregroundColor: AppColors.onPrimaryContainer,
+                  backgroundColor: TwColors.primaryAccent,
+                  foregroundColor: TwColors.orange900,
                   fontSize: 11,
                 ),
             ],
           ),
-          const SizedBox(height: AppSpacing.sm),
-          Text(
-            address.address,
-            style: AppTextStyles.bodySecondary().copyWith(height: 1.5),
-          ),
-          const SizedBox(height: AppSpacing.md),
+          const SizedBox(height: TwSpacing.x3),
+          Text(address.address, style: TwText.textSm().copyWith(height: 1.5)),
+          const SizedBox(height: TwSpacing.x4),
           Row(
             children: [
               Expanded(
                 child: address.isDefault
                     ? Container(
                         padding: const EdgeInsets.symmetric(
-                          vertical: AppSpacing.sm,
+                          vertical: TwSpacing.x3,
                         ),
                         decoration: BoxDecoration(
-                          color:
-                              AppColors.primaryContainer.withOpacityValue(0.3),
-                          border: Border.all(color: AppColors.primary),
-                          borderRadius:
-                              BorderRadius.circular(AppRadii.lg),
+                          color: TwColors.primaryAccent.withOpacityValue(0.3),
+                          border: Border.all(color: TwColors.primary),
+                          borderRadius: BorderRadius.circular(TwRadius.lg),
                         ),
                         child: Center(
                           child: Text(
                             'Default Address',
-                            style: AppTextStyles.labelBold().copyWith(
-                              color: AppColors.primary,
+                            style: TwText.fontBoldSm().copyWith(
+                              color: TwColors.primary,
                             ),
                           ),
                         ),
@@ -111,41 +106,41 @@ class _AddressCard extends StatelessWidget {
                     : OutlinedCard(
                         onTap: () {},
                         padding: const EdgeInsets.symmetric(
-                          vertical: AppSpacing.sm,
+                          vertical: TwSpacing.x3,
                         ),
                         backgroundColor: Colors.transparent,
-                        borderColor: AppColors.outline,
+                        borderColor: TwColors.textMuted,
                         child: Center(
                           child: Text(
                             'Set as Default',
-                            style: AppTextStyles.labelBold().copyWith(
-                              color: AppColors.onSurfaceVariant,
+                            style: TwText.fontBoldSm().copyWith(
+                              color: TwColors.textMuted,
                             ),
                           ),
                         ),
                       ),
               ),
-              const SizedBox(width: AppSpacing.sm),
+              const SizedBox(width: TwSpacing.x3),
               OutlinedCard(
                 onTap: () {},
-                padding: const EdgeInsets.all(AppSpacing.sm),
+                padding: const EdgeInsets.all(TwSpacing.x3),
                 backgroundColor: Colors.transparent,
-                borderColor: AppColors.outline,
+                borderColor: TwColors.textMuted,
                 child: const Icon(
                   Icons.edit_outlined,
-                  color: AppColors.primary,
+                  color: TwColors.primary,
                   size: 18,
                 ),
               ),
-              const SizedBox(width: AppSpacing.sm),
+              const SizedBox(width: TwSpacing.x3),
               OutlinedCard(
                 onTap: () {},
-                padding: const EdgeInsets.all(AppSpacing.sm),
+                padding: const EdgeInsets.all(TwSpacing.x3),
                 backgroundColor: Colors.transparent,
-                borderColor: AppColors.error,
+                borderColor: TwColors.error,
                 child: const Icon(
                   Icons.delete_outline,
-                  color: AppColors.error,
+                  color: TwColors.error,
                   size: 18,
                 ),
               ),

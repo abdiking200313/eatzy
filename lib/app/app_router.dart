@@ -59,10 +59,7 @@ class AppRouter {
   static final GoRouter router = GoRouter(
     initialLocation: AppRoutes.welcome,
     routes: [
-      GoRoute(
-        path: AppRoutes.root,
-        redirect: (_, __) => AppRoutes.welcome,
-      ),
+      GoRoute(path: AppRoutes.root, redirect: (_, __) => AppRoutes.welcome),
       GoRoute(
         path: AppRoutes.welcome,
         builder: (context, state) => const WelcomeScreen(),

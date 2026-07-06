@@ -32,7 +32,7 @@ class _CheckoutScreenFullState extends State<CheckoutScreenFull> {
       title: 'Checkout',
       showBackButton: true,
       body: ListView(
-        padding: const EdgeInsets.all(AppSpacing.lg),
+        padding: const EdgeInsets.all(TwSpacing.x5),
         children: [
           OutlinedCard(
             backgroundColor: Colors.white,
@@ -41,34 +41,37 @@ class _CheckoutScreenFullState extends State<CheckoutScreenFull> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SectionTitle('Order Summary', fontSize: 18),
-                const SizedBox(height: AppSpacing.lg),
+                const SizedBox(height: TwSpacing.x5),
                 for (final item in _items) ...[
                   _CheckoutItemRow(item: item),
-                  if (item != _items.last) const SizedBox(height: AppSpacing.md),
+                  if (item != _items.last) const SizedBox(height: TwSpacing.x4),
                 ],
                 const Divider(height: 32),
                 const SummaryRow(label: 'Subtotal', value: 'NGN 14,500'),
-                const SizedBox(height: AppSpacing.md),
+                const SizedBox(height: TwSpacing.x4),
                 const SummaryRow(label: 'Tax', value: 'NGN 1,450'),
-                const SizedBox(height: AppSpacing.md),
+                const SizedBox(height: TwSpacing.x4),
                 const SummaryRow(label: 'Delivery Fee', value: 'NGN 1,000'),
-                const SizedBox(height: AppSpacing.md),
+                const SizedBox(height: TwSpacing.x4),
                 Container(
-                  padding: const EdgeInsets.all(AppSpacing.md),
+                  padding: const EdgeInsets.all(TwSpacing.x4),
                   decoration: BoxDecoration(
-                    color: AppColors.surfaceContainer,
+                    color: TwColors.cardMuted,
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Row(
                     children: [
-                      const Icon(Icons.local_offer_outlined, color: AppColors.primary),
-                      const SizedBox(width: AppSpacing.sm),
+                      const Icon(
+                        Icons.local_offer_outlined,
+                        color: TwColors.primary,
+                      ),
+                      const SizedBox(width: TwSpacing.x3),
                       Expanded(
                         child: TextField(
                           decoration: InputDecoration(
                             hintText: 'Enter promo code',
-                            hintStyle: AppTextStyles.labelSm().copyWith(
-                              color: AppColors.onSurfaceVariant,
+                            hintStyle: TwText.textXs().copyWith(
+                              color: TwColors.textMuted,
                             ),
                             border: InputBorder.none,
                           ),
@@ -76,14 +79,14 @@ class _CheckoutScreenFullState extends State<CheckoutScreenFull> {
                       ),
                       TextButton(
                         onPressed: () {},
-                        child: Text('Apply', style: AppTextStyles.actionLink()),
+                        child: Text('Apply', style: TwText.link()),
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(height: AppSpacing.lg),
+                const SizedBox(height: TwSpacing.x5),
                 OutlinedCard(
-                  backgroundColor: AppColors.surfaceContainerLow,
+                  backgroundColor: TwColors.cardMuted,
                   borderColor: Colors.transparent,
                   borderRadius: 12,
                   child: const SummaryRow(
@@ -95,7 +98,7 @@ class _CheckoutScreenFullState extends State<CheckoutScreenFull> {
               ],
             ),
           ),
-          const SizedBox(height: AppSpacing.xl),
+          const SizedBox(height: TwSpacing.x8),
           OutlinedCard(
             backgroundColor: Colors.white,
             borderRadius: 16,
@@ -108,23 +111,23 @@ class _CheckoutScreenFullState extends State<CheckoutScreenFull> {
                     const SectionTitle('Delivery Address', fontSize: 18),
                     TextButton(
                       onPressed: () {},
-                      child: Text('Change', style: AppTextStyles.actionLink()),
+                      child: Text('Change', style: TwText.link()),
                     ),
                   ],
                 ),
-                const SizedBox(height: AppSpacing.md),
+                const SizedBox(height: TwSpacing.x4),
                 Row(
                   children: [
-                    const Icon(Icons.location_on, color: AppColors.primary),
-                    const SizedBox(width: AppSpacing.md),
+                    const Icon(Icons.location_on, color: TwColors.primary),
+                    const SizedBox(width: TwSpacing.x4),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Home', style: AppTextStyles.cardTitleSm()),
+                          Text('Home', style: TwText.fontBoldSm()),
                           Text(
                             '123 Lekki Street, Lagos',
-                            style: AppTextStyles.bodySecondary(),
+                            style: TwText.textSm(),
                           ),
                         ],
                       ),
@@ -134,7 +137,7 @@ class _CheckoutScreenFullState extends State<CheckoutScreenFull> {
               ],
             ),
           ),
-          const SizedBox(height: AppSpacing.xl),
+          const SizedBox(height: TwSpacing.x8),
           OutlinedCard(
             backgroundColor: Colors.white,
             borderRadius: 16,
@@ -142,28 +145,26 @@ class _CheckoutScreenFullState extends State<CheckoutScreenFull> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SectionTitle('Payment Method', fontSize: 18),
-                const SizedBox(height: AppSpacing.lg),
+                const SizedBox(height: TwSpacing.x5),
                 for (final option in _paymentOptions) ...[
                   _PaymentOptionTile(
                     title: option.title,
                     subtitle: option.subtitle,
-                    isSelected: _paymentOptions.indexOf(option) == _selectedPayment,
+                    isSelected:
+                        _paymentOptions.indexOf(option) == _selectedPayment,
                     onTap: () => setState(
                       () => _selectedPayment = _paymentOptions.indexOf(option),
                     ),
                   ),
                   if (option != _paymentOptions.last)
-                    const SizedBox(height: AppSpacing.md),
+                    const SizedBox(height: TwSpacing.x4),
                 ],
               ],
             ),
           ),
-          const SizedBox(height: AppSpacing.xl),
-          GradientActionButton(
-            label: 'Complete Order',
-            onPressed: () {},
-          ),
-          const SizedBox(height: AppSpacing.xl),
+          const SizedBox(height: TwSpacing.x8),
+          GradientActionButton(label: 'Complete Order', onPressed: () {}),
+          const SizedBox(height: TwSpacing.x8),
         ],
       ),
     );
@@ -184,14 +185,14 @@ class _CheckoutItemRow extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(item.name, style: AppTextStyles.labelBold()),
-              Text('x${item.quantity}', style: AppTextStyles.bodySecondary()),
+              Text(item.name, style: TwText.fontBoldSm()),
+              Text('x${item.quantity}', style: TwText.textSm()),
             ],
           ),
         ),
         Text(
           item.price,
-          style: AppTextStyles.cardTitleSm().copyWith(color: AppColors.primary),
+          style: TwText.fontBoldSm().copyWith(color: TwColors.primary),
         ),
       ],
     );
@@ -216,11 +217,13 @@ class _PaymentOptionTile extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(AppSpacing.md),
+        padding: const EdgeInsets.all(TwSpacing.x4),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.primaryContainer : AppColors.surfaceContainer,
+          color: isSelected ? TwColors.primaryAccent : TwColors.cardMuted,
           borderRadius: BorderRadius.circular(12),
-          border: isSelected ? Border.all(color: AppColors.primary, width: 2) : null,
+          border: isSelected
+              ? Border.all(color: TwColors.primary, width: 2)
+              : null,
         ),
         child: Row(
           children: [
@@ -230,7 +233,7 @@ class _PaymentOptionTile extends StatelessWidget {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: isSelected ? AppColors.primary : AppColors.outline,
+                  color: isSelected ? TwColors.primary : TwColors.textMuted,
                   width: 2,
                 ),
               ),
@@ -241,27 +244,27 @@ class _PaymentOptionTile extends StatelessWidget {
                         height: 12,
                         decoration: const BoxDecoration(
                           shape: BoxShape.circle,
-                          color: AppColors.primary,
+                          color: TwColors.primary,
                         ),
                       ),
                     )
                   : null,
             ),
-            const SizedBox(width: AppSpacing.md),
+            const SizedBox(width: TwSpacing.x4),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     title,
-                    style: AppTextStyles.cardTitleSm().copyWith(
-                      color: isSelected ? Colors.white : AppColors.onSurface,
+                    style: TwText.fontBoldSm().copyWith(
+                      color: isSelected ? Colors.white : TwColors.text,
                     ),
                   ),
                   Text(
                     subtitle,
-                    style: AppTextStyles.labelSm().copyWith(
-                      color: isSelected ? Colors.white70 : AppColors.onSurfaceVariant,
+                    style: TwText.textXs().copyWith(
+                      color: isSelected ? Colors.white70 : TwColors.textMuted,
                     ),
                   ),
                 ],
@@ -287,10 +290,7 @@ class _CheckoutItem {
 }
 
 class _PaymentChoice {
-  const _PaymentChoice({
-    required this.title,
-    required this.subtitle,
-  });
+  const _PaymentChoice({required this.title, required this.subtitle});
 
   final String title;
   final String subtitle;

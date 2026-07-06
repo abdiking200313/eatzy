@@ -17,11 +17,7 @@ class _MainAppScreenState extends State<MainAppScreen> {
   int _selectedIndex = 0;
 
   static const List<_NavigationItem> _navigationItems = [
-    _NavigationItem(
-      label: 'Home',
-      icon: Icons.home,
-      screen: HomeScreen(),
-    ),
+    _NavigationItem(label: 'Home', icon: Icons.home, screen: HomeScreen()),
     _NavigationItem(
       label: 'Categories',
       icon: Icons.category,
@@ -47,9 +43,9 @@ class _MainAppScreenState extends State<MainAppScreen> {
         currentIndex: _selectedIndex,
         onTap: (index) => setState(() => _selectedIndex = index),
         type: BottomNavigationBarType.fixed,
-        backgroundColor: AppColors.surface,
-        selectedItemColor: AppColors.primary,
-        unselectedItemColor: AppColors.outline,
+        backgroundColor: TwColors.bg,
+        selectedItemColor: TwColors.primary,
+        unselectedItemColor: TwColors.textMuted,
         items: _navigationItems
             .map(
               (item) => BottomNavigationBarItem(

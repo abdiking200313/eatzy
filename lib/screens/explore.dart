@@ -20,19 +20,19 @@ class ExploreScreen extends StatelessWidget {
     return AppScaffold(
       title: 'Explore',
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(AppSpacing.lg),
+        padding: const EdgeInsets.all(TwSpacing.x5),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SectionTitle('Explore Popular Dishes'),
-            const SizedBox(height: AppSpacing.lg),
+            const SizedBox(height: TwSpacing.x5),
             GridView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,
-                crossAxisSpacing: AppSpacing.lg,
-                mainAxisSpacing: AppSpacing.lg,
+                crossAxisSpacing: TwSpacing.x5,
+                mainAxisSpacing: TwSpacing.x5,
                 childAspectRatio: 0.8,
               ),
               itemCount: _dishes.length,
@@ -63,7 +63,7 @@ class _DishCard extends StatelessWidget {
           Container(
             height: 120,
             decoration: const BoxDecoration(
-              color: AppColors.primaryContainer,
+              color: TwColors.primaryAccent,
               borderRadius: BorderRadius.only(
                 topLeft: Radius.circular(16),
                 topRight: Radius.circular(16),
@@ -71,16 +71,16 @@ class _DishCard extends StatelessWidget {
             ),
           ),
           Padding(
-            padding: const EdgeInsets.all(AppSpacing.base),
+            padding: const EdgeInsets.all(TwSpacing.x2),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(dish.name, style: AppTextStyles.cardTitleSm()),
-                const SizedBox(height: AppSpacing.xs),
+                Text(dish.name, style: TwText.fontBoldSm()),
+                const SizedBox(height: TwSpacing.x1),
                 Text(
                   dish.price,
-                  style: AppTextStyles.cardTitle().copyWith(
-                    color: AppColors.primary,
+                  style: TwText.fontBoldBase().copyWith(
+                    color: TwColors.primary,
                   ),
                 ),
               ],

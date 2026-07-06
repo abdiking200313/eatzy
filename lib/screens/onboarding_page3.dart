@@ -19,23 +19,18 @@ class OnboardingPage3 extends StatelessWidget {
         bottom: 16,
         right: 16,
         child: Container(
-          padding: const EdgeInsets.symmetric(
-            horizontal: 24,
-            vertical: 12,
-          ),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
           decoration: BoxDecoration(
-            color: AppColors.primaryContainer,
-            borderRadius: BorderRadius.circular(AppRadii.full),
+            color: TwColors.primaryAccent,
+            borderRadius: BorderRadius.circular(TwRadius.full),
           ),
           child: Row(
             children: [
               const Icon(Icons.stars, color: Colors.white),
-              const SizedBox(width: AppSpacing.base),
+              const SizedBox(width: TwSpacing.x2),
               Text(
                 '50% OFF',
-                style: AppTextStyles.labelBold().copyWith(
-                  color: Colors.white,
-                ),
+                style: TwText.fontBoldSm().copyWith(color: Colors.white),
               ),
             ],
           ),
