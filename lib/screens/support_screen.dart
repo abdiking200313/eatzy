@@ -33,7 +33,7 @@ class SupportScreenFull extends StatelessWidget {
     _SupportTopic(
       icon: Icons.mail_outline,
       title: 'Email Us',
-      subtitle: 'support@chowflow.com',
+      subtitle: 'support@zivo.com',
     ),
     _SupportTopic(
       icon: Icons.phone_outlined,

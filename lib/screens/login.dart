@@ -4,6 +4,7 @@ import '../config/theme.dart';
 import '../widgets/app_cards.dart';
 import '../widgets/app_scaffold.dart';
 import '../widgets/app_widgets.dart';
+import '../widgets/zivo_logo.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -26,7 +27,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<void> _login() async {
     try {
-      await _authService.SigninwithEmailPassword(
+      await _authService.signInWithEmailPassword(
         _emailController.text,
         _passwordController.text,
       );
@@ -53,6 +54,8 @@ class _LoginScreenState extends State<LoginScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                const Center(child: ZivoLogo(height: 48)),
+                const SizedBox(height: TwSpacing.x6),
                 Text('Welcome back', style: TwText.text2xl()),
                 const SizedBox(height: TwSpacing.x1),
                 Text(

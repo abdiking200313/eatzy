@@ -180,7 +180,7 @@ class _OrderCard extends StatelessWidget {
                     ? TwColors.primaryAccent
                     : TwColors.secondary.withOpacityValue(0.2),
                 foregroundColor: isActive
-                    ? TwColors.orange900
+                    ? TwColors.blue900
                     : TwColors.secondary,
                 fontSize: 11,
               ),

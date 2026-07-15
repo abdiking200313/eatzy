@@ -17,50 +17,42 @@ class TwColors {
   static const Color stone700 = Color(0xFF44403C);
   static const Color stone900 = Color(0xFF1C1917);
 
-  static const Color orange50 = Color(0xFFFFF7ED);
-  static const Color orange100 = Color(0xFFFFEDD5);
-  static const Color orange200 = Color(0xFFFED7AA);
-  static const Color orange500 = Color(0xFFF97316);
-  static const Color orange600 = Color(0xFFEA580C);
-  static const Color orange700 = Color(0xFFC2410C);
-  static const Color orange900 = Color(0xFF7C2D12);
-
-  static const Color amber100 = Color(0xFFFEF3C7);
-  static const Color amber400 = Color(0xFFFBBF24);
-  static const Color amber500 = Color(0xFFF59E0B);
-  static const Color amber700 = Color(0xFFB45309);
-
-  static const Color violet100 = Color(0xFFEDE9FE);
-  static const Color violet400 = Color(0xFFA78BFA);
-  static const Color violet600 = Color(0xFF7C3AED);
+  static const Color blue50 = Color(0xFFEFF6FF);
+  static const Color blue100 = Color(0xFFDBEAFE);
+  static const Color blue200 = Color(0xFFBFDBFE);
+  static const Color blue400 = Color(0xFF60A5FA);
+  static const Color blue500 = Color(0xFF2196F3);
+  static const Color blue600 = Color(0xFF0B6FDE);
+  static const Color blue700 = Color(0xFF0757B9);
+  static const Color blue900 = Color(0xFF0B2F63);
 
   static const Color red100 = Color(0xFFFEE2E2);
   static const Color red600 = Color(0xFFDC2626);
   static const Color red700 = Color(0xFFB91C1C);
 
-  static const Color bg = stone50;
-  static const Color bgMuted = stone100;
+  static const Color bg = white;
+  static const Color bgMuted = blue50;
   static const Color card = white;
-  static const Color cardMuted = stone100;
-  static const Color border = stone200;
-  static const Color borderStrong = stone300;
-  static const Color text = stone900;
-  static const Color textMuted = stone500;
-  static const Color primary = orange600;
-  static const Color primaryHover = orange700;
-  static const Color primarySoft = orange100;
-  static const Color primaryAccent = orange500;
+  static const Color cardMuted = blue50;
+  static const Color border = blue100;
+  static const Color borderStrong = blue200;
+  static const Color text = blue900;
+  static const Color textMuted = slate500;
+  static const Color primary = blue600;
+  static const Color primaryHover = blue700;
+  static const Color primarySoft = blue100;
+  static const Color primaryAccent = blue500;
   static const Color onPrimary = white;
-  static const Color secondary = amber700;
-  static const Color secondarySoft = amber100;
-  static const Color tertiary = violet600;
+  static const Color secondary = blue500;
+  static const Color secondarySoft = blue50;
+  static const Color tertiary = blue400;
   static const Color error = red600;
   static const Color errorSoft = red100;
 
   static const LinearGradient primaryGradient = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: [orange500, amber400],
+    colors: [blue500, blue700],
   );
 }
 

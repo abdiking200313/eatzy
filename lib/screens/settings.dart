@@ -99,7 +99,7 @@ class _SettingsScreenFullState extends State<SettingsScreenFull> {
             const SizedBox(height: TwSpacing.x4),
             const _SettingCard(
               title: 'About Us',
-              subtitle: 'Learn about ChowFlow',
+              subtitle: 'Learn about Zivo',
               icon: Icons.info_outlined,
             ),
             const SizedBox(height: TwSpacing.x3),

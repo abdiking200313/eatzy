@@ -1,10 +1,10 @@
-# ChowFlow - Modern Food Delivery App
+# Zivo - Modern Food Delivery App
 
 A beautiful, feature-rich Flutter food delivery application built with modern design principles and best practices.
 
 ## 🎯 About
 
-ChowFlow is a complete food delivery app UI/UX implementation featuring:
+Zivo is a complete food delivery app UI/UX implementation featuring:
 - Modern Material Design 3 interface
 - Smooth navigation and transitions
 - Comprehensive order management
@@ -185,7 +185,7 @@ This project is licensed under the MIT License.
 
 ## 👥 Authors
 
-- ChowFlow Development Team
+- Zivo Development Team
 
 ## 📞 Support
 

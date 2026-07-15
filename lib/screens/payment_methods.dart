@@ -98,7 +98,7 @@ class _PaymentMethodCard extends StatelessWidget {
                 const StatusPill(
                   label: 'Default',
                   backgroundColor: TwColors.primaryAccent,
-                  foregroundColor: TwColors.orange900,
+                  foregroundColor: TwColors.blue900,
                   fontSize: 10,
                 ),
             ],

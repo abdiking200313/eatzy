@@ -84,12 +84,12 @@ class PremiumCard extends StatelessWidget {
   }
 }
 
-class ChowFlowChip extends StatelessWidget {
+class ZivoChip extends StatelessWidget {
   final String label;
   final bool isSelected;
   final VoidCallback? onTap;
 
-  const ChowFlowChip({
+  const ZivoChip({
     super.key,
     required this.label,
     this.isSelected = false,

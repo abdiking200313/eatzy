@@ -186,7 +186,7 @@ class _TransactionRow extends StatelessWidget {
             width: 50,
             height: 50,
             decoration: BoxDecoration(
-              color: TwColors.amber400,
+              color: TwColors.blue400,
               borderRadius: BorderRadius.circular(TwRadius.full),
             ),
             child: const Icon(Icons.add, color: TwColors.text),

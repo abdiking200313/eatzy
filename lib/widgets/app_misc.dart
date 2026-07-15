@@ -42,7 +42,7 @@ class StatusPill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bg = backgroundColor ?? TwColors.primaryAccent;
-    final fg = foregroundColor ?? TwColors.orange900;
+    final fg = foregroundColor ?? TwColors.blue900;
     return Container(
       padding: const EdgeInsets.symmetric(
         horizontal: TwSpacing.x3,

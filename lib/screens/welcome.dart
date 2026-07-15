@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import '../app/app_router.dart';
 import '../config/theme.dart';
 import '../widgets/app_cards.dart';
+import '../widgets/zivo_logo.dart';
 import 'onboarding_page1.dart';
 import 'onboarding_page2.dart';
 import 'onboarding_page3.dart';
@@ -26,6 +27,10 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
 
   void _openMainApp() {
     context.go(AppRoutes.mainApp);
+  }
+
+  void _openRegister() {
+    context.push(AppRoutes.register);
   }
 
   void _openLogin() {
@@ -65,10 +70,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
               elevation: 0,
               leading: null,
               titleSpacing: TwSpacing.x5,
-              title: Text(
-                'ChowFlow',
-                style: TwText.text2xl().copyWith(color: TwColors.primary),
-              ),
+              title: const ZivoLogo(height: 34),
               actions: [
                 TextButton(
                   onPressed: _openMainApp,
@@ -114,7 +116,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   const SizedBox(height: TwSpacing.x8),
                   GradientActionButton(
                     label: 'Get Started',
-                    onPressed: _openMainApp,
+                    onPressed: _openRegister,
                     icon: const Icon(
                       Icons.arrow_forward,
                       color: TwColors.onPrimary,

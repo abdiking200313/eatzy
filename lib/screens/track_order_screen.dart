@@ -45,7 +45,7 @@ class TrackOrderScreenFull extends StatelessWidget {
                     Text('Order #45782', style: TwText.fontBoldBase()),
                     const StatusPill(
                       label: 'On the way',
-                      backgroundColor: TwColors.amber400,
+                      backgroundColor: TwColors.blue400,
                       foregroundColor: TwColors.text,
                     ),
                   ],

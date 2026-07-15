@@ -161,7 +161,7 @@ class _AchievementCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: achievement.unlocked ? TwColors.amber400 : TwColors.cardMuted,
+        color: achievement.unlocked ? TwColors.blue400 : TwColors.cardMuted,
         borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
@@ -196,7 +196,7 @@ class _LeaderboardCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(TwSpacing.x5),
       decoration: BoxDecoration(
-        color: entry.highlighted ? TwColors.amber400 : TwColors.cardMuted,
+        color: entry.highlighted ? TwColors.blue400 : TwColors.cardMuted,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(

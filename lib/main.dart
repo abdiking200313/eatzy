@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'app/app_router.dart';
 import 'config/theme.dart';
+import 'widgets/zivo_logo.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -11,16 +12,16 @@ void main() async {
     anonKey: 'sb_publishable_yAtGwxHkT3zbplDDUUtINA_CSLboW2j',
   );
 
-  runApp(const ChowFlowApp());
+  runApp(const ZivoApp());
 }
 
-class ChowFlowApp extends StatelessWidget {
-  const ChowFlowApp({super.key});
+class ZivoApp extends StatelessWidget {
+  const ZivoApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp.router(
-      title: 'ChowFlow',
+      title: ZivoBrand.name,
       debugShowCheckedModeBanner: false,
       theme: buildAppTheme(),
       routerConfig: AppRouter.router,
@@ -33,6 +34,6 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const ChowFlowApp();
+    return const ZivoApp();
   }
 }

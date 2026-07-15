@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import '../app/app_router.dart';
 import '../config/theme.dart';
 import '../widgets/app_cards.dart';
+import '../widgets/zivo_logo.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -74,10 +75,7 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(
         backgroundColor: TwColors.bg,
         elevation: 0,
-        title: Text(
-          'ChowFlow',
-          style: TwText.text2xl().copyWith(color: TwColors.primary),
-        ),
+        title: const ZivoLogo(height: 34),
         actions: [
           IconButton(
             onPressed: () {},
@@ -265,7 +263,7 @@ class _RestaurantCard extends StatelessWidget {
                   children: [
                     const Icon(
                       Icons.star_rounded,
-                      color: Color(0xFFFFC107),
+                      color: TwColors.blue400,
                       size: 18,
                     ),
                     const SizedBox(width: TwSpacing.x1),

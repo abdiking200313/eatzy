@@ -192,7 +192,7 @@ class ProfileScreenFull extends StatelessWidget {
                   child: const Icon(
                     Icons.person,
                     size: 55,
-                    color: Colors.black87,
+                    color: TwColors.text,
                   ),
                 ),
                 const SizedBox(width: TwSpacing.x5),
@@ -205,7 +205,7 @@ class ProfileScreenFull extends StatelessWidget {
                         const SizedBox(width: 6),
                         const Icon(
                           Icons.verified,
-                          color: Colors.orangeAccent,
+                          color: TwColors.blue400,
                           size: 20,
                         ),
                       ],

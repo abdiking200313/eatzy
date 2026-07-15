@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../config/theme.dart';
 
-/// A standard [Scaffold] with the ChowFlow surface background, an
+/// A standard [Scaffold] with the Zivo surface background, an
 /// opinionated [AppBar] title, and an optional back button.
 class AppScaffold extends StatelessWidget {
   const AppScaffold({
