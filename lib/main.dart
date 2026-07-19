@@ -8,8 +8,8 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await Supabase.initialize(
-    url: 'https://atifebcufurziatglazv.supabase.co',
-    anonKey: 'sb_publishable_yAtGwxHkT3zbplDDUUtINA_CSLboW2j',
+    url: 'https://jzubookmbrtslocuzepe.supabase.co',
+    publishableKey: 'sb_publishable_yLgLRnh00I5zjImD-Q7R6A_uOO-l0sT',
   );
 
   runApp(const ZivoApp());
