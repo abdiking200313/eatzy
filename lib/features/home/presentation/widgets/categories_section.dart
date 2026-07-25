@@ -25,12 +25,12 @@ class CategoriesSection extends StatelessWidget {
       children: [
         SectionHeader(
           title: 'Categories',
-          actionLabel: 'See All',
+          actionLabel: '',
           onPressed: onSeeAllPressed,
         ),
         const SizedBox(height: TwSpacing.x4),
         SizedBox(
-          height: 112,
+          height: 116,
           child: FutureBuilder<List<Category>>(
             future: categoriesFuture,
             builder: _buildCategories,

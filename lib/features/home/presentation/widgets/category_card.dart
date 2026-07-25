@@ -23,12 +23,12 @@ class CategoryCard extends StatelessWidget {
         GestureDetector(
           onTap: onPressed,
           child: Container(
-            width: 80,
-            height: 80,
+            width: 90,
+            height: 90,
             decoration: BoxDecoration(
-              shape: BoxShape.circle,
+              shape: BoxShape.rectangle,
               gradient: isSelected ? TwColors.primaryGradient : null,
-              color: isSelected ? null : TwColors.cardMuted,
+
             ),
             child: ClipOval(
               child: _CategoryImage(
@@ -64,9 +64,9 @@ class _CategoryImage extends StatelessWidget {
 
     return CachedNetworkImage(
       imageUrl: imageUrl,
-      width: 80,
-      height: 80,
-      fit: BoxFit.cover,
+      width: 90,
+      height: 90,
+      fit: BoxFit.fill,
       placeholder: (context, url) => const _ImageLoading(),
       errorWidget: (context, url, error) => const _ImageFallback(),
     );
