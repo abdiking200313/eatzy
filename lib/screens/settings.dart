@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import '../app/app_router.dart';
+import '../auth/auth_service.dart';
 import '../config/theme.dart';
 import '../widgets/app_cards.dart';
 import '../widgets/app_scaffold.dart';
@@ -15,6 +18,18 @@ class _SettingsScreenFullState extends State<SettingsScreenFull> {
   bool emailNotifications = false;
   bool promotionalEmails = true;
   bool orderUpdates = true;
+
+  Future<void> _logout() async {
+    try {
+      await AuthService().signOut();
+      if (mounted) context.go(AppRoutes.login);
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Could not log out: $error')),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -117,7 +132,7 @@ class _SettingsScreenFullState extends State<SettingsScreenFull> {
             const SizedBox(height: TwSpacing.x5),
             PrimaryButton(
               label: 'Logout',
-              onPressed: () {},
+              onPressed: _logout,
               color: TwColors.error,
             ),
             const SizedBox(height: TwSpacing.x5),

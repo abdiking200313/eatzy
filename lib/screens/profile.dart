@@ -1,117 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../app/app_router.dart';
+import '../auth/auth_service.dart';
 import '../config/theme.dart';
 import '../widgets/app_cards.dart';
 import '../widgets/app_scaffold.dart';
 
-// class ProfileScreenFull extends StatelessWidget {
-//   const ProfileScreenFull({super.key});
-
-//   static const List<_ProfileOption> _options = [
-//     _ProfileOption(
-//       title: 'My Orders',
-//       icon: Icons.shopping_bag,
-//       route: AppRoutes.orders,
-//     ),
-//     _ProfileOption(
-//       title: 'Addresses',
-//       icon: Icons.location_on,
-//       route: AppRoutes.addresses,
-//     ),
-//     _ProfileOption(
-//       title: 'Payment Methods',
-//       icon: Icons.payment,
-//       route: AppRoutes.paymentMethods,
-//     ),
-//     _ProfileOption(
-//       title: 'Help & Support',
-//       icon: Icons.help,
-//       route: AppRoutes.support,
-//     ),
-//     _ProfileOption(
-//       title: 'Settings',
-//       icon: Icons.settings,
-//       route: AppRoutes.settings,
-//     ),
-//     _ProfileOption(title: 'Logout', icon: Icons.logout),
-//   ];
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return AppScaffold(
-//       title: 'Profile',
-//       body: SingleChildScrollView(
-//         padding: const EdgeInsets.all(TwSpacing.x5),
-//         child: Column(
-//           children: [
-//             Container(
-//               width: 100,
-//               height: 100,
-//               decoration: const BoxDecoration(
-//                 shape: BoxShape.circle,
-//                 color: TwColors.primaryAccent,
-//               ),
-//               child: const Icon(Icons.person, size: 50),
-//             ),
-//             const SizedBox(height: TwSpacing.x5),
-//             Text('Amara Johnson', style: TwText.text2xl()),
-//             const SizedBox(height: TwSpacing.x2),
-//             Text(
-//               'amara@example.com',
-//               style: TwText.textSm(),
-//             ),
-//             const SizedBox(height: TwSpacing.x8),
-//             OutlinedCard(
-//               backgroundColor: Colors.white,
-//               borderRadius: 16,
-//               child: Column(
-//                 children: [
-//                   for (final option in _options) ...[
-//                     _ProfileOptionTile(option: option),
-//                     if (option != _options.last) const Divider(),
-//                   ],
-//                 ],
-//               ),
-//             ),
-//           ],
-//         ),
-//       ),
-//     );
-//   }
-// }
-
-// class _ProfileOptionTile extends StatelessWidget {
-//   const _ProfileOptionTile({required this.option});
-
-//   final _ProfileOption option;
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return ListTile(
-//       contentPadding: EdgeInsets.zero,
-//       leading: Icon(option.icon, color: TwColors.primary),
-//       title: Text(option.title, style: TwText.fontBoldBase()),
-//       trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-//       onTap: option.route == null ? null : () => context.push(option.route!),
-//     );
-//   }
-// }
-
-// class _ProfileOption {
-//   const _ProfileOption({
-//     required this.title,
-//     required this.icon,
-//     this.route,
-//   });
-
-//   final String title;
-//   final IconData icon;
-//   final String? route;
-// }
 
 class ProfileScreenFull extends StatelessWidget {
   const ProfileScreenFull({super.key});
+
+  Future<void> _logout(BuildContext context) async {
+    try {
+      await AuthService().signOut();
+      if (context.mounted) context.go(AppRoutes.login);
+    } catch (error) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Could not log out: $error')),
+      );
+    }
+  }
 
   static const List<_ProfileStat> _orderStats = [
     _ProfileStat(
@@ -286,11 +195,11 @@ class ProfileScreenFull extends StatelessWidget {
             OutlinedCard(
               backgroundColor: Colors.white,
               borderRadius: 18,
-              child: const _ProfileOptionTile(
-                option: _ProfileOption(
+              child: _ProfileOptionTile(
+                onTap: () => _logout(context),
+                option: const _ProfileOption(
                   title: 'Logout',
                   icon: Icons.logout,
-                  isLogout: true,
                 ),
               ),
             ),
@@ -332,9 +241,10 @@ class _OrderItem extends StatelessWidget {
 }
 
 class _ProfileOptionTile extends StatelessWidget {
-  const _ProfileOptionTile({required this.option});
+  const _ProfileOptionTile({required this.option, this.onTap});
 
   final _ProfileOption option;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -356,7 +266,9 @@ class _ProfileOptionTile extends StatelessWidget {
           const Icon(Icons.arrow_forward_ios, size: 16),
         ],
       ),
-      onTap: option.route == null ? null : () => context.push(option.route!),
+      onTap:
+          onTap ??
+          (option.route == null ? null : () => context.push(option.route!)),
     );
   }
 }
