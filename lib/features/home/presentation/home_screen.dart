@@ -6,8 +6,9 @@ import '../../../config/theme.dart';
 import '../../../widgets/app_cards.dart';
 import '../../../widgets/zivo_logo.dart';
 import '../data/category_repository.dart';
-import '../data/sample_restaurants.dart';
+import '../data/restaurant_repository.dart';
 import '../models/category.dart';
+import '../models/restaurant.dart';
 import 'widgets/categories_section.dart';
 import 'widgets/restaurant_card.dart';
 import 'widgets/section_header.dart';
@@ -21,14 +22,18 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final _categoryRepository = CategoryRepository();
+  final _restaurantRepository = RestaurantRepository();
 
   late final Future<List<Category>> _categoriesFuture;
+  late Future<List<Restaurant>> _restaurantsFuture;
   String? _selectedCategoryId;
+  //String? _selectedRestaurantId;
 
   @override
   void initState() {
     super.initState();
     _categoriesFuture = _categoryRepository.fetchCategories();
+    _restaurantsFuture = _restaurantRepository.fetchRestaurants();
   }
 
   void _selectCategory(String categoryId) {
@@ -36,6 +41,7 @@ class _HomeScreenState extends State<HomeScreen> {
       _selectedCategoryId = categoryId;
     });
   }
+
 
   void _openCategories() => context.push(AppRoutes.categories);
 
@@ -104,14 +110,9 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
           ),
-          SliverPadding(
-            padding: const EdgeInsets.symmetric(horizontal: TwSpacing.x5),
-            sliver: SliverList(
-              delegate: SliverChildBuilderDelegate(
-                _buildRestaurant,
-                childCount: sampleRestaurants.length,
-              ),
-            ),
+          FutureBuilder<List<Restaurant>>(
+            future: _restaurantsFuture,
+            builder: _buildRestaurantResults,
           ),
           const SliverToBoxAdapter(child: SizedBox(height: TwSpacing.x5)),
         ],
@@ -119,11 +120,62 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildRestaurant(BuildContext context, int index) {
+  Widget _buildRestaurantResults(
+    BuildContext context,
+    AsyncSnapshot<List<Restaurant>> snapshot,
+  ) {
+    if (snapshot.connectionState == ConnectionState.waiting) {
+      return const SliverToBoxAdapter(
+        child: Padding(
+          padding: EdgeInsets.all(TwSpacing.x8),
+          child: Center(child: CircularProgressIndicator()),
+        ),
+      );
+    }
+
+    if (snapshot.hasError) {
+      return SliverToBoxAdapter(
+        child: Padding(
+          padding: const EdgeInsets.all(TwSpacing.x5),
+          child: OutlinedCard(
+            child: Column(
+              children: [
+                const Icon(Icons.cloud_off_outlined, color: TwColors.primary),
+                const SizedBox(height: TwSpacing.x2),
+                const Text('Restaurants could not be loaded.'),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    final restaurants = snapshot.data ?? const <Restaurant>[];
+    if (restaurants.isEmpty) {
+      return const SliverToBoxAdapter(
+        child: Padding(
+          padding: EdgeInsets.all(TwSpacing.x8),
+          child: Center(child: Text('No restaurants found in this category.')),
+        ),
+      );
+    }
+
+    return SliverPadding(
+      padding: const EdgeInsets.symmetric(horizontal: TwSpacing.x5),
+      sliver: SliverList.builder(
+        itemCount: restaurants.length,
+        itemBuilder: (context, index) =>
+            _buildRestaurant(context, restaurants[index]),
+      ),
+    );
+  }
+
+
+  Widget _buildRestaurant(BuildContext context, Restaurant restaurant) {
     return Padding(
       padding: const EdgeInsets.only(bottom: TwSpacing.x4),
       child: RestaurantCard(
-        restaurant: sampleRestaurants[index],
+        restaurant: restaurant,
         onOrderPressed: _openCheckout,
       ),
     );

@@ -1,4 +1,6 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+
 
 import '../../../../config/theme.dart';
 import '../../../../widgets/app_cards.dart';
@@ -19,25 +21,49 @@ class RestaurantCard extends StatelessWidget {
     return OutlinedCard(
       backgroundColor: Colors.white,
       borderRadius: 16,
-      borderColor: Colors.transparent,
+      borderColor: TwColors.border,
       padding: EdgeInsets.zero,
+      //onTap: restaurant.isOpen ? onOrderPressed : null,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const _RestaurantImage(),
+          _RestaurantImage(restaurant: restaurant),
           Padding(
             padding: const EdgeInsets.all(TwSpacing.x5),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(restaurant.name, style: TwText.textXl()),
-                const SizedBox(height: TwSpacing.x3),
-                _RestaurantSummary(restaurant: restaurant),
-                const SizedBox(height: TwSpacing.x4),
-                _RestaurantOrderRow(
-                  distance: restaurant.distance,
-                  onOrderPressed: onOrderPressed,
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        restaurant.name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TwText.textXl(),
+                      ),
+                    ),
+                    // const SizedBox(width: TwSpacing.x2),
+                    // _OpenBadge(isOpen: restaurant.isOpen),
+                  ],
                 ),
+
+                  const SizedBox(height: TwSpacing.x2),
+                  Text(
+                    restaurant.description,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: TwText.textSm().copyWith(color: TwColors.textMuted),
+                  ),
+
+                const SizedBox(height: TwSpacing.x3),
+                // _RestaurantSummary(restaurant: restaurant),
+                const SizedBox(height: TwSpacing.x4),
+                // _RestaurantOrderRow(
+                //   address: restaurant.address,
+                //   isOpen: restaurant.isOpen,
+                //   onOrderPressed: onOrderPressed,
+                // ),
               ],
             ),
           ),
@@ -48,79 +74,47 @@ class RestaurantCard extends StatelessWidget {
 }
 
 class _RestaurantImage extends StatelessWidget {
-  const _RestaurantImage();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 180,
-      decoration: const BoxDecoration(
-        color: TwColors.primaryAccent,
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(16),
-          topRight: Radius.circular(16),
-        ),
-      ),
-    );
-  }
-}
-
-class _RestaurantSummary extends StatelessWidget {
-  const _RestaurantSummary({required this.restaurant});
+  const _RestaurantImage({required this.restaurant});
 
   final Restaurant restaurant;
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        const Icon(Icons.star_rounded, color: TwColors.blue400, size: 18),
-        const SizedBox(width: TwSpacing.x1),
-        Text(
-          '${restaurant.rating} · ${restaurant.reviews}',
-          style: TwText.textXs().copyWith(color: TwColors.textMuted),
-        ),
-        const Spacer(),
-        Text(
-          restaurant.price,
-          style: TwText.fontBoldSm().copyWith(color: TwColors.primary),
-        ),
-      ],
+    final logoUrl = restaurant.logoUrl.trim();
+    return SizedBox(
+      height: 180,
+      width: double.infinity,
+      child: logoUrl.isEmpty
+          ? const _ImageFallback()
+          : CachedNetworkImage(
+              imageUrl: logoUrl,
+              fit: BoxFit.cover,
+              placeholder: (_, _) => const _ImageFallback(showLoader: true),
+              errorWidget: (_, _, _) => const _ImageFallback(),
+            ),
     );
   }
 }
 
-class _RestaurantOrderRow extends StatelessWidget {
-  const _RestaurantOrderRow({
-    required this.distance,
-    required this.onOrderPressed,
-  });
+class _ImageFallback extends StatelessWidget {
+  const _ImageFallback({this.showLoader = false});
 
-  final String distance;
-  final VoidCallback onOrderPressed;
+  final bool showLoader;
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        const Icon(
-          Icons.location_on_outlined,
-          color: TwColors.primary,
-          size: 16,
-        ),
-        const SizedBox(width: TwSpacing.x1),
-        Expanded(
-          child: Text(
-            distance,
-            style: TwText.textXs().copyWith(color: TwColors.textMuted),
-          ),
-        ),
-        PrimaryButton(
-          label: 'Order',
-          onPressed: onOrderPressed,
-          fullWidth: false,
-        ),
-      ],
+    return ColoredBox(
+      color: TwColors.primaryAccent,
+      child: Center(
+        child: showLoader
+            ? const CircularProgressIndicator(strokeWidth: 2)
+            : const Icon(
+                Icons.restaurant_rounded,
+                color: TwColors.primary,
+                size: 42,
+              ),
+      ),
     );
   }
 }
+
