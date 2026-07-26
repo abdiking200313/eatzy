@@ -1,30 +1,52 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
+import 'package:chowflow/features/categories/models/category.dart';
+import 'package:chowflow/features/categories/presentation/categories_screen.dart';
+import 'package:chowflow/features/home/presentation/widgets/section_header.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:chowflow/main.dart';
-
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  testWidgets('simple category screen renders from one file', (tester) async {
+    final categories = Future.value(const [
+      Category(id: 'food', name: 'Food', iconUrl: ''),
+    ]);
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    await tester.pumpWidget(
+      MaterialApp(
+        home: CategoriesScreen(
+          showBackButton: false,
+          categoriesFuture: categories,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+    expect(find.text('Categories'), findsOneWidget);
+    expect(find.text('Food'), findsOneWidget);
+    expect(find.byType(GridView), findsOneWidget);
+    expect(find.byIcon(Icons.arrow_back), findsNothing);
+  });
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+  testWidgets('pushed category screen shows a back control', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: CategoriesScreen(
+          categoriesFuture: Future.value(const <Category>[]),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byIcon(Icons.arrow_back), findsOneWidget);
+  });
+
+  testWidgets('section header supports an optional action', (tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(body: SectionHeader(title: 'Orders')),
+      ),
+    );
+
+    expect(find.text('Orders'), findsOneWidget);
+    expect(find.byType(TextButton), findsNothing);
   });
 }

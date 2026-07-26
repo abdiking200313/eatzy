@@ -26,27 +26,26 @@ class OutlinedCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final card = Container(
-      padding: padding,
-      decoration: BoxDecoration(
-        color: backgroundColor ?? TwColors.cardMuted,
-        border: Border.all(
+    final resolvedBorderRadius = BorderRadius.circular(borderRadius);
+    final content = Padding(padding: padding, child: child);
+
+    return Material(
+      color: backgroundColor ?? TwColors.cardMuted,
+      shape: RoundedRectangleBorder(
+        borderRadius: resolvedBorderRadius,
+        side: BorderSide(
           color: borderColor ?? TwColors.borderStrong,
           width: borderWidth,
         ),
-        borderRadius: BorderRadius.circular(borderRadius),
       ),
-      child: child,
-    );
-
-    if (onTap == null) return card;
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(borderRadius),
-        child: card,
-      ),
+      clipBehavior: Clip.antiAlias,
+      child: onTap == null
+          ? content
+          : InkWell(
+              onTap: onTap,
+              borderRadius: resolvedBorderRadius,
+              child: content,
+            ),
     );
   }
 }

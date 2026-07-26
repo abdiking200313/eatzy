@@ -4,8 +4,8 @@ import '../widgets/app_cards.dart';
 import '../widgets/app_misc.dart';
 import '../widgets/app_scaffold.dart';
 
-class AddressesScreenFull extends StatelessWidget {
-  const AddressesScreenFull({super.key});
+class AddressesScreen extends StatelessWidget {
+  const AddressesScreen({super.key});
 
   static const List<_SavedAddress> _addresses = [
     _SavedAddress(

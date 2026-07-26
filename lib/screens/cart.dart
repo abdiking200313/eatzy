@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../app/app_router.dart';
+import '../app/app_routes.dart';
 import '../config/theme.dart';
 import '../widgets/app_cards.dart';
 import '../widgets/app_misc.dart';
 import '../widgets/app_scaffold.dart';
 
-class CartScreenFull extends StatelessWidget {
-  const CartScreenFull({super.key});
+class CartScreen extends StatelessWidget {
+  const CartScreen({super.key});
 
   static const List<_CartItem> _items = [
     _CartItem(name: 'Chicken Jollof Bowl', price: 'NGN 3,500', quantity: 1),

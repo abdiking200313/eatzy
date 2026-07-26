@@ -4,8 +4,8 @@ import '../widgets/app_cards.dart';
 import '../widgets/app_misc.dart';
 import '../widgets/app_scaffold.dart';
 
-class PaymentMethodsScreenFull extends StatelessWidget {
-  const PaymentMethodsScreenFull({super.key});
+class PaymentMethodsScreen extends StatelessWidget {
+  const PaymentMethodsScreen({super.key});
 
   static const List<_PaymentMethod> _paymentMethods = [
     _PaymentMethod(

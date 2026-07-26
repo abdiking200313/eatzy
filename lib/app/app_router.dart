@@ -4,66 +4,46 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../features/auth/presentation/login_screen.dart';
+import '../features/auth/presentation/register_screen.dart';
+import '../features/categories/presentation/categories_screen.dart';
+import '../features/checkout/presentation/checkout_screen.dart';
+import '../features/home/presentation/home_screen.dart';
+import '../features/onboarding/presentation/onboarding_page_1.dart';
+import '../features/onboarding/presentation/onboarding_page_2.dart';
+import '../features/onboarding/presentation/onboarding_page_3.dart';
+import '../features/onboarding/presentation/welcome_screen.dart';
+import '../features/orders/presentation/orders_screen.dart';
+import '../features/orders/presentation/track_order_screen.dart';
+import '../features/profile/presentation/profile_screen.dart';
+import '../features/rewards/presentation/rewards_profile_screen.dart';
+import '../features/rewards/presentation/rewards_screen.dart';
+import '../features/settings/presentation/settings_screen.dart';
+import '../features/support/presentation/support_screen.dart';
+import '../features/wallet/presentation/wallet_screen.dart';
 import '../screens/addresses.dart';
 import '../screens/cart.dart';
-import '../screens/categories.dart';
-import '../screens/checkout.dart';
 import '../screens/explore.dart';
-import '../screens/gamified_profile_screen.dart';
-import '../screens/gamified_screen.dart';
-import '../screens/help_support.dart';
-import '../screens/home.dart';
-import '../screens/login.dart';
-import '../screens/main_app.dart';
-import '../screens/onboarding_page1.dart';
-import '../screens/onboarding_page2.dart';
-import '../screens/onboarding_page3.dart';
-import '../screens/orders.dart';
 import '../screens/payment_methods.dart';
-import '../screens/profile.dart';
-import '../screens/register.dart';
-import '../screens/settings.dart';
-import '../screens/support_screen.dart';
-import '../screens/track_order_screen.dart';
-import '../screens/wallet_screen.dart';
-import '../screens/welcome.dart';
-
-class AppRoutes {
-  // Public routes
-  static const root = '/';
-  static const welcome = '/welcome';
-  static const login = '/login';
-  static const register = '/register';
-  static const onboardingOne = '/onboarding/one';
-  static const onboardingTwo = '/onboarding/two';
-  static const onboardingThree = '/onboarding/three';
-
-  // Login-required routes
-  static const mainApp = '/app';
-  static const home = '/home';
-  static const categories = '/categories';
-  static const explore = '/explore';
-  static const cart = '/cart';
-  static const checkout = '/checkout';
-  static const profile = '/profile';
-  static const orders = '/orders';
-  static const addresses = '/addresses';
-  static const paymentMethods = '/payment-methods';
-  static const settings = '/settings';
-  static const support = '/support';
-  static const helpSupport = '/help-support';
-  static const wallet = '/wallet';
-  static const trackOrder = '/track-order';
-  static const rewards = '/rewards';
-  static const rewardsProfile = '/rewards-profile';
-}
+import 'app_routes.dart';
+import 'main_app_screen.dart';
 
 class AppRouter {
   AppRouter._();
 
+  static const _signedOutOnlyRoutes = {
+    AppRoutes.root,
+    AppRoutes.welcome,
+    AppRoutes.login,
+    AppRoutes.register,
+    AppRoutes.onboardingOne,
+    AppRoutes.onboardingTwo,
+    AppRoutes.onboardingThree,
+  };
+
   // These pages can be opened without a Supabase session.
   static final List<RouteBase> _publicRoutes = [
-    GoRoute(path: AppRoutes.root, redirect: (_, __) => AppRoutes.welcome),
+    GoRoute(path: AppRoutes.root, redirect: (_, _) => AppRoutes.welcome),
     _page(AppRoutes.welcome, const WelcomeScreen()),
     _page(AppRoutes.login, const LoginScreen()),
     _page(AppRoutes.register, const RegisterScreen()),
@@ -78,19 +58,18 @@ class AppRouter {
     AppRoutes.home: HomeScreen(),
     AppRoutes.categories: CategoriesScreen(),
     AppRoutes.explore: ExploreScreen(),
-    AppRoutes.cart: CartScreenFull(),
-    AppRoutes.checkout: CheckoutScreenFull(),
-    AppRoutes.profile: ProfileScreenFull(),
-    AppRoutes.orders: OrdersScreenFull(),
-    AppRoutes.addresses: AddressesScreenFull(),
-    AppRoutes.paymentMethods: PaymentMethodsScreenFull(),
-    AppRoutes.settings: SettingsScreenFull(),
-    AppRoutes.support: SupportScreenFull(),
-    AppRoutes.helpSupport: HelpSupportScreenFull(),
-    AppRoutes.wallet: WalletScreenFull(),
-    AppRoutes.trackOrder: TrackOrderScreenFull(),
-    AppRoutes.rewards: GamifiedScreenFull(),
-    AppRoutes.rewardsProfile: GamifiedProfileScreenFull(),
+    AppRoutes.cart: CartScreen(),
+    AppRoutes.checkout: CheckoutScreen(),
+    AppRoutes.profile: ProfileScreen(),
+    AppRoutes.orders: OrdersScreen(),
+    AppRoutes.addresses: AddressesScreen(),
+    AppRoutes.paymentMethods: PaymentMethodsScreen(),
+    AppRoutes.settings: SettingsScreen(),
+    AppRoutes.support: SupportScreen(),
+    AppRoutes.wallet: WalletScreen(),
+    AppRoutes.trackOrder: TrackOrderScreen(),
+    AppRoutes.rewards: RewardsScreen(),
+    AppRoutes.rewardsProfile: RewardsProfileScreen(),
   };
 
   static final List<RouteBase> _protectedRoutes = _protectedPages.entries
@@ -110,14 +89,24 @@ class AppRouter {
     final isLoggedIn = Supabase.instance.client.auth.currentSession != null;
     final location = state.matchedLocation;
     final isProtected = _protectedPages.containsKey(location);
-    final isAuthPage =
-        location == AppRoutes.login || location == AppRoutes.register;
 
+    return resolveRedirect(
+      isLoggedIn: isLoggedIn,
+      isProtected: isProtected,
+      location: location,
+    );
+  }
+
+  static String? resolveRedirect({
+    required bool isLoggedIn,
+    required bool isProtected,
+    required String location,
+  }) {
     if (!isLoggedIn && isProtected) {
       return AppRoutes.login;
     }
 
-    if (isLoggedIn && isAuthPage) {
+    if (isLoggedIn && _signedOutOnlyRoutes.contains(location)) {
       return AppRoutes.mainApp;
     }
 
@@ -126,7 +115,7 @@ class AppRouter {
 
   // Most routes only need a path and a screen, so keep that boilerplate here.
   static GoRoute _page(String path, Widget screen) {
-    return GoRoute(path: path, builder: (_, __) => screen);
+    return GoRoute(path: path, builder: (_, _) => screen);
   }
 }
 

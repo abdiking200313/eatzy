@@ -30,10 +30,7 @@ class RestaurantCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  restaurant.name,
-                  style: TwText.textXl(),
-                ),
+                Text(restaurant.name, style: TwText.textXl()),
                 const SizedBox(height: TwSpacing.x3),
                 _RestaurantSummary(restaurant: restaurant),
                 const SizedBox(height: TwSpacing.x4),
@@ -69,9 +66,7 @@ class _RestaurantImage extends StatelessWidget {
 }
 
 class _RestaurantSummary extends StatelessWidget {
-  const _RestaurantSummary({
-    required this.restaurant,
-  });
+  const _RestaurantSummary({required this.restaurant});
 
   final Restaurant restaurant;
 
@@ -79,24 +74,16 @@ class _RestaurantSummary extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        const Icon(
-          Icons.star_rounded,
-          color: TwColors.blue400,
-          size: 18,
-        ),
+        const Icon(Icons.star_rounded, color: TwColors.blue400, size: 18),
         const SizedBox(width: TwSpacing.x1),
         Text(
           '${restaurant.rating} · ${restaurant.reviews}',
-          style: TwText.textXs().copyWith(
-            color: TwColors.textMuted,
-          ),
+          style: TwText.textXs().copyWith(color: TwColors.textMuted),
         ),
         const Spacer(),
         Text(
           restaurant.price,
-          style: TwText.fontBoldSm().copyWith(
-            color: TwColors.primary,
-          ),
+          style: TwText.fontBoldSm().copyWith(color: TwColors.primary),
         ),
       ],
     );
@@ -125,9 +112,7 @@ class _RestaurantOrderRow extends StatelessWidget {
         Expanded(
           child: Text(
             distance,
-            style: TwText.textXs().copyWith(
-              color: TwColors.textMuted,
-            ),
+            style: TwText.textXs().copyWith(color: TwColors.textMuted),
           ),
         ),
         PrimaryButton(
