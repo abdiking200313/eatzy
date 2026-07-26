@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../config/theme.dart';
+import '../features/cart/presentation/cart_controller.dart';
 import '../features/home/presentation/home_screen.dart';
 import '../features/profile/presentation/profile_screen.dart';
 import '../screens/cart.dart';
@@ -44,23 +45,32 @@ class _MainAppScreenState extends State<MainAppScreen> {
         widget.screens ??
         _navigationItems.map((item) => item.screen).toList(growable: false);
 
-    return Scaffold(
-      body: IndexedStack(index: _selectedIndex, children: screens),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
-        onTap: (index) => setState(() => _selectedIndex = index),
-        type: BottomNavigationBarType.fixed,
-        backgroundColor: TwColors.bg,
-        selectedItemColor: TwColors.primary,
-        unselectedItemColor: TwColors.textMuted,
-        items: _navigationItems
-            .map(
-              (item) => BottomNavigationBarItem(
-                icon: Icon(item.icon),
-                label: item.label,
-              ),
-            )
-            .toList(),
+    return AnimatedBuilder(
+      animation: CartController.instance,
+      builder: (context, _) => Scaffold(
+        body: IndexedStack(index: _selectedIndex, children: screens),
+        bottomNavigationBar: BottomNavigationBar(
+          currentIndex: _selectedIndex,
+          onTap: (index) => setState(() => _selectedIndex = index),
+          type: BottomNavigationBarType.fixed,
+          backgroundColor: TwColors.bg,
+          selectedItemColor: TwColors.primary,
+          unselectedItemColor: TwColors.textMuted,
+          items: _navigationItems
+              .map(
+                (item) => BottomNavigationBarItem(
+                  icon: item.label == 'Cart'
+                      ? Badge(
+                          isLabelVisible: CartController.instance.itemCount > 0,
+                          label: Text('${CartController.instance.itemCount}'),
+                          child: Icon(item.icon),
+                        )
+                      : Icon(item.icon),
+                  label: item.label,
+                ),
+              )
+              .toList(),
+        ),
       ),
     );
   }

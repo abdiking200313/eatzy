@@ -1,9 +1,12 @@
 import 'package:chowflow/config/theme.dart';
+import 'package:chowflow/features/cart/presentation/cart_controller.dart';
 import 'package:chowflow/features/home/models/restaurant.dart';
 import 'package:chowflow/features/restaurant/models/restaurant_menu.dart';
 import 'package:chowflow/features/restaurant/presentation/restaurant_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+import 'helpers/memory_cart_storage.dart';
 
 void main() {
   const restaurant = Restaurant(
@@ -65,12 +68,16 @@ void main() {
   testWidgets('restaurant page groups and navigates categorized items', (
     tester,
   ) async {
+    final cartController = CartController(storage: MemoryCartStorage());
+    await cartController.loadForOwner('user-1');
+
     await tester.pumpWidget(
       MaterialApp(
         theme: buildAppTheme(),
         home: RestaurantScreen(
           restaurantId: restaurant.id,
           menuLoader: (_) async => menu,
+          cartController: cartController,
         ),
       ),
     );
@@ -83,6 +90,12 @@ void main() {
     expect(find.text(r'$5.50'), findsOneWidget);
     expect(find.widgetWithText(ChoiceChip, 'Burgers'), findsOneWidget);
     expect(find.widgetWithText(ChoiceChip, 'Drinks'), findsOneWidget);
+
+    await tester.tap(find.byKey(const ValueKey('add-to-cart-burger-1')));
+    await tester.pumpAndSettle();
+
+    expect(cartController.itemCount, 1);
+    expect(find.text('Classic Burger added to cart'), findsOneWidget);
 
     await tester.tap(find.widgetWithText(ChoiceChip, 'Drinks'));
     await tester.pumpAndSettle();

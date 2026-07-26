@@ -2,6 +2,8 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
 import '../../../config/theme.dart';
+import '../../../features/cart/models/cart_item.dart';
+import '../../../features/cart/presentation/cart_controller.dart';
 import '../../../widgets/app_cards.dart';
 import '../data/restaurant_menu_repository.dart';
 import '../models/restaurant_menu.dart';
@@ -15,10 +17,12 @@ class RestaurantScreen extends StatefulWidget {
     super.key,
     required this.restaurantId,
     this.menuLoader,
+    this.cartController,
   });
 
   final String restaurantId;
   final RestaurantMenuLoader? menuLoader;
+  final CartController? cartController;
 
   @override
   State<RestaurantScreen> createState() => _RestaurantScreenState();
@@ -70,6 +74,82 @@ class _RestaurantScreenState extends State<RestaurantScreen> {
     }
   }
 
+  Future<void> _addToCart(RestaurantMenu menu, MenuItem menuItem) async {
+    final controller = widget.cartController ?? CartController.instance;
+    final cartItem = CartItem(
+      menuItemId: menuItem.id,
+      restaurantId: menu.restaurant.id,
+      restaurantName: menu.restaurant.name,
+      name: menuItem.name,
+      unitPrice: menuItem.price,
+      imageUrl: menuItem.imageUrl,
+    );
+
+    try {
+      var result = await controller.addItem(cartItem);
+      if (!mounted) {
+        return;
+      }
+
+      if (result == CartAddResult.restaurantConflict) {
+        final replaceCart = await showDialog<bool>(
+          context: context,
+          builder: (dialogContext) => AlertDialog(
+            title: const Text('Start a new cart?'),
+            content: Text(
+              'Your cart contains items from '
+              '${controller.restaurantName ?? 'another restaurant'}. '
+              'Starting a cart from ${menu.restaurant.name} will remove them.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(false),
+                child: const Text('Keep cart'),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.of(dialogContext).pop(true),
+                child: const Text('Start new cart'),
+              ),
+            ],
+          ),
+        );
+
+        if (replaceCart != true) {
+          return;
+        }
+        result = await controller.addItem(
+          cartItem,
+          replaceRestaurantCart: true,
+        );
+      }
+
+      if (!mounted) {
+        return;
+      }
+      final message = switch (result) {
+        CartAddResult.quantityIncreased =>
+          '${menuItem.name} quantity increased',
+        CartAddResult.replacedRestaurant =>
+          'New cart started with ${menuItem.name}',
+        CartAddResult.maximumReached =>
+          '${menuItem.name} is already at the maximum quantity',
+        _ => '${menuItem.name} added to cart',
+      };
+      ScaffoldMessenger.of(context)
+        ..clearSnackBars()
+        ..showSnackBar(SnackBar(content: Text(message)));
+    } on Object {
+      if (!mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('The item was added, but the cart could not be saved.'),
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -91,6 +171,7 @@ class _RestaurantScreenState extends State<RestaurantScreen> {
             sectionKeyFor: (categoryId) =>
                 _sectionKeys.putIfAbsent(categoryId, GlobalKey.new),
             onCategorySelected: _selectCategory,
+            onAddToCart: (item) => _addToCart(snapshot.requireData, item),
           );
         },
       ),
@@ -104,12 +185,14 @@ class _RestaurantMenuView extends StatelessWidget {
     required this.selectedCategoryId,
     required this.sectionKeyFor,
     required this.onCategorySelected,
+    required this.onAddToCart,
   });
 
   final RestaurantMenu menu;
   final String? selectedCategoryId;
   final GlobalKey Function(String categoryId) sectionKeyFor;
   final ValueChanged<MenuCategory> onCategorySelected;
+  final ValueChanged<MenuItem> onAddToCart;
 
   @override
   Widget build(BuildContext context) {
@@ -223,7 +306,11 @@ class _RestaurantMenuView extends StatelessWidget {
                         ) ...[
                           SizedBox(
                             height: 136,
-                            child: MenuItemCard(item: category.items[index]),
+                            child: MenuItemCard(
+                              item: category.items[index],
+                              onAddToCart: () =>
+                                  onAddToCart(category.items[index]),
+                            ),
                           ),
                           if (index != category.items.length - 1)
                             const SizedBox(height: TwSpacing.x3),

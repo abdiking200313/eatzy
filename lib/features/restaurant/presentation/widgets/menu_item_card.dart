@@ -7,9 +7,14 @@ import '../../../../widgets/app_cards.dart';
 import '../../models/restaurant_menu.dart';
 
 class MenuItemCard extends StatelessWidget {
-  const MenuItemCard({super.key, required this.item});
+  const MenuItemCard({
+    super.key,
+    required this.item,
+    required this.onAddToCart,
+  });
 
   final MenuItem item;
+  final VoidCallback onAddToCart;
 
   @override
   Widget build(BuildContext context) {
@@ -45,14 +50,33 @@ class MenuItemCard extends StatelessWidget {
                     ),
                   ],
                   const SizedBox(height: TwSpacing.x3),
-                  Text(
-                    NumberFormat.currency(
-                      symbol: r'$',
-                      decimalDigits: 2,
-                    ).format(item.price),
-                    style: TwText.fontBoldBase().copyWith(
-                      color: TwColors.primary,
-                    ),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          NumberFormat.currency(
+                            symbol: r'$',
+                            decimalDigits: 2,
+                          ).format(item.price),
+                          style: TwText.fontBoldBase().copyWith(
+                            color: TwColors.primary,
+                          ),
+                        ),
+                      ),
+                      SizedBox.square(
+                        dimension: 36,
+                        child: IconButton.filled(
+                          key: ValueKey('add-to-cart-${item.id}'),
+                          tooltip: 'Add ${item.name} to cart',
+                          padding: EdgeInsets.zero,
+                          onPressed: onAddToCart,
+                          icon: const Icon(
+                            Icons.add_shopping_cart_rounded,
+                            size: 19,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),

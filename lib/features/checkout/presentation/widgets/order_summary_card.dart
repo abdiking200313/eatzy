@@ -1,15 +1,27 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 import '../../../../config/theme.dart';
+import '../../../cart/models/cart_item.dart';
 import '../../../../widgets/app_cards.dart';
 import '../../../../widgets/app_misc.dart';
 import '../../../../widgets/app_scaffold.dart';
-import '../../models/checkout_models.dart';
 
 class OrderSummaryCard extends StatelessWidget {
-  const OrderSummaryCard({super.key, required this.items});
+  const OrderSummaryCard({
+    super.key,
+    required this.items,
+    required this.subtotal,
+    required this.tax,
+    required this.deliveryFee,
+    required this.total,
+  });
 
-  final List<CheckoutItem> items;
+  final List<CartItem> items;
+  final double subtotal;
+  final double tax;
+  final double deliveryFee;
+  final double total;
 
   @override
   Widget build(BuildContext context) {
@@ -26,21 +38,22 @@ class OrderSummaryCard extends StatelessWidget {
             if (item != items.last) const SizedBox(height: TwSpacing.x4),
           ],
           const Divider(height: 32),
-          const SummaryRow(label: 'Subtotal', value: 'NGN 14,500'),
-          const SizedBox(height: TwSpacing.x4),
-          const SummaryRow(label: 'Tax', value: 'NGN 1,450'),
-          const SizedBox(height: TwSpacing.x4),
-          const SummaryRow(label: 'Delivery Fee', value: 'NGN 1,000'),
-          const SizedBox(height: TwSpacing.x4),
-          const _PromoCodeField(),
+          SummaryRow(label: 'Subtotal', value: _formatCurrency(subtotal)),
           const SizedBox(height: TwSpacing.x5),
-          const OutlinedCard(
+          SummaryRow(label: 'Tax', value: _formatCurrency(tax)),
+          const SizedBox(height: TwSpacing.x4),
+          SummaryRow(
+            label: 'Delivery Fee',
+            value: _formatCurrency(deliveryFee),
+          ),
+          const SizedBox(height: TwSpacing.x5),
+          OutlinedCard(
             backgroundColor: TwColors.cardMuted,
             borderColor: Colors.transparent,
             borderRadius: 12,
             child: SummaryRow(
               label: 'Total',
-              value: 'NGN 16,950',
+              value: _formatCurrency(total),
               isBold: true,
             ),
           ),
@@ -53,7 +66,7 @@ class OrderSummaryCard extends StatelessWidget {
 class _CheckoutItemRow extends StatelessWidget {
   const _CheckoutItemRow({required this.item});
 
-  final CheckoutItem item;
+  final CartItem item;
 
   @override
   Widget build(BuildContext context) {
@@ -70,7 +83,7 @@ class _CheckoutItemRow extends StatelessWidget {
           ),
         ),
         Text(
-          item.price,
+          _formatCurrency(item.total),
           style: TwText.fontBoldSm().copyWith(color: TwColors.primary),
         ),
       ],
@@ -78,36 +91,6 @@ class _CheckoutItemRow extends StatelessWidget {
   }
 }
 
-class _PromoCodeField extends StatelessWidget {
-  const _PromoCodeField();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(TwSpacing.x4),
-      decoration: BoxDecoration(
-        color: TwColors.cardMuted,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Row(
-        children: [
-          const Icon(Icons.local_offer_outlined, color: TwColors.primary),
-          const SizedBox(width: TwSpacing.x3),
-          Expanded(
-            child: TextField(
-              decoration: InputDecoration(
-                hintText: 'Enter promo code',
-                hintStyle: TwText.textXs().copyWith(color: TwColors.textMuted),
-                border: InputBorder.none,
-              ),
-            ),
-          ),
-          TextButton(
-            onPressed: () {},
-            child: Text('Apply', style: TwText.link()),
-          ),
-        ],
-      ),
-    );
-  }
+String _formatCurrency(num amount) {
+  return NumberFormat.currency(symbol: r'$', decimalDigits: 2).format(amount);
 }
