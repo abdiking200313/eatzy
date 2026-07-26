@@ -6,7 +6,6 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../features/auth/presentation/login_screen.dart';
 import '../features/auth/presentation/register_screen.dart';
-import '../features/categories/presentation/categories_screen.dart';
 import '../features/checkout/presentation/checkout_screen.dart';
 import '../features/home/presentation/home_screen.dart';
 import '../features/onboarding/presentation/onboarding_page_1.dart';
@@ -23,6 +22,7 @@ import '../features/support/presentation/support_screen.dart';
 import '../features/wallet/presentation/wallet_screen.dart';
 import '../screens/addresses.dart';
 import '../screens/cart.dart';
+import '../screens/categories.dart';
 import '../screens/explore.dart';
 import '../screens/payment_methods.dart';
 import 'app_routes.dart';

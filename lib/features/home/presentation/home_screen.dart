@@ -5,10 +5,10 @@ import '../../../app/app_routes.dart';
 import '../../../config/theme.dart';
 import '../../../widgets/app_cards.dart';
 import '../../../widgets/zivo_logo.dart';
-import '../../categories/data/category_repository.dart';
-import '../../categories/models/category.dart';
-import '../../categories/presentation/widgets/categories_section.dart';
+import '../data/category_repository.dart';
 import '../data/sample_restaurants.dart';
+import '../models/category.dart';
+import 'widgets/categories_section.dart';
 import 'widgets/restaurant_card.dart';
 import 'widgets/section_header.dart';
 

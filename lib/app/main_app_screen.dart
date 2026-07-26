@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
 import '../config/theme.dart';
-import '../features/categories/presentation/categories_screen.dart';
 import '../features/home/presentation/home_screen.dart';
 import '../features/profile/presentation/profile_screen.dart';
 import '../screens/cart.dart';
+import '../screens/categories.dart';
 
 class MainAppScreen extends StatefulWidget {
   const MainAppScreen({super.key, this.screens})
