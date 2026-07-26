@@ -42,12 +42,12 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-
   void _openCategories() => context.push(AppRoutes.categories);
 
   void _openExplore() => context.push(AppRoutes.explore);
 
-  void _openCheckout() => context.push(AppRoutes.checkout);
+  void _openRestaurant(Restaurant restaurant) =>
+      context.push(AppRoutes.restaurantDetails(restaurant.id));
 
   @override
   Widget build(BuildContext context) {
@@ -170,13 +170,12 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-
   Widget _buildRestaurant(BuildContext context, Restaurant restaurant) {
     return Padding(
       padding: const EdgeInsets.only(bottom: TwSpacing.x4),
       child: RestaurantCard(
         restaurant: restaurant,
-        onOrderPressed: _openCheckout,
+        onPressed: () => _openRestaurant(restaurant),
       ),
     );
   }

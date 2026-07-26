@@ -15,6 +15,7 @@ import '../features/onboarding/presentation/welcome_screen.dart';
 import '../features/orders/presentation/orders_screen.dart';
 import '../features/orders/presentation/track_order_screen.dart';
 import '../features/profile/presentation/profile_screen.dart';
+import '../features/restaurant/presentation/restaurant_screen.dart';
 import '../features/rewards/presentation/rewards_profile_screen.dart';
 import '../features/rewards/presentation/rewards_screen.dart';
 import '../features/settings/presentation/settings_screen.dart';
@@ -72,9 +73,14 @@ class AppRouter {
     AppRoutes.rewardsProfile: RewardsProfileScreen(),
   };
 
-  static final List<RouteBase> _protectedRoutes = _protectedPages.entries
-      .map((entry) => _page(entry.key, entry.value))
-      .toList();
+  static final List<RouteBase> _protectedRoutes = [
+    ..._protectedPages.entries.map((entry) => _page(entry.key, entry.value)),
+    GoRoute(
+      path: AppRoutes.restaurant,
+      builder: (_, state) =>
+          RestaurantScreen(restaurantId: state.pathParameters['restaurantId']!),
+    ),
+  ];
 
   static final _authRefresh = _AuthStateRefresh();
 
@@ -87,8 +93,10 @@ class AppRouter {
 
   static String? _redirect(BuildContext context, GoRouterState state) {
     final isLoggedIn = Supabase.instance.client.auth.currentSession != null;
-    final location = state.matchedLocation;
-    final isProtected = _protectedPages.containsKey(location);
+    final location = state.uri.path;
+    final isProtected =
+        _protectedPages.containsKey(location) ||
+        AppRoutes.isRestaurantDetails(location);
 
     return resolveRedirect(
       isLoggedIn: isLoggedIn,

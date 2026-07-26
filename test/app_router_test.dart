@@ -44,4 +44,21 @@ void main() {
       expect(redirect, isNull);
     });
   });
+
+  group('restaurant routes', () {
+    test('builds a restaurant details path', () {
+      expect(
+        AppRoutes.restaurantDetails('restaurant-123'),
+        '/restaurants/restaurant-123',
+      );
+    });
+
+    test('recognizes restaurant details as a protected path', () {
+      expect(
+        AppRoutes.isRestaurantDetails('/restaurants/restaurant-123'),
+        isTrue,
+      );
+      expect(AppRoutes.isRestaurantDetails('/restaurants'), isFalse);
+    });
+  });
 }

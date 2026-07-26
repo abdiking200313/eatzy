@@ -1,7 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
-
 import '../../../../config/theme.dart';
 import '../../../../widgets/app_cards.dart';
 import '../../models/restaurant.dart';
@@ -10,11 +9,11 @@ class RestaurantCard extends StatelessWidget {
   const RestaurantCard({
     super.key,
     required this.restaurant,
-    required this.onOrderPressed,
+    required this.onPressed,
   });
 
   final Restaurant restaurant;
-  final VoidCallback onOrderPressed;
+  final VoidCallback onPressed;
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +22,7 @@ class RestaurantCard extends StatelessWidget {
       borderRadius: 16,
       borderColor: TwColors.border,
       padding: EdgeInsets.zero,
-      //onTap: restaurant.isOpen ? onOrderPressed : null,
+      onTap: onPressed,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -48,22 +47,31 @@ class RestaurantCard extends StatelessWidget {
                   ],
                 ),
 
-                  const SizedBox(height: TwSpacing.x2),
-                  Text(
-                    restaurant.description,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: TwText.textSm().copyWith(color: TwColors.textMuted),
-                  ),
+                const SizedBox(height: TwSpacing.x2),
+                Text(
+                  restaurant.description,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: TwText.textSm().copyWith(color: TwColors.textMuted),
+                ),
 
                 const SizedBox(height: TwSpacing.x3),
-                // _RestaurantSummary(restaurant: restaurant),
-                const SizedBox(height: TwSpacing.x4),
-                // _RestaurantOrderRow(
-                //   address: restaurant.address,
-                //   isOpen: restaurant.isOpen,
-                //   onOrderPressed: onOrderPressed,
-                // ),
+                Row(
+                  children: [
+                    Text(
+                      'View menu',
+                      style: TwText.fontBoldSm().copyWith(
+                        color: TwColors.primary,
+                      ),
+                    ),
+                    const SizedBox(width: TwSpacing.x1),
+                    const Icon(
+                      Icons.arrow_forward_rounded,
+                      size: 18,
+                      color: TwColors.primary,
+                    ),
+                  ],
+                ),
               ],
             ),
           ),
@@ -117,4 +125,3 @@ class _ImageFallback extends StatelessWidget {
     );
   }
 }
-

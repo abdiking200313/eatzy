@@ -13,6 +13,8 @@ class AppRoutes {
   // Login-required routes
   static const mainApp = '/app';
   static const home = '/home';
+  static const restaurants = '/restaurants';
+  static const restaurant = '$restaurants/:restaurantId';
   static const categories = '/categories';
   static const explore = '/explore';
   static const cart = '/cart';
@@ -27,4 +29,10 @@ class AppRoutes {
   static const trackOrder = '/track-order';
   static const rewards = '/rewards';
   static const rewardsProfile = '/rewards-profile';
+
+  static String restaurantDetails(String restaurantId) =>
+      '$restaurants/${Uri.encodeComponent(restaurantId)}';
+
+  static bool isRestaurantDetails(String location) =>
+      location.startsWith('$restaurants/');
 }
