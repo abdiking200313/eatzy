@@ -36,6 +36,7 @@ class CartController extends ChangeNotifier {
   bool get isLoading => _isLoading;
   bool get isEmpty => _items.isEmpty;
   bool get isNotEmpty => _items.isNotEmpty;
+  String? get restaurantId => _items.isEmpty ? null : _items.first.restaurantId;
   String? get restaurantName =>
       _items.isEmpty ? null : _items.first.restaurantName;
   int get itemCount => _items.fold(0, (count, item) => count + item.quantity);

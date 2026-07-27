@@ -19,8 +19,10 @@ class PaymentMethodCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.serviceColors;
     return OutlinedCard(
-      backgroundColor: Colors.white,
+      backgroundColor: palette.card,
+      borderColor: palette.border,
       borderRadius: 16,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -55,15 +57,16 @@ class _PaymentOptionTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.serviceColors;
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.all(TwSpacing.x4),
         decoration: BoxDecoration(
-          color: isSelected ? TwColors.primaryAccent : TwColors.cardMuted,
+          color: isSelected ? palette.accent : palette.soft,
           borderRadius: BorderRadius.circular(12),
           border: isSelected
-              ? Border.all(color: TwColors.primary, width: 2)
+              ? Border.all(color: palette.accent, width: 2)
               : null,
         ),
         child: Row(
@@ -74,7 +77,7 @@ class _PaymentOptionTile extends StatelessWidget {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: isSelected ? TwColors.primary : TwColors.textMuted,
+                  color: isSelected ? palette.onAccent : TwColors.textMuted,
                   width: 2,
                 ),
               ),
@@ -83,9 +86,9 @@ class _PaymentOptionTile extends StatelessWidget {
                       child: Container(
                         width: 12,
                         height: 12,
-                        decoration: const BoxDecoration(
+                        decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: TwColors.primary,
+                          color: palette.onAccent,
                         ),
                       ),
                     )

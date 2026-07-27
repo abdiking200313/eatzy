@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../config/theme.dart';
+import '../../../../widgets/app_cards.dart';
 import '../models/wallet_models.dart';
 
 class WalletBalanceCard extends StatelessWidget {
@@ -15,24 +16,26 @@ class WalletBalanceCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(TwSpacing.x8),
-      decoration: BoxDecoration(
-        gradient: TwColors.primaryGradient,
-        borderRadius: BorderRadius.circular(20),
-      ),
+    final palette = context.serviceColors;
+    final textTheme = Theme.of(context).textTheme;
+    return OutlinedCard(
+      padding: const EdgeInsets.all(TwSpacing.x5),
+      backgroundColor: palette.soft,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             'Available Balance',
-            style: TwText.textXs().copyWith(
-              color: Colors.white.withOpacityValue(0.8),
+            style: textTheme.labelMedium?.copyWith(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
           ),
           const SizedBox(height: TwSpacing.x2),
-          Text(balance, style: TwText.text3xl().copyWith(color: Colors.white)),
-          const SizedBox(height: TwSpacing.x8),
+          Text(
+            balance,
+            style: textTheme.headlineSmall?.copyWith(color: palette.accent),
+          ),
+          const SizedBox(height: TwSpacing.x5),
           Row(
             children: [
               for (final action in actions) ...[
@@ -54,21 +57,29 @@ class _WalletActionButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.serviceColors;
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 12),
+      padding: const EdgeInsets.symmetric(
+        horizontal: TwSpacing.x3,
+        vertical: TwSpacing.x3,
+      ),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacityValue(0.2),
-        borderRadius: BorderRadius.circular(12),
+        color: palette.card,
+        border: Border.all(color: palette.border),
+        borderRadius: BorderRadius.circular(TwRadius.lg),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(action.icon, color: Colors.white),
-          const SizedBox(width: TwSpacing.x2),
-          Text(
-            action.label,
-            style: TwText.fontBoldSm().copyWith(color: Colors.white),
+          Flexible(
+            child: Text(
+              action.label,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.labelMedium,
+            ),
           ),
+          const SizedBox(width: TwSpacing.x2),
+          Icon(action.icon, color: palette.accent, size: 18),
         ],
       ),
     );

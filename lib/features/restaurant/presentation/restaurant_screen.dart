@@ -1,9 +1,14 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../app/app_routes.dart';
 import '../../../config/theme.dart';
 import '../../../features/cart/models/cart_item.dart';
 import '../../../features/cart/presentation/cart_controller.dart';
+import '../../../services/food/data/food_repository.dart';
+import '../../../services/food/models/food_models.dart';
 import '../../../widgets/app_cards.dart';
 import '../data/restaurant_menu_repository.dart';
 import '../models/restaurant_menu.dart';
@@ -18,11 +23,13 @@ class RestaurantScreen extends StatefulWidget {
     required this.restaurantId,
     this.menuLoader,
     this.cartController,
+    this.locationRepository,
   });
 
   final String restaurantId;
   final RestaurantMenuLoader? menuLoader;
   final CartController? cartController;
+  final RestaurantLocationRepository? locationRepository;
 
   @override
   State<RestaurantScreen> createState() => _RestaurantScreenState();
@@ -32,6 +39,7 @@ class _RestaurantScreenState extends State<RestaurantScreen> {
   final _sectionKeys = <String, GlobalKey>{};
 
   late Future<RestaurantMenu> _menuFuture;
+  late Future<List<RestaurantLocation>> _locationsFuture;
   String? _selectedCategoryId;
 
   RestaurantMenuLoader get _menuLoader =>
@@ -41,22 +49,39 @@ class _RestaurantScreenState extends State<RestaurantScreen> {
   void initState() {
     super.initState();
     _menuFuture = _menuLoader(widget.restaurantId);
+    _locationsFuture = _loadLocations();
+  }
+
+  Future<List<RestaurantLocation>> _loadLocations() async {
+    try {
+      final repository =
+          widget.locationRepository ??
+          SupabaseRestaurantLocationRepository(
+            client: Supabase.instance.client,
+          );
+      return await repository.fetchLocations(widget.restaurantId);
+    } on Object {
+      return const [];
+    }
   }
 
   @override
   void didUpdateWidget(covariant RestaurantScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.restaurantId != widget.restaurantId ||
-        oldWidget.menuLoader != widget.menuLoader) {
+        oldWidget.menuLoader != widget.menuLoader ||
+        oldWidget.locationRepository != widget.locationRepository) {
       _sectionKeys.clear();
       _selectedCategoryId = null;
       _menuFuture = _menuLoader(widget.restaurantId);
+      _locationsFuture = _loadLocations();
     }
   }
 
   void _retry() {
     setState(() {
       _menuFuture = _menuLoader(widget.restaurantId);
+      _locationsFuture = _loadLocations();
     });
   }
 
@@ -153,7 +178,6 @@ class _RestaurantScreenState extends State<RestaurantScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: TwColors.bg,
       body: FutureBuilder<RestaurantMenu>(
         future: _menuFuture,
         builder: (context, snapshot) {
@@ -167,11 +191,29 @@ class _RestaurantScreenState extends State<RestaurantScreen> {
 
           return _RestaurantMenuView(
             menu: snapshot.requireData,
+            locationsFuture: _locationsFuture,
             selectedCategoryId: _selectedCategoryId,
             sectionKeyFor: (categoryId) =>
                 _sectionKeys.putIfAbsent(categoryId, GlobalKey.new),
             onCategorySelected: _selectCategory,
             onAddToCart: (item) => _addToCart(snapshot.requireData, item),
+          );
+        },
+      ),
+      floatingActionButton: AnimatedBuilder(
+        animation: widget.cartController ?? CartController.instance,
+        builder: (context, _) {
+          final controller = widget.cartController ?? CartController.instance;
+          if (controller.itemCount == 0) {
+            return const SizedBox.shrink();
+          }
+          return FloatingActionButton.extended(
+            onPressed: () => context.push(AppRoutes.foodCart),
+            icon: Badge(
+              label: Text('${controller.itemCount}'),
+              child: const Icon(Icons.shopping_cart_outlined),
+            ),
+            label: const Text('View cart'),
           );
         },
       ),
@@ -182,6 +224,7 @@ class _RestaurantScreenState extends State<RestaurantScreen> {
 class _RestaurantMenuView extends StatelessWidget {
   const _RestaurantMenuView({
     required this.menu,
+    required this.locationsFuture,
     required this.selectedCategoryId,
     required this.sectionKeyFor,
     required this.onCategorySelected,
@@ -189,6 +232,7 @@ class _RestaurantMenuView extends StatelessWidget {
   });
 
   final RestaurantMenu menu;
+  final Future<List<RestaurantLocation>> locationsFuture;
   final String? selectedCategoryId;
   final GlobalKey Function(String categoryId) sectionKeyFor;
   final ValueChanged<MenuCategory> onCategorySelected;
@@ -221,10 +265,10 @@ class _RestaurantMenuView extends StatelessWidget {
                     const SizedBox(height: TwSpacing.x3),
                     Row(
                       children: [
-                        const Icon(
+                        Icon(
                           Icons.restaurant_menu_rounded,
                           size: 18,
-                          color: TwColors.primary,
+                          color: context.serviceColors.accent,
                         ),
                         const SizedBox(width: TwSpacing.x2),
                         Text(
@@ -245,6 +289,38 @@ class _RestaurantMenuView extends StatelessWidget {
                           style: TwText.textSm(),
                         ),
                       ],
+                    ),
+                    FutureBuilder<List<RestaurantLocation>>(
+                      future: locationsFuture,
+                      builder: (context, snapshot) {
+                        final locations =
+                            snapshot.data ?? const <RestaurantLocation>[];
+                        if (locations.isEmpty) {
+                          return const SizedBox.shrink();
+                        }
+                        return Padding(
+                          padding: const EdgeInsets.only(top: TwSpacing.x3),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Icon(
+                                Icons.storefront_outlined,
+                                size: 18,
+                                color: context.serviceColors.accent,
+                              ),
+                              const SizedBox(width: TwSpacing.x2),
+                              Expanded(
+                                child: Text(
+                                  locations
+                                      .map((location) => location.storeName)
+                                      .join(' • '),
+                                  style: TwText.textSm(),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
                     ),
                   ],
                 ),
@@ -304,13 +380,10 @@ class _RestaurantMenuView extends StatelessWidget {
                           index < category.items.length;
                           index++
                         ) ...[
-                          SizedBox(
-                            height: 136,
-                            child: MenuItemCard(
-                              item: category.items[index],
-                              onAddToCart: () =>
-                                  onAddToCart(category.items[index]),
-                            ),
+                          MenuItemCard(
+                            item: category.items[index],
+                            onAddToCart: () =>
+                                onAddToCart(category.items[index]),
                           ),
                           if (index != category.items.length - 1)
                             const SizedBox(height: TwSpacing.x3),
@@ -334,16 +407,17 @@ class _RestaurantAppBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.serviceColors;
     return SliverAppBar(
       pinned: true,
       expandedHeight: 230,
-      backgroundColor: TwColors.primary,
-      foregroundColor: Colors.white,
+      backgroundColor: palette.accent,
+      foregroundColor: palette.onAccent,
       title: Text(
         menu.restaurant.name,
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
-        style: TwText.fontBoldBase().copyWith(color: Colors.white),
+        style: TwText.fontBoldBase().copyWith(color: palette.onAccent),
       ),
       flexibleSpace: FlexibleSpaceBar(
         background: _RestaurantHero(imageUrl: menu.restaurant.logoUrl),
@@ -395,16 +469,13 @@ class _RestaurantHeroFallback extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: const BoxDecoration(gradient: TwColors.primaryGradient),
+    final palette = context.serviceColors;
+    return ColoredBox(
+      color: palette.accent,
       child: Center(
         child: showLoader
-            ? const CircularProgressIndicator(color: Colors.white)
-            : const Icon(
-                Icons.restaurant_rounded,
-                color: Colors.white,
-                size: 72,
-              ),
+            ? CircularProgressIndicator(color: palette.onAccent)
+            : Icon(Icons.restaurant_rounded, color: palette.onAccent, size: 72),
       ),
     );
   }
@@ -433,9 +504,10 @@ class _CategoryHeaderDelegate extends SliverPersistentHeaderDelegate {
     double shrinkOffset,
     bool overlapsContent,
   ) {
+    final palette = context.serviceColors;
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: TwColors.bg,
+        color: palette.background,
         boxShadow: overlapsContent
             ? const [
                 BoxShadow(
@@ -464,14 +536,14 @@ class _CategoryHeaderDelegate extends SliverPersistentHeaderDelegate {
               return ChoiceChip(
                 showCheckmark: false,
                 selected: isSelected,
-                selectedColor: TwColors.primary,
-                backgroundColor: TwColors.primarySoft,
+                selectedColor: palette.accent,
+                backgroundColor: palette.soft,
                 side: BorderSide(
-                  color: isSelected ? TwColors.primary : TwColors.border,
+                  color: isSelected ? palette.accent : palette.border,
                 ),
                 label: Text(category.name),
                 labelStyle: TwText.textXs().copyWith(
-                  color: isSelected ? Colors.white : TwColors.primary,
+                  color: isSelected ? palette.onAccent : palette.accent,
                 ),
                 onSelected: (_) => onSelected(category),
               );
@@ -495,10 +567,10 @@ class _RestaurantLoading extends StatelessWidget {
   Widget build(BuildContext context) {
     return CustomScrollView(
       slivers: [
-        const SliverAppBar(
+        SliverAppBar(
           pinned: true,
-          title: Text('Restaurant'),
-          backgroundColor: TwColors.bg,
+          title: const Text('Restaurant'),
+          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
           foregroundColor: TwColors.text,
         ),
         SliverFillRemaining(
@@ -526,12 +598,13 @@ class _RestaurantError extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.serviceColors;
     return CustomScrollView(
       slivers: [
-        const SliverAppBar(
+        SliverAppBar(
           pinned: true,
-          title: Text('Restaurant'),
-          backgroundColor: TwColors.bg,
+          title: const Text('Restaurant'),
+          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
           foregroundColor: TwColors.text,
         ),
         SliverFillRemaining(
@@ -542,15 +615,15 @@ class _RestaurantError extends StatelessWidget {
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 420),
                 child: OutlinedCard(
-                  backgroundColor: Colors.white,
-                  borderColor: TwColors.border,
+                  backgroundColor: palette.card,
+                  borderColor: palette.border,
                   borderRadius: 18,
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(
+                      Icon(
                         Icons.cloud_off_rounded,
-                        color: TwColors.primary,
+                        color: palette.accent,
                         size: 42,
                       ),
                       const SizedBox(height: TwSpacing.x3),
@@ -592,10 +665,10 @@ class _EmptyMenu extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(
+            Icon(
               Icons.menu_book_rounded,
               size: 48,
-              color: TwColors.primary,
+              color: context.serviceColors.accent,
             ),
             const SizedBox(height: TwSpacing.x3),
             Text('No menu items yet', style: TwText.textXl()),

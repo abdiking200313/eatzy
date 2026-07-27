@@ -28,6 +28,7 @@ class TrackOrderScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.serviceColors;
     return AppScaffold(
       title: 'Track Order',
       showBackButton: true,
@@ -35,7 +36,8 @@ class TrackOrderScreen extends StatelessWidget {
         padding: const EdgeInsets.all(TwSpacing.x5),
         children: [
           OutlinedCard(
-            backgroundColor: Colors.white,
+            backgroundColor: palette.card,
+            borderColor: palette.border,
             borderRadius: 16,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -44,10 +46,10 @@ class TrackOrderScreen extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text('Order #45782', style: TwText.fontBoldBase()),
-                    const StatusPill(
+                    StatusPill(
                       label: 'On the way',
-                      backgroundColor: TwColors.blue400,
-                      foregroundColor: TwColors.text,
+                      backgroundColor: palette.soft,
+                      foregroundColor: palette.accent,
                     ),
                   ],
                 ),
@@ -60,7 +62,7 @@ class TrackOrderScreen extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(TwSpacing.x5),
             decoration: BoxDecoration(
-              gradient: TwColors.primaryGradient,
+              color: palette.accent,
               borderRadius: BorderRadius.circular(16),
             ),
             child: Row(
@@ -107,7 +109,8 @@ class TrackOrderScreen extends StatelessWidget {
           ),
           const SizedBox(height: TwSpacing.x8),
           OutlinedCard(
-            backgroundColor: TwColors.cardMuted,
+            backgroundColor: palette.card,
+            borderColor: palette.border,
             borderRadius: 16,
             child: Column(
               children: [
@@ -118,7 +121,7 @@ class TrackOrderScreen extends StatelessWidget {
                 const SizedBox(height: TwSpacing.x2),
                 Text(
                   '12 minutes',
-                  style: TwText.text3xl().copyWith(color: TwColors.primary),
+                  style: TwText.text3xl().copyWith(color: palette.accent),
                 ),
               ],
             ),
@@ -136,6 +139,7 @@ class _TimelineStepRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.serviceColors;
     return Padding(
       padding: const EdgeInsets.only(bottom: TwSpacing.x2),
       child: Row(
@@ -147,7 +151,7 @@ class _TimelineStepRow extends StatelessWidget {
                 height: 20,
                 decoration: BoxDecoration(
                   color: step.isCompleted
-                      ? TwColors.primary
+                      ? palette.accent
                       : TwColors.borderStrong,
                   borderRadius: BorderRadius.circular(TwRadius.full),
                 ),
@@ -156,7 +160,7 @@ class _TimelineStepRow extends StatelessWidget {
                     : null,
               ),
               if (step.hasConnector)
-                Container(width: 2, height: 40, color: TwColors.primary),
+                Container(width: 2, height: 40, color: palette.accent),
             ],
           ),
           const SizedBox(width: TwSpacing.x5),

@@ -1,12 +1,12 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 
 import '../app/app_routes.dart';
 import '../config/theme.dart';
 import '../features/cart/models/cart_item.dart';
 import '../features/cart/presentation/cart_controller.dart';
+import '../platform/localization/app_money.dart';
 import '../widgets/app_cards.dart';
 import '../widgets/app_misc.dart';
 import '../widgets/app_scaffold.dart';
@@ -158,7 +158,7 @@ class _CartContents extends StatelessWidget {
         GradientActionButton(
           label: 'Checkout',
           icon: const Icon(Icons.arrow_forward_rounded, color: Colors.white),
-          onPressed: () => context.push(AppRoutes.checkout),
+          onPressed: () => context.push(AppRoutes.foodCheckout),
         ),
         const SizedBox(height: TwSpacing.x8),
       ],
@@ -181,10 +181,11 @@ class _CartItemCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.serviceColors;
     return OutlinedCard(
-      backgroundColor: Colors.white,
+      backgroundColor: palette.card,
       borderRadius: 16,
-      borderColor: TwColors.border,
+      borderColor: palette.border,
       padding: const EdgeInsets.all(TwSpacing.x4),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -225,7 +226,7 @@ class _CartItemCard extends StatelessWidget {
                 const SizedBox(height: TwSpacing.x1),
                 Text(
                   _formatCurrency(item.total),
-                  style: TwText.fontBoldSm().copyWith(color: TwColors.primary),
+                  style: TwText.fontBoldSm().copyWith(color: palette.accent),
                 ),
                 const SizedBox(height: TwSpacing.x3),
                 _QuantitySelector(
@@ -249,18 +250,15 @@ class _CartItemImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.serviceColors;
     final fallback = Container(
       width: 82,
       height: 82,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
-        color: TwColors.primarySoft,
+        color: palette.soft,
       ),
-      child: const Icon(
-        Icons.lunch_dining_rounded,
-        color: TwColors.primary,
-        size: 32,
-      ),
+      child: Icon(Icons.lunch_dining_rounded, color: palette.accent, size: 32),
     );
 
     if (imageUrl.trim().isEmpty) {
@@ -361,7 +359,8 @@ class _CartSummary extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return OutlinedCard(
-      backgroundColor: Colors.white,
+      backgroundColor: context.serviceColors.card,
+      borderColor: context.serviceColors.border,
       borderRadius: 16,
       child: Column(
         children: [
@@ -395,6 +394,7 @@ class _EmptyCart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.serviceColors;
     return Center(
       child: SingleChildScrollView(
         padding: const EdgeInsets.all(TwSpacing.x8),
@@ -404,14 +404,14 @@ class _EmptyCart extends StatelessWidget {
             Container(
               width: 96,
               height: 96,
-              decoration: const BoxDecoration(
-                color: TwColors.primarySoft,
+              decoration: BoxDecoration(
+                color: palette.soft,
                 shape: BoxShape.circle,
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.shopping_cart_outlined,
                 size: 48,
-                color: TwColors.primary,
+                color: palette.accent,
               ),
             ),
             const SizedBox(height: TwSpacing.x5),
@@ -424,7 +424,7 @@ class _EmptyCart extends StatelessWidget {
             ),
             const SizedBox(height: TwSpacing.x5),
             TextButton.icon(
-              onPressed: () => context.go(AppRoutes.mainApp),
+              onPressed: () => context.go(AppRoutes.food),
               icon: const Icon(Icons.restaurant_menu_rounded),
               label: const Text('Browse restaurants'),
             ),
@@ -436,5 +436,5 @@ class _EmptyCart extends StatelessWidget {
 }
 
 String _formatCurrency(num amount) {
-  return NumberFormat.currency(symbol: r'$', decimalDigits: 2).format(amount);
+  return AppMoney.format(amount);
 }

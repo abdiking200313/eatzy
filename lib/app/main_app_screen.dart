@@ -1,43 +1,54 @@
 import 'package:flutter/material.dart';
 
 import '../config/theme.dart';
-import '../features/cart/presentation/cart_controller.dart';
-import '../features/home/presentation/home_screen.dart';
 import '../features/profile/presentation/profile_screen.dart';
-import '../screens/cart.dart';
-import '../screens/categories.dart';
+import '../features/super_app/presentation/super_app_home_screen.dart';
+import '../platform/activity/presentation/activity_screen.dart';
+import '../screens/explore.dart';
 
 class MainAppScreen extends StatefulWidget {
-  const MainAppScreen({super.key, this.screens})
-    : assert(screens == null || screens.length == 4);
+  const MainAppScreen({super.key, this.screens, this.initialIndex = 0})
+    : assert(screens == null || screens.length == 4),
+      assert(initialIndex >= 0 && initialIndex < 4);
 
   final List<Widget>? screens;
+  final int initialIndex;
 
   @override
   State<MainAppScreen> createState() => _MainAppScreenState();
 }
 
 class _MainAppScreenState extends State<MainAppScreen> {
-  int _selectedIndex = 0;
+  late int _selectedIndex;
 
   static const List<_NavigationItem> _navigationItems = [
-    _NavigationItem(label: 'Home', icon: Icons.home, screen: HomeScreen()),
     _NavigationItem(
-      label: 'Categories',
-      icon: Icons.category,
-      screen: CategoriesScreen(showBackButton: false),
+      label: 'Home',
+      icon: Icons.home_outlined,
+      screen: SuperAppHomeScreen(),
     ),
     _NavigationItem(
-      label: 'Cart',
-      icon: Icons.shopping_cart,
-      screen: CartScreen(),
+      label: 'Explore',
+      icon: Icons.explore_outlined,
+      screen: ExploreScreen(),
+    ),
+    _NavigationItem(
+      label: 'Activity',
+      icon: Icons.receipt_long_outlined,
+      screen: ActivityScreen(),
     ),
     _NavigationItem(
       label: 'Profile',
-      icon: Icons.person,
+      icon: Icons.person_outline,
       screen: ProfileScreen(),
     ),
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedIndex = widget.initialIndex;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -45,31 +56,26 @@ class _MainAppScreenState extends State<MainAppScreen> {
         widget.screens ??
         _navigationItems.map((item) => item.screen).toList(growable: false);
 
-    return AnimatedBuilder(
-      animation: CartController.instance,
-      builder: (context, _) => Scaffold(
-        body: IndexedStack(index: _selectedIndex, children: screens),
-        bottomNavigationBar: BottomNavigationBar(
-          currentIndex: _selectedIndex,
-          onTap: (index) => setState(() => _selectedIndex = index),
-          type: BottomNavigationBarType.fixed,
-          backgroundColor: TwColors.bg,
-          selectedItemColor: TwColors.primary,
-          unselectedItemColor: TwColors.textMuted,
-          items: _navigationItems
-              .map(
-                (item) => BottomNavigationBarItem(
-                  icon: item.label == 'Cart'
-                      ? Badge(
-                          isLabelVisible: CartController.instance.itemCount > 0,
-                          label: Text('${CartController.instance.itemCount}'),
-                          child: Icon(item.icon),
-                        )
-                      : Icon(item.icon),
-                  label: item.label,
-                ),
-              )
-              .toList(),
+    return Scaffold(
+      body: IndexedStack(index: _selectedIndex, children: screens),
+      bottomNavigationBar: DecoratedBox(
+        decoration: const BoxDecoration(
+          color: TwColors.white,
+          border: Border(top: BorderSide(color: TwColors.border)),
+        ),
+        child: NavigationBar(
+          selectedIndex: _selectedIndex,
+          onDestinationSelected: (index) {
+            setState(() => _selectedIndex = index);
+          },
+          destinations: [
+            for (final item in _navigationItems)
+              NavigationDestination(
+                icon: Icon(item.icon, color: TwColors.textMuted),
+                selectedIcon: Icon(item.icon, color: TwColors.white),
+                label: item.label,
+              ),
+          ],
         ),
       ),
     );

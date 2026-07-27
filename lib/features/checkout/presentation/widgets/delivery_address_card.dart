@@ -11,8 +11,10 @@ class DeliveryAddressCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.serviceColors;
     return OutlinedCard(
-      backgroundColor: Colors.white,
+      backgroundColor: palette.card,
+      borderColor: palette.border,
       borderRadius: 16,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -23,21 +25,27 @@ class DeliveryAddressCard extends StatelessWidget {
               const SectionTitle('Delivery Address', fontSize: 18),
               TextButton(
                 onPressed: onChangePressed,
-                child: Text('Change', style: TwText.link()),
+                child: Text(
+                  'Change',
+                  style: TwText.link().copyWith(color: palette.accent),
+                ),
               ),
             ],
           ),
           const SizedBox(height: TwSpacing.x4),
           Row(
             children: [
-              const Icon(Icons.location_on, color: TwColors.primary),
+              Icon(Icons.location_on, color: palette.accent),
               const SizedBox(width: TwSpacing.x4),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text('Home', style: TwText.fontBoldSm()),
-                    Text('123 Lekki Street, Lagos', style: TwText.textSm()),
+                    Text(
+                      'Maka Al-Mukarama Road, Mogadishu',
+                      style: TwText.textSm(),
+                    ),
                   ],
                 ),
               ),

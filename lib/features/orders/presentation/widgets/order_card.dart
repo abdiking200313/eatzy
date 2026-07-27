@@ -15,6 +15,7 @@ class OrderCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isActive = order.isActive;
+    final scheme = Theme.of(context).colorScheme;
 
     return OutlinedCard(
       child: Column(
@@ -27,11 +28,11 @@ class OrderCard extends StatelessWidget {
               StatusPill(
                 label: order.status,
                 backgroundColor: isActive
-                    ? TwColors.primaryAccent
-                    : TwColors.secondary.withOpacityValue(0.2),
+                    ? scheme.primaryContainer
+                    : scheme.secondaryContainer,
                 foregroundColor: isActive
-                    ? TwColors.blue900
-                    : TwColors.secondary,
+                    ? scheme.onPrimaryContainer
+                    : scheme.onSecondaryContainer,
                 fontSize: 11,
               ),
             ],
@@ -43,7 +44,7 @@ class OrderCard extends StatelessWidget {
             order.amount,
             style: TwText.text2xl().copyWith(
               fontSize: 18,
-              color: isActive ? TwColors.primary : TwColors.text,
+              color: isActive ? scheme.primary : TwColors.text,
             ),
           ),
           const SizedBox(height: TwSpacing.x4),
@@ -54,14 +55,14 @@ class OrderCard extends StatelessWidget {
             )
           else
             OutlinedCard(
-              onTap: () => context.push(AppRoutes.checkout),
+              onTap: () => context.push(AppRoutes.foodCheckout),
               padding: const EdgeInsets.symmetric(vertical: TwSpacing.x3),
               backgroundColor: Colors.transparent,
-              borderColor: TwColors.primary,
+              borderColor: scheme.primary,
               child: Center(
                 child: Text(
                   'Reorder',
-                  style: TwText.fontBoldSm().copyWith(color: TwColors.primary),
+                  style: TwText.fontBoldSm().copyWith(color: scheme.primary),
                 ),
               ),
             ),

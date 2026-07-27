@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../app/app_routes.dart';
 import '../config/theme.dart';
 
 /// A standard [Scaffold] with the Zivo surface background, an
@@ -26,21 +27,26 @@ class AppScaffold extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
-      backgroundColor: TwColors.bg,
+      backgroundColor: theme.scaffoldBackgroundColor,
       resizeToAvoidBottomInset: resizeToAvoidBottomInset,
       appBar: AppBar(
-        backgroundColor: TwColors.bg,
+        backgroundColor: theme.appBarTheme.backgroundColor,
         elevation: 0,
+        scrolledUnderElevation: 0,
         centerTitle: false,
-        title: Text(title, style: TwText.text3xl()),
-        foregroundColor: TwColors.text,
+        title: Text(title, style: TwText.textXl()),
+        foregroundColor: theme.colorScheme.onSurface,
         leading: showBackButton
             ? IconButton(
-                icon: const Icon(Icons.arrow_back, color: TwColors.text),
+                tooltip: 'Back',
+                icon: const Icon(Icons.arrow_back_rounded),
                 onPressed: () {
                   if (context.canPop()) {
                     context.pop();
+                  } else {
+                    context.go(AppRoutes.mainApp);
                   }
                 },
               )
@@ -67,7 +73,7 @@ class SectionTitle extends StatelessWidget {
     return Text(
       title,
       style: TwText.textXl().copyWith(
-        color: color ?? TwColors.text,
+        color: color ?? Theme.of(context).colorScheme.onSurface,
         fontSize: fontSize,
       ),
     );

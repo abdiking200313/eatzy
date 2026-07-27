@@ -9,8 +9,8 @@ void main() {
         home: MainAppScreen(
           screens: const [
             _CounterTab(),
-            Center(child: Text('Category test tab')),
-            Center(child: Text('Cart test tab')),
+            Center(child: Text('Explore test tab')),
+            Center(child: Text('Activity test tab')),
             Center(child: Text('Profile test tab')),
           ],
         ),
@@ -21,14 +21,36 @@ void main() {
     await tester.pump();
     expect(find.text('Count 1'), findsOneWidget);
 
-    await tester.tap(find.text('Categories'));
+    await tester.tap(find.text('Explore'));
     await tester.pump();
-    expect(find.text('Category test tab'), findsOneWidget);
+    expect(find.text('Explore test tab'), findsOneWidget);
 
     await tester.tap(find.text('Home'));
     await tester.pump();
     expect(find.text('Count 1'), findsOneWidget);
     expect(find.byType(IndexedStack), findsOneWidget);
+  });
+
+  testWidgets('the activity route can open the shell on the Activity tab', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: MainAppScreen(
+          initialIndex: 2,
+          screens: const [
+            Center(child: Text('Home test tab')),
+            Center(child: Text('Explore test tab')),
+            Center(child: Text('Activity test tab')),
+            Center(child: Text('Profile test tab')),
+          ],
+        ),
+      ),
+    );
+
+    final navigation = tester.widget<NavigationBar>(find.byType(NavigationBar));
+    expect(navigation.selectedIndex, 2);
+    expect(find.text('Activity test tab'), findsOneWidget);
   });
 }
 

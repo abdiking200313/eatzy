@@ -4,7 +4,6 @@ class Restaurant {
     required this.name,
     required this.description,
     required this.logoUrl,
-
   });
 
   final String id;
@@ -12,7 +11,7 @@ class Restaurant {
   final String description;
   final String logoUrl;
 
-  factory Restaurant.fromMap(Map<String, dynamic> map){
+  factory Restaurant.fromMap(Map<String, dynamic> map) {
     return Restaurant(
       id: map['id'].toString(),
       name: map['name'] as String? ?? 'Unknown',

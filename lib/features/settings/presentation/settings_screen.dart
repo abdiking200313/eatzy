@@ -38,6 +38,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget build(BuildContext context) {
     return AppScaffold(
       title: 'Settings',
+      showBackButton: true,
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(TwSpacing.x4),
         child: Column(

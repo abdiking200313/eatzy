@@ -44,18 +44,15 @@ class RewardsProfileScreen extends StatelessWidget {
     final progressWidth = (MediaQuery.of(context).size.width - 40) * 0.82;
 
     return Scaffold(
-      backgroundColor: TwColors.bg,
       body: CustomScrollView(
         slivers: [
           SliverAppBar(
-            backgroundColor: TwColors.bg,
+            backgroundColor: Theme.of(context).scaffoldBackgroundColor,
             elevation: 0,
             expandedHeight: 300,
             flexibleSpace: FlexibleSpaceBar(
               background: Container(
-                decoration: const BoxDecoration(
-                  gradient: TwColors.primaryGradient,
-                ),
+                color: Theme.of(context).colorScheme.primary,
                 child: SafeArea(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -93,7 +90,7 @@ class RewardsProfileScreen extends StatelessWidget {
                       Text(
                         '82%',
                         style: TwText.fontBoldSm().copyWith(
-                          color: TwColors.primary,
+                          color: Theme.of(context).colorScheme.primary,
                         ),
                       ),
                     ],
@@ -102,7 +99,9 @@ class RewardsProfileScreen extends StatelessWidget {
                   Container(
                     height: 12,
                     decoration: BoxDecoration(
-                      color: TwColors.cardMuted,
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.surfaceContainerHighest,
                       borderRadius: BorderRadius.circular(6),
                     ),
                     child: Stack(
@@ -110,7 +109,7 @@ class RewardsProfileScreen extends StatelessWidget {
                         Container(
                           width: progressWidth,
                           decoration: BoxDecoration(
-                            gradient: TwColors.primaryGradient,
+                            color: Theme.of(context).colorScheme.primary,
                             borderRadius: BorderRadius.circular(6),
                           ),
                         ),

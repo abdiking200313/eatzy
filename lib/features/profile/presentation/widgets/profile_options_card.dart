@@ -13,8 +13,7 @@ class ProfileOptionsCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return OutlinedCard(
-      backgroundColor: Colors.white,
-      borderRadius: 18,
+      padding: EdgeInsets.zero,
       child: Column(
         children: [
           for (final option in options) ...[
@@ -35,8 +34,7 @@ class LogoutCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return OutlinedCard(
-      backgroundColor: Colors.white,
-      borderRadius: 18,
+      padding: EdgeInsets.zero,
       child: _ProfileOptionTile(
         option: const ProfileOption(title: 'Logout', icon: Icons.logout),
         onTap: onTap,
@@ -59,22 +57,45 @@ class _ProfileOptionTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.serviceColors;
+    final colorScheme = Theme.of(context).colorScheme;
+    final foreground = isDestructive
+        ? colorScheme.error
+        : colorScheme.onSurface;
     return ListTile(
-      contentPadding: EdgeInsets.zero,
-      leading: Icon(option.icon, color: TwColors.primary),
+      minTileHeight: 58,
+      contentPadding: const EdgeInsets.symmetric(horizontal: TwSpacing.x4),
+      leading: Container(
+        width: 36,
+        height: 36,
+        decoration: BoxDecoration(
+          color: isDestructive ? colorScheme.errorContainer : palette.soft,
+          borderRadius: BorderRadius.circular(TwRadius.md),
+        ),
+        child: Icon(option.icon, color: foreground, size: 19),
+      ),
       title: Text(
         option.title,
-        style: TwText.fontBoldBase().copyWith(
-          color: isDestructive ? TwColors.primary : null,
-        ),
+        style: Theme.of(
+          context,
+        ).textTheme.titleSmall?.copyWith(color: foreground),
       ),
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           if (option.trailingText != null)
-            Text(option.trailingText!, style: TwText.textSm()),
-          const SizedBox(width: 8),
-          const Icon(Icons.arrow_forward_ios, size: 16),
+            Text(
+              option.trailingText!,
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          const SizedBox(width: TwSpacing.x2),
+          Icon(
+            Icons.arrow_forward_rounded,
+            size: 18,
+            color: isDestructive
+                ? colorScheme.error
+                : colorScheme.onSurfaceVariant,
+          ),
         ],
       ),
       onTap:

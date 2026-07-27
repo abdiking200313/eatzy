@@ -31,12 +31,21 @@ class OnboardingPage extends StatelessWidget {
                 width: media.size.width * 0.9,
                 height: media.size.height * 0.4,
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(40),
+                  borderRadius: BorderRadius.circular(TwRadius.xl),
+                  border: Border.all(color: TwColors.border),
+                  boxShadow: [
+                    BoxShadow(
+                      color: TwColors.slate900.withOpacityValue(0.1),
+                      blurRadius: 18,
+                      offset: const Offset(0, 8),
+                    ),
+                  ],
                   image: DecorationImage(
                     image: NetworkImage(imageUrl),
                     fit: BoxFit.cover,
                   ),
                 ),
+                clipBehavior: Clip.antiAlias,
               ),
               ?badge,
             ],

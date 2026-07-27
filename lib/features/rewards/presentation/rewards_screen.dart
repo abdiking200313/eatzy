@@ -53,6 +53,8 @@ class RewardsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.serviceColors;
+    final colorScheme = Theme.of(context).colorScheme;
     return AppScaffold(
       title: 'Rewards & Achievements',
       body: SingleChildScrollView(
@@ -60,33 +62,39 @@ class RewardsScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
+            OutlinedCard(
               padding: const EdgeInsets.all(TwSpacing.x5),
-              decoration: BoxDecoration(
-                gradient: TwColors.primaryGradient,
-                borderRadius: BorderRadius.circular(TwRadius.lg),
-              ),
+              backgroundColor: palette.soft,
               child: Column(
                 children: [
                   Text(
                     'Your Points',
-                    style: TwText.fontBoldSm().copyWith(
-                      color: Colors.white.withOpacityValue(0.9),
+                    style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
                     ),
                   ),
-                  const SizedBox(height: TwSpacing.x4),
+                  const SizedBox(height: TwSpacing.x2),
                   Text(
                     '$_userPoints',
-                    style: TwText.text3xl().copyWith(
-                      fontSize: 48,
-                      color: Colors.white,
-                    ),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.headlineSmall?.copyWith(color: palette.accent),
                   ),
                   const SizedBox(height: TwSpacing.x4),
-                  PrimaryButton(
-                    label: 'Redeem Rewards',
-                    onPressed: () {},
-                    color: Colors.white.withOpacityValue(0.2),
+                  SizedBox(
+                    width: double.infinity,
+                    child: FilledButton(
+                      onPressed: () {},
+                      child: const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text('Redeem Rewards'),
+                          SizedBox(width: TwSpacing.x2),
+                          Icon(Icons.arrow_forward_rounded, size: 18),
+                        ],
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -106,13 +114,11 @@ class RewardsScreen extends StatelessWidget {
                   const SizedBox(height: TwSpacing.x4),
                   ClipRRect(
                     borderRadius: BorderRadius.circular(TwRadius.full),
-                    child: const LinearProgressIndicator(
+                    child: LinearProgressIndicator(
                       value: _progressPercent,
                       minHeight: 8,
-                      backgroundColor: TwColors.borderStrong,
-                      valueColor: AlwaysStoppedAnimation<Color>(
-                        TwColors.primary,
-                      ),
+                      backgroundColor: palette.border,
+                      color: palette.accent,
                     ),
                   ),
                   const SizedBox(height: TwSpacing.x3),

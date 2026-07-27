@@ -12,17 +12,17 @@ class RewardBadgeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.serviceColors;
     return OutlinedCard(
-      backgroundColor: TwColors.cardMuted,
-      borderColor: badge.earned ? TwColors.primary : TwColors.borderStrong,
-      borderWidth: badge.earned ? 2 : 1,
+      padding: const EdgeInsets.all(TwSpacing.x3),
+      backgroundColor: badge.earned ? palette.soft : palette.card,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(
             badge.icon,
             size: 32,
-            color: badge.earned ? TwColors.primary : TwColors.textMuted,
+            color: badge.earned ? palette.accent : TwColors.textMuted,
           ),
           const SizedBox(height: TwSpacing.x3),
           Text(
@@ -46,6 +46,7 @@ class RewardCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return OutlinedCard(
+      padding: const EdgeInsets.all(TwSpacing.x4),
       child: Row(
         children: [
           Container(
@@ -75,6 +76,12 @@ class RewardCard extends StatelessWidget {
             label: '${reward.points} pts',
             backgroundColor: reward.color.withOpacityValue(0.2),
             foregroundColor: reward.color,
+          ),
+          const SizedBox(width: TwSpacing.x2),
+          Icon(
+            Icons.arrow_forward_rounded,
+            size: 18,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
           ),
         ],
       ),

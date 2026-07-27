@@ -3,6 +3,7 @@ import 'package:chowflow/features/cart/presentation/cart_controller.dart';
 import 'package:chowflow/features/home/models/restaurant.dart';
 import 'package:chowflow/features/restaurant/models/restaurant_menu.dart';
 import 'package:chowflow/features/restaurant/presentation/restaurant_screen.dart';
+import 'package:chowflow/features/restaurant/presentation/widgets/menu_item_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -119,4 +120,44 @@ void main() {
     expect(find.text('We could not load this menu'), findsOneWidget);
     expect(find.text('Try again'), findsOneWidget);
   });
+
+  testWidgets('menu cards grow for narrow screens and larger text', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(320, 640));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    const longItem = MenuItem(
+      id: 'long-item',
+      name: 'A generously filled traditional Somali family platter',
+      description:
+          'Slow-cooked ingredients with fresh vegetables and house spices.',
+      price: 12.5,
+      imageUrl: '',
+      categoryId: 'mains',
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: buildAppTheme(),
+        home: MediaQuery(
+          data: const MediaQueryData(
+            size: Size(320, 640),
+            textScaler: TextScaler.linear(1.4),
+          ),
+          child: Scaffold(
+            body: ListView(
+              padding: const EdgeInsets.all(16),
+              children: [MenuItemCard(item: longItem, onAddToCart: _doNothing)],
+            ),
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text(longItem.name), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
 }
+
+void _doNothing() {}

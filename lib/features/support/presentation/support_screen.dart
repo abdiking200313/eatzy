@@ -72,28 +72,28 @@ class SupportScreen extends StatelessWidget {
       title: 'Help & Support',
       showBackButton: true,
       body: ListView(
-        padding: const EdgeInsets.all(TwSpacing.x5),
+        padding: const EdgeInsets.all(TwSpacing.x4),
         children: [
           const SectionTitle('How can we help?'),
-          const SizedBox(height: TwSpacing.x5),
+          const SizedBox(height: TwSpacing.x3),
           for (final topic in _helpTopics) ...[
             HelpCard(topic: topic),
-            if (topic != _helpTopics.last) const SizedBox(height: TwSpacing.x5),
+            if (topic != _helpTopics.last) const SizedBox(height: TwSpacing.x3),
           ],
-          const SizedBox(height: TwSpacing.x8),
+          const SizedBox(height: TwSpacing.x6),
           const SectionTitle('Need more help?', fontSize: 18),
-          const SizedBox(height: TwSpacing.x5),
+          const SizedBox(height: TwSpacing.x3),
           for (final topic in _contactOptions) ...[
             ContactCard(topic: topic),
             if (topic != _contactOptions.last)
-              const SizedBox(height: TwSpacing.x5),
+              const SizedBox(height: TwSpacing.x3),
           ],
-          const SizedBox(height: TwSpacing.x8),
+          const SizedBox(height: TwSpacing.x6),
           const SectionTitle('Frequently Asked Questions', fontSize: 18),
-          const SizedBox(height: TwSpacing.x5),
+          const SizedBox(height: TwSpacing.x3),
           for (final faq in _faqItems) ...[
             FaqCard(item: faq),
-            if (faq != _faqItems.last) const SizedBox(height: TwSpacing.x5),
+            if (faq != _faqItems.last) const SizedBox(height: TwSpacing.x3),
           ],
         ],
       ),

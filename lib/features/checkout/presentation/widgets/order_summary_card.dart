@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 
 import '../../../../config/theme.dart';
-import '../../../cart/models/cart_item.dart';
+import '../../../../platform/localization/app_money.dart';
 import '../../../../widgets/app_cards.dart';
 import '../../../../widgets/app_misc.dart';
 import '../../../../widgets/app_scaffold.dart';
+import '../../../cart/models/cart_item.dart';
 
 class OrderSummaryCard extends StatelessWidget {
   const OrderSummaryCard({
@@ -25,8 +25,10 @@ class OrderSummaryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.serviceColors;
     return OutlinedCard(
-      backgroundColor: Colors.white,
+      backgroundColor: palette.card,
+      borderColor: palette.border,
       borderRadius: 16,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -48,8 +50,8 @@ class OrderSummaryCard extends StatelessWidget {
           ),
           const SizedBox(height: TwSpacing.x5),
           OutlinedCard(
-            backgroundColor: TwColors.cardMuted,
-            borderColor: Colors.transparent,
+            backgroundColor: palette.soft,
+            borderColor: palette.border,
             borderRadius: 12,
             child: SummaryRow(
               label: 'Total',
@@ -84,7 +86,9 @@ class _CheckoutItemRow extends StatelessWidget {
         ),
         Text(
           _formatCurrency(item.total),
-          style: TwText.fontBoldSm().copyWith(color: TwColors.primary),
+          style: TwText.fontBoldSm().copyWith(
+            color: context.serviceColors.accent,
+          ),
         ),
       ],
     );
@@ -92,5 +96,5 @@ class _CheckoutItemRow extends StatelessWidget {
 }
 
 String _formatCurrency(num amount) {
-  return NumberFormat.currency(symbol: r'$', decimalDigits: 2).format(amount);
+  return AppMoney.format(amount);
 }

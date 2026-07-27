@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:chowflow/features/home/models/category.dart';
 import 'package:chowflow/features/home/presentation/widgets/categories_section.dart';
 import 'package:chowflow/features/home/presentation/widgets/section_header.dart';
@@ -15,11 +13,11 @@ void main() {
       const MaterialApp(home: CategoriesScreen(showBackButton: false)),
     );
 
-    expect(find.text('Categories'), findsOneWidget);
+    expect(find.text('Services'), findsOneWidget);
     expect(find.byType(GridView), findsOneWidget);
-    expect(find.byIcon(Icons.arrow_back), findsNothing);
+    expect(find.byTooltip('Back'), findsNothing);
 
-    for (final label in ['Food', 'Pharmacy', 'Grocery', 'Cleaner']) {
+    for (final label in ['Food', 'Pharmacy', 'Grocery', 'Cleaning']) {
       await tester.scrollUntilVisible(
         find.text(label),
         300,
@@ -32,19 +30,15 @@ void main() {
   testWidgets('pushed category screen shows a back control', (tester) async {
     await tester.pumpWidget(const MaterialApp(home: CategoriesScreen()));
 
-    expect(find.byIcon(Icons.arrow_back), findsOneWidget);
+    expect(find.byTooltip('Back'), findsOneWidget);
   });
 
-  testWidgets('home category section shows fetch errors in the UI', (
-    tester,
-  ) async {
-    final categoriesCompleter = Completer<List<Category>>();
-
+  testWidgets('home category section shows an empty state', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
         home: Scaffold(
           body: CategoriesSection(
-            categoriesFuture: categoriesCompleter.future,
+            categories: const <Category>[],
             selectedCategoryId: null,
             onCategorySelected: (_) {},
           ),
@@ -52,12 +46,7 @@ void main() {
       ),
     );
 
-    categoriesCompleter.completeError(StateError('category request failed'));
-    await tester.pump();
-
-    expect(find.text('Unable to load categories'), findsOneWidget);
-    expect(find.textContaining('category request failed'), findsOneWidget);
-    expect(find.byIcon(Icons.error_outline), findsOneWidget);
+    expect(find.text('No categories found'), findsOneWidget);
   });
 
   testWidgets('section header supports an optional action', (tester) async {

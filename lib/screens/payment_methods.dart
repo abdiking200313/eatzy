@@ -39,10 +39,20 @@ class PaymentMethodsScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            GradientActionButton(
-              label: 'Add New Card',
-              onPressed: () {},
-              icon: const Icon(Icons.add, color: Colors.white, size: 20),
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton(
+                onPressed: () {},
+                child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text('Add New Card'),
+                    SizedBox(width: TwSpacing.x2),
+                    Icon(Icons.add_rounded, size: 19),
+                  ],
+                ),
+              ),
             ),
             const SizedBox(height: TwSpacing.x5),
             const SectionTitle('Saved Cards'),
@@ -66,9 +76,10 @@ class _PaymentMethodCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.serviceColors;
+    final colorScheme = Theme.of(context).colorScheme;
     return OutlinedCard(
-      borderColor: method.isDefault ? TwColors.primary : TwColors.borderStrong,
-      borderWidth: method.isDefault ? 2 : 1,
+      padding: const EdgeInsets.all(TwSpacing.x4),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -77,7 +88,7 @@ class _PaymentMethodCard extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  Icon(method.icon, color: TwColors.primary, size: 24),
+                  Icon(method.icon, color: palette.accent, size: 24),
                   const SizedBox(width: TwSpacing.x3),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -95,10 +106,10 @@ class _PaymentMethodCard extends StatelessWidget {
                 ],
               ),
               if (method.isDefault)
-                const StatusPill(
+                StatusPill(
                   label: 'Default',
-                  backgroundColor: TwColors.primaryAccent,
-                  foregroundColor: TwColors.blue900,
+                  backgroundColor: palette.soft,
+                  foregroundColor: palette.accent,
                   fontSize: 10,
                 ),
             ],
@@ -118,34 +129,16 @@ class _PaymentMethodCard extends StatelessWidget {
               Row(
                 children: [
                   if (!method.isDefault)
-                    OutlinedCard(
-                      onTap: () {},
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: TwSpacing.x3,
-                        vertical: TwSpacing.x1,
-                      ),
-                      backgroundColor: Colors.transparent,
-                      borderColor: TwColors.textMuted,
-                      borderRadius: TwRadius.md,
-                      child: Text(
-                        'Set Default',
-                        style: TwText.textXs().copyWith(
-                          color: TwColors.textMuted,
-                        ),
-                      ),
+                    TextButton(
+                      onPressed: () {},
+                      child: const Text('Set Default'),
                     ),
-                  const SizedBox(width: TwSpacing.x3),
-                  OutlinedCard(
-                    onTap: () {},
-                    padding: const EdgeInsets.all(TwSpacing.x1),
-                    backgroundColor: Colors.transparent,
-                    borderColor: TwColors.error,
-                    borderRadius: TwRadius.md,
-                    child: const Icon(
-                      Icons.delete_outline,
-                      color: TwColors.error,
-                      size: 16,
-                    ),
+                  const SizedBox(width: TwSpacing.x2),
+                  IconButton.outlined(
+                    tooltip: 'Delete ${method.type}',
+                    onPressed: () {},
+                    color: colorScheme.error,
+                    icon: const Icon(Icons.delete_outline, size: 18),
                   ),
                 ],
               ),

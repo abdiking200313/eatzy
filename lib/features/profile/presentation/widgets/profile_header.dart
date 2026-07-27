@@ -1,65 +1,76 @@
 import 'package:flutter/material.dart';
 
 import '../../../../config/theme.dart';
+import '../../../../widgets/app_cards.dart';
 
 class ProfileHeader extends StatelessWidget {
-  const ProfileHeader({super.key});
+  const ProfileHeader({
+    super.key,
+    required this.displayName,
+    required this.contactLabel,
+    this.isLoading = false,
+  });
+
+  final String displayName;
+  final String contactLabel;
+  final bool isLoading;
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Container(
-          width: 90,
-          height: 90,
-          decoration: const BoxDecoration(
-            shape: BoxShape.circle,
-            color: TwColors.primary,
+    final palette = context.serviceColors;
+    final textTheme = Theme.of(context).textTheme;
+    return OutlinedCard(
+      padding: const EdgeInsets.all(TwSpacing.x4),
+      child: Row(
+        children: [
+          Container(
+            width: 64,
+            height: 64,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: palette.soft,
+            ),
+            child: Icon(
+              Icons.person_outline_rounded,
+              size: 32,
+              color: palette.accent,
+            ),
           ),
-          child: const Icon(Icons.person, size: 55, color: TwColors.text),
-        ),
-        const SizedBox(width: TwSpacing.x5),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
+          const SizedBox(width: TwSpacing.x4),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Amara Johnson', style: TwText.text2xl()),
-                const SizedBox(width: 6),
-                const Icon(Icons.verified, color: TwColors.blue400, size: 20),
+                Text(
+                  isLoading ? 'Loading profile…' : displayName,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: textTheme.titleLarge,
+                ),
+                const SizedBox(height: TwSpacing.x1),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.contact_phone_outlined,
+                      size: 16,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                    const SizedBox(width: TwSpacing.x2),
+                    Expanded(
+                      child: Text(
+                        contactLabel,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: textTheme.bodySmall,
+                      ),
+                    ),
+                  ],
+                ),
               ],
             ),
-            const SizedBox(height: 6),
-            Text('amara@example.com', style: TwText.textSm()),
-            const SizedBox(height: 10),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-              decoration: BoxDecoration(
-                color: TwColors.primary.withOpacityValue(0.08),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: const Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    Icons.workspace_premium,
-                    color: TwColors.primary,
-                    size: 18,
-                  ),
-                  SizedBox(width: 6),
-                  Text(
-                    'Gold Member',
-                    style: TextStyle(
-                      color: TwColors.primary,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ],
+          ),
+        ],
+      ),
     );
   }
 }

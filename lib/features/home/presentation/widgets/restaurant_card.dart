@@ -17,10 +17,11 @@ class RestaurantCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.serviceColors;
     return OutlinedCard(
-      backgroundColor: Colors.white,
+      backgroundColor: palette.card,
       borderRadius: 16,
-      borderColor: TwColors.border,
+      borderColor: palette.border,
       padding: EdgeInsets.zero,
       onTap: onPressed,
       child: Column(
@@ -61,14 +62,14 @@ class RestaurantCard extends StatelessWidget {
                     Text(
                       'View menu',
                       style: TwText.fontBoldSm().copyWith(
-                        color: TwColors.primary,
+                        color: palette.accent,
                       ),
                     ),
                     const SizedBox(width: TwSpacing.x1),
-                    const Icon(
+                    Icon(
                       Icons.arrow_forward_rounded,
                       size: 18,
-                      color: TwColors.primary,
+                      color: palette.accent,
                     ),
                   ],
                 ),
@@ -111,16 +112,13 @@ class _ImageFallback extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.serviceColors;
     return ColoredBox(
-      color: TwColors.primaryAccent,
+      color: palette.soft,
       child: Center(
         child: showLoader
             ? const CircularProgressIndicator(strokeWidth: 2)
-            : const Icon(
-                Icons.restaurant_rounded,
-                color: TwColors.primary,
-                size: 42,
-              ),
+            : Icon(Icons.restaurant_rounded, color: palette.accent, size: 42),
       ),
     );
   }

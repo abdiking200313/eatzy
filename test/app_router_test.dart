@@ -49,7 +49,7 @@ void main() {
     test('builds a restaurant details path', () {
       expect(
         AppRoutes.restaurantDetails('restaurant-123'),
-        '/restaurants/restaurant-123',
+        '/food/restaurants/restaurant-123',
       );
     });
 
@@ -58,7 +58,28 @@ void main() {
         AppRoutes.isRestaurantDetails('/restaurants/restaurant-123'),
         isTrue,
       );
+      expect(
+        AppRoutes.isRestaurantDetails('/food/restaurants/restaurant-123'),
+        isTrue,
+      );
       expect(AppRoutes.isRestaurantDetails('/restaurants'), isFalse);
+    });
+  });
+
+  group('super-app routes', () {
+    test('recognizes every service subtree as protected', () {
+      for (final path in [
+        AppRoutes.food,
+        AppRoutes.groceryCart,
+        AppRoutes.cleaningBook,
+        AppRoutes.pharmacyCheckout,
+      ]) {
+        expect(
+          AppRouter.isProtectedLocation(path),
+          isTrue,
+          reason: '$path should require a signed-in customer',
+        );
+      }
     });
   });
 }

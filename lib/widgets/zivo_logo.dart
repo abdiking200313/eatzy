@@ -26,7 +26,8 @@ class ZivoLogo extends StatelessWidget {
     return Semantics(
       image: true,
       label: ZivoBrand.name,
-      child: Row(
+      excludeSemantics: true,
+      child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           CustomPaint(
@@ -34,14 +35,14 @@ class ZivoLogo extends StatelessWidget {
             painter: const _ZivoMarkPainter(),
           ),
           if (showWordmark) ...[
-            SizedBox(width: height * 0.2),
+            SizedBox(height: height * 0.06),
             Text(
               'zivo',
               style: TwText.text2xl().copyWith(
                 color: wordmarkColor,
-                fontSize: height * 0.72,
+                fontSize: height * 0.42,
                 fontWeight: FontWeight.w700,
-                letterSpacing: -1,
+                letterSpacing: -0.4,
                 height: 1,
               ),
             ),

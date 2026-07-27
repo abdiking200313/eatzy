@@ -6,6 +6,10 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'app/app_router.dart';
 import 'config/theme.dart';
 import 'features/cart/presentation/cart_controller.dart';
+import 'platform/activity/data/activity_repository.dart';
+import 'platform/activity/presentation/activity_controller.dart';
+import 'platform/session/account_state_coordinator.dart';
+import 'platform/system_ui/android_navigation_bar_controller.dart';
 import 'widgets/zivo_logo.dart';
 
 void main() async {
@@ -17,9 +21,14 @@ void main() async {
   );
 
   final cartController = CartController.instance;
-  await cartController.loadForOwner(
-    Supabase.instance.client.auth.currentUser?.id,
+  final currentUserId = Supabase.instance.client.auth.currentUser?.id;
+  await cartController.loadForOwner(currentUserId);
+  ActivityController.instance.configureRepository(
+    SupabaseActivityRepository(client: Supabase.instance.client),
   );
+  if (currentUserId != null) {
+    await ActivityController.instance.load();
+  }
 
   runApp(ZivoApp(cartController: cartController));
 }
@@ -34,18 +43,27 @@ class ZivoApp extends StatefulWidget {
 }
 
 class _ZivoAppState extends State<ZivoApp> {
+  final AndroidNavigationBarController _navigationBarController =
+      AndroidNavigationBarController();
   late final CartController _cartController =
       widget.cartController ?? CartController.instance;
+  late final AccountStateCoordinator _accountStateCoordinator =
+      AccountStateCoordinator(initialOwnerId: _cartController.ownerId);
   late final StreamSubscription<AuthState> _authSubscription;
 
   @override
   void initState() {
     super.initState();
+    _navigationBarController.start();
     _authSubscription = Supabase.instance.client.auth.onAuthStateChange.listen((
       authState,
     ) {
-      if (_cartController.ownerId != authState.session?.user.id) {
-        unawaited(_cartController.loadForOwner(authState.session?.user.id));
+      final nextOwnerId = authState.session?.user.id;
+      if (_accountStateCoordinator.handleOwnerChanged(nextOwnerId)) {
+        unawaited(_cartController.loadForOwner(nextOwnerId));
+        if (nextOwnerId != null) {
+          unawaited(ActivityController.instance.load());
+        }
       }
     });
   }
@@ -53,6 +71,7 @@ class _ZivoAppState extends State<ZivoApp> {
   @override
   void dispose() {
     _authSubscription.cancel();
+    _navigationBarController.dispose();
     super.dispose();
   }
 

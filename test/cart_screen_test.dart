@@ -2,9 +2,13 @@ import 'package:chowflow/config/theme.dart';
 import 'package:chowflow/features/cart/models/cart_item.dart';
 import 'package:chowflow/features/cart/presentation/cart_controller.dart';
 import 'package:chowflow/features/checkout/presentation/checkout_screen.dart';
+import 'package:chowflow/platform/activity/presentation/activity_controller.dart';
+import 'package:chowflow/services/food/data/food_repository.dart';
+import 'package:chowflow/services/food/models/food_models.dart';
 import 'package:chowflow/screens/cart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 
 import 'helpers/memory_cart_storage.dart';
 
@@ -48,10 +52,12 @@ void main() {
     expect(find.text('Your cart is empty'), findsOneWidget);
   });
 
-  testWidgets('checkout uses the live cart and stops before payment', (
+  testWidgets('checkout records a demo order without processing payment', (
     tester,
   ) async {
     final controller = CartController(storage: MemoryCartStorage());
+    ActivityController.instance.clear();
+    addTearDown(ActivityController.instance.clear);
     await controller.loadForOwner('user-1');
     await controller.addItem(
       const CartItem(
@@ -64,29 +70,49 @@ void main() {
       ),
     );
 
+    final router = GoRouter(
+      initialLocation: '/checkout',
+      routes: [
+        GoRoute(
+          path: '/checkout',
+          builder: (_, _) => CheckoutScreen(
+            cartController: controller,
+            orderRepository: const _FakeFoodOrderRepository(),
+          ),
+        ),
+        GoRoute(
+          path: '/activity',
+          builder: (_, _) => const Scaffold(body: Text('Activity destination')),
+        ),
+      ],
+    );
     await tester.pumpWidget(
-      MaterialApp(
-        theme: buildAppTheme(),
-        home: CheckoutScreen(cartController: controller),
-      ),
+      MaterialApp.router(theme: buildAppTheme(), routerConfig: router),
     );
 
     expect(find.text('Classic Burger'), findsOneWidget);
     expect(find.text(r'$15.99'), findsOneWidget);
 
     await tester.scrollUntilVisible(
-      find.text('Continue to payment'),
+      find.text('Place demo order'),
       300,
       scrollable: find.byType(Scrollable).first,
     );
-    expect(find.text('Continue to payment'), findsOneWidget);
+    expect(find.text('Place demo order'), findsOneWidget);
 
-    await tester.tap(find.text('Continue to payment'));
-    await tester.pump();
+    await tester.tap(find.text('Place demo order'));
+    await tester.pumpAndSettle();
 
-    expect(
-      find.text('Payment will be connected in the next step.'),
-      findsOneWidget,
-    );
+    expect(find.text('Activity destination'), findsOneWidget);
+    expect(controller.isEmpty, isTrue);
+    expect(ActivityController.instance.items.single.title, 'Test Kitchen');
   });
+}
+
+class _FakeFoodOrderRepository implements FoodOrderRepository {
+  const _FakeFoodOrderRepository();
+
+  @override
+  Future<String> placeOrder(FoodOrderRequest request) async =>
+      'food-test-order';
 }

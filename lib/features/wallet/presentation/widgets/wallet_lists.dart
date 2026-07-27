@@ -12,15 +12,25 @@ class WalletPaymentMethodCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.serviceColors;
     return OutlinedCard(
-      backgroundColor: Colors.white,
-      borderRadius: 16,
-      borderColor: method.isDefault ? TwColors.primary : TwColors.borderStrong,
-      borderWidth: method.isDefault ? 2 : 1,
+      padding: const EdgeInsets.all(TwSpacing.x4),
       child: Row(
         children: [
-          const Icon(Icons.payment, color: TwColors.primary),
-          const SizedBox(width: TwSpacing.x5),
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: palette.soft,
+              borderRadius: BorderRadius.circular(TwRadius.md),
+            ),
+            child: Icon(
+              Icons.payment_outlined,
+              color: palette.accent,
+              size: 20,
+            ),
+          ),
+          const SizedBox(width: TwSpacing.x3),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -34,10 +44,10 @@ class WalletPaymentMethodCard extends StatelessWidget {
             ),
           ),
           if (method.isDefault)
-            const StatusPill(
+            StatusPill(
               label: 'Default',
-              backgroundColor: TwColors.primary,
-              foregroundColor: Colors.white,
+              backgroundColor: palette.soft,
+              foregroundColor: palette.accent,
               fontSize: 10,
             ),
         ],

@@ -26,7 +26,12 @@ class SectionHeader extends StatelessWidget {
         if (actionLabel != null)
           TextButton(
             onPressed: onPressed,
-            child: Text(actionLabel!, style: TwText.link()),
+            child: Text(
+              actionLabel!,
+              style: TwText.link().copyWith(
+                color: Theme.of(context).colorScheme.primary,
+              ),
+            ),
           ),
       ],
     );

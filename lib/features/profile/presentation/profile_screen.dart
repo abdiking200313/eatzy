@@ -1,17 +1,45 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../app/app_routes.dart';
 import '../../../config/theme.dart';
 import '../../../widgets/app_scaffold.dart';
 import '../../auth/data/auth_service.dart';
+import '../data/profile_repository.dart';
+import '../models/customer_profile.dart';
 import 'models/profile_models.dart';
-import 'widgets/order_stats_card.dart';
 import 'widgets/profile_header.dart';
 import 'widgets/profile_options_card.dart';
 
-class ProfileScreen extends StatelessWidget {
-  const ProfileScreen({super.key});
+class ProfileScreen extends StatefulWidget {
+  const ProfileScreen({super.key, this.profileRepository});
+
+  final ProfileRepository? profileRepository;
+
+  @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  late Future<CustomerProfile?> _profileFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _profileFuture = _loadProfile();
+  }
+
+  Future<CustomerProfile?> _loadProfile() async {
+    try {
+      final repository =
+          widget.profileRepository ??
+          SupabaseProfileRepository(client: Supabase.instance.client);
+      return await repository.fetchCurrentProfile();
+    } on Object {
+      return null;
+    }
+  }
 
   Future<void> _logout(BuildContext context) async {
     try {
@@ -24,33 +52,6 @@ class ProfileScreen extends StatelessWidget {
       ).showSnackBar(SnackBar(content: Text('Could not log out: $error')));
     }
   }
-
-  static const List<ProfileStat> _orderStats = [
-    ProfileStat(
-      icon: Icons.shopping_bag_outlined,
-      title: 'My Orders',
-      count: '12',
-      route: AppRoutes.orders,
-    ),
-    ProfileStat(
-      icon: Icons.local_shipping_outlined,
-      title: 'To Ship',
-      count: '3',
-      route: AppRoutes.orders,
-    ),
-    ProfileStat(
-      icon: Icons.inventory_2_outlined,
-      title: 'Delivered',
-      count: '9',
-      route: AppRoutes.orders,
-    ),
-    ProfileStat(
-      icon: Icons.refresh,
-      title: 'Returns',
-      count: '2',
-      route: AppRoutes.orders,
-    ),
-  ];
 
   static const List<ProfileOption> _accountOptions = [
     ProfileOption(
@@ -88,16 +89,29 @@ class ProfileScreen extends StatelessWidget {
     return AppScaffold(
       title: 'Profile',
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(TwSpacing.x5),
+        padding: const EdgeInsets.all(TwSpacing.x4),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const ProfileHeader(),
-            const SizedBox(height: TwSpacing.x8),
-            const OrderStatsCard(stats: _orderStats),
+            FutureBuilder<CustomerProfile?>(
+              future: _profileFuture,
+              builder: (context, snapshot) {
+                final profile = snapshot.data;
+                return ProfileHeader(
+                  displayName: profile?.displayName ?? 'Zivo customer',
+                  contactLabel: profile?.phone.isNotEmpty == true
+                      ? profile!.phone
+                      : 'Somalia • USD',
+                  isLoading:
+                      snapshot.connectionState == ConnectionState.waiting,
+                );
+              },
+            ),
             const SizedBox(height: TwSpacing.x5),
+            Text('Account', style: Theme.of(context).textTheme.titleMedium),
+            const SizedBox(height: TwSpacing.x3),
             const ProfileOptionsCard(options: _accountOptions),
-            const SizedBox(height: TwSpacing.x5),
+            const SizedBox(height: TwSpacing.x4),
             LogoutCard(onTap: () => _logout(context)),
           ],
         ),

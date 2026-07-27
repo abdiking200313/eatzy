@@ -17,6 +17,7 @@ class FireSunGradientButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     return GestureDetector(
       onTap: onPressed,
       child: Container(
@@ -26,13 +27,13 @@ class FireSunGradientButton extends StatelessWidget {
           vertical: TwSpacing.x5,
         ),
         decoration: BoxDecoration(
-          gradient: TwColors.primaryGradient,
-          borderRadius: BorderRadius.circular(TwRadius.full),
+          color: scheme.primary,
+          borderRadius: BorderRadius.circular(TwRadius.xl),
           boxShadow: [
             BoxShadow(
-              color: TwColors.primary.withOpacityValue(0.3),
-              blurRadius: 0,
-              offset: const Offset(0, 8),
+              color: scheme.primary.withOpacityValue(0.18),
+              blurRadius: 12,
+              offset: const Offset(0, 5),
             ),
           ],
         ),
@@ -68,13 +69,14 @@ class PremiumCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.serviceColors;
     return Container(
       padding: padding,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(borderRadius),
         color: useGlassmorphism
             ? TwColors.bg.withOpacityValue(0.7)
-            : TwColors.cardMuted,
+            : palette.card,
         border: useGlassmorphism
             ? Border.all(color: TwColors.text.withOpacityValue(0.1), width: 1)
             : null,
@@ -98,6 +100,7 @@ class ZivoChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -106,13 +109,13 @@ class ZivoChip extends StatelessWidget {
           vertical: TwSpacing.x2,
         ),
         decoration: BoxDecoration(
-          color: isSelected ? TwColors.primary : TwColors.secondarySoft,
+          color: isSelected ? scheme.primary : scheme.primaryContainer,
           borderRadius: BorderRadius.circular(TwRadius.full),
         ),
         child: Text(
           label,
           style: TwText.fontBoldSm().copyWith(
-            color: isSelected ? TwColors.onPrimary : TwColors.primary,
+            color: isSelected ? scheme.onPrimary : scheme.primary,
           ),
         ),
       ),
@@ -167,6 +170,7 @@ class _AppTextFieldState extends State<AppTextField> {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     return TextField(
       controller: widget.controller,
       keyboardType: widget.keyboardType,
@@ -180,7 +184,7 @@ class _AppTextFieldState extends State<AppTextField> {
         hintText: widget.hint,
         hintStyle: TwText.textBase().copyWith(color: TwColors.textMuted),
         prefixIcon: widget.prefixIcon != null
-            ? Icon(widget.prefixIcon, color: TwColors.primary)
+            ? Icon(widget.prefixIcon, color: scheme.primary)
             : null,
         suffixIcon: widget.obscureText
             ? IconButton(
@@ -208,7 +212,7 @@ class _AppTextFieldState extends State<AppTextField> {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(TwRadius.xl),
-          borderSide: const BorderSide(color: TwColors.primary, width: 2),
+          borderSide: BorderSide(color: scheme.primary, width: 1.5),
         ),
         filled: true,
         fillColor: TwColors.white,
@@ -225,34 +229,14 @@ class AuthPageBackground extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      constraints: BoxConstraints(
-        minHeight: MediaQuery.sizeOf(context).height,
-      ),
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [TwColors.blue50, TwColors.white],
+    return ColoredBox(
+      color: Theme.of(context).scaffoldBackgroundColor,
+      child: Container(
+        width: double.infinity,
+        constraints: BoxConstraints(
+          minHeight: MediaQuery.sizeOf(context).height,
         ),
-      ),
-      child: Stack(
-        children: [
-          Positioned(
-            top: -90,
-            right: -80,
-            child: Container(
-              width: 240,
-              height: 240,
-              decoration: BoxDecoration(
-                color: TwColors.blue100.withOpacityValue(0.65),
-                shape: BoxShape.circle,
-              ),
-            ),
-          ),
-          child,
-        ],
+        child: child,
       ),
     );
   }
@@ -270,13 +254,13 @@ class AuthCard extends StatelessWidget {
       padding: const EdgeInsets.all(TwSpacing.x6),
       decoration: BoxDecoration(
         color: TwColors.white,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(TwRadius.xl),
         border: Border.all(color: TwColors.border),
         boxShadow: [
           BoxShadow(
-            color: TwColors.blue900.withOpacityValue(0.08),
-            blurRadius: 32,
-            offset: const Offset(0, 16),
+            color: TwColors.slate900.withOpacityValue(0.08),
+            blurRadius: 18,
+            offset: const Offset(0, 8),
           ),
         ],
       ),

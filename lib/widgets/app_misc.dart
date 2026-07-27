@@ -84,9 +84,10 @@ class SummaryRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     final labelStyle = isBold ? TwText.fontBoldBase() : TwText.textSm();
     final valueStyle = isBold
-        ? TwText.fontBoldBase().copyWith(color: TwColors.primary)
+        ? TwText.fontBoldBase().copyWith(color: scheme.primary)
         : TwText.fontBoldSm();
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,

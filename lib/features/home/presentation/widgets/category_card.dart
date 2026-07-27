@@ -18,6 +18,7 @@ class CategoryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.serviceColors;
     return Column(
       children: [
         GestureDetector(
@@ -26,10 +27,17 @@ class CategoryCard extends StatelessWidget {
             width: 90,
             height: 90,
             decoration: BoxDecoration(
-              shape: BoxShape.rectangle,
-              gradient: isSelected ? TwColors.primaryGradient : null,
+              color: isSelected ? palette.soft : palette.card,
+              borderRadius: BorderRadius.circular(TwRadius.xl),
+              border: Border.all(
+                color: isSelected ? palette.accent : palette.border,
+                width: isSelected ? 2 : 1,
+              ),
             ),
-            child: ClipOval(child: _CategoryImage(imageUrl: category.iconUrl)),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(TwRadius.xl - 2),
+              child: _CategoryImage(imageUrl: category.iconUrl),
+            ),
           ),
         ),
         const SizedBox(height: TwSpacing.x2),
@@ -39,7 +47,7 @@ class CategoryCard extends StatelessWidget {
           overflow: TextOverflow.ellipsis,
           textAlign: TextAlign.center,
           style: TwText.textXs().copyWith(
-            color: isSelected ? TwColors.primary : TwColors.textMuted,
+            color: isSelected ? palette.accent : TwColors.textMuted,
           ),
         ),
       ],
@@ -81,10 +89,10 @@ class _ImageFallback extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Icon(
+    return Icon(
       Icons.broken_image_outlined,
       size: 34,
-      color: TwColors.primary,
+      color: context.serviceColors.accent,
     );
   }
 }

@@ -11,19 +11,19 @@ class HelpCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.serviceColors;
     return OutlinedCard(
-      backgroundColor: Colors.white,
-      borderRadius: 16,
+      padding: const EdgeInsets.all(TwSpacing.x4),
       child: Row(
         children: [
           Container(
             width: 50,
             height: 50,
             decoration: BoxDecoration(
-              color: TwColors.primaryAccent.withOpacityValue(0.1),
-              borderRadius: BorderRadius.circular(12),
+              color: palette.soft,
+              borderRadius: BorderRadius.circular(TwRadius.lg),
             ),
-            child: Icon(topic.icon, color: TwColors.primary),
+            child: Icon(topic.icon, color: palette.accent),
           ),
           const SizedBox(width: TwSpacing.x5),
           Expanded(
@@ -38,7 +38,11 @@ class HelpCard extends StatelessWidget {
               ],
             ),
           ),
-          const Icon(Icons.arrow_forward_ios, size: 16),
+          Icon(
+            Icons.arrow_forward_rounded,
+            size: 18,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
         ],
       ),
     );
@@ -52,42 +56,37 @@ class ContactCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(TwSpacing.x5),
-      decoration: BoxDecoration(
-        gradient: TwColors.primaryGradient,
-        borderRadius: BorderRadius.circular(16),
-      ),
+    final palette = context.serviceColors;
+    return OutlinedCard(
+      padding: const EdgeInsets.all(TwSpacing.x4),
+      backgroundColor: palette.soft,
       child: Row(
         children: [
           Container(
             width: 45,
             height: 45,
             decoration: BoxDecoration(
-              color: Colors.white.withOpacityValue(0.2),
-              borderRadius: BorderRadius.circular(12),
+              color: palette.card,
+              borderRadius: BorderRadius.circular(TwRadius.lg),
             ),
-            child: Icon(topic.icon, color: Colors.white),
+            child: Icon(topic.icon, color: palette.accent),
           ),
           const SizedBox(width: TwSpacing.x5),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  topic.title,
-                  style: TwText.fontBoldSm().copyWith(color: Colors.white),
-                ),
+                Text(topic.title, style: TwText.fontBoldSm()),
                 Text(
                   topic.subtitle,
                   style: TwText.textXs().copyWith(
-                    color: Colors.white.withOpacityValue(0.8),
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
                 ),
               ],
             ),
           ),
-          const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.white),
+          Icon(Icons.arrow_forward_rounded, size: 18, color: palette.accent),
         ],
       ),
     );
@@ -102,8 +101,7 @@ class FaqCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return OutlinedCard(
-      backgroundColor: Colors.white,
-      borderRadius: 12,
+      padding: const EdgeInsets.all(TwSpacing.x4),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

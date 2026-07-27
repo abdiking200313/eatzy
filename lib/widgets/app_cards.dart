@@ -26,15 +26,18 @@ class OutlinedCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.serviceColors;
     final resolvedBorderRadius = BorderRadius.circular(borderRadius);
     final content = Padding(padding: padding, child: child);
 
     return Material(
-      color: backgroundColor ?? TwColors.cardMuted,
+      color: backgroundColor ?? palette.card,
+      elevation: 0.6,
+      shadowColor: TwColors.slate900.withOpacityValue(0.12),
       shape: RoundedRectangleBorder(
         borderRadius: resolvedBorderRadius,
         side: BorderSide(
-          color: borderColor ?? TwColors.borderStrong,
+          color: borderColor ?? palette.border,
           width: borderWidth,
         ),
       ),
@@ -68,7 +71,7 @@ class GradientActionButton extends StatelessWidget {
   });
 
   final String label;
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
   final Widget? icon;
   final bool fullWidth;
   final EdgeInsets padding;
@@ -77,17 +80,18 @@ class GradientActionButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     final button = Container(
       width: fullWidth ? double.infinity : null,
       padding: padding,
       decoration: BoxDecoration(
-        gradient: TwColors.primaryGradient,
+        color: scheme.primary,
         borderRadius: BorderRadius.circular(borderRadius),
         boxShadow: [
           BoxShadow(
-            color: TwColors.primary.withOpacityValue(0.3),
-            blurRadius: 0,
-            offset: const Offset(0, 8),
+            color: scheme.primary.withOpacityValue(0.18),
+            blurRadius: 12,
+            offset: const Offset(0, 5),
           ),
         ],
       ),
@@ -95,18 +99,27 @@ class GradientActionButton extends StatelessWidget {
         mainAxisSize: fullWidth ? MainAxisSize.max : MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text(label, style: TwText.button().copyWith(fontSize: fontSize)),
+          Text(
+            label,
+            style: TwText.button().copyWith(
+              color: scheme.onPrimary,
+              fontSize: fontSize,
+            ),
+          ),
           if (icon != null) ...[const SizedBox(width: TwSpacing.x2), icon!],
         ],
       ),
     );
 
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onPressed,
-        borderRadius: BorderRadius.circular(borderRadius),
-        child: button,
+    return Opacity(
+      opacity: onPressed == null ? 0.55 : 1,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onPressed,
+          borderRadius: BorderRadius.circular(borderRadius),
+          child: button,
+        ),
       ),
     );
   }
@@ -133,18 +146,26 @@ class PrimaryButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final resolvedColor = color ?? scheme.primary;
+    final resolvedForeground = color == null
+        ? scheme.onPrimary
+        : foregroundColor;
     final button = Container(
       width: fullWidth ? double.infinity : null,
       padding: const EdgeInsets.symmetric(vertical: TwSpacing.x5),
       decoration: BoxDecoration(
-        color: color ?? TwColors.primary,
-        borderRadius: BorderRadius.circular(TwRadius.lg),
+        color: resolvedColor,
+        borderRadius: BorderRadius.circular(TwRadius.xl),
       ),
       child: Row(
         mainAxisSize: fullWidth ? MainAxisSize.max : MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text(label, style: TwText.button().copyWith(color: foregroundColor)),
+          Text(
+            label,
+            style: TwText.button().copyWith(color: resolvedForeground),
+          ),
           if (icon != null) ...[const SizedBox(width: TwSpacing.x2), icon!],
         ],
       ),

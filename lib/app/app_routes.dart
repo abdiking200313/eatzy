@@ -13,6 +13,33 @@ class AppRoutes {
   // Login-required routes
   static const mainApp = '/app';
   static const home = '/home';
+  static const services = '/services';
+  static const activity = '/activity';
+
+  // Food service
+  static const food = '/food';
+  static const foodRestaurants = '$food/restaurants';
+  static const foodRestaurant = '$foodRestaurants/:restaurantId';
+  static const foodCategories = '$food/categories';
+  static const foodExplore = '$food/explore';
+  static const foodCart = '$food/cart';
+  static const foodCheckout = '$food/checkout';
+
+  // Grocery service
+  static const grocery = '/grocery';
+  static const groceryCart = '$grocery/cart';
+  static const groceryCheckout = '$grocery/checkout';
+
+  // Cleaning service
+  static const cleaning = '/cleaning';
+  static const cleaningBook = '$cleaning/book';
+
+  // Pharmacy service
+  static const pharmacy = '/pharmacy';
+  static const pharmacyCart = '$pharmacy/cart';
+  static const pharmacyCheckout = '$pharmacy/checkout';
+
+  // Legacy food routes kept for compatibility.
   static const restaurants = '/restaurants';
   static const restaurant = '$restaurants/:restaurantId';
   static const categories = '/categories';
@@ -31,8 +58,16 @@ class AppRoutes {
   static const rewardsProfile = '/rewards-profile';
 
   static String restaurantDetails(String restaurantId) =>
-      '$restaurants/${Uri.encodeComponent(restaurantId)}';
+      '$foodRestaurants/${Uri.encodeComponent(restaurantId)}';
 
   static bool isRestaurantDetails(String location) =>
+      location.startsWith('$foodRestaurants/') ||
       location.startsWith('$restaurants/');
+
+  static bool isServicePath(String location) => const [
+    food,
+    grocery,
+    cleaning,
+    pharmacy,
+  ].any((prefix) => location == prefix || location.startsWith('$prefix/'));
 }
