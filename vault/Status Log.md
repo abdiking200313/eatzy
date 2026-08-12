@@ -1,6 +1,10 @@
 # Status Log
 
-Reverse-chronological. Each session/major chunk of work gets an entry. Keep entries terse — this is for fast orientation, not a full changelog (git history has that).
+Reverse-chronological. Each session/major chunk of work gets an entry.
+
+**Terse means terse, enforced literally (added 2026-08-13 after this file's own entries broke the rule)**: 1-4 short bullet points per task, not paragraphs. Point at where full detail already lives (an issue number, `Audit Findings.md`, `Decisions Log.md`, git history) rather than re-explaining it here. This file is an index, not a second copy of the record.
+
+**Archive when this file passes ~150 lines or ~2 weeks of entries**: move everything older than the most recent ~2 weeks into `vault/archive/Status Log <YYYY-MM>.md`, leave a one-line pointer at the bottom. Whoever's finishing a task and notices the file has grown past that point should just do it, not wait to be asked. (The 2026-08-12/13 entries below predate this rule and are longer than they should be — left as-is rather than retroactively edited; new entries should follow the tighter format.)
 
 ---
 
