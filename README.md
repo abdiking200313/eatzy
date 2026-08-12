@@ -4,35 +4,19 @@ A beautiful, feature-rich Flutter food delivery application built with modern de
 
 ## 🎯 About
 
-Zivo is a complete food delivery app UI/UX implementation featuring:
-- Modern Material Design 3 interface
-- Smooth navigation and transitions
-- Comprehensive order management
-- Gamification system
-- Real-time order tracking (UI ready)
-- User profile management
-- Payment integration ready
+Zivo is a super-app-in-progress: food delivery today, with grocery, pharmacy, and home-cleaning-booking verticals also under active development. It's backed by a real Supabase project (auth, catalog data, order placement via `SECURITY DEFINER` RPCs, RLS-protected tables) — not a UI-only prototype.
 
 ## ✨ Features
 
-### Current Implementation
-- ✅ Complete UI for all screens
-- ✅ Custom theme system with gradients
-- ✅ Responsive layouts
-- ✅ Reusable UI components
-- ✅ Onboarding flow
-- ✅ Bottom navigation
-- ✅ Profile & settings screens
-- ✅ Cart & checkout flow
-- ✅ Order management screens
+### Working today
+- Modern Material Design 3 interface, custom theme system (`lib/config/theme.dart`, `lib/config/tailwind.dart`)
+- Supabase-backed auth (`lib/features/auth/`)
+- Home/restaurant browsing, cart, and checkout for food (`lib/features/home/`, `lib/features/restaurant/`, `lib/features/cart/`, `lib/features/checkout/`)
+- Grocery and pharmacy verticals with their own cart/checkout controllers (`lib/services/grocery/`, `lib/services/pharmacy/`)
+- Real order placement via Supabase RPCs with server-side price recomputation and RLS
 
-### Backend Ready
-All screens are backend-ready and need API integration for:
-- User authentication
-- Restaurant & dish data
-- Order processing
-- Payment handling
-- Real-time updates
+### Known gaps (tracked as GitHub issues on this repo)
+Several screens currently show polished UI backed by hardcoded/fake data rather than real integration — wallet, rewards, settings, saved addresses, and payment methods are the main ones. See the repo's open issues for the current list; don't assume a screen is fully wired up just because it renders correctly.
 
 ## 🚀 Quick Start
 
@@ -55,7 +39,7 @@ flutter pub get
 flutter run
 ```
 
-For detailed setup instructions, see [HOW_IT_WORKS.md](../HOW_IT_WORKS.md)
+Requires a Supabase project — see `supabase/` for schema/migrations. Note: the linked docs below live one directory above this repo's root and are **not tracked in this git repository** (a plain clone of this repo won't include them) — treat them as historical local notes, not guaranteed-available references. This README and the code/tests are the current source of truth; see `AGENTS.md` and `vault/` in this repo for up-to-date architecture and conventions.
 
 ## 📱 Supported Platforms
 
@@ -68,16 +52,25 @@ For detailed setup instructions, see [HOW_IT_WORKS.md](../HOW_IT_WORKS.md)
 
 ## 📁 Project Structure
 
+Domain-based, not layer-based — see `vault/Architecture.md` in this repo for the full breakdown. Summary:
+
 ```
 lib/
-├── main.dart              # App entry point
-├── config/
-│   └── theme.dart        # Theme, colors, typography
-├── screens/              # All app screens
-└── widgets/              # Reusable UI components
+├── main.dart              # App entry point, Supabase init
+├── app/                   # Routing (go_router), app-level wiring
+├── config/                # Theme, design tokens (theme.dart, tailwind.dart)
+├── features/              # auth, cart, checkout, home, onboarding, orders,
+│                          #   profile, restaurant, rewards, settings,
+│                          #   super_app, support, wallet — each with its own
+│                          #   data/models/presentation subfolders
+├── services/              # food, grocery, pharmacy verticals (same layout)
+├── platform/              # Cross-cutting: activity feed, localization,
+│                          #   session, system UI
+├── screens/                # A handful of legacy screens not yet moved into
+│                          #   features/ (addresses, cart, categories,
+│                          #   explore, payment_methods)
+└── widgets/                # Shared, reused across features
 ```
-
-See [PROJECT_STRUCTURE.md](../PROJECT_STRUCTURE.md) for detailed structure.
 
 ## 🎨 Design System
 
@@ -90,10 +83,14 @@ The app uses a centralized theme system with:
 ## 📦 Dependencies
 
 - `flutter`: Core framework
+- `supabase_flutter`: Backend — auth, database, RPC calls
+- `go_router`: Navigation/routing
 - `google_fonts`: Typography
 - `cached_network_image`: Image optimization
+- `intl`: Formatting (dates, currency)
+- `shared_preferences`: Local persistence (cart storage)
 
-See `pubspec.yaml` for complete list.
+See `pubspec.yaml` for the complete, authoritative list.
 
 ## 🔧 Development
 
@@ -104,16 +101,15 @@ See `pubspec.yaml` for complete list.
 - Use `const` constructors
 
 ### Adding Features
-1. See [FEATURES_TO_COMPLETE.md](../FEATURES_TO_COMPLETE.md)
-2. Create feature branch
-3. Implement with tests
+1. Create a feature branch
+2. Implement with tests
+3. Run `dart format --output=none --set-exit-if-changed lib test`, `flutter analyze`, and `flutter test` (see `AGENTS.md` for the full definition of done)
 4. Submit pull request
 
 ## 📚 Documentation
 
-- [HOW_IT_WORKS.md](../HOW_IT_WORKS.md) - Setup & usage guide
-- [PROJECT_STRUCTURE.md](../PROJECT_STRUCTURE.md) - Detailed structure
-- [FEATURES_TO_COMPLETE.md](../FEATURES_TO_COMPLETE.md) - Feature roadmap
+- `AGENTS.md` (this repo's root) — architecture, conventions, agent delegation rules
+- `vault/` (this repo) — architecture notes, decisions log, open tasks, status log
 
 ## 🧪 Testing
 
@@ -122,7 +118,7 @@ See `pubspec.yaml` for complete list.
 flutter test
 
 # Run specific test file
-flutter test test/widget_test.dart
+flutter test test/categories_screen_test.dart
 ```
 
 ## 🏗️ Building
@@ -147,29 +143,11 @@ flutter build web
 
 ## 📋 Roadmap
 
-**Phase 1 (MVP)**
-- Authentication system
-- Backend API integration
-- Order processing
-- Payment gateway
-
-**Phase 2**
-- Real-time order tracking
-- Push notifications
-- Review system
-- Search & filtering
-
-**Phase 3**
-- Gamification implementation
-- Wallet & credits
-- Promotions system
-- Advanced analytics
-
-See [FEATURES_TO_COMPLETE.md](../FEATURES_TO_COMPLETE.md) for comprehensive list.
+See this repo's GitHub Issues (`todo` label) for the current, maintained list of planned work — it supersedes any static roadmap in this file, which will otherwise inevitably drift.
 
 ## 🐛 Known Issues
 
-- None currently reported
+See this repo's GitHub Issues for the current list — as of the last update there are multiple open issues, including a release-blocking one that's since been fixed (missing Android `INTERNET` permission) and several screens with UI that isn't backed by real data yet (wallet, rewards, settings, saved addresses, payment methods). Don't rely on this README to know what's currently broken — check the issue tracker.
 
 ## 🤝 Contributing
 
@@ -189,10 +167,7 @@ This project is licensed under the MIT License.
 
 ## 📞 Support
 
-For issues and questions:
-1. Check [HOW_IT_WORKS.md](../HOW_IT_WORKS.md) FAQ section
-2. Create GitHub issue
-3. Contact support team
+For issues and questions, create a GitHub issue on this repo.
 
 ## 🎓 Learning Resources
 

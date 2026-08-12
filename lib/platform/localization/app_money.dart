@@ -1,7 +1,6 @@
 import 'package:intl/intl.dart';
 
 abstract final class AppMoney {
-  static const country = 'Somalia';
   static const currencyCode = 'USD';
 
   static final NumberFormat _formatter = NumberFormat.currency(

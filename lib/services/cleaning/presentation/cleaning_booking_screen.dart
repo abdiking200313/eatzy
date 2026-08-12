@@ -153,9 +153,7 @@ class _CleaningBookingForm extends StatelessWidget {
               ? 'Saving arrangement...'
               : 'Request arrangement',
           icon: const Icon(Icons.arrow_forward, color: TwColors.white),
-          onPressed: controller.isSubmitting
-              ? null
-              : controller.confirmBooking,
+          onPressed: controller.isSubmitting ? null : controller.confirmBooking,
         ),
         const SizedBox(height: TwSpacing.x8),
       ],

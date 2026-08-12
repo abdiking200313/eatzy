@@ -41,8 +41,9 @@ class ActivityController extends ChangeNotifier {
         ..clear()
         ..addAll(items);
       _hasLoaded = true;
-    } on Object {
+    } on Object catch (error, stackTrace) {
       _loadError = 'Activity could not be loaded. Please try again.';
+      debugPrint('ActivityController.load failed: $error\n$stackTrace');
     } finally {
       _isLoading = false;
       notifyListeners();
