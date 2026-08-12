@@ -5,12 +5,14 @@ description: Implement a feature request in eatzy (chowflow_flutter) by fanning 
 
 # /build — parallel role-based feature implementation
 
-You are orchestrating several specialized subagents (defined in `.claude/agents/`) to implement one feature request together: `ui-agent`, `logic-agent`, `supabase-agent`, `qa-agent`. Each owns a distinct part of this codebase so they don't collide on the same files:
+You are orchestrating several specialized subagents (defined in `.claude/agents/`) to implement one feature request together: `ui-agent`, `logic-agent`, `supabase-agent`, `qa-agent`. Each owns a distinct part of this codebase so they don't collide on the same files. The codebase is organized by domain (`lib/features/<name>/`, `lib/services/<name>/`, `lib/platform/<name>/`), each with `data/`, `models/`, `presentation/` subfolders — and `presentation/` mixes screen files with colocated `*_controller.dart` state files, so the UI/logic split is by filename pattern, not just directory. See each agent's own definition for the exact pattern; summary:
 
-- `ui-agent` → `lib/screens/`, `lib/widgets/`, `lib/config/theme.dart`, `lib/config/tailwind.dart`
-- `logic-agent` → `lib/app/`, `lib/auth/`, `lib/features/`, `lib/main.dart`
+- `ui-agent` → `lib/screens/`, `lib/widgets/`, `lib/config/theme.dart`, `lib/config/tailwind.dart`, plus `*_screen.dart`/`*_page.dart`/`presentation/widgets/*` files inside any domain's `presentation/` folder
+- `logic-agent` → `lib/app/`, `lib/main.dart`, cross-cutting `lib/platform/{session,system_ui,localization}/`, plus every domain's `data/`/`models/` folders and any `*_controller.dart`/`*_service.dart`/`*_repository.dart` file even when it's colocated inside a `presentation/` folder
 - `supabase-agent` → `supabase/`
 - `qa-agent` → `test/` (runs after the others, not alongside them)
+
+Before assuming a file belongs to a given agent, check its name against the pattern above — don't infer ownership from directory alone.
 
 ## Steps
 

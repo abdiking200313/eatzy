@@ -49,7 +49,12 @@ class _CleaningBookingScreenState extends State<CleaningBookingScreen> {
           title: 'Arrange a cleaner',
           showBackButton: true,
           body: booking == null
-              ? _buildForm(context)
+              ? _CleaningBookingForm(
+                  controller: _controller,
+                  addressController: _addressController,
+                  instructionsController: _instructionsController,
+                  onChooseDateTime: _chooseDateTime,
+                )
               : _ConfirmationView(
                   booking: booking,
                   onBookAnother: () {
@@ -60,194 +65,6 @@ class _CleaningBookingScreenState extends State<CleaningBookingScreen> {
                 ),
         );
       },
-    );
-  }
-
-  Widget _buildForm(BuildContext context) {
-    final errors = _controller.validationErrors;
-    final professional = _controller.selectedProfessional;
-    final palette = context.serviceColors;
-    return ListView(
-      padding: const EdgeInsets.all(TwSpacing.x5),
-      children: [
-        Text('Cleaner', style: TwText.fontBoldBase()),
-        const SizedBox(height: TwSpacing.x2),
-        DropdownButtonFormField<CleaningProfessional>(
-          key: ValueKey(professional?.id),
-          initialValue: professional,
-          isExpanded: true,
-          decoration: InputDecoration(
-            hintText: 'Choose a cleaner',
-            errorText: errors['professional'],
-            border: const OutlineInputBorder(),
-          ),
-          items: [
-            for (final cleaner in _controller.professionals)
-              DropdownMenuItem(
-                value: cleaner,
-                child: Text(
-                  '${cleaner.displayName} • '
-                  '${cleaner.rating.toStringAsFixed(1)}★',
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-          ],
-          onChanged: _controller.selectProfessional,
-        ),
-        if (professional != null) ...[
-          const SizedBox(height: TwSpacing.x3),
-          _SelectedCleaner(cleaner: professional),
-        ],
-        const SizedBox(height: TwSpacing.x6),
-        Text('Specialty', style: TwText.fontBoldBase()),
-        const SizedBox(height: TwSpacing.x2),
-        DropdownButtonFormField<CleaningSpecialty>(
-          key: ValueKey(
-            '${professional?.id}-${_controller.selectedSpecialty?.id}',
-          ),
-          initialValue: _controller.selectedSpecialty,
-          isExpanded: true,
-          decoration: InputDecoration(
-            hintText: professional == null
-                ? 'Choose a cleaner first'
-                : 'What support do you need?',
-            errorText: errors['specialty'],
-            border: const OutlineInputBorder(),
-          ),
-          items: [
-            for (final specialty
-                in professional?.specialties ?? const <CleaningSpecialty>[])
-              DropdownMenuItem(
-                value: specialty,
-                child: Text(specialty.name, overflow: TextOverflow.ellipsis),
-              ),
-          ],
-          onChanged: professional == null ? null : _controller.selectSpecialty,
-        ),
-        const SizedBox(height: TwSpacing.x5),
-        Text('Arrangement', style: TwText.fontBoldBase()),
-        const SizedBox(height: TwSpacing.x2),
-        DropdownButtonFormField<CleaningStayPlan>(
-          key: ValueKey(
-            '${professional?.id}-${_controller.selectedPlan?.durationWeeks}',
-          ),
-          initialValue: _controller.selectedPlan,
-          isExpanded: true,
-          decoration: InputDecoration(
-            hintText: professional == null
-                ? 'Choose a cleaner first'
-                : 'Choose 1, 2, or 4 weeks',
-            errorText: errors['plan'],
-            border: const OutlineInputBorder(),
-          ),
-          items: [
-            for (final plan
-                in professional?.stayPlans ?? const <CleaningStayPlan>[])
-              DropdownMenuItem(
-                value: plan,
-                child: Text(
-                  '${plan.durationWeeks} '
-                  '${plan.durationWeeks == 1 ? 'week' : 'weeks'} • '
-                  '${AppMoney.format(plan.weeklyRate)}/week',
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-          ],
-          onChanged: professional == null ? null : _controller.selectPlan,
-        ),
-        const SizedBox(height: TwSpacing.x6),
-        Text('Address in Somalia', style: TwText.fontBoldBase()),
-        const SizedBox(height: TwSpacing.x2),
-        DropdownButtonFormField<String>(
-          key: ValueKey(_controller.city),
-          initialValue: _controller.city,
-          decoration: InputDecoration(
-            labelText: 'City',
-            errorText: errors['city'],
-            border: const OutlineInputBorder(),
-          ),
-          items: [
-            for (final city in CleaningController.supportedCities)
-              DropdownMenuItem(value: city, child: Text(city)),
-          ],
-          onChanged: _controller.selectCity,
-        ),
-        const SizedBox(height: TwSpacing.x3),
-        TextField(
-          key: const Key('cleaning-address-field'),
-          controller: _addressController,
-          onChanged: _controller.setStreetAddress,
-          textInputAction: TextInputAction.next,
-          decoration: InputDecoration(
-            labelText: 'Street or neighbourhood',
-            hintText: 'e.g. Maka Al-Mukarama Road',
-            suffixText: 'Somalia',
-            errorText: errors['address'],
-            border: const OutlineInputBorder(),
-          ),
-        ),
-        const SizedBox(height: TwSpacing.x6),
-        Text('Preferred start', style: TwText.fontBoldBase()),
-        const SizedBox(height: TwSpacing.x2),
-        OutlinedCard(
-          padding: EdgeInsets.zero,
-          backgroundColor: palette.card,
-          borderColor: errors.containsKey('startsAt')
-              ? TwColors.error
-              : palette.border,
-          child: ListTile(
-            key: const Key('cleaning-date-time-picker'),
-            leading: Icon(Icons.calendar_month_outlined, color: palette.accent),
-            title: Text(
-              _controller.startsAt == null
-                  ? 'Choose start date and time'
-                  : DateFormat(
-                      'EEE, MMM d • h:mm a',
-                    ).format(_controller.startsAt!),
-            ),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => _chooseDateTime(context),
-          ),
-        ),
-        if (errors['startsAt'] case final error?) ...[
-          const SizedBox(height: TwSpacing.x1),
-          Text(error, style: TwText.textXs().copyWith(color: TwColors.error)),
-        ],
-        const SizedBox(height: TwSpacing.x6),
-        Text('Instructions', style: TwText.fontBoldBase()),
-        const SizedBox(height: TwSpacing.x2),
-        TextField(
-          key: const Key('cleaning-instructions-field'),
-          controller: _instructionsController,
-          onChanged: _controller.setInstructions,
-          minLines: 3,
-          maxLines: 5,
-          maxLength: CleaningController.maxInstructionsLength,
-          decoration: InputDecoration(
-            hintText: 'Household routine, access notes, pets, or priorities',
-            helperText: 'Optional',
-            errorText: errors['instructions'],
-            border: const OutlineInputBorder(),
-          ),
-        ),
-        const SizedBox(height: TwSpacing.x3),
-        _PriceSummary(controller: _controller),
-        if (_controller.submissionError case final error?) ...[
-          const SizedBox(height: TwSpacing.x3),
-          Text(error, style: TwText.textSm().copyWith(color: TwColors.error)),
-        ],
-        const SizedBox(height: TwSpacing.x5),
-        GradientActionButton(
-          label: _controller.isSubmitting
-              ? 'Saving arrangement...'
-              : 'Request arrangement',
-          icon: const Icon(Icons.arrow_forward, color: TwColors.white),
-          onPressed: _controller.isSubmitting
-              ? null
-              : _controller.confirmBooking,
-        ),
-        const SizedBox(height: TwSpacing.x8),
-      ],
     );
   }
 
@@ -278,6 +95,340 @@ class _CleaningBookingScreenState extends State<CleaningBookingScreen> {
     }
     _controller.setStartsAt(
       DateTime(date.year, date.month, date.day, time.hour, time.minute),
+    );
+  }
+}
+
+class _CleaningBookingForm extends StatelessWidget {
+  const _CleaningBookingForm({
+    required this.controller,
+    required this.addressController,
+    required this.instructionsController,
+    required this.onChooseDateTime,
+  });
+
+  final CleaningController controller;
+  final TextEditingController addressController;
+  final TextEditingController instructionsController;
+  final Future<void> Function(BuildContext context) onChooseDateTime;
+
+  @override
+  Widget build(BuildContext context) {
+    final errors = controller.validationErrors;
+    return ListView(
+      padding: const EdgeInsets.all(TwSpacing.x5),
+      children: [
+        _CleanerField(controller: controller, errors: errors),
+        const SizedBox(height: TwSpacing.x6),
+        _SpecialtyField(controller: controller, errors: errors),
+        const SizedBox(height: TwSpacing.x5),
+        _PlanField(controller: controller, errors: errors),
+        const SizedBox(height: TwSpacing.x6),
+        _AddressSection(
+          controller: controller,
+          addressController: addressController,
+          errors: errors,
+        ),
+        const SizedBox(height: TwSpacing.x6),
+        _StartTimeField(
+          controller: controller,
+          errors: errors,
+          onTap: () => onChooseDateTime(context),
+        ),
+        const SizedBox(height: TwSpacing.x6),
+        _InstructionsField(
+          controller: controller,
+          instructionsController: instructionsController,
+          errors: errors,
+        ),
+        const SizedBox(height: TwSpacing.x3),
+        _PriceSummary(controller: controller),
+        if (controller.submissionError case final error?) ...[
+          const SizedBox(height: TwSpacing.x3),
+          Text(error, style: TwText.textSm().copyWith(color: TwColors.error)),
+        ],
+        const SizedBox(height: TwSpacing.x5),
+        GradientActionButton(
+          label: controller.isSubmitting
+              ? 'Saving arrangement...'
+              : 'Request arrangement',
+          icon: const Icon(Icons.arrow_forward, color: TwColors.white),
+          onPressed: controller.isSubmitting
+              ? null
+              : controller.confirmBooking,
+        ),
+        const SizedBox(height: TwSpacing.x8),
+      ],
+    );
+  }
+}
+
+class _CleanerField extends StatelessWidget {
+  const _CleanerField({required this.controller, required this.errors});
+
+  final CleaningController controller;
+  final Map<String, String> errors;
+
+  @override
+  Widget build(BuildContext context) {
+    final professional = controller.selectedProfessional;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Cleaner', style: TwText.fontBoldBase()),
+        const SizedBox(height: TwSpacing.x2),
+        DropdownButtonFormField<CleaningProfessional>(
+          key: ValueKey(professional?.id),
+          initialValue: professional,
+          isExpanded: true,
+          decoration: InputDecoration(
+            hintText: 'Choose a cleaner',
+            errorText: errors['professional'],
+            border: const OutlineInputBorder(),
+          ),
+          items: [
+            for (final cleaner in controller.professionals)
+              DropdownMenuItem(
+                value: cleaner,
+                child: Text(
+                  '${cleaner.displayName} • '
+                  '${cleaner.rating.toStringAsFixed(1)}★',
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+          ],
+          onChanged: controller.selectProfessional,
+        ),
+        if (professional != null) ...[
+          const SizedBox(height: TwSpacing.x3),
+          _SelectedCleaner(cleaner: professional),
+        ],
+      ],
+    );
+  }
+}
+
+class _SpecialtyField extends StatelessWidget {
+  const _SpecialtyField({required this.controller, required this.errors});
+
+  final CleaningController controller;
+  final Map<String, String> errors;
+
+  @override
+  Widget build(BuildContext context) {
+    final professional = controller.selectedProfessional;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Specialty', style: TwText.fontBoldBase()),
+        const SizedBox(height: TwSpacing.x2),
+        DropdownButtonFormField<CleaningSpecialty>(
+          key: ValueKey(
+            '${professional?.id}-${controller.selectedSpecialty?.id}',
+          ),
+          initialValue: controller.selectedSpecialty,
+          isExpanded: true,
+          decoration: InputDecoration(
+            hintText: professional == null
+                ? 'Choose a cleaner first'
+                : 'What support do you need?',
+            errorText: errors['specialty'],
+            border: const OutlineInputBorder(),
+          ),
+          items: [
+            for (final specialty
+                in professional?.specialties ?? const <CleaningSpecialty>[])
+              DropdownMenuItem(
+                value: specialty,
+                child: Text(specialty.name, overflow: TextOverflow.ellipsis),
+              ),
+          ],
+          onChanged: professional == null ? null : controller.selectSpecialty,
+        ),
+      ],
+    );
+  }
+}
+
+class _PlanField extends StatelessWidget {
+  const _PlanField({required this.controller, required this.errors});
+
+  final CleaningController controller;
+  final Map<String, String> errors;
+
+  @override
+  Widget build(BuildContext context) {
+    final professional = controller.selectedProfessional;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Arrangement', style: TwText.fontBoldBase()),
+        const SizedBox(height: TwSpacing.x2),
+        DropdownButtonFormField<CleaningStayPlan>(
+          key: ValueKey(
+            '${professional?.id}-${controller.selectedPlan?.durationWeeks}',
+          ),
+          initialValue: controller.selectedPlan,
+          isExpanded: true,
+          decoration: InputDecoration(
+            hintText: professional == null
+                ? 'Choose a cleaner first'
+                : 'Choose 1, 2, or 4 weeks',
+            errorText: errors['plan'],
+            border: const OutlineInputBorder(),
+          ),
+          items: [
+            for (final plan
+                in professional?.stayPlans ?? const <CleaningStayPlan>[])
+              DropdownMenuItem(
+                value: plan,
+                child: Text(
+                  '${plan.durationWeeks} '
+                  '${plan.durationWeeks == 1 ? 'week' : 'weeks'} • '
+                  '${AppMoney.format(plan.weeklyRate)}/week',
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+          ],
+          onChanged: professional == null ? null : controller.selectPlan,
+        ),
+      ],
+    );
+  }
+}
+
+class _AddressSection extends StatelessWidget {
+  const _AddressSection({
+    required this.controller,
+    required this.addressController,
+    required this.errors,
+  });
+
+  final CleaningController controller;
+  final TextEditingController addressController;
+  final Map<String, String> errors;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Address in Somalia', style: TwText.fontBoldBase()),
+        const SizedBox(height: TwSpacing.x2),
+        DropdownButtonFormField<String>(
+          key: ValueKey(controller.city),
+          initialValue: controller.city,
+          decoration: InputDecoration(
+            labelText: 'City',
+            errorText: errors['city'],
+            border: const OutlineInputBorder(),
+          ),
+          items: [
+            for (final city in CleaningController.supportedCities)
+              DropdownMenuItem(value: city, child: Text(city)),
+          ],
+          onChanged: controller.selectCity,
+        ),
+        const SizedBox(height: TwSpacing.x3),
+        TextField(
+          key: const Key('cleaning-address-field'),
+          controller: addressController,
+          onChanged: controller.setStreetAddress,
+          textInputAction: TextInputAction.next,
+          decoration: InputDecoration(
+            labelText: 'Street or neighbourhood',
+            hintText: 'e.g. Maka Al-Mukarama Road',
+            suffixText: 'Somalia',
+            errorText: errors['address'],
+            border: const OutlineInputBorder(),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _StartTimeField extends StatelessWidget {
+  const _StartTimeField({
+    required this.controller,
+    required this.errors,
+    required this.onTap,
+  });
+
+  final CleaningController controller;
+  final Map<String, String> errors;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = context.serviceColors;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Preferred start', style: TwText.fontBoldBase()),
+        const SizedBox(height: TwSpacing.x2),
+        OutlinedCard(
+          padding: EdgeInsets.zero,
+          backgroundColor: palette.card,
+          borderColor: errors.containsKey('startsAt')
+              ? TwColors.error
+              : palette.border,
+          child: ListTile(
+            key: const Key('cleaning-date-time-picker'),
+            leading: Icon(Icons.calendar_month_outlined, color: palette.accent),
+            title: Text(
+              controller.startsAt == null
+                  ? 'Choose start date and time'
+                  : DateFormat(
+                      'EEE, MMM d • h:mm a',
+                    ).format(controller.startsAt!),
+            ),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: onTap,
+          ),
+        ),
+        if (errors['startsAt'] case final error?) ...[
+          const SizedBox(height: TwSpacing.x1),
+          Text(error, style: TwText.textXs().copyWith(color: TwColors.error)),
+        ],
+      ],
+    );
+  }
+}
+
+class _InstructionsField extends StatelessWidget {
+  const _InstructionsField({
+    required this.controller,
+    required this.instructionsController,
+    required this.errors,
+  });
+
+  final CleaningController controller;
+  final TextEditingController instructionsController;
+  final Map<String, String> errors;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Instructions', style: TwText.fontBoldBase()),
+        const SizedBox(height: TwSpacing.x2),
+        TextField(
+          key: const Key('cleaning-instructions-field'),
+          controller: instructionsController,
+          onChanged: controller.setInstructions,
+          minLines: 3,
+          maxLines: 5,
+          maxLength: CleaningController.maxInstructionsLength,
+          decoration: InputDecoration(
+            hintText: 'Household routine, access notes, pets, or priorities',
+            helperText: 'Optional',
+            errorText: errors['instructions'],
+            border: const OutlineInputBorder(),
+          ),
+        ),
+      ],
     );
   }
 }

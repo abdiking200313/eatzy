@@ -448,12 +448,15 @@ class _RestaurantHero extends StatelessWidget {
       fit: StackFit.expand,
       children: [
         image,
-        const DecoratedBox(
+        DecoratedBox(
           decoration: BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
-              colors: [Color(0x55000000), Color(0x22000000)],
+              colors: [
+                TwColors.slate900.withOpacityValue(85 / 255),
+                TwColors.slate900.withOpacityValue(34 / 255),
+              ],
             ),
           ),
         ),
@@ -509,11 +512,11 @@ class _CategoryHeaderDelegate extends SliverPersistentHeaderDelegate {
       decoration: BoxDecoration(
         color: palette.background,
         boxShadow: overlapsContent
-            ? const [
+            ? [
                 BoxShadow(
-                  color: Color(0x14000000),
+                  color: TwColors.slate900.withOpacityValue(20 / 255),
                   blurRadius: 12,
-                  offset: Offset(0, 4),
+                  offset: const Offset(0, 4),
                 ),
               ]
             : null,
