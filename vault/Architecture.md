@@ -1,3 +1,10 @@
+---
+tags: [architecture, lib-layout, backend, security, testing]
+summary: Domain-based lib/ layout (features/services/platform), Supabase backend shape and RLS posture, test coverage summary.
+status: living
+upstream_concept: 00-Index
+---
+
 # Architecture
 
 ## lib/ layout
@@ -6,7 +13,7 @@ Domain-based, not layer-based. Top level:
 
 - `lib/app/` — routing & app-level wiring: `app_router.dart`, `app_routes.dart`, `main_app_screen.dart`, `service_module.dart`
 - `lib/config/` — `theme.dart`, `tailwind.dart` (design tokens; `tailwind.dart:296` has the `ColorHelpers.withOpacityValue` extension used for semi-transparent colors — prefer it over raw `Color(0x...)` literals)
-- `lib/features/` — `auth`, `cart`, `checkout`, `home`, `onboarding`, `orders`, `profile`, `restaurant`, `rewards`, `settings`, `super_app`, `support`, `wallet`
+- `lib/features/` — `auth`, `cart`, `checkout`, `home`, `onboarding`, `orders`, `profile`, `restaurant`, `rewards`, `settings`, `super_app`, `support`, `wallet` — several of these (`rewards`, `settings`, `profile`, `wallet`, `onboarding`) have real UI backed by fake/incomplete data underneath, see [[Open Tasks]]
 - `lib/platform/` — cross-cutting: `activity/` (has its own data/models/presentation like a feature), `localization/app_money.dart`, `session/account_state_coordinator.dart`, `system_ui/android_navigation_bar_controller.dart`
 - `lib/screens/` — 5 legacy files not yet migrated into `features/`: `addresses.dart`, `cart.dart`, `categories.dart`, `explore.dart`, `payment_methods.dart`. All still routed/used — not dead, just an organizational leftover. Low priority to move.
 - `lib/services/` — the "vertical" domains: `food`, `grocery`, `pharmacy`, and `cleaning` (**cleaning is being deleted soon — don't invest effort there**)

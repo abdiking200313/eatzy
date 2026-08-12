@@ -1,3 +1,10 @@
+---
+tags: [conventions, github, repo-structure]
+summary: GitHub label meanings and the approval gate, branching/PR rules, Supabase migration rules, the chowflow_flutter path-prefix gotcha, dependency policy.
+status: living
+upstream_concept: 00-Index
+---
+
 # Conventions
 
 ## GitHub labels (repo: `abdiking200313/eatzy`)

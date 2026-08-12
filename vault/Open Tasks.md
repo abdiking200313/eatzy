@@ -1,3 +1,10 @@
+---
+tags: [tasks, github, cache]
+summary: Quick-reference cache of open GitHub issues; source of truth is always gh issue list, this file can lag behind it.
+status: cache
+upstream_concept: 00-Index
+---
+
 # Open Tasks
 
 Quick-reference cache as of 2026-08-13. **Source of truth is always `gh issue list --repo abdiking200313/eatzy --state open`** — this file can go stale the moment an issue is closed or a new one filed; re-check before relying on it for anything that matters.

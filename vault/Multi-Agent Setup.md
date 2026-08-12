@@ -1,3 +1,10 @@
+---
+tags: [agents, automation, build-skill, board-worker, github]
+summary: The four Claude Code subagents and their scope, the /build skill's 10-step flow, and the scheduled board-worker routine.
+status: living
+upstream_concept: 00-Index
+---
+
 # Multi-Agent Setup
 
 Full source of truth is always `.claude/agents/*.md` and `.claude/skills/build/SKILL.md` (both live in this repo, at `chowflow_flutter/.claude/`) — this note is a map/summary, not a copy. Read the actual files before dispatching if the details matter; they're short.

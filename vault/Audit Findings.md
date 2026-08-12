@@ -1,3 +1,10 @@
+---
+tags: [audit, findings, security, testing, currency, dead-code]
+summary: Three audit passes' findings — dead code, security/RLS posture, test coverage gaps, cross-vertical duplication, currency/schema drift.
+status: append-only
+upstream_concept: 00-Index
+---
+
 # Audit Findings
 
 Three passes so far: two on 2026-08-12, one deeper pass on 2026-08-13. Don't re-run any wholesale without reason — check [[Open Tasks]]/`gh issue list` first to see what's already tracked.

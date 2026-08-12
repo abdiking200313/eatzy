@@ -1,3 +1,10 @@
+---
+tags: [history, log]
+summary: Reverse-chronological session log for cross-session and cross-agent continuity; archived monthly once large.
+status: append-only
+upstream_concept: 00-Index
+---
+
 # Status Log
 
 Reverse-chronological. Each session/major chunk of work gets an entry.

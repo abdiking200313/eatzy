@@ -1,3 +1,10 @@
+---
+tags: [decisions, history]
+summary: Dated record of explicit user decisions and the reasoning behind them, so they don't get re-litigated or silently reversed.
+status: append-only
+upstream_concept: 00-Index
+---
+
 # Decisions Log
 
 Dated record of explicit choices the user made, and why — so future sessions don't re-litigate or accidentally reverse them.
