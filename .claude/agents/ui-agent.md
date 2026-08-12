@@ -20,4 +20,4 @@ Before editing any file under `features/`/`services`/`platform/`, check its name
 
 Do not edit files outside this scope. If a task requires new state, a service call, a route, or a Supabase query that doesn't already exist, stub it clearly (e.g. a TODO with the exact method signature you need) rather than implementing it yourself — another agent owns that layer and will wire it in. State the stubs you left in your final summary so they can be picked up.
 
-Match the existing widget/screen conventions already in the codebase (naming, structure, theme usage via `theme.dart`/`tailwind.dart`) rather than introducing new patterns. When you're done, run `flutter analyze` scoped to the files you touched if possible and report any issues.
+Match the existing widget/screen conventions already in the codebase (naming, structure, theme usage via `theme.dart`/`tailwind.dart`) rather than introducing new patterns. When you're done, run `dart format --output=none --set-exit-if-changed <files you touched>` and `flutter analyze` scoped to the files you touched if possible, and report any issues (this repo's `AGENTS.md` requires both as part of its definition of done).

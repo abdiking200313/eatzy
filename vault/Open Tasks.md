@@ -11,6 +11,7 @@ Quick-reference cache as of 2026-08-12. **Source of truth is always `gh issue li
 | 5 | No test coverage of checkout/order-placement failure paths | `todo` | food/grocery/pharmacy, all three |
 | 6 | auth_service_test.dart only covers logged-out state | `todo` | sign-in/sign-up/sign-out untested |
 | 7 | Session storage should move to secure storage, not plaintext SharedPreferences | `todo` | Conscious decision needed, SDK default currently unreviewed |
+| 8 | Currency stored as decimal in Dart vs. integer smallest-units in SQL (per AGENTS.md), plus other documented schema drift | `todo` | Documented in `AGENTS.md`, not yet investigated — see [[Decisions Log]] 2026-08-12 |
 
 ## Known in-flight / interrupted work (not yet an issue)
 
