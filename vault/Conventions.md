@@ -4,11 +4,14 @@
 
 | Label | Meaning |
 |---|---|
-| `todo` | Queued for the board worker to pick up |
-| `agent-in-progress` | Worker has claimed it, working or PR open |
-| `waiting-on-you` | Worker asked a clarifying question in a comment, waiting on a human reply |
+| `needs-approval` | **Default label for any newly filed issue** — proposed, reviewed by no one yet. The board worker will never act on this label under any circumstance. |
+| `todo` | The user has explicitly reviewed and approved this — queued for the board worker to pick up. Relabeling `needs-approval` → `todo` *is* the approval action (plain GitHub UI/mobile app, no extra tooling). |
+| `agent-in-progress` | Worker has claimed an approved (`todo`) issue, working or PR open |
+| `waiting-on-you` | Worker asked a clarifying question in a comment, waiting on a human reply (this only happens on already-approved work, never on `needs-approval` issues) |
 | `needs-clarification` | Worker genuinely couldn't proceed even after asking — needs a person to unblock, not just answer a question |
 | `model:opus` / `model:sonnet` | Forces that model for every subagent dispatched on this task, overriding the per-role default |
+
+**Approval gate, added 2026-08-13**: the user asked for an explicit approve-before-pickup step after noticing that any issue getting the `todo` label — including ones filed by an AI session on their behalf, with no individual sign-off — was immediately eligible for the board worker to act on. Now: any issue I (or the user) file defaults to `needs-approval`. Nothing progresses until the user relabels it to `todo` themselves. The board worker's routine prompt has an explicit `APPROVAL GATE` section reinforcing this (defense in depth on top of the label-filtered query already only ever asking for `todo`). See [[Decisions Log]] 2026-08-13 for the full reasoning and the retroactive relabel of issues #1-19.
 
 ## Branching / PRs
 

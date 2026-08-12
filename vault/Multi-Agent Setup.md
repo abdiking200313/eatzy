@@ -24,6 +24,7 @@ Full source of truth is always `.claude/agents/*.md` and `.claude/skills/build/S
 ## Scheduled board worker
 
 A cron routine ("eatzy board worker", every 2 hours) runs in Anthropic's cloud, independent of any interactive session — see [[Conventions]] for the label protocol it follows. It:
+0. **Never acts on `needs-approval`-labeled issues** — only `todo` (approved) or `waiting-on-you` (already-approved, paused on a question). Added 2026-08-13 as an explicit gate; see [[Conventions]] and [[Decisions Log]] 2026-08-13.
 1. Checks `waiting-on-you`-labeled issues first — if the human replied to a previously-asked clarifying question, resumes that task.
 2. Otherwise picks the oldest `todo`-labeled issue. If ambiguous, comments with specific questions and relabels `waiting-on-you` instead of guessing. If clear, claims it (`agent-in-progress`) and implements via the same `/build` flow.
 3. Always opens a PR against `master`, never pushes directly, never merges itself.
