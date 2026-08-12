@@ -44,8 +44,13 @@ Before assuming a file belongs to a given agent, check its name against the patt
 
 9. **Summarize**: what changed, in which files, any contract decisions or assumptions made, and anything still open (e.g. a migration that needs to be applied to the live Supabase project, which must never happen without explicit human confirmation — flag it, don't do it).
 
+10. **Update the vault — always, not optional, but proportionate to the task.** This is what keeps `vault/` trustworthy instead of stale; don't skip it because the task felt small.
+    - **Always**: append one dated entry to `vault/Status Log.md` (append to today's existing dated section if there is one, don't create a duplicate). Keep it terse — a task that touched one file gets one line, not a paragraph; git history already has the diff, this is for orientation, not a changelog.
+    - **If relevant, also**: update `vault/Open Tasks.md` if this task closed/relabeled/obsoleted anything it lists; update `vault/Architecture.md` if this task changed something it describes (new shared module, new domain, changed layer boundaries); add to `vault/Decisions Log.md` if a real judgment call or tradeoff was made along the way. Skip whichever of these don't apply — don't touch a note just to have touched it.
+    - Vault edits are ordinary file edits, not a separate commit — they land in the same commit/PR as the code change, made by whoever finishes the task per the existing commit/PR conventions.
+
 ## Notes
 
 - If the feature is small enough for one agent alone (e.g. "change the primary button color"), just dispatch that one agent — don't manufacture parallelism for its own sake.
 - If two needed agents would likely touch the same file despite the scope split (rare, but possible for something like `main.dart`), call that out before dispatching rather than risking a silent conflict.
-- This skill only produces the code change. It does not commit, push, or open a PR — that's handled by whatever invoked it (interactively, that's the user's call; for the scheduled board worker, see the board-worker routine instructions).
+- This skill produces the code change (and the vault update from step 10). It does not commit, push, or open a PR — that's handled by whatever invoked it (interactively, that's the user's call; for the scheduled board worker, see the board-worker routine instructions).
