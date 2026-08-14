@@ -15,6 +15,12 @@ Reverse-chronological. Each session/major chunk of work gets an entry.
 
 ---
 
+## 2026-08-14
+
+**Board worker picked up issue #7** (auth session in plaintext SharedPreferences): added `flutter_secure_storage`, new `SecureSessionStorage` (`lib/platform/session/secure_session_storage.dart`) wired into `Supabase.initialize` via `authOptions`. `logic-agent` built it, `qa-agent` added `test/secure_session_storage_test.dart`. Format/analyze/test all clean (63/63). PR opened against master, `Closes #7`. Assumption: no migration of existing SharedPreferences-stored sessions — signed-in users log in again once this ships.
+
+---
+
 ## 2026-08-12
 
 **Set up the whole multi-agent + automation system from scratch this session**:

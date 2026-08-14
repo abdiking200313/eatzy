@@ -17,7 +17,7 @@ Quick-reference cache as of 2026-08-13. **Source of truth is always `gh issue li
 | 4 | Unify food checkout under a FoodController | `todo` | Root-cause fix for the duplication found in the deeper audit; own reviewed PR since it touches the highest-traffic checkout flow |
 | 5 | No test coverage of checkout/order-placement failure paths | `todo` | food/grocery/pharmacy, all three |
 | 6 | auth_service_test.dart only covers logged-out state | `todo` | sign-in/sign-up/sign-out untested |
-| 7 | Session storage should move to secure storage, not plaintext SharedPreferences | `todo` | Conscious decision needed, SDK default currently unreviewed |
+| 7 | Session storage should move to secure storage, not plaintext SharedPreferences | `agent-in-progress` | PR opened 2026-08-14, migrates to `flutter_secure_storage`-backed `LocalStorage` — see Status Log |
 | 8 | Currency stored as decimal in Dart vs. integer smallest-units in SQL, plus other schema drift | `todo` | Investigated 2026-08-13, verdict: real inconsistency between two SQL conventions, `menu_items.price` is the one live crossing point, needs a live DB check to close — see [[Audit Findings]] Pass 3 |
 | 9 | Rewards screen is entirely fake, no backend at all | `todo` | Worse than wallet — zero data layer, not even a stub |
 | 10 | Settings screen: 9 dead tap targets, notification toggles don't persist | `todo` | |
