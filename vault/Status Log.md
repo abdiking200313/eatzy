@@ -17,6 +17,8 @@ Reverse-chronological. Each session/major chunk of work gets an entry.
 
 ## 2026-08-15
 
+- Board-worker run at ~20:34 UTC found nothing eligible: 0 `todo` issues, `waiting-on-you` issue #16 still has no human reply since the agent's clarifying question, and all 3 `agent-in-progress` issues (#7, #33, #50) already have open PRs (#20, #51, #84) awaiting review. Stopped early per the loop's step 3, no action taken.
+- Noting for whoever next touches [[Open Tasks]]: it's now significantly behind reality — repo has issues up to #84, almost all `needs-approval` from a large audit batch (#29-83ish, deploy-readiness + architecture/perf review tracking issues), not reflected in that cache at all. Didn't rebuild it this run (out of scope for a no-op cycle); worth a refresh next time someone's doing vault upkeep.
 - Board-worker routine had vanished entirely (404 + absent from `list`) — recreated as `trig_017jPchk8L4LVskUZMGwiDDG`, now every 5h (was 2h, changed at user request), rebuilt from [[Multi-Agent Setup]]'s spec since the original prompt wasn't recoverable. See [[Decisions Log]] for full detail.
 - Added: routine now processes up to 6 issues per run (was 1), each dispatched via a fresh `Task` per issue to keep the top-level session's context from compounding.
 
