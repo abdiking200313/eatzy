@@ -17,7 +17,7 @@ Reverse-chronological. Each session/major chunk of work gets an entry.
 
 ## 2026-08-15
 
-- Board-worker routine had vanished entirely (404 + absent from `list`) — recreated as `trig_017jPchk8L4LVskUZMGwiDDG`, same 2h cadence, rebuilt from [[Multi-Agent Setup]]'s spec since the original prompt wasn't recoverable. See [[Decisions Log]] for full detail.
+- Board-worker routine had vanished entirely (404 + absent from `list`) — recreated as `trig_017jPchk8L4LVskUZMGwiDDG`, now every 5h (was 2h, changed at user request), rebuilt from [[Multi-Agent Setup]]'s spec since the original prompt wasn't recoverable. See [[Decisions Log]] for full detail.
 - Added: routine now processes up to 6 issues per run (was 1), each dispatched via a fresh `Task` per issue to keep the top-level session's context from compounding.
 
 ## 2026-08-12
