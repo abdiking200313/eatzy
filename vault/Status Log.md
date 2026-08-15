@@ -66,3 +66,10 @@ Added `dart format --output=none --set-exit-if-changed` to all `.claude/agents/*
 **Also fixed two stale issue-number references** in [[Audit Findings]] Pass 2 (had #4/#6 where it should've said #5/#7) — a small internal-consistency bug in the vault itself, worth remembering the vault needs its own accuracy upkeep, not just the code's.
 
 **Not done this session, tracked in [[Open Tasks]]**: the interrupted dedup extraction from 2026-08-12 is still sitting uncommitted, untouched; the 6 new feature-gap issues (#9-15) and the currency verdict (#8) all still need either a live DB check or a product decision from the user before anyone can act further.
+
+---
+
+## 2026-08-15
+
+**Board worker built issue #33** (stock Flutter template app icons/splash screen on Android+iOS): made `ZivoMarkPainter` in `lib/widgets/zivo_logo.dart` public and added `tool/generate_brand_assets.dart` (a `flutter_test`-based rasterizer) so the app-icon/splash source PNGs under `assets/icon/` are generated from the exact same brand mark used in-app, not a separate hand-made asset. Wired via `flutter_launcher_icons` + `flutter_native_splash` (new dev deps, config in `pubspec.yaml`); ran both generators for Android (incl. adaptive icon)/iOS/macOS/Windows/web. `flutter_launcher_icons` has no Linux target — left Linux icon untouched, noted as an assumption in the PR. Also fixed the stale "A new Flutter project." description in `web/manifest.json` and `web/index.html` per the issue. Format/analyze/test all clean (60/60).
+- Issue #16 (native bundle identifiers) is still `waiting-on-you` — my clarifying question is up, no reply yet.
