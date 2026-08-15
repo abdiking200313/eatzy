@@ -15,6 +15,10 @@ Reverse-chronological. Each session/major chunk of work gets an entry.
 
 ---
 
+## 2026-08-15
+
+**Board worker run**: no `waiting-on-you` issues had a fresh human reply. Picked oldest `todo` issue, #16 (native `com.example.chowflow` identifiers across all platforms). Judged it genuinely ambiguous — AGENTS.md explicitly says to ask before any broad rename/rebrand, and no `com.zivo.*`-style identifier exists anywhere in the repo to infer the replacement value from. Posted 3 clarifying questions (target identifier, per-platform variance, whether stale web manifest copy rides along) and relabeled `todo` → `waiting-on-you`. No code changes this run.
+
 ## 2026-08-12
 
 **Set up the whole multi-agent + automation system from scratch this session**:
