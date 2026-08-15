@@ -55,9 +55,9 @@ void main() {
     final controller = ActivityController()
       ..record(
         ActivityItem(
-          id: 'cleaning-1',
-          serviceId: ServiceId.cleaning,
-          title: 'Deep clean',
+          id: 'pharmacy-1',
+          serviceId: ServiceId.pharmacy,
+          title: 'Pharmacy order',
           status: 'MVP confirmed',
           occurredAt: DateTime.utc(2026, 7, 27),
           amount: 54,
@@ -69,8 +69,43 @@ void main() {
       MaterialApp(home: ActivityScreen(controller: controller)),
     );
 
-    expect(find.text('Deep clean'), findsOneWidget);
+    expect(find.text('Pharmacy order'), findsOneWidget);
     expect(find.text(r'$54.00'), findsOneWidget);
     expect(find.text('MVP confirmed'), findsOneWidget);
   });
+
+  test(
+    'ActivityItem.fromMap drops a legacy cleaning row instead of throwing',
+    () {
+      final item = ActivityItem.fromMap({
+        'id': 'legacy-cleaning-1',
+        'service_id': 'cleaning',
+        'title': 'Deep clean',
+        'status': 'completed',
+        'occurred_at': DateTime.utc(2026, 7, 27).toIso8601String(),
+        'amount': 54,
+        'details_route': '/cleaning',
+      });
+
+      expect(item, isNull);
+    },
+  );
+
+  test(
+    'ActivityItem.fromMap still throws for a genuinely unsupported service',
+    () {
+      expect(
+        () => ActivityItem.fromMap({
+          'id': 'unknown-1',
+          'service_id': 'not-a-real-service',
+          'title': 'Mystery order',
+          'status': 'completed',
+          'occurred_at': DateTime.utc(2026, 7, 27).toIso8601String(),
+          'amount': 10,
+          'details_route': '/unknown',
+        }),
+        throwsFormatException,
+      );
+    },
+  );
 }

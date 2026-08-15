@@ -30,10 +30,6 @@ class AppRoutes {
   static const groceryCart = '$grocery/cart';
   static const groceryCheckout = '$grocery/checkout';
 
-  // Cleaning service
-  static const cleaning = '/cleaning';
-  static const cleaningBook = '$cleaning/book';
-
   // Pharmacy service
   static const pharmacy = '/pharmacy';
   static const pharmacyCart = '$pharmacy/cart';
@@ -67,7 +63,6 @@ class AppRoutes {
   static bool isServicePath(String location) => const [
     food,
     grocery,
-    cleaning,
     pharmacy,
   ].any((prefix) => location == prefix || location.startsWith('$prefix/'));
 }

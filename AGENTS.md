@@ -7,8 +7,9 @@
   is out of scope unless the user explicitly names it.
 - Zivo is intended to be a modular super app. Food delivery is the first
   implemented service, not the complete product.
-- Planned service modules are food delivery, grocery delivery, pharmacy
-  ordering, and booking home-cleaning professionals.
+- Planned service modules are food delivery, grocery delivery, and pharmacy
+  ordering. Booking home-cleaning professionals was removed (issue #50); do
+  not reintroduce a `cleaning` vertical without a fresh product decision.
 - The repository name is Eatzy, the Dart package is `chowflow`, and the product
   UI is branded Zivo. Ask for the intended scope before any broad rename or
   rebrand.

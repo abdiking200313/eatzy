@@ -16,7 +16,7 @@ Domain-based, not layer-based. Top level:
 - `lib/features/` — `auth`, `cart`, `checkout`, `home`, `onboarding`, `orders`, `profile`, `restaurant`, `rewards`, `settings`, `super_app`, `support`, `wallet` — several of these (`rewards`, `settings`, `profile`, `wallet`, `onboarding`) have real UI backed by fake/incomplete data underneath, see [[Open Tasks]]
 - `lib/platform/` — cross-cutting: `activity/` (has its own data/models/presentation like a feature), `localization/app_money.dart`, `session/account_state_coordinator.dart`, `system_ui/android_navigation_bar_controller.dart`
 - `lib/screens/` — 5 legacy files not yet migrated into `features/`: `addresses.dart`, `cart.dart`, `categories.dart`, `explore.dart`, `payment_methods.dart`. All still routed/used — not dead, just an organizational leftover. Low priority to move.
-- `lib/services/` — the "vertical" domains: `food`, `grocery`, `pharmacy`, and `cleaning` (**cleaning is being deleted soon — don't invest effort there**)
+- `lib/services/` — the "vertical" domains: `food`, `grocery`, `pharmacy` (`cleaning` was removed entirely in issue #50, 2026-08-15 — don't reintroduce it)
 - `lib/widgets/` — shared widgets, all actively used: `app_cards.dart`, `app_scaffold.dart`, `app_misc.dart`, `zivo_logo.dart`, `add_to_cart_button.dart`, `app_widgets.dart`
 - `lib/main.dart` — entry point; calls `Supabase.initialize(url:, publishableKey:)` with default (plaintext SharedPreferences) session storage — see [[Audit Findings]]
 
@@ -36,4 +36,4 @@ Not every domain has every layer — e.g. `food` has no controller (its cart liv
 
 ## Tests
 
-22 files, ~1766 lines (excluding `cleaning`, which is being removed). Cart logic and grocery/pharmacy controller logic (cart math, stock limits, validation) are meaningfully tested. **Known gaps**: no test anywhere exercises a failure path (network/Supabase error) for any checkout flow; `auth_service_test.dart` only covers the logged-out state, not sign-in/sign-up/sign-out. See [[Open Tasks]] for the filed issues.
+20 files (post issue #50 cleaning removal). Cart logic and grocery/pharmacy controller logic (cart math, stock limits, validation) are meaningfully tested. **Known gaps**: no test anywhere exercises a failure path (network/Supabase error) for any checkout flow; `auth_service_test.dart` only covers the logged-out state, not sign-in/sign-up/sign-out. See [[Open Tasks]] for the filed issues.
