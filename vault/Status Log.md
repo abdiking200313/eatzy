@@ -17,6 +17,7 @@ Reverse-chronological. Each session/major chunk of work gets an entry.
 
 ## 2026-08-16
 
+- Fourth consecutive no-op run (08-15, then three times on 08-16): still 0 `todo` issues, `waiting-on-you` #16 still no human reply, same 3 open PRs (#20, #51, #84) on the `agent-in-progress` issues, no new activity on any of them. Queue is fully stalled on human review — nothing left for the worker to check that hasn't already been checked. Stopped early, no action taken.
 - Another board-worker run this same day, still nothing eligible: 0 `todo` issues, `waiting-on-you` issue #16 still no human reply since 2026-08-15, all 3 `agent-in-progress` issues (#7, #33, #50) still on their original open PRs (#20, #51, #84). Third consecutive no-op run in a row now (08-15, then twice on 08-16) — the queue is genuinely stalled on human review/replies, not a fluke. Stopped early, no action taken.
 - Board-worker run found nothing eligible: 0 `todo` issues, `waiting-on-you` issue #16 still has no human reply since the agent's clarifying question (2026-08-15), and all 3 `agent-in-progress` issues (#7, #33, #50) still have their original open PRs (#20, #51, #84) awaiting review, no new activity. Stopped early per the loop's step 3, no action taken.
 - [[Open Tasks]] cache is still stale (repo has issues past #84 not reflected there) — not rebuilt this run either, still worth a refresh next time someone's doing vault upkeep.
