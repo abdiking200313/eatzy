@@ -9,6 +9,7 @@ import 'features/cart/presentation/cart_controller.dart';
 import 'platform/activity/data/activity_repository.dart';
 import 'platform/activity/presentation/activity_controller.dart';
 import 'platform/session/account_state_coordinator.dart';
+import 'platform/session/secure_session_storage.dart';
 import 'platform/system_ui/android_navigation_bar_controller.dart';
 import 'widgets/zivo_logo.dart';
 
@@ -18,6 +19,7 @@ void main() async {
   await Supabase.initialize(
     url: 'https://jzubookmbrtslocuzepe.supabase.co',
     publishableKey: 'sb_publishable_yLgLRnh00I5zjImD-Q7R6A_uOO-l0sT',
+    authOptions: FlutterAuthClientOptions(localStorage: SecureSessionStorage()),
   );
 
   final cartController = CartController.instance;
