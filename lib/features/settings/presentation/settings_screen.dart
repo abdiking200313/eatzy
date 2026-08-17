@@ -88,10 +88,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
               icon: Icons.phone_outlined,
             ),
             const SizedBox(height: TwSpacing.x3),
-            const SettingCard(
+            SettingCard(
               title: 'Change Password',
               subtitle: 'Update your password',
               icon: Icons.lock_outlined,
+              onTap: () => context.push(AppRoutes.resetPassword),
             ),
             const SizedBox(height: TwSpacing.x5),
             const SectionTitle('Preferences', fontSize: 18),

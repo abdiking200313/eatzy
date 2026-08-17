@@ -43,6 +43,49 @@ void main() {
 
       expect(redirect, isNull);
     });
+
+    test('allows signed-out users to reach forgot password', () {
+      final redirect = AppRouter.resolveRedirect(
+        isLoggedIn: false,
+        isProtected: false,
+        location: AppRoutes.forgotPassword,
+      );
+
+      expect(redirect, isNull);
+    });
+
+    test('sends an already-logged-in user away from forgot password', () {
+      final redirect = AppRouter.resolveRedirect(
+        isLoggedIn: true,
+        isProtected: false,
+        location: AppRoutes.forgotPassword,
+      );
+
+      expect(redirect, AppRoutes.mainApp);
+    });
+
+    test('sends a signed-out user to login for reset password', () {
+      final redirect = AppRouter.resolveRedirect(
+        isLoggedIn: false,
+        isProtected: true,
+        location: AppRoutes.resetPassword,
+      );
+
+      expect(redirect, AppRoutes.login);
+    });
+
+    test(
+      'allows a logged-in user (recovery or normal session) to reset password',
+      () {
+        final redirect = AppRouter.resolveRedirect(
+          isLoggedIn: true,
+          isProtected: true,
+          location: AppRoutes.resetPassword,
+        );
+
+        expect(redirect, isNull);
+      },
+    );
   });
 
   group('restaurant routes', () {
@@ -79,6 +122,16 @@ void main() {
           reason: '$path should require a signed-in customer',
         );
       }
+    });
+  });
+
+  group('password reset routes', () {
+    test('reset password is a protected route', () {
+      expect(AppRouter.isProtectedLocation(AppRoutes.resetPassword), isTrue);
+    });
+
+    test('forgot password is not a protected route', () {
+      expect(AppRouter.isProtectedLocation(AppRoutes.forgotPassword), isFalse);
     });
   });
 }
