@@ -11,6 +11,9 @@
 
 # Obsidian local device config (vault/ content itself is tracked)
 vault/.obsidian/
+
+# Claude Code agent worktrees (transient, per-agent isolated checkouts)
+.claude/worktrees/
 .svn/
 .swiftpm/
 migrate_working_dir/
