@@ -15,12 +15,7 @@ void main() {
       initialLocation: '/',
       routes: [
         GoRoute(path: '/', builder: (_, _) => const SuperAppHomeScreen()),
-        for (final path in const [
-          '/food',
-          '/grocery',
-          '/pharmacy',
-          '/cleaning',
-        ])
+        for (final path in const ['/food', '/grocery', '/pharmacy'])
           GoRoute(
             path: path,
             builder: (_, state) => Scaffold(body: Text(state.uri.path)),
@@ -34,7 +29,7 @@ void main() {
     expect(find.text('Good morning'), findsOneWidget);
     expect(find.text('What do you need today?'), findsNothing);
     expect(find.text('Somalia • USD'), findsNothing);
-    for (final label in ['Food', 'Grocery', 'Pharmacy', 'Cleaning']) {
+    for (final label in ['Food', 'Grocery', 'Pharmacy']) {
       expect(find.text(label), findsOneWidget);
     }
     final groceryCard = tester.widget<Material>(

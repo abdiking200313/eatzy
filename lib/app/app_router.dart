@@ -26,8 +26,6 @@ import '../screens/cart.dart';
 import '../screens/categories.dart';
 import '../screens/explore.dart';
 import '../screens/payment_methods.dart';
-import '../services/cleaning/presentation/cleaning_booking_screen.dart';
-import '../services/cleaning/presentation/cleaning_home_screen.dart';
 import '../services/food/presentation/food_categories_screen.dart';
 import '../services/food/presentation/food_explore_screen.dart';
 import '../services/food/presentation/food_home_screen.dart';
@@ -115,14 +113,6 @@ class AppRouter {
     AppRoutes.groceryCheckout: ZivoServiceTheme(
       serviceId: ServiceId.grocery,
       child: GroceryCheckoutScreen(),
-    ),
-    AppRoutes.cleaning: ZivoServiceTheme(
-      serviceId: ServiceId.cleaning,
-      child: CleaningHomeScreen(),
-    ),
-    AppRoutes.cleaningBook: ZivoServiceTheme(
-      serviceId: ServiceId.cleaning,
-      child: CleaningBookingScreen(),
     ),
     AppRoutes.pharmacy: ZivoServiceTheme(
       serviceId: ServiceId.pharmacy,

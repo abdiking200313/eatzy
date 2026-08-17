@@ -25,7 +25,7 @@ This vault is the persistent knowledge base for this project — read it after A
 
 ## What this project is
 
-eatzy (repo name) / chowflow (in-app name) — a Flutter "super app" for food delivery, grocery, pharmacy, and (soon-to-be-removed) cleaning-booking, backed by Supabase. Solo project, owner `abdiking200313`.
+eatzy (repo name) / chowflow (in-app name) — a Flutter "super app" for food delivery, grocery, and pharmacy, backed by Supabase. A fourth vertical, cleaning-booking, was removed entirely in issue #50 (2026-08-15). Solo project, owner `abdiking200313`.
 
 ## What this vault is not
 

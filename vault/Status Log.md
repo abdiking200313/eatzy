@@ -36,6 +36,7 @@ Reverse-chronological. Each session/major chunk of work gets an entry.
 - Noting for whoever next touches [[Open Tasks]]: it's now significantly behind reality — repo has issues up to #84, almost all `needs-approval` from a large audit batch (#29-83ish, deploy-readiness + architecture/perf review tracking issues), not reflected in that cache at all. Didn't rebuild it this run (out of scope for a no-op cycle); worth a refresh next time someone's doing vault upkeep.
 - Board-worker routine had vanished entirely (404 + absent from `list`) — recreated as `trig_017jPchk8L4LVskUZMGwiDDG`, now every 5h (was 2h, changed at user request), rebuilt from [[Multi-Agent Setup]]'s spec since the original prompt wasn't recoverable. See [[Decisions Log]] for full detail.
 - Added: routine now processes up to 6 issues per run (was 1), each dispatched via a fresh `Task` per issue to keep the top-level session's context from compounding.
+- **Issue #50 executed**: cleaning/cleaner vertical deleted entirely — `lib/services/cleaning/`, its 2 dedicated test files, all `ServiceId.cleaning`/route/theme/session references removed; `ActivityItem.fromMap` now drops legacy `'cleaning'`-typed activity rows instead of throwing. New unapplied migration `supabase/migrations/20260815153920_remove_cleaning_vertical.sql` drops the cleaning tables/RPCs/view branch — **not run against the live DB**, manual follow-up. `dart format`/`flutter analyze`/`flutter test` (53/53) all clean. See PR for #50.
 
 ## 2026-08-12
 

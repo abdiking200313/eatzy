@@ -21,12 +21,20 @@ class ActivityItem {
   final double amount;
   final String detailsRoute;
 
-  factory ActivityItem.fromMap(Map<String, dynamic> map) {
-    final serviceId = switch (_requiredString(map, 'service_id')) {
+  /// Returns `null` for a row whose `service_id` is a legacy, no-longer
+  /// supported service (currently just `'cleaning'`, removed in #50) so it
+  /// is silently dropped from history views instead of breaking the whole
+  /// activity list. Any other unrecognized value still throws, since that
+  /// indicates real data corruption worth surfacing.
+  static ActivityItem? fromMap(Map<String, dynamic> map) {
+    final rawServiceId = _requiredString(map, 'service_id');
+    if (rawServiceId == 'cleaning') {
+      return null;
+    }
+    final serviceId = switch (rawServiceId) {
       'food' => ServiceId.food,
       'grocery' => ServiceId.grocery,
       'pharmacy' => ServiceId.pharmacy,
-      'cleaning' => ServiceId.cleaning,
       final value => throw FormatException(
         'Unsupported activity service: $value',
       ),

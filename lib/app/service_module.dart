@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-enum ServiceId { food, grocery, pharmacy, cleaning }
+enum ServiceId { food, grocery, pharmacy }
 
 class ServiceDescriptor {
   const ServiceDescriptor({
@@ -40,13 +40,6 @@ abstract final class ServiceRegistry {
       description: 'Over-the-counter health essentials',
       entryRoute: '/pharmacy',
       icon: Icons.local_pharmacy_outlined,
-    ),
-    ServiceDescriptor(
-      id: ServiceId.cleaning,
-      title: 'Cleaning',
-      description: 'Choose trusted long-stay cleaners',
-      entryRoute: '/cleaning',
-      icon: Icons.cleaning_services_outlined,
     ),
   ];
 

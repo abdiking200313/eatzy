@@ -17,7 +17,7 @@ void main() {
     expect(find.byType(GridView), findsOneWidget);
     expect(find.byTooltip('Back'), findsNothing);
 
-    for (final label in ['Food', 'Pharmacy', 'Grocery', 'Cleaning']) {
+    for (final label in ['Food', 'Pharmacy', 'Grocery']) {
       await tester.scrollUntilVisible(
         find.text(label),
         300,
