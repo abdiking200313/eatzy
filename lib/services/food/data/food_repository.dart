@@ -1,5 +1,6 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../shared/data/rpc_helpers.dart';
 import '../models/food_models.dart';
 
 abstract interface class FoodDealRepository {
@@ -96,10 +97,6 @@ class SupabaseFoodOrderRepository implements FoodOrderRepository {
       'place_food_order',
       params: request.toRpcParams(),
     );
-    final id = response?.toString().trim();
-    if (id == null || id.isEmpty) {
-      throw const FormatException('The food order RPC did not return an ID.');
-    }
-    return id;
+    return requiredRpcId(response, 'food order');
   }
 }

@@ -93,20 +93,10 @@ abstract final class ServiceThemes {
     border: Color(0xFFD7CBFA),
   );
 
-  static const cleaning = ZivoServiceColors(
-    accent: Color(0xFF0F766E),
-    onAccent: Colors.white,
-    soft: Color(0xFFCCFBF1),
-    background: Color(0xFFF7FCFB),
-    card: Color(0xFFE9F9F6),
-    border: Color(0xFFAFE3DA),
-  );
-
   static ZivoServiceColors forId(ServiceId id) => switch (id) {
     ServiceId.food => food,
     ServiceId.grocery => grocery,
     ServiceId.pharmacy => pharmacy,
-    ServiceId.cleaning => cleaning,
   };
 }
 

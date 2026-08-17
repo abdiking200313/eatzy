@@ -1,5 +1,6 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../shared/data/rpc_helpers.dart';
 import '../models/pharmacy_checkout.dart';
 import '../models/pharmacy_product.dart';
 
@@ -129,12 +130,6 @@ class SupabasePharmacyOrderRepository implements PharmacyOrderRepository {
       'place_pharmacy_order',
       params: request.toRpcParams(),
     );
-    final id = response?.toString().trim();
-    if (id == null || id.isEmpty) {
-      throw const FormatException(
-        'The pharmacy order RPC did not return an ID.',
-      );
-    }
-    return id;
+    return requiredRpcId(response, 'pharmacy order');
   }
 }

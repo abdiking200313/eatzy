@@ -35,7 +35,9 @@ class SupabaseActivityRepository implements ActivityRepository {
         .limit(limit);
 
     return List.unmodifiable(
-      rows.map((row) => ActivityItem.fromMap(Map<String, dynamic>.from(row))),
+      rows
+          .map((row) => ActivityItem.fromMap(Map<String, dynamic>.from(row)))
+          .whereType<ActivityItem>(),
     );
   }
 }
