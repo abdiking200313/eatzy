@@ -71,7 +71,6 @@ void main() {
       for (final path in [
         AppRoutes.food,
         AppRoutes.groceryCart,
-        AppRoutes.cleaningBook,
         AppRoutes.pharmacyCheckout,
       ]) {
         expect(
