@@ -6,6 +6,11 @@ class AppRoutes {
   static const welcome = '/welcome';
   static const login = '/login';
   static const register = '/register';
+  static const forgotPassword = '/forgot-password';
+
+  // Requires an active Supabase session (a normal login, or the temporary
+  // session created by tapping a password-recovery email link).
+  static const resetPassword = '/reset-password';
   static const onboardingOne = '/onboarding/one';
   static const onboardingTwo = '/onboarding/two';
   static const onboardingThree = '/onboarding/three';
