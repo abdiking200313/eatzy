@@ -69,6 +69,12 @@ void main() {
   testWidgets('restaurant page groups and navigates categorized items', (
     tester,
   ) async {
+    // A taller surface than the 800x600 default gives the bumped type
+    // scale/spacing enough room so the first menu item's add-to-cart
+    // control stays within the test viewport without needing a scroll.
+    await tester.binding.setSurfaceSize(const Size(800, 900));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
     final cartController = CartController(storage: MemoryCartStorage());
     await cartController.loadForOwner('user-1');
 

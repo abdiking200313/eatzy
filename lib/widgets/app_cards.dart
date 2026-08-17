@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import '../config/theme.dart';
 
-/// A neutral, outlined card used across screens. Defaults to the
-/// [TwColors.cardMuted] background with an outline.
+/// A neutral, white card used across screens ("white cards only" — never a
+/// tinted/service-colored background; pass [backgroundColor]/[borderColor]
+/// explicitly for the rare case a caller intentionally wants something
+/// else, such as the 48px icon chip's own accent fill).
 class OutlinedCard extends StatelessWidget {
   const OutlinedCard({
     super.key,
@@ -25,18 +27,17 @@ class OutlinedCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final palette = context.serviceColors;
     final resolvedBorderRadius = BorderRadius.circular(borderRadius);
     final content = Padding(padding: padding, child: child);
 
     return Material(
-      color: backgroundColor ?? palette.card,
+      color: backgroundColor ?? TwColors.card,
       elevation: 0.6,
       shadowColor: TwColors.slate900.withOpacityValue(0.12),
       shape: RoundedRectangleBorder(
         borderRadius: resolvedBorderRadius,
         side: BorderSide(
-          color: borderColor ?? palette.border,
+          color: borderColor ?? TwColors.border,
           width: borderWidth,
         ),
       ),

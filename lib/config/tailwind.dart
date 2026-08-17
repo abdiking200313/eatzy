@@ -7,6 +7,7 @@ class TwColors {
 
   static const Color slate900 = Color(0xFF0F172A);
   static const Color slate700 = Color(0xFF334155);
+  static const Color slate600 = Color(0xFF475569);
   static const Color slate500 = Color(0xFF64748B);
 
   static const Color stone50 = Color(0xFFFAFAF9);
@@ -30,14 +31,14 @@ class TwColors {
   static const Color red600 = Color(0xFFDC2626);
   static const Color red700 = Color(0xFFB91C1C);
 
-  static const Color bg = Color(0xFFF6F9FC);
+  static const Color bg = Color(0xFFFAFBFC);
   static const Color bgMuted = blue50;
   static const Color card = white;
   static const Color cardMuted = Color(0xFFF8FAFD);
   static const Color border = Color(0xFFE2E8F0);
   static const Color borderStrong = Color(0xFFCBD5E1);
-  static const Color text = Color(0xFF1E293B);
-  static const Color textMuted = slate500;
+  static const Color text = Color(0xFF0F172A);
+  static const Color textMuted = slate600;
   static const Color primary = blue600;
   static const Color primaryHover = blue700;
   static const Color primarySoft = blue50;
@@ -67,62 +68,73 @@ class TwSpacing {
   static const double x8 = 32.0;
   static const double x10 = 40.0;
   static const double x12 = 48.0;
+
+  /// Redesign component-internal spacing rhythm (tight / default /
+  /// section-gap). This is a distinct scale from the `x*` page-layout scale
+  /// above — it does not divide evenly into the 4px `x*` grid, so it is kept
+  /// as its own named set rather than folded into it. Use these for spacing
+  /// *within* a component (e.g. between an icon chip and its label, or
+  /// between stacked rows in a card); keep using `x5` (20px) for screen body
+  /// padding and the `x*` scale for page-level layout gaps.
+  static const double rhythmTight = 6.0;
+  static const double rhythmDefault = 14.0;
+  static const double rhythmSection = 28.0;
 }
 
 class TwRadius {
   static const double sm = 6.0;
   static const double base = 8.0;
   static const double md = 10.0;
-  static const double lg = 12.0;
-  static const double xl = 16.0;
+  static const double lg = 14.0;
+  static const double xl = 20.0;
   static const double full = 9999.0;
 }
 
 class TwText {
   static TextStyle text3xl() => GoogleFonts.outfit(
-    fontSize: 28,
+    fontSize: 30,
     fontWeight: FontWeight.w700,
     height: 1.15,
     color: TwColors.text,
   );
 
   static TextStyle text2xl() => GoogleFonts.outfit(
-    fontSize: 24,
+    fontSize: 26,
     fontWeight: FontWeight.w700,
     height: 1.2,
     color: TwColors.text,
   );
 
   static TextStyle textXl() => GoogleFonts.outfit(
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: FontWeight.w700,
     height: 1.25,
     color: TwColors.text,
   );
 
   static TextStyle textLg() => GoogleFonts.outfit(
-    fontSize: 18,
+    fontSize: 19,
     fontWeight: FontWeight.w500,
     height: 1.4,
     color: TwColors.text,
   );
 
   static TextStyle textBase() => GoogleFonts.outfit(
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: FontWeight.w400,
     height: 1.4,
     color: TwColors.text,
   );
 
   static TextStyle textSm() => GoogleFonts.outfit(
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: FontWeight.w400,
     height: 1.35,
     color: TwColors.textMuted,
   );
 
   static TextStyle textXs() => GoogleFonts.outfit(
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: FontWeight.w500,
     height: 1.3,
     color: TwColors.text,
@@ -142,6 +154,17 @@ class TwText {
 
   static TextStyle link() =>
       textXs().copyWith(fontWeight: FontWeight.w600, color: TwColors.primary);
+
+  /// Small uppercase "eyebrow"/section-kicker style for headings like
+  /// "OUR SERVICES". Applied to existing all-caps section headers by
+  /// whichever later redesign phase touches that screen.
+  static TextStyle sectionLabel() => GoogleFonts.outfit(
+    fontSize: 13,
+    fontWeight: FontWeight.w700,
+    height: 1.3,
+    letterSpacing: 0.6,
+    color: TwColors.textMuted,
+  );
 }
 
 ThemeData buildAppTheme() {
@@ -264,10 +287,10 @@ ThemeData buildAppTheme() {
       ),
     ),
     navigationBarTheme: NavigationBarThemeData(
-      height: 72,
+      height: 76,
       backgroundColor: TwColors.white,
       surfaceTintColor: Colors.transparent,
-      indicatorColor: TwColors.primary,
+      indicatorColor: Colors.transparent,
       labelTextStyle: WidgetStateProperty.resolveWith((states) {
         return TwText.textXs().copyWith(
           color: states.contains(WidgetState.selected)
