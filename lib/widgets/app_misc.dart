@@ -22,6 +22,45 @@ class NetworkAvatar extends StatelessWidget {
   }
 }
 
+/// The one place a per-service accent color is allowed to appear outside a
+/// button: a fixed 48x48 rounded chip holding an icon. Cards, list rows,
+/// and section headers must stay on the neutral tokens and use this chip
+/// (with a [ZivoServiceColors] accent, or an explicit override) instead of
+/// tinting their own background/border.
+class ServiceIconChip extends StatelessWidget {
+  const ServiceIconChip({
+    super.key,
+    required this.icon,
+    this.background,
+    this.foreground,
+    this.borderRadius = TwRadius.lg,
+    this.iconSize = 24,
+  });
+
+  static const double size = 48;
+
+  final IconData icon;
+  final Color? background;
+  final Color? foreground;
+  final double borderRadius;
+  final double iconSize;
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = context.serviceColors;
+    return Container(
+      width: size,
+      height: size,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: background ?? palette.accent,
+        borderRadius: BorderRadius.circular(borderRadius),
+      ),
+      child: Icon(icon, size: iconSize, color: foreground ?? palette.onAccent),
+    );
+  }
+}
+
 /// A small pill-shaped status indicator (e.g. "On the way", "Delivered").
 class StatusPill extends StatelessWidget {
   const StatusPill({
