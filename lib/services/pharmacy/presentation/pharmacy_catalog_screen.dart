@@ -65,14 +65,14 @@ class _PharmacyCatalogScreenState extends State<PharmacyCatalogScreen> {
       padding: const EdgeInsets.all(TwSpacing.x5),
       children: [
         const _OtcNotice(),
-        const SizedBox(height: TwSpacing.x6),
+        const SizedBox(height: TwSpacing.rhythmDefault),
         Text('Health essentials', style: TwText.textXl()),
         const SizedBox(height: TwSpacing.x1),
         Text(
           'Seeded products for the interactive Zivo preview.',
           style: TwText.textSm(),
         ),
-        const SizedBox(height: TwSpacing.x4),
+        const SizedBox(height: TwSpacing.rhythmDefault),
         for (var index = 0; index < _controller.products.length; index++) ...[
           _ProductCard(
             product: _controller.products[index],
@@ -115,25 +115,23 @@ class _OtcNotice extends StatelessWidget {
     return OutlinedCard(
       backgroundColor: palette.card,
       borderColor: palette.border,
+      padding: const EdgeInsets.all(TwSpacing.x4),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Icon(Icons.health_and_safety_outlined, color: palette.accent),
-          const SizedBox(width: TwSpacing.x3),
+          const SizedBox(width: TwSpacing.rhythmTight),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'Over-the-counter (OTC) only',
-                  style: TwText.fontBoldBase(),
-                ),
-                const SizedBox(height: TwSpacing.x1),
+                Text('Over-the-counter (OTC) only', style: TwText.fontBoldSm()),
+                const SizedBox(height: TwSpacing.rhythmTight),
                 Text(
                   'This preview does not accept prescriptions or include '
                   'regulated medicines. Ask a healthcare professional if you '
                   'are unsure which product is right for you.',
-                  style: TwText.textSm(),
+                  style: TwText.textXs(),
                 ),
               ],
             ),
