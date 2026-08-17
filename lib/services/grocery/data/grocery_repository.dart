@@ -1,5 +1,6 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../shared/data/rpc_helpers.dart';
 import '../models/grocery_models.dart';
 
 abstract interface class GroceryRepository {
@@ -193,7 +194,7 @@ class SupabaseGroceryOrderRepository implements GroceryOrderRepository {
       'place_grocery_order',
       params: request.toRpcParams(),
     );
-    return _requiredRpcId(response, 'grocery order');
+    return requiredRpcId(response, 'grocery order');
   }
 }
 
@@ -209,12 +210,4 @@ List<Map<String, dynamic>> _mapRows(Object? value, String label) {
         return Map<String, dynamic>.from(row);
       })
       .toList(growable: false);
-}
-
-String _requiredRpcId(Object? value, String label) {
-  final id = value?.toString().trim();
-  if (id == null || id.isEmpty) {
-    throw FormatException('The $label RPC did not return an ID.');
-  }
-  return id;
 }
