@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../app/service_module.dart';
 import '../../../config/theme.dart';
+import '../../../widgets/app_misc.dart';
 import '../../../widgets/app_scaffold.dart';
 import '../../localization/app_money.dart';
 import '../models/activity_item.dart';
@@ -50,11 +51,9 @@ class ActivityScreen extends StatelessWidget {
             return const _EmptyActivity();
           }
 
-          return ListView.separated(
+          return ListView(
             padding: const EdgeInsets.all(TwSpacing.x5),
-            itemCount: items.length,
-            separatorBuilder: (_, _) => const SizedBox(height: TwSpacing.x3),
-            itemBuilder: (context, index) => _ActivityCard(item: items[index]),
+            children: [_ActivityListCard(items: items)],
           );
         },
       ),
@@ -96,8 +95,33 @@ class _EmptyActivity extends StatelessWidget {
   }
 }
 
-class _ActivityCard extends StatelessWidget {
-  const _ActivityCard({required this.item});
+/// The activity feed as a single white card containing every record, with
+/// internal dividers between rows ("one card per list, not one card per
+/// row" — see #21/#27). Per-service accent stays confined to each row's
+/// [ServiceIconChip]; the card itself always stays on [TwColors.card].
+class _ActivityListCard extends StatelessWidget {
+  const _ActivityListCard({required this.items});
+
+  final List<ActivityItem> items;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: EdgeInsets.zero,
+      child: Column(
+        children: [
+          for (final item in items) ...[
+            _ActivityRow(item: item),
+            if (item != items.last) const Divider(height: 1),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _ActivityRow extends StatelessWidget {
+  const _ActivityRow({required this.item});
 
   final ActivityItem item;
 
@@ -105,33 +129,58 @@ class _ActivityCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final module = ServiceRegistry.byId(item.serviceId);
     final colors = ServiceThemes.forId(item.serviceId);
-    return Card(
-      color: colors.card,
-      elevation: 0.6,
-      shadowColor: TwColors.slate900.withOpacityValue(0.1),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(TwRadius.xl),
-        side: BorderSide(color: colors.border),
-      ),
-      child: ListTile(
-        onTap: item.detailsRoute.isEmpty
-            ? null
-            : () => context.push(item.detailsRoute),
-        leading: CircleAvatar(
-          backgroundColor: colors.soft,
-          foregroundColor: colors.accent,
-          child: Icon(module.icon),
+    return InkWell(
+      onTap: item.detailsRoute.isEmpty
+          ? null
+          : () => context.push(item.detailsRoute),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: TwSpacing.x4,
+          vertical: TwSpacing.rhythmDefault,
         ),
-        title: Text(item.title, style: TwText.fontBoldSm()),
-        subtitle: Text(
-          [
-            if (item.subtitle?.isNotEmpty == true) item.subtitle!,
-            item.status,
-          ].join(' • '),
-        ),
-        trailing: Text(
-          AppMoney.format(item.amount),
-          style: TwText.fontBoldSm().copyWith(color: colors.accent),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ServiceIconChip(
+              icon: module.icon,
+              background: colors.soft,
+              foreground: colors.accent,
+            ),
+            const SizedBox(width: TwSpacing.x4),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(item.title, style: TwText.fontBoldSm()),
+                  const SizedBox(height: TwSpacing.rhythmTight),
+                  Wrap(
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    spacing: TwSpacing.x2,
+                    runSpacing: TwSpacing.rhythmTight,
+                    children: [
+                      if (item.subtitle?.isNotEmpty == true)
+                        Text(
+                          item.subtitle!,
+                          style: TwText.textXs().copyWith(
+                            color: TwColors.textMuted,
+                          ),
+                        ),
+                      StatusPill(
+                        label: item.status,
+                        backgroundColor: colors.soft,
+                        foregroundColor: colors.accent,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: TwSpacing.x2),
+            Text(
+              AppMoney.format(item.amount),
+              style: TwText.fontBoldSm().copyWith(color: colors.accent),
+            ),
+          ],
         ),
       ),
     );

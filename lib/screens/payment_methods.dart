@@ -35,7 +35,7 @@ class PaymentMethodsScreen extends StatelessWidget {
       title: 'Payment Methods',
       showBackButton: true,
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(TwSpacing.x4),
+        padding: const EdgeInsets.all(TwSpacing.x5),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -45,23 +45,35 @@ class PaymentMethodsScreen extends StatelessWidget {
                 onPressed: () {},
                 child: const Row(
                   mainAxisAlignment: MainAxisAlignment.center,
-                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text('Add New Card'),
+                    Flexible(
+                      child: Text(
+                        'Add New Card',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
                     SizedBox(width: TwSpacing.x2),
                     Icon(Icons.add_rounded, size: 19),
                   ],
                 ),
               ),
             ),
-            const SizedBox(height: TwSpacing.x5),
+            const SizedBox(height: TwSpacing.rhythmSection),
             const SectionTitle('Saved Cards'),
-            const SizedBox(height: TwSpacing.x4),
-            for (final method in _paymentMethods) ...[
-              _PaymentMethodCard(method: method),
-              if (method != _paymentMethods.last)
-                const SizedBox(height: TwSpacing.x4),
-            ],
+            const SizedBox(height: TwSpacing.rhythmDefault),
+            OutlinedCard(
+              padding: EdgeInsets.zero,
+              child: Column(
+                children: [
+                  for (final method in _paymentMethods) ...[
+                    _PaymentMethodRow(method: method),
+                    if (method != _paymentMethods.last)
+                      const Divider(height: 1),
+                  ],
+                ],
+              ),
+            ),
           ],
         ),
       ),
@@ -69,8 +81,8 @@ class PaymentMethodsScreen extends StatelessWidget {
   }
 }
 
-class _PaymentMethodCard extends StatelessWidget {
-  const _PaymentMethodCard({required this.method});
+class _PaymentMethodRow extends StatelessWidget {
+  const _PaymentMethodRow({required this.method});
 
   final _PaymentMethod method;
 
@@ -78,69 +90,90 @@ class _PaymentMethodCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final palette = context.serviceColors;
     final colorScheme = Theme.of(context).colorScheme;
-    return OutlinedCard(
-      padding: const EdgeInsets.all(TwSpacing.x4),
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: TwSpacing.x4,
+        vertical: TwSpacing.rhythmDefault,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  Icon(method.icon, color: palette.accent, size: 24),
-                  const SizedBox(width: TwSpacing.x3),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(method.type, style: TwText.fontBoldSm()),
-                      const SizedBox(height: 2),
-                      Text(
-                        '**** ${method.lastFour}',
-                        style: TwText.textXs().copyWith(
-                          color: TwColors.textMuted,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
+              ServiceIconChip(
+                icon: method.icon,
+                background: palette.soft,
+                foreground: palette.accent,
               ),
-              if (method.isDefault)
+              const SizedBox(width: TwSpacing.x3),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      method.type,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TwText.fontBoldSm(),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      '**** ${method.lastFour}',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TwText.textXs().copyWith(
+                        color: TwColors.textMuted,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              if (method.isDefault) ...[
+                const SizedBox(width: TwSpacing.x2),
                 StatusPill(
                   label: 'Default',
                   backgroundColor: palette.soft,
                   foregroundColor: palette.accent,
                   fontSize: 10,
                 ),
+              ],
             ],
           ),
-          const SizedBox(height: TwSpacing.x4),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          const SizedBox(height: TwSpacing.rhythmDefault),
+          Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            runSpacing: TwSpacing.x2,
             children: [
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   Text('Expires', style: TwText.textXs()),
                   const SizedBox(height: 2),
                   Text(method.expiry, style: TwText.fontBoldSm()),
                 ],
               ),
-              Row(
-                children: [
-                  if (!method.isDefault)
-                    TextButton(
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerRight,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (!method.isDefault)
+                      TextButton(
+                        onPressed: () {},
+                        child: const Text('Set Default'),
+                      ),
+                    const SizedBox(width: TwSpacing.x2),
+                    IconButton.outlined(
+                      tooltip: 'Delete ${method.type}',
                       onPressed: () {},
-                      child: const Text('Set Default'),
+                      color: colorScheme.error,
+                      icon: const Icon(Icons.delete_outline, size: 18),
                     ),
-                  const SizedBox(width: TwSpacing.x2),
-                  IconButton.outlined(
-                    tooltip: 'Delete ${method.type}',
-                    onPressed: () {},
-                    color: colorScheme.error,
-                    icon: const Icon(Icons.delete_outline, size: 18),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ],
           ),

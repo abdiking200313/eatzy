@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../config/theme.dart';
+import '../../../widgets/app_cards.dart';
 import '../../../widgets/app_scaffold.dart';
 import 'models/support_models.dart';
 import 'widgets/support_cards.dart';
@@ -72,29 +73,49 @@ class SupportScreen extends StatelessWidget {
       title: 'Help & Support',
       showBackButton: true,
       body: ListView(
-        padding: const EdgeInsets.all(TwSpacing.x4),
+        padding: const EdgeInsets.all(TwSpacing.x5),
         children: [
           const SectionTitle('How can we help?'),
-          const SizedBox(height: TwSpacing.x3),
-          for (final topic in _helpTopics) ...[
-            HelpCard(topic: topic),
-            if (topic != _helpTopics.last) const SizedBox(height: TwSpacing.x3),
-          ],
-          const SizedBox(height: TwSpacing.x6),
+          const SizedBox(height: TwSpacing.rhythmDefault),
+          OutlinedCard(
+            padding: EdgeInsets.zero,
+            child: Column(
+              children: [
+                for (final topic in _helpTopics) ...[
+                  HelpCard(topic: topic),
+                  if (topic != _helpTopics.last) const Divider(height: 1),
+                ],
+              ],
+            ),
+          ),
+          const SizedBox(height: TwSpacing.rhythmSection),
           const SectionTitle('Need more help?', fontSize: 18),
-          const SizedBox(height: TwSpacing.x3),
-          for (final topic in _contactOptions) ...[
-            ContactCard(topic: topic),
-            if (topic != _contactOptions.last)
-              const SizedBox(height: TwSpacing.x3),
-          ],
-          const SizedBox(height: TwSpacing.x6),
+          const SizedBox(height: TwSpacing.rhythmDefault),
+          OutlinedCard(
+            padding: EdgeInsets.zero,
+            child: Column(
+              children: [
+                for (final topic in _contactOptions) ...[
+                  ContactCard(topic: topic),
+                  if (topic != _contactOptions.last) const Divider(height: 1),
+                ],
+              ],
+            ),
+          ),
+          const SizedBox(height: TwSpacing.rhythmSection),
           const SectionTitle('Frequently Asked Questions', fontSize: 18),
-          const SizedBox(height: TwSpacing.x3),
-          for (final faq in _faqItems) ...[
-            FaqCard(item: faq),
-            if (faq != _faqItems.last) const SizedBox(height: TwSpacing.x3),
-          ],
+          const SizedBox(height: TwSpacing.rhythmDefault),
+          OutlinedCard(
+            padding: EdgeInsets.zero,
+            child: Column(
+              children: [
+                for (final faq in _faqItems) ...[
+                  FaqCard(item: faq),
+                  if (faq != _faqItems.last) const Divider(height: 1),
+                ],
+              ],
+            ),
+          ),
         ],
       ),
     );

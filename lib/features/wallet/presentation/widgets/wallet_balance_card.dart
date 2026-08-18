@@ -20,7 +20,6 @@ class WalletBalanceCard extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
     return OutlinedCard(
       padding: const EdgeInsets.all(TwSpacing.x5),
-      backgroundColor: palette.soft,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -64,8 +63,8 @@ class _WalletActionButton extends StatelessWidget {
         vertical: TwSpacing.x3,
       ),
       decoration: BoxDecoration(
-        color: palette.card,
-        border: Border.all(color: palette.border),
+        color: TwColors.card,
+        border: Border.all(color: TwColors.border),
         borderRadius: BorderRadius.circular(TwRadius.lg),
       ),
       child: Row(
