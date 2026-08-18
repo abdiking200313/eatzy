@@ -22,7 +22,14 @@ class SectionHeader extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(title, style: TwText.textXl()),
+        Expanded(
+          child: Text(
+            title,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TwText.sectionLabel(),
+          ),
+        ),
         if (actionLabel != null)
           TextButton(
             onPressed: onPressed,

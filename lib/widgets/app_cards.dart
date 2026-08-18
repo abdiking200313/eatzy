@@ -99,11 +99,15 @@ class GradientActionButton extends StatelessWidget {
         mainAxisSize: fullWidth ? MainAxisSize.max : MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text(
-            label,
-            style: TwText.button().copyWith(
-              color: scheme.onPrimary,
-              fontSize: fontSize,
+          Flexible(
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TwText.button().copyWith(
+                color: scheme.onPrimary,
+                fontSize: fontSize,
+              ),
             ),
           ),
           if (icon != null) ...[const SizedBox(width: TwSpacing.x2), icon!],

@@ -8,6 +8,7 @@ import '../../../config/theme.dart';
 import '../../../platform/activity/models/activity_item.dart';
 import '../../../platform/activity/presentation/activity_controller.dart';
 import '../../../platform/localization/app_money.dart';
+import '../../../widgets/app_misc.dart';
 import '../../../widgets/zivo_logo.dart';
 
 class SuperAppHomeScreen extends StatelessWidget {
@@ -41,9 +42,9 @@ class SuperAppHomeScreen extends StatelessWidget {
           ),
           body: ListView(
             padding: const EdgeInsets.fromLTRB(
-              TwSpacing.x4,
+              TwSpacing.x5,
               TwSpacing.x3,
-              TwSpacing.x4,
+              TwSpacing.x5,
               TwSpacing.x8,
             ),
             children: [
@@ -53,18 +54,18 @@ class SuperAppHomeScreen extends StatelessWidget {
                 DateFormat('EEEE, MMMM d').format(DateTime.now()),
                 style: TwText.textSm(),
               ),
-              const SizedBox(height: TwSpacing.x8),
-              Text('Our Services', style: TwText.textXl()),
-              const SizedBox(height: TwSpacing.x3),
+              const SizedBox(height: TwSpacing.rhythmSection),
+              Text('Our Services', style: TwText.sectionLabel()),
+              const SizedBox(height: TwSpacing.rhythmDefault),
               _ServiceGrid(modules: ServiceRegistry.modules),
               if (recentItems.isNotEmpty) ...[
-                const SizedBox(height: TwSpacing.x8),
+                const SizedBox(height: TwSpacing.rhythmSection),
                 _SectionHeader(
                   title: 'Recent Activity',
                   actionLabel: 'View all',
                   onPressed: () => context.go(AppRoutes.activity),
                 ),
-                const SizedBox(height: TwSpacing.x3),
+                const SizedBox(height: TwSpacing.rhythmDefault),
                 for (var index = 0; index < recentItems.length; index++) ...[
                   _RecentActivityCard(item: recentItems[index]),
                   if (index != recentItems.length - 1)
@@ -87,7 +88,10 @@ class _ServiceGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textScale = MediaQuery.textScalerOf(context).scale(1);
-    final cardHeight = 170.0 + ((textScale - 1).clamp(0.0, 1.0) * 54.0);
+    // Base height nudged up slightly from the pre-redesign 170.0 to fit the
+    // 48px ServiceIconChip (was a 44px icon container) without overflowing
+    // the fixed grid cell at high text-scale.
+    final cardHeight = 178.0 + ((textScale - 1).clamp(0.0, 1.0) * 54.0);
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
@@ -113,12 +117,12 @@ class _ServiceCard extends StatelessWidget {
     final colors = ServiceThemes.forId(module.id);
     return Material(
       key: Key('service-${module.id.name}'),
-      color: colors.card,
+      color: TwColors.card,
       elevation: 0.8,
       shadowColor: TwColors.slate900.withOpacityValue(0.12),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(TwRadius.xl),
-        side: BorderSide(color: colors.border),
+        side: const BorderSide(color: TwColors.border),
       ),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
@@ -131,14 +135,10 @@ class _ServiceCard extends StatelessWidget {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Container(
-                    width: 44,
-                    height: 44,
-                    decoration: BoxDecoration(
-                      color: colors.soft,
-                      borderRadius: BorderRadius.circular(TwRadius.lg),
-                    ),
-                    child: Icon(module.icon, color: colors.accent, size: 23),
+                  ServiceIconChip(
+                    icon: module.icon,
+                    background: colors.accent,
+                    foreground: colors.onAccent,
                   ),
                   const Spacer(),
                   Icon(
@@ -150,7 +150,7 @@ class _ServiceCard extends StatelessWidget {
               ),
               const Spacer(),
               Text(module.title, style: TwText.fontBoldBase()),
-              const SizedBox(height: TwSpacing.x1),
+              const SizedBox(height: TwSpacing.rhythmTight),
               Text(
                 module.description,
                 maxLines: 2,
@@ -180,7 +180,7 @@ class _SectionHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Expanded(child: Text(title, style: TwText.textXl())),
+        Expanded(child: Text(title, style: TwText.sectionLabel())),
         TextButton(onPressed: onPressed, child: Text(actionLabel)),
       ],
     );
@@ -197,10 +197,10 @@ class _RecentActivityCard extends StatelessWidget {
     final module = ServiceRegistry.byId(item.serviceId);
     final colors = ServiceThemes.forId(item.serviceId);
     return Material(
-      color: TwColors.white,
+      color: TwColors.card,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(TwRadius.xl),
-        side: BorderSide(color: colors.border),
+        side: const BorderSide(color: TwColors.border),
       ),
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(
@@ -210,21 +210,24 @@ class _RecentActivityCard extends StatelessWidget {
         onTap: item.detailsRoute.isEmpty
             ? null
             : () => context.push(item.detailsRoute),
+        // Recent-activity rows use the per-service accent only inside this
+        // small round icon avatar (the list-level equivalent of the 48px
+        // ServiceIconChip used elsewhere), never on the row's own card
+        // fill/border above.
         leading: CircleAvatar(
           backgroundColor: colors.soft,
           foregroundColor: colors.accent,
           child: Icon(module.icon, size: 20),
         ),
         title: Text(item.title, style: TwText.fontBoldSm()),
-        subtitle: Text(
-          item.status,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: TwText.textXs(),
+        subtitle: Padding(
+          padding: const EdgeInsets.only(top: TwSpacing.rhythmTight),
+          child: StatusPill(label: item.status, fontSize: 11),
         ),
+        isThreeLine: false,
         trailing: Text(
           AppMoney.format(item.amount),
-          style: TwText.fontBoldSm().copyWith(color: colors.accent),
+          style: TwText.fontBoldSm(),
         ),
       ),
     );

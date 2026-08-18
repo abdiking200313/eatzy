@@ -15,6 +15,13 @@ Reverse-chronological. Each session/major chunk of work gets an entry.
 
 ---
 
+## 2026-08-18
+
+- **Issue #23 executed** (redesign phase 2/7 — home & onboarding): `super_app_home_screen.dart` (white service cards + 48px `ServiceIconChip`, `sectionLabel()` headings, `StatusPill` for activity status, 20px/6-14-28 rhythm), `home_screen.dart` + `categories_section/category_card/restaurant_card/section_header` widgets (white search bar + `RestaurantCard`, `CategoryCard` base tile de-tinted with a narrow selected-state accent exception, `SectionHeader` now uses `sectionLabel()`), onboarding files reviewed and found already close to spec (only fixed two hardcoded radii to `TwRadius.lg/full`). `lib/features/home/presentation/home_screen.dart` confirmed still reachable (via `FoodHomeScreen`/`AppRoutes.food`) — not dead code, left in place per the issue's note.
+- Two pre-existing overflow bugs surfaced only once the new 320×640@1.4 tests existed (none did before): `GradientActionButton` (`lib/widgets/app_cards.dart`) didn't wrap its label in `Flexible`, and `SectionHeader` didn't `Expanded` its title — both fixed with ellipsis-safe wrapping, in scope as shared UI widgets.
+- Added `test/helpers/network_image_mock.dart` (a minimal `HttpOverrides`-based fake HTTP client) since onboarding's hero `NetworkImage`s have no empty-URL fallback (unlike the catalog cards' `CachedNetworkImage`) and `flutter test`'s no-network sandbox turned that into an unhandled `NetworkImageLoadException` — new `test/onboarding_screen_test.dart` uses it.
+- `dart format`/`flutter analyze`/`flutter test` all clean (68/68). PR: see issue #23 for the link.
+
 ## 2026-08-17
 
 - **Issue #22 executed** (redesign phase 1/7 — foundation): landed the #21 token diffs in `tailwind.dart` (`bg`/`text`/`textMuted`→new `slate600`/`TwRadius.xl`+`lg`/type-scale bump using the proposed numbers as-is/new `TwText.sectionLabel()`), added a `TwSpacing.rhythmTight/rhythmDefault/rhythmSection` (6/14/28) set alongside the existing `x*` scale rather than folding it in (they don't share a common divisor — see PR for the full note), enforced "white cards only" in `service_theme.dart`'s `ZivoServiceTheme` (cardTheme + surfaceContainerLow/surfaceContainer now stay on `TwColors.card`/`border` instead of the per-service tint; screen-level `background` intentionally left tinted, not a "card") and in `app_cards.dart`'s `OutlinedCard` defaults, added the missing shared 48px icon chip (`ServiceIconChip` in `app_misc.dart`), and did the nav-bar height 72→76 + indicator removal in `tailwind.dart`'s theme plus a matching `main_app_screen.dart` selected-icon recolor (was white-on-pill, now needs to be visible without the pill).

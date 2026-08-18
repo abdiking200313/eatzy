@@ -3,6 +3,7 @@ import 'package:chowflow/app/service_module.dart';
 import 'package:chowflow/features/super_app/presentation/super_app_home_screen.dart';
 import 'package:chowflow/platform/activity/models/activity_item.dart';
 import 'package:chowflow/platform/activity/presentation/activity_controller.dart';
+import 'package:chowflow/widgets/app_misc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -35,7 +36,17 @@ void main() {
     final groceryCard = tester.widget<Material>(
       find.byKey(const Key('service-grocery')),
     );
-    expect(groceryCard.color, ServiceThemes.grocery.card);
+    // White cards only: the service accent stays confined to the 48px icon
+    // chip, so the card fill itself is the neutral token, never the
+    // per-service tinted `ServiceThemes.grocery.card`.
+    expect(groceryCard.color, TwColors.card);
+    expect(
+      find.descendant(
+        of: find.byKey(const Key('service-grocery')),
+        matching: find.byType(ServiceIconChip),
+      ),
+      findsOneWidget,
+    );
     expect(
       tester.getTopLeft(find.text('Good morning')).dy,
       lessThan(tester.getTopLeft(find.text('Food')).dy),
@@ -95,5 +106,7 @@ void main() {
     await tester.pump();
     expect(find.text('Bakaara groceries'), findsOneWidget);
     expect(find.text(r'$24.00'), findsOneWidget);
+    // Status pills instead of bare colored status text.
+    expect(find.widgetWithText(StatusPill, 'Confirmed'), findsOneWidget);
   });
 }

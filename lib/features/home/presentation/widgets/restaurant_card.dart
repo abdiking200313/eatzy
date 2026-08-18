@@ -17,11 +17,10 @@ class RestaurantCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final palette = context.serviceColors;
     return OutlinedCard(
-      backgroundColor: palette.card,
-      borderRadius: 16,
-      borderColor: palette.border,
+      backgroundColor: TwColors.card,
+      borderRadius: TwRadius.xl,
+      borderColor: TwColors.border,
       padding: EdgeInsets.zero,
       onTap: onPressed,
       child: Column(
@@ -56,20 +55,23 @@ class RestaurantCard extends StatelessWidget {
                   style: TwText.textSm().copyWith(color: TwColors.textMuted),
                 ),
 
-                const SizedBox(height: TwSpacing.x3),
+                const SizedBox(height: TwSpacing.rhythmTight),
+                // A CTA link, not list-card body content — kept on the
+                // neutral brand primary rather than the per-service accent,
+                // which stays confined to the icon chip/fallback imagery.
                 Row(
                   children: [
                     Text(
                       'View menu',
                       style: TwText.fontBoldSm().copyWith(
-                        color: palette.accent,
+                        color: TwColors.primary,
                       ),
                     ),
                     const SizedBox(width: TwSpacing.x1),
-                    Icon(
+                    const Icon(
                       Icons.arrow_forward_rounded,
                       size: 18,
-                      color: palette.accent,
+                      color: TwColors.primary,
                     ),
                   ],
                 ),
