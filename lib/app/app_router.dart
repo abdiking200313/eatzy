@@ -5,8 +5,10 @@ import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../config/theme.dart';
+import '../features/auth/presentation/forgot_password_screen.dart';
 import '../features/auth/presentation/login_screen.dart';
 import '../features/auth/presentation/register_screen.dart';
+import '../features/auth/presentation/reset_password_screen.dart';
 import '../features/checkout/presentation/checkout_screen.dart';
 import '../features/onboarding/presentation/onboarding_page_1.dart';
 import '../features/onboarding/presentation/onboarding_page_2.dart';
@@ -47,6 +49,7 @@ class AppRouter {
     AppRoutes.welcome,
     AppRoutes.login,
     AppRoutes.register,
+    AppRoutes.forgotPassword,
     AppRoutes.onboardingOne,
     AppRoutes.onboardingTwo,
     AppRoutes.onboardingThree,
@@ -58,6 +61,7 @@ class AppRouter {
     _page(AppRoutes.welcome, const WelcomeScreen()),
     _page(AppRoutes.login, const LoginScreen()),
     _page(AppRoutes.register, const RegisterScreen()),
+    _page(AppRoutes.forgotPassword, const ForgotPasswordScreen()),
     _page(AppRoutes.onboardingOne, const OnboardingPage1()),
     _page(AppRoutes.onboardingTwo, const OnboardingPage2()),
     _page(AppRoutes.onboardingThree, const OnboardingPage3()),
@@ -74,6 +78,10 @@ class AppRouter {
     AppRoutes.addresses: AddressesScreen(),
     AppRoutes.paymentMethods: PaymentMethodsScreen(),
     AppRoutes.settings: SettingsScreen(),
+    // Reachable both from Settings (normal session) and by tapping a
+    // password-recovery email link (temporary recovery session) — both
+    // already carry a valid Supabase session by the time this route loads.
+    AppRoutes.resetPassword: ResetPasswordScreen(),
     AppRoutes.support: SupportScreen(),
     AppRoutes.wallet: WalletScreen(),
     AppRoutes.trackOrder: ZivoServiceTheme(
@@ -213,9 +221,17 @@ class AppRouter {
 // Notifies GoRouter whenever Supabase restores, creates, or removes a session.
 class _AuthStateRefresh extends ChangeNotifier {
   _AuthStateRefresh() {
-    _subscription = Supabase.instance.client.auth.onAuthStateChange.listen(
-      (_) => notifyListeners(),
-    );
+    _subscription = Supabase.instance.client.auth.onAuthStateChange.listen((
+      authState,
+    ) {
+      // Fired when the user taps a Supabase password-recovery email link
+      // and the app receives the resulting deep link. Send them straight to
+      // the reset-password screen instead of the normal signed-in redirect.
+      if (authState.event == AuthChangeEvent.passwordRecovery) {
+        AppRouter.router.go(AppRoutes.resetPassword);
+      }
+      notifyListeners();
+    });
   }
 
   late final StreamSubscription<AuthState> _subscription;

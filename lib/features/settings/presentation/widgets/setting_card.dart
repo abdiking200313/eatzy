@@ -9,15 +9,17 @@ class SettingCard extends StatelessWidget {
     required this.title,
     required this.subtitle,
     required this.icon,
+    this.onTap,
   });
 
   final String title;
   final String subtitle;
   final IconData icon;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
-    return OutlinedCard(
+    final card = OutlinedCard(
       child: Row(
         children: [
           Icon(icon, color: TwColors.primary, size: 24),
@@ -42,6 +44,14 @@ class SettingCard extends StatelessWidget {
           ),
         ],
       ),
+    );
+
+    if (onTap == null) return card;
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(TwRadius.lg),
+      child: card,
     );
   }
 }

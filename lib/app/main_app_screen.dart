@@ -72,7 +72,10 @@ class _MainAppScreenState extends State<MainAppScreen> {
             for (final item in _navigationItems)
               NavigationDestination(
                 icon: Icon(item.icon, color: TwColors.textMuted),
-                selectedIcon: Icon(item.icon, color: TwColors.white),
+                // No more selection-pill background behind the icon, so the
+                // selected state is carried by icon color alone (label
+                // color/weight already flips via navigationBarTheme).
+                selectedIcon: Icon(item.icon, color: TwColors.primary),
                 label: item.label,
               ),
           ],

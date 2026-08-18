@@ -125,8 +125,11 @@ class ZivoServiceTheme extends StatelessWidget {
       onSecondaryContainer: TwColors.text,
       surface: colors.background,
       surfaceContainerLowest: colors.background,
-      surfaceContainerLow: colors.card,
-      surfaceContainer: colors.card,
+      // Card-surface slots stay on the neutral white/border tokens (white
+      // cards only) rather than the service palette — see the cardTheme
+      // override below.
+      surfaceContainerLow: TwColors.card,
+      surfaceContainer: TwColors.card,
       surfaceContainerHigh: colors.soft,
       surfaceContainerHighest: colors.soft,
       outline: colors.border,
@@ -142,12 +145,18 @@ class ZivoServiceTheme extends StatelessWidget {
           foregroundColor: TwColors.text,
           surfaceTintColor: Colors.transparent,
         ),
+        // Cards stay white regardless of the active service theme — the
+        // "white cards only" redesign rule confines the service accent to
+        // the 48px icon chip, never the card fill or border. `colors.card`/
+        // `colors.border` remain available on `ZivoServiceColors` for the
+        // icon chip and any other component that intentionally wants the
+        // service-tinted surface.
         cardTheme: base.cardTheme.copyWith(
-          color: colors.card,
+          color: TwColors.card,
           shadowColor: TwColors.slate900.withOpacityValue(0.1),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(TwRadius.xl),
-            side: BorderSide(color: colors.border),
+            side: const BorderSide(color: TwColors.border),
           ),
         ),
         filledButtonTheme: FilledButtonThemeData(

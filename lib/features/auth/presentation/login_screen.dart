@@ -120,7 +120,19 @@ class _LoginScreenState extends State<LoginScreen> {
                                 if (!_isLoading) _login();
                               },
                             ),
-                            const SizedBox(height: TwSpacing.x8),
+                            const SizedBox(height: TwSpacing.x2),
+                            Align(
+                              alignment: Alignment.centerRight,
+                              child: TextButton(
+                                onPressed: () =>
+                                    context.push(AppRoutes.forgotPassword),
+                                child: Text(
+                                  'Forgot password?',
+                                  style: TwText.link(),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: TwSpacing.x6),
                             if (_isLoading)
                               const Center(child: CircularProgressIndicator())
                             else

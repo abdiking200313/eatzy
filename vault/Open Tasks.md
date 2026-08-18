@@ -7,30 +7,44 @@ upstream_concept: 00-Index
 
 # Open Tasks
 
-Quick-reference cache as of 2026-08-13. **Source of truth is always `gh issue list --repo abdiking200313/eatzy --state open`** — this file can go stale the moment an issue is closed or a new one filed; re-check before relying on it for anything that matters.
+Refreshed 2026-08-18 (previous refresh was 2026-08-13, badly stale by the time this happened — repo had grown from 19 to 76 open issues, mostly a large `needs-approval` audit batch #30-83). **Source of truth is always a live `list_issues`/`gh issue list --repo abdiking200313/eatzy --state open` call** — re-check before relying on this for anything that matters.
 
-| # | Title | Label | Notes |
+**76 open issues total.** 57 are `needs-approval` (untouchable by the board worker per the approval gate — see [[Conventions]]) — not itemized individually here, that's a lot of churn to keep in sync for issues nobody can act on yet. The tables below cover everything the board worker's loop actually looks at: `todo`, `waiting-on-you`, `agent-in-progress`.
+
+## `waiting-on-you` — paused on a human reply
+
+| # | Title | Asked | Notes |
 |---|---|---|---|
-| 1 | Wallet screen is entirely fake/static, not wired to real data | `todo` | Product decision needed: build real, mark as preview, or remove |
-| 2 | Food checkout never collects a real delivery address | `todo` | Product decision needed: wire up real, or remove the misleading UI |
-| 3 | schema.sql `profiles` columns disagree with Dart client — need live DB check | `needs-clarification` | Can't be resolved by an agent; needs a human to query the live DB. Confirmed still fully live 2026-08-13, likely same root cause as #8 (`schema.sql` unreliable) |
-| 4 | Unify food checkout under a FoodController | `todo` | Root-cause fix for the duplication found in the deeper audit; own reviewed PR since it touches the highest-traffic checkout flow |
-| 5 | No test coverage of checkout/order-placement failure paths | `todo` | food/grocery/pharmacy, all three |
-| 6 | auth_service_test.dart only covers logged-out state | `todo` | sign-in/sign-up/sign-out untested |
-| 7 | Session storage should move to secure storage, not plaintext SharedPreferences | `todo` | Conscious decision needed, SDK default currently unreviewed |
-| 8 | Currency stored as decimal in Dart vs. integer smallest-units in SQL, plus other schema drift | `todo` | Investigated 2026-08-13, verdict: real inconsistency between two SQL conventions, `menu_items.price` is the one live crossing point, needs a live DB check to close — see [[Audit Findings]] Pass 3 |
-| 9 | Rewards screen is entirely fake, no backend at all | `todo` | Worse than wallet — zero data layer, not even a stub |
-| 10 | Settings screen: 9 dead tap targets, notification toggles don't persist | `todo` | |
-| 11 | Addresses screen is fully non-functional despite being linked from real checkout/profile flows | `todo` | Blocks a real fix for #2 too |
-| 12 | Payment methods screen is fully non-functional despite being linked from real flows | `todo` | |
-| 13 | No profile-edit capability exists anywhere in the app | `todo` | |
-| 14 | Duplicated hardcoded wallet balance ($120.50) in profile_screen.dart, independent of wallet_screen.dart | `todo` | Resolve alongside #1 |
-| 15 | Onboarding has no first-launch/returning-user gating; standalone /onboarding/* routes are dead ends | `todo` | |
-| 16 | Native app identifiers still com.example.chowflow across all platforms despite Zivo branding | `todo` | Not urgent, but hard to change post-release — do before store submission |
-| 17 | No CI/CD — nothing enforces flutter analyze/test/dart format automatically on PRs | `todo` | Relevant given the board-worker PR workflow |
-| 18 | Test suite gaps: grocery/pharmacy cart/checkout screens have zero widget tests; duplicated test fixture setup | `todo` | |
-| 19 | ActivityController uses a hand-rolled ChangeNotifier singleton instead of the stated Riverpod/AsyncNotifier convention | `todo` | Architecture/product decision — migrate or document as deliberate exception |
+| 16 | Native app identifiers still `com.example.chowflow` | 2026-08-15T00:55 UTC | Needs the reverse-domain identifier to use (no existing `com.zivo.*` anywhere to infer from) |
+| 40 | No global error handling / crash reporting / production logging | 2026-08-17T20:38 UTC | Needs crash-reporting SDK choice (Sentry vs Firebase Crashlytics vs none) + credentials; offered to land the SDK-independent half first |
 
-## Known in-flight / interrupted work (not yet an issue)
+Both still have only the agent's own clarifying-question comment as of 2026-08-18 — no human reply on either yet across several checks.
 
-- **Dedup extraction (RPC-unwrap helper, load/error mixin, confirm-order flow)**: started 2026-08-12, session was interrupted mid-task. Partial state left on disk uncommitted: `food_repository.dart`/`grocery_repository.dart`/`pharmacy_repository.dart` modified (RPC-unwrap part done), `lib/services/shared/{data/rpc_helpers.dart, presentation/loadable_state_mixin.dart, presentation/confirm_order_flow.dart}` created but **not yet wired into `grocery_controller.dart`/`pharmacy_controller.dart`**. Check `git status`/`git diff` in `chowflow_flutter/` before assuming this is finished or redoing it from scratch — the agent that did this was cancelled, not resumed, per explicit user instruction at the time. See [[Status Log]] for exact date/context.
+## `agent-in-progress` — open PR awaiting review
+
+| # | Title | PR |
+|---|---|---|
+| 23 | Redesign phase 2/7: Home & onboarding | #89 |
+| 24 | Redesign phase 3/7: Auth | #90 |
+| 25 | Redesign phase 4/7: Browse/catalog | #91 |
+| 26 | Redesign phase 5/7: Cart & checkout | #92 |
+| 27 | Redesign phase 6/7: Orders, activity, account | #93 |
+| 33 | [Blocking] Default Flutter template app icons/splash ship | #51 |
+
+None merged yet as of 2026-08-18 — #7's PR #20 and #50's PR #84 (both listed as `agent-in-progress` in earlier refreshes) have since resolved (issue #7/#50 no longer appear as open `agent-in-progress`; check history in [[Status Log]] if the exact merge/close date matters).
+
+## `todo` but not yet actionable (tracking issues / blocked)
+
+| # | Title | Why not picked up |
+|---|---|---|
+| 21 | Visual redesign: token refresh, card system, nav cleanup (tracking) | Umbrella/index issue, no direct implementation work — phases 22-28 are the real work |
+| 29 | Deploy-readiness audit (tracking) | Umbrella/index issue — findings already filed as the `needs-approval` #30-83 batch |
+| 28 | Redesign phase 7/7: closeout sweep | Explicitly depends on phases 1-6 merged; only phase 1 (#22) has landed so far, phases 2-6 (#23-27) are the open PRs above |
+
+## Other `todo` issues (currently `needs-approval`-gated, listed only because they carry a stray `todo` label too)
+
+8, 17, 31, 34, 36, 37, 58, 66 all carry both `todo` and `needs-approval` — the gate treats `needs-approval` as exclusive regardless of `todo` also being present (see [[Conventions]]'s approval gate note). Not acted on. Worth a human pass to strip the stray `todo` label from these if it's not intentional, since it's a bit misleading at a glance.
+
+## Known in-flight / interrupted work (not yet resolved)
+
+- The 2026-08-12 dedup-extraction interruption (RPC-unwrap helper, load/error mixin, confirm-order flow left partially wired) was independently rediscovered and filed as **issue #72** (`needs-approval`) during the 2026-08-15 deploy-readiness audit — treat #72 as the current tracker for that, this note's old freestanding description is superseded.
