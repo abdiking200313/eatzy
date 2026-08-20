@@ -17,6 +17,7 @@ Reverse-chronological. Each session/major chunk of work gets an entry.
 
 ## 2026-08-20
 
+- Second board-worker run today, still nothing eligible — no change from the first run: `waiting-on-you` #16/#40 still comments=1 each (only the agent's own clarifying-question comment, no human reply), all 6 `agent-in-progress` PRs (#89-93, #51) still open/unmerged, 19 open `todo` issues total (same set: 2 waiting-on-you + 6 agent-in-progress + 3 non-actionable tracking + 8 stray todo/needs-approval). Stopped early, no action, no notification.
 - Board-worker run, still nothing eligible — no change since the last run (2026-08-19 fifth run): `waiting-on-you` #16/#40 still only the agent's own clarifying-question comment (comments=1 each, no human reply), all 6 `agent-in-progress` PRs (#89-93, #51) still open/unmerged, 19 open `todo` issues total (same set: 2 waiting-on-you + 6 agent-in-progress + 3 non-actionable tracking + 8 stray todo/needs-approval). Stopped early, no action, no notification.
 
 ## 2026-08-19
