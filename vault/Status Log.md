@@ -15,6 +15,10 @@ Reverse-chronological. Each session/major chunk of work gets an entry.
 
 ---
 
+## 2026-08-22
+
+- Board-worker run, still nothing eligible — no change from 2026-08-21's five runs: `waiting-on-you` #16/#40 still comments=1 each (only the agent's own clarifying-question comment, no human reply — #16 unanswered 7 days since 2026-08-15T00:55 UTC, #40 unanswered ~5 days since 2026-08-17T20:38 UTC), all 6 `agent-in-progress` PRs (#89-93, #51) confirmed still open/unmerged with zero review activity via direct PR lookup (oldest, #51, now ~7 days open with no comments/reviews), 19 open `todo` issues total (same set: 2 waiting-on-you + 6 agent-in-progress + 3 non-actionable tracking + 8 stray todo/needs-approval). Stopped early, no action. **Sent a push notification this run** (first one in this multi-day stall) — the whole board-worker queue has now been blocked on human input for a full week with zero engagement, which crossed a threshold worth surfacing once even though the state itself is unchanged from prior no-op runs.
+
 ## 2026-08-21
 
 - Fourth board-worker run today, still nothing eligible — no change from the prior run: `waiting-on-you` #16/#40 still comments=1 each (only the agent's own clarifying-question comment, no human reply — #16 unanswered ~6 days since 2026-08-15T00:55 UTC, #40 ~4 days since 2026-08-17T20:38 UTC), all 6 `agent-in-progress` PRs (#89-93, #51) confirmed still open/unmerged with zero comments/reviews via direct PR lookup (#51 now ~6 days open with no review activity), 19 open `todo` issues total (same set: 2 waiting-on-you + 6 agent-in-progress + 3 non-actionable tracking + 8 stray todo/needs-approval). Stopped early, no action, no notification (queue fully stalled on human review/replies, unchanged from prior runs).
