@@ -17,6 +17,7 @@ Reverse-chronological. Each session/major chunk of work gets an entry.
 
 ## 2026-08-24
 
+- Second board-worker run today, still nothing eligible — no change from the first run: `waiting-on-you` #16/#40 confirmed via live `list_issues` still comments=1 each (no human reply — #16 unanswered 9 days since 2026-08-15T00:55 UTC, #40 7 days since 2026-08-17T20:38 UTC), all 6 `agent-in-progress` PRs (#89-93, #51) confirmed still open/unmerged with unchanged `updated_at` via live `list_pull_requests`, 19 open `todo` issues total (same set as prior runs, all 8 stray todo/needs-approval issues still gated). Stopped early, no action, no notification (already sent once for this stall on 2026-08-21; nothing new since).
 - Board-worker run, still nothing eligible — no change from 2026-08-23's runs: `waiting-on-you` #16/#40 confirmed via live `list_issues` still comments=1 each (no human reply — #16 unanswered 9 days since 2026-08-15T00:55 UTC, #40 7 days since 2026-08-17T20:38 UTC), all 6 `agent-in-progress` PRs (#89-93, #51) confirmed still open/unmerged with unchanged `updated_at` via live `list_pull_requests`, 19 open `todo` issues total (same set as prior runs, all 8 stray todo/needs-approval issues still gated). Stopped early, no action, no notification (already sent once for this stall on 2026-08-21; nothing new since).
 
 ## 2026-08-23
