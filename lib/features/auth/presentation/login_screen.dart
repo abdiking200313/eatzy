@@ -9,14 +9,19 @@ import '../../../widgets/zivo_logo.dart';
 import '../data/auth_service.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+  const LoginScreen({super.key, this.authService});
+
+  /// Overrides the default [AuthService] used to submit sign-in requests.
+  /// Only intended for tests — production code always uses the default,
+  /// which lazily reads `Supabase.instance.client`.
+  final AuthService? authService;
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final AuthService _authService = AuthService();
+  AuthService get _authService => widget.authService ?? AuthService();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   bool _isLoading = false;
@@ -92,12 +97,12 @@ class _LoginScreenState extends State<LoginScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text('Welcome back', style: TwText.text3xl()),
-                            const SizedBox(height: TwSpacing.x2),
+                            const SizedBox(height: TwSpacing.rhythmTight),
                             Text(
                               'Sign in to continue your orders, favorites, and rewards.',
                               style: TwText.textSm(),
                             ),
-                            const SizedBox(height: TwSpacing.x8),
+                            const SizedBox(height: TwSpacing.rhythmSection),
                             AppTextField(
                               controller: _emailController,
                               label: 'Email address',
@@ -107,7 +112,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               textInputAction: TextInputAction.next,
                               autofillHints: const [AutofillHints.email],
                             ),
-                            const SizedBox(height: TwSpacing.x4),
+                            const SizedBox(height: TwSpacing.rhythmDefault),
                             AppTextField(
                               controller: _passwordController,
                               label: 'Password',
@@ -120,7 +125,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 if (!_isLoading) _login();
                               },
                             ),
-                            const SizedBox(height: TwSpacing.x2),
+                            const SizedBox(height: TwSpacing.rhythmTight),
                             Align(
                               alignment: Alignment.centerRight,
                               child: TextButton(
@@ -132,7 +137,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 ),
                               ),
                             ),
-                            const SizedBox(height: TwSpacing.x6),
+                            const SizedBox(height: TwSpacing.rhythmSection),
                             if (_isLoading)
                               const Center(child: CircularProgressIndicator())
                             else
@@ -148,8 +153,9 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                       const SizedBox(height: TwSpacing.x6),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
+                      Wrap(
+                        alignment: WrapAlignment.center,
+                        crossAxisAlignment: WrapCrossAlignment.center,
                         children: [
                           Text('New to Zivo?', style: TwText.textSm()),
                           TextButton(
