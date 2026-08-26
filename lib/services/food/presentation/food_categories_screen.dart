@@ -4,12 +4,17 @@ import '../../../config/theme.dart';
 import '../../../features/home/data/category_repository.dart';
 import '../../../features/home/models/category.dart';
 import '../../../widgets/app_cards.dart';
+import '../../../widgets/app_misc.dart';
 import '../../../widgets/app_scaffold.dart';
 
 class FoodCategoriesScreen extends StatefulWidget {
-  const FoodCategoriesScreen({super.key, this.repository});
+  const FoodCategoriesScreen({super.key, this.repository, this.categories});
 
   final CategoryRepository? repository;
+
+  /// Test seam mirroring [FoodExploreScreen]'s `restaurants` parameter —
+  /// lets tests inject data directly without a live Supabase client.
+  final Future<List<Category>>? categories;
 
   @override
   State<FoodCategoriesScreen> createState() => _FoodCategoriesScreenState();
@@ -17,6 +22,7 @@ class FoodCategoriesScreen extends StatefulWidget {
 
 class _FoodCategoriesScreenState extends State<FoodCategoriesScreen> {
   late final Future<List<Category>> _categories =
+      widget.categories ??
       (widget.repository ?? CategoryRepository()).fetchCategories();
 
   @override
@@ -52,22 +58,25 @@ class _FoodCategoriesScreenState extends State<FoodCategoriesScreen> {
               crossAxisCount: 2,
               crossAxisSpacing: TwSpacing.x4,
               mainAxisSpacing: TwSpacing.x4,
-              childAspectRatio: 1.35,
+              // Tall enough for the 48px icon chip plus a two-line label at
+              // a 1.4x text scale on a 320px-wide screen without overflow.
+              childAspectRatio: 0.85,
             ),
             itemBuilder: (context, index) {
               final category = categories[index];
-              final palette = context.serviceColors;
+              // White card only — the service accent is confined to the
+              // 48px ServiceIconChip rather than tinting the card itself.
               return OutlinedCard(
-                backgroundColor: palette.card,
-                borderColor: palette.border,
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.restaurant_menu, color: palette.accent),
-                    const SizedBox(height: TwSpacing.x2),
+                    const ServiceIconChip(icon: Icons.restaurant_menu),
+                    const SizedBox(height: TwSpacing.rhythmTight),
                     Text(
                       category.name,
                       textAlign: TextAlign.center,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                       style: TwText.fontBoldSm(),
                     ),
                   ],

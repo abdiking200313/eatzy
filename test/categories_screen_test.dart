@@ -14,7 +14,7 @@ void main() {
     );
 
     expect(find.text('Services'), findsOneWidget);
-    expect(find.byType(GridView), findsOneWidget);
+    expect(find.byType(ListView), findsOneWidget);
     expect(find.byTooltip('Back'), findsNothing);
 
     for (final label in ['Food', 'Pharmacy', 'Grocery']) {
@@ -32,6 +32,30 @@ void main() {
 
     expect(find.byTooltip('Back'), findsOneWidget);
   });
+
+  testWidgets(
+    'services list stays overflow-free on a narrow, large-text screen',
+    (tester) async {
+      await tester.binding.setSurfaceSize(const Size(320, 640));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: MediaQuery(
+            data: const MediaQueryData(
+              size: Size(320, 640),
+              textScaler: TextScaler.linear(1.4),
+            ),
+            child: const CategoriesScreen(showBackButton: false),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Food'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    },
+  );
 
   testWidgets('home category section shows an empty state', (tester) async {
     await tester.pumpWidget(

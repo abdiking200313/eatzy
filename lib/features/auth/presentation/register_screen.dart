@@ -9,7 +9,12 @@ import '../../../widgets/zivo_logo.dart';
 import '../data/auth_service.dart';
 
 class RegisterScreen extends StatefulWidget {
-  const RegisterScreen({super.key});
+  const RegisterScreen({super.key, this.authService});
+
+  /// Overrides the default [AuthService] used to submit sign-up requests.
+  /// Only intended for tests — production code always uses the default,
+  /// which lazily reads `Supabase.instance.client`.
+  final AuthService? authService;
 
   @override
   State<RegisterScreen> createState() => _RegisterScreenState();
@@ -17,7 +22,7 @@ class RegisterScreen extends StatefulWidget {
 
 class _RegisterScreenState extends State<RegisterScreen> {
   // AuthService keeps the screen separate from the low-level Supabase calls.
-  final AuthService _authService = AuthService();
+  AuthService get _authService => widget.authService ?? AuthService();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController =
@@ -153,12 +158,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               'Create your account',
                               style: TwText.text3xl(),
                             ),
-                            const SizedBox(height: TwSpacing.x2),
+                            const SizedBox(height: TwSpacing.rhythmTight),
                             Text(
                               'Join Zivo and make every food order faster and more rewarding.',
                               style: TwText.textSm(),
                             ),
-                            const SizedBox(height: TwSpacing.x6),
+                            const SizedBox(height: TwSpacing.rhythmSection),
                             AppTextField(
                               controller: _emailController,
                               label: 'Email address',
@@ -168,7 +173,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               textInputAction: TextInputAction.next,
                               autofillHints: const [AutofillHints.email],
                             ),
-                            const SizedBox(height: TwSpacing.x4),
+                            const SizedBox(height: TwSpacing.rhythmDefault),
                             AppTextField(
                               controller: _passwordController,
                               label: 'Password',
@@ -178,7 +183,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               textInputAction: TextInputAction.next,
                               autofillHints: const [AutofillHints.newPassword],
                             ),
-                            const SizedBox(height: TwSpacing.x4),
+                            const SizedBox(height: TwSpacing.rhythmDefault),
                             AppTextField(
                               controller: _confirmPasswordController,
                               label: 'Confirm password',
@@ -190,7 +195,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 if (!_isLoading) _register();
                               },
                             ),
-                            const SizedBox(height: TwSpacing.x3),
+                            const SizedBox(height: TwSpacing.rhythmDefault),
                             Row(
                               children: [
                                 const Icon(
@@ -209,7 +214,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 ),
                               ],
                             ),
-                            const SizedBox(height: TwSpacing.x6),
+                            const SizedBox(height: TwSpacing.rhythmSection),
                             if (_isLoading)
                               const Center(child: CircularProgressIndicator())
                             else
@@ -225,8 +230,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         ),
                       ),
                       const SizedBox(height: TwSpacing.x5),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
+                      Wrap(
+                        alignment: WrapAlignment.center,
+                        crossAxisAlignment: WrapCrossAlignment.center,
                         children: [
                           Text(
                             'Already have an account?',
