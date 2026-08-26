@@ -29,7 +29,7 @@ class AddressesScreen extends StatelessWidget {
       title: 'Saved Addresses',
       showBackButton: true,
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(TwSpacing.x4),
+        padding: const EdgeInsets.all(TwSpacing.x5),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -39,21 +39,32 @@ class AddressesScreen extends StatelessWidget {
                 onPressed: () {},
                 child: const Row(
                   mainAxisAlignment: MainAxisAlignment.center,
-                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text('Add New Address'),
+                    Flexible(
+                      child: Text(
+                        'Add New Address',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
                     SizedBox(width: TwSpacing.x2),
                     Icon(Icons.add_rounded, size: 19),
                   ],
                 ),
               ),
             ),
-            const SizedBox(height: TwSpacing.x5),
-            for (final address in _addresses) ...[
-              _AddressCard(address: address),
-              if (address != _addresses.last)
-                const SizedBox(height: TwSpacing.x4),
-            ],
+            const SizedBox(height: TwSpacing.rhythmSection),
+            OutlinedCard(
+              padding: EdgeInsets.zero,
+              child: Column(
+                children: [
+                  for (final address in _addresses) ...[
+                    _AddressRow(address: address),
+                    if (address != _addresses.last) const Divider(height: 1),
+                  ],
+                ],
+              ),
+            ),
           ],
         ),
       ),
@@ -61,8 +72,8 @@ class AddressesScreen extends StatelessWidget {
   }
 }
 
-class _AddressCard extends StatelessWidget {
-  const _AddressCard({required this.address});
+class _AddressRow extends StatelessWidget {
+  const _AddressRow({required this.address});
 
   final _SavedAddress address;
 
@@ -70,8 +81,11 @@ class _AddressCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final palette = context.serviceColors;
     final colorScheme = Theme.of(context).colorScheme;
-    return OutlinedCard(
-      padding: const EdgeInsets.all(TwSpacing.x4),
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: TwSpacing.x4,
+        vertical: TwSpacing.rhythmDefault,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -88,34 +102,28 @@ class _AddressCard extends StatelessWidget {
                 ),
             ],
           ),
-          const SizedBox(height: TwSpacing.x3),
+          const SizedBox(height: TwSpacing.rhythmTight),
           Text(address.address, style: TwText.textSm().copyWith(height: 1.5)),
-          const SizedBox(height: TwSpacing.x4),
+          const SizedBox(height: TwSpacing.rhythmDefault),
           Row(
             children: [
               Expanded(
                 child: address.isDefault
-                    ? Container(
-                        padding: const EdgeInsets.symmetric(
-                          vertical: TwSpacing.x3,
-                        ),
-                        decoration: BoxDecoration(
-                          color: palette.soft,
-                          border: Border.all(color: palette.border),
-                          borderRadius: BorderRadius.circular(TwRadius.lg),
-                        ),
-                        child: Center(
-                          child: Text(
-                            'Default Address',
-                            style: TwText.fontBoldSm().copyWith(
-                              color: palette.accent,
-                            ),
-                          ),
+                    ? OutlinedButton(
+                        onPressed: null,
+                        child: const Text(
+                          'Default Address',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       )
                     : OutlinedButton(
                         onPressed: () {},
-                        child: const Text('Set as Default'),
+                        child: const Text(
+                          'Set as Default',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
               ),
               const SizedBox(width: TwSpacing.x3),

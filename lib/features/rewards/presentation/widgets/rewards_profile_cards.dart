@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../config/theme.dart';
+import '../../../../widgets/app_cards.dart';
 import '../models/reward_models.dart';
 
 class AchievementCard extends StatelessWidget {
@@ -10,33 +11,41 @@ class AchievementCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: achievement.unlocked ? TwColors.blue400 : TwColors.cardMuted,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            achievement.icon,
-            size: 28,
-            color: achievement.unlocked ? TwColors.text : TwColors.textMuted,
-          ),
-          const SizedBox(height: TwSpacing.x1),
-          Text(
-            achievement.label,
-            textAlign: TextAlign.center,
-            style: TwText.textXs().copyWith(
-              color: achievement.unlocked ? TwColors.text : TwColors.textMuted,
+    return OutlinedCard(
+      padding: const EdgeInsets.all(TwSpacing.x2),
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              achievement.icon,
+              size: 26,
+              color: achievement.unlocked
+                  ? TwColors.primary
+                  : TwColors.textMuted,
             ),
-          ),
-        ],
+            const SizedBox(height: TwSpacing.rhythmTight),
+            Text(
+              achievement.label,
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              style: TwText.textXs().copyWith(
+                color: achievement.unlocked
+                    ? TwColors.text
+                    : TwColors.textMuted,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 }
 
+/// A single leaderboard row. Rendered bare so [RewardsProfileScreen] can
+/// compose several rows inside one shared [OutlinedCard] with internal
+/// dividers — "one card per list, not one card per row" (#21/#27).
 class LeaderboardCard extends StatelessWidget {
   const LeaderboardCard({super.key, required this.entry});
 
@@ -44,25 +53,43 @@ class LeaderboardCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(TwSpacing.x5),
-      decoration: BoxDecoration(
-        color: entry.highlighted ? TwColors.blue400 : TwColors.cardMuted,
-        borderRadius: BorderRadius.circular(12),
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: TwSpacing.x4,
+        vertical: TwSpacing.rhythmDefault,
       ),
       child: Row(
         children: [
           Text(
             '#${entry.rank}',
-            style: TwText.fontBoldSm().copyWith(
-              color: entry.highlighted ? TwColors.text : TwColors.textMuted,
+            style: TwText.textSm().copyWith(
+              fontWeight: FontWeight.w700,
+              color: entry.highlighted ? TwColors.primary : TwColors.text,
             ),
           ),
-          const SizedBox(width: TwSpacing.x5),
-          Expanded(child: Text(entry.name, style: TwText.fontBoldSm())),
-          Text(
-            entry.points,
-            style: TwText.fontBoldSm().copyWith(color: TwColors.primary),
+          const SizedBox(width: TwSpacing.rhythmTight),
+          Expanded(
+            child: Text(
+              entry.name,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TwText.fontBoldSm().copyWith(
+                color: entry.highlighted ? TwColors.primary : TwColors.text,
+              ),
+            ),
+          ),
+          const SizedBox(width: TwSpacing.rhythmTight),
+          Flexible(
+            child: Text(
+              entry.points,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.right,
+              style: TwText.textSm().copyWith(
+                fontWeight: FontWeight.w700,
+                color: TwColors.primary,
+              ),
+            ),
           ),
         ],
       ),
