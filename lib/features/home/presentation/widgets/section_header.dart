@@ -22,12 +22,15 @@ class SectionHeader extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
+        // Expanded + ellipsis keeps this row overflow-free next to the
+        // trailing action button at narrow widths / large text scales
+        // (e.g. 320x640 @1.4x) without changing the header's styling.
         Expanded(
           child: Text(
             title,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: TwText.sectionLabel(),
+            style: TwText.textXl(),
           ),
         ),
         if (actionLabel != null)

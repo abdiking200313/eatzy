@@ -17,6 +17,8 @@ class RestaurantCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // White card only — the per-service accent stays confined to the
+    // fallback imagery/icon chip, never the card fill or border.
     return OutlinedCard(
       backgroundColor: TwColors.card,
       borderRadius: TwRadius.xl,

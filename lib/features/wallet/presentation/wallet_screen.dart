@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../config/theme.dart';
+import '../../../widgets/app_cards.dart';
 import '../../../widgets/app_scaffold.dart';
 import 'models/wallet_models.dart';
 import 'widgets/wallet_balance_card.dart';
@@ -46,25 +47,38 @@ class WalletScreen extends StatelessWidget {
       title: 'My Wallet',
       showBackButton: true,
       body: ListView(
-        padding: const EdgeInsets.all(TwSpacing.x4),
+        padding: const EdgeInsets.all(TwSpacing.x5),
         children: [
           const WalletBalanceCard(balance: r'$120.50', actions: _actions),
-          const SizedBox(height: TwSpacing.x6),
+          const SizedBox(height: TwSpacing.rhythmSection),
           const SectionTitle('Payment Methods', fontSize: 18),
-          const SizedBox(height: TwSpacing.x3),
-          for (final method in _paymentMethods) ...[
-            WalletPaymentMethodCard(method: method),
-            if (method != _paymentMethods.last)
-              const SizedBox(height: TwSpacing.x3),
-          ],
-          const SizedBox(height: TwSpacing.x6),
+          const SizedBox(height: TwSpacing.rhythmDefault),
+          OutlinedCard(
+            padding: EdgeInsets.zero,
+            child: Column(
+              children: [
+                for (final method in _paymentMethods) ...[
+                  WalletPaymentMethodRow(method: method),
+                  if (method != _paymentMethods.last) const Divider(height: 1),
+                ],
+              ],
+            ),
+          ),
+          const SizedBox(height: TwSpacing.rhythmSection),
           const SectionTitle('Recent Transactions', fontSize: 18),
-          const SizedBox(height: TwSpacing.x3),
-          for (final transaction in _transactions) ...[
-            WalletTransactionRow(transaction: transaction),
-            if (transaction != _transactions.last)
-              const SizedBox(height: TwSpacing.x3),
-          ],
+          const SizedBox(height: TwSpacing.rhythmDefault),
+          OutlinedCard(
+            padding: EdgeInsets.zero,
+            child: Column(
+              children: [
+                for (final transaction in _transactions) ...[
+                  WalletTransactionRow(transaction: transaction),
+                  if (transaction != _transactions.last)
+                    const Divider(height: 1),
+                ],
+              ],
+            ),
+          ),
         ],
       ),
     );

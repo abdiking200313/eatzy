@@ -618,9 +618,9 @@ class _RestaurantError extends StatelessWidget {
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 420),
                 child: OutlinedCard(
-                  backgroundColor: palette.card,
-                  borderColor: palette.border,
-                  borderRadius: 18,
+                  backgroundColor: TwColors.card,
+                  borderColor: TwColors.border,
+                  borderRadius: TwRadius.xl,
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [

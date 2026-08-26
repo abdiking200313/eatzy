@@ -5,6 +5,7 @@ import '../../../config/theme.dart';
 import '../../../platform/localization/app_money.dart';
 import '../../../widgets/add_to_cart_button.dart';
 import '../../../widgets/app_cards.dart';
+import '../../../widgets/app_misc.dart';
 import '../../../widgets/app_scaffold.dart';
 import '../models/pharmacy_product.dart';
 import 'pharmacy_controller.dart';
@@ -111,16 +112,14 @@ class _OtcNotice extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final palette = context.serviceColors;
+    // White card only — the service accent is confined to the icon chip.
     return OutlinedCard(
-      backgroundColor: palette.card,
-      borderColor: palette.border,
       padding: const EdgeInsets.all(TwSpacing.x4),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(Icons.health_and_safety_outlined, color: palette.accent),
-          const SizedBox(width: TwSpacing.rhythmTight),
+          const ServiceIconChip(icon: Icons.health_and_safety_outlined),
+          const SizedBox(width: TwSpacing.rhythmDefault),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -150,47 +149,31 @@ class _ProductCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final palette = context.serviceColors;
     final stockLabel = !product.isAvailable
         ? 'Out of stock'
         : product.isLowStock
         ? 'Only ${product.stockQuantity} left'
         : 'In stock';
 
+    // White card only — the service accent is confined to the 48px icon
+    // chip, never the card fill or border.
     return OutlinedCard(
-      backgroundColor: palette.card,
-      borderColor: palette.border,
       padding: const EdgeInsets.all(TwSpacing.x4),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: 64,
-            height: 64,
-            decoration: BoxDecoration(
-              color: palette.soft,
-              borderRadius: BorderRadius.circular(TwRadius.xl),
-            ),
-            child: Icon(
-              Icons.medication_outlined,
-              color: palette.accent,
-              size: 32,
-            ),
-          ),
-          const SizedBox(width: TwSpacing.x4),
+          const ServiceIconChip(icon: Icons.medication_outlined),
+          const SizedBox(width: TwSpacing.rhythmDefault),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  product.category,
-                  style: TwText.link().copyWith(color: palette.accent),
-                ),
-                const SizedBox(height: TwSpacing.x1),
+                Text(product.category, style: TwText.link()),
+                const SizedBox(height: TwSpacing.rhythmTight),
                 Text(product.name, style: TwText.fontBoldBase()),
-                const SizedBox(height: TwSpacing.x1),
+                const SizedBox(height: TwSpacing.rhythmTight),
                 Text(product.description, style: TwText.textSm()),
-                const SizedBox(height: TwSpacing.x3),
+                const SizedBox(height: TwSpacing.rhythmDefault),
                 Wrap(
                   spacing: TwSpacing.x3,
                   runSpacing: TwSpacing.x2,
@@ -199,16 +182,17 @@ class _ProductCard extends StatelessWidget {
                     Text(
                       AppMoney.format(product.unitPrice),
                       style: TwText.fontBoldBase().copyWith(
-                        color: palette.accent,
+                        color: TwColors.primary,
                       ),
                     ),
-                    Text(
-                      stockLabel,
-                      style: TwText.textXs().copyWith(
-                        color: product.isAvailable
-                            ? TwColors.textMuted
-                            : TwColors.error,
-                      ),
+                    StatusPill(
+                      label: stockLabel,
+                      backgroundColor: product.isAvailable
+                          ? TwColors.tertiary.withOpacityValue(0.14)
+                          : TwColors.errorSoft,
+                      foregroundColor: product.isAvailable
+                          ? const Color(0xFF0F7A54)
+                          : TwColors.error,
                     ),
                   ],
                 ),

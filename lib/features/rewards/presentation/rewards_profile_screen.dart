@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../config/theme.dart';
+import '../../../widgets/app_cards.dart';
 import '../../../widgets/app_misc.dart';
 import 'models/reward_models.dart';
 import 'widgets/rewards_profile_cards.dart';
@@ -84,9 +85,16 @@ class RewardsProfileScreen extends StatelessWidget {
                   Text('Experience Points', style: TwText.fontBoldSm()),
                   const SizedBox(height: TwSpacing.x1),
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text('2,450/3,000', style: TwText.textSm()),
+                      Expanded(
+                        child: Text(
+                          '2,450/3,000',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TwText.textSm(),
+                        ),
+                      ),
+                      const SizedBox(width: TwSpacing.x2),
                       Text(
                         '82%',
                         style: TwText.fontBoldSm().copyWith(
@@ -135,11 +143,17 @@ class RewardsProfileScreen extends StatelessWidget {
                   const SizedBox(height: TwSpacing.x8),
                   Text('Leaderboard', style: TwText.textXl()),
                   const SizedBox(height: TwSpacing.x5),
-                  for (final entry in _leaders) ...[
-                    LeaderboardCard(entry: entry),
-                    if (entry != _leaders.last)
-                      const SizedBox(height: TwSpacing.x2),
-                  ],
+                  OutlinedCard(
+                    padding: EdgeInsets.zero,
+                    child: Column(
+                      children: [
+                        for (final entry in _leaders) ...[
+                          LeaderboardCard(entry: entry),
+                          if (entry != _leaders.last) const Divider(height: 1),
+                        ],
+                      ],
+                    ),
+                  ),
                 ],
               ),
             ),
