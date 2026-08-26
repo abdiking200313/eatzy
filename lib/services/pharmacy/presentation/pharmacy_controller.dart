@@ -49,14 +49,22 @@ class PharmacyController extends ChangeNotifier {
   final List<PharmacyCartItem> _cartItems = [];
 
   bool _isLoading = false;
+  bool _isLoadingMore = false;
   String? _loadError;
+  bool _hasMore = true;
 
   UnmodifiableListView<PharmacyProduct> get products =>
       UnmodifiableListView(_products);
   UnmodifiableListView<PharmacyCartItem> get cartItems =>
       UnmodifiableListView(_cartItems);
   bool get isLoading => _isLoading;
+  bool get isLoadingMore => _isLoadingMore;
   String? get loadError => _loadError;
+
+  /// Whether another page of products may exist. Starts `true` and flips
+  /// to `false` once a fetched page comes back shorter than the requested
+  /// page size (see [loadMore]).
+  bool get hasMore => _hasMore;
   bool get isCartEmpty => _cartItems.isEmpty;
   bool get isCartNotEmpty => _cartItems.isNotEmpty;
   int get itemCount =>
@@ -75,14 +83,43 @@ class PharmacyController extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final products = await _repository.fetchProducts();
+      final products = await _repository.fetchProducts(
+        limit: pharmacyProductsPageSize,
+      );
       _products
         ..clear()
         ..addAll(products.where((product) => product.isOverTheCounter));
+      _hasMore = products.length >= pharmacyProductsPageSize;
     } on Object {
       _loadError = 'The pharmacy catalog could not be loaded.';
     } finally {
       _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  /// Fetches and appends the next page of products. No-ops while a load is
+  /// already in flight or once [hasMore] is `false`.
+  Future<void> loadMore() async {
+    if (_isLoading || _isLoadingMore || !_hasMore) {
+      return;
+    }
+
+    _isLoadingMore = true;
+    notifyListeners();
+
+    try {
+      final nextPage = await _repository.fetchProducts(
+        limit: pharmacyProductsPageSize,
+        offset: _products.length,
+      );
+      _products.addAll(nextPage.where((product) => product.isOverTheCounter));
+      _hasMore = nextPage.length >= pharmacyProductsPageSize;
+    } on Object {
+      // Leave `_hasMore` as-is so the trailing "load more" control stays
+      // visible and a subsequent scroll/tap can retry.
+    } finally {
+      _isLoadingMore = false;
       notifyListeners();
     }
   }

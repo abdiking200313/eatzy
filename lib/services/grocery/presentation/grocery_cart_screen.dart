@@ -85,39 +85,55 @@ class _CartBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListView(
+    // Header row + one row per cart line + the totals summary row.
+    final cart = controller.cart;
+    final itemCount = cart.length + 2;
+
+    return ListView.builder(
       padding: const EdgeInsets.fromLTRB(
         TwSpacing.x4,
         TwSpacing.x2,
         TwSpacing.x4,
         TwSpacing.x8,
       ),
-      children: [
-        Text(controller.storeName ?? 'Grocery store', style: TwText.textXl()),
-        const SizedBox(height: TwSpacing.x4),
-        for (final line in controller.cart) ...[
-          _CartLineCard(line: line, controller: controller),
-          const SizedBox(height: TwSpacing.x3),
-        ],
-        const SizedBox(height: TwSpacing.x3),
-        OutlinedCard(
-          backgroundColor: context.serviceColors.card,
-          borderColor: context.serviceColors.border,
-          child: Column(
-            children: [
-              _TotalRow(label: 'Subtotal', amount: controller.subtotal),
-              const SizedBox(height: TwSpacing.x2),
-              _TotalRow(label: 'Delivery', amount: controller.deliveryFee),
-              const Divider(height: TwSpacing.x6),
-              _TotalRow(
-                label: 'Total',
-                amount: controller.total,
-                emphasized: true,
-              ),
-            ],
+      itemCount: itemCount,
+      itemBuilder: (context, index) {
+        if (index == 0) {
+          return Padding(
+            padding: const EdgeInsets.only(bottom: TwSpacing.x4),
+            child: Text(
+              controller.storeName ?? 'Grocery store',
+              style: TwText.textXl(),
+            ),
+          );
+        }
+        if (index - 1 < cart.length) {
+          return Padding(
+            padding: const EdgeInsets.only(bottom: TwSpacing.x3),
+            child: _CartLineCard(line: cart[index - 1], controller: controller),
+          );
+        }
+        return Padding(
+          padding: const EdgeInsets.only(top: TwSpacing.x3),
+          child: OutlinedCard(
+            backgroundColor: context.serviceColors.card,
+            borderColor: context.serviceColors.border,
+            child: Column(
+              children: [
+                _TotalRow(label: 'Subtotal', amount: controller.subtotal),
+                const SizedBox(height: TwSpacing.x2),
+                _TotalRow(label: 'Delivery', amount: controller.deliveryFee),
+                const Divider(height: TwSpacing.x6),
+                _TotalRow(
+                  label: 'Total',
+                  amount: controller.total,
+                  emphasized: true,
+                ),
+              ],
+            ),
           ),
-        ),
-      ],
+        );
+      },
     );
   }
 }
