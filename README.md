@@ -21,8 +21,7 @@ Several screens currently show polished UI backed by hardcoded/fake data rather 
 ## 🚀 Quick Start
 
 ### Prerequisites
-- Flutter SDK 3.0+
-- Dart SDK (included with Flutter)
+- Flutter SDK 3.41.9+ (bundles Dart SDK 3.11.5+, per `pubspec.yaml`'s `environment:` constraint; see `.fvmrc`/`.tool-versions` for the pinned version)
 - Git
 
 ### Installation
