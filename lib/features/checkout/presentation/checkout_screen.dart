@@ -32,8 +32,25 @@ class CheckoutScreen extends StatefulWidget {
 }
 
 class _CheckoutScreenState extends State<CheckoutScreen> {
+  final _recipientController = TextEditingController();
+  final _phoneController = TextEditingController();
+  final _streetController = TextEditingController();
+  final _districtController = TextEditingController();
+  final _cityController = TextEditingController(text: 'Mogadishu');
+
   bool _isSubmitting = false;
   String? _submissionError;
+  List<String> _addressErrors = const [];
+
+  @override
+  void dispose() {
+    _recipientController.dispose();
+    _phoneController.dispose();
+    _streetController.dispose();
+    _districtController.dispose();
+    _cityController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -60,7 +77,12 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   ),
                   const SizedBox(height: TwSpacing.x8),
                   DeliveryAddressCard(
-                    onChangePressed: () => context.push(AppRoutes.addresses),
+                    recipientController: _recipientController,
+                    phoneController: _phoneController,
+                    streetController: _streetController,
+                    districtController: _districtController,
+                    cityController: _cityController,
+                    errors: _addressErrors,
                   ),
                   const SizedBox(height: TwSpacing.x8),
                   if (_submissionError case final error?) ...[
@@ -89,6 +111,26 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     );
   }
 
+  List<String> _validateAddress(FoodDeliveryAddress address) {
+    final errors = <String>[];
+    if (address.recipientName.trim().isEmpty) {
+      errors.add('Enter the recipient name.');
+    }
+    if (address.phone.trim().length < 7) {
+      errors.add('Enter a valid phone number.');
+    }
+    if (address.street.trim().isEmpty) {
+      errors.add('Enter a street or landmark.');
+    }
+    if (address.district.trim().isEmpty) {
+      errors.add('Enter a district.');
+    }
+    if (address.city.trim().isEmpty) {
+      errors.add('Enter a city.');
+    }
+    return errors;
+  }
+
   Future<void> _placeOrder(
     BuildContext context,
     CartController controller,
@@ -98,9 +140,26 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       return;
     }
 
+    final address = FoodDeliveryAddress(
+      recipientName: _recipientController.text,
+      phone: _phoneController.text,
+      street: _streetController.text,
+      district: _districtController.text,
+      city: _cityController.text,
+    );
+    final addressErrors = _validateAddress(address);
+    if (addressErrors.isNotEmpty) {
+      setState(() {
+        _addressErrors = addressErrors;
+        _submissionError = null;
+      });
+      return;
+    }
+
     setState(() {
       _isSubmitting = true;
       _submissionError = null;
+      _addressErrors = const [];
     });
     try {
       final repository =
@@ -109,6 +168,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       final orderId = await repository.placeOrder(
         FoodOrderRequest(
           restaurantId: restaurantId,
+          address: address,
           items: [
             for (final item in controller.items)
               FoodOrderLineInput(
