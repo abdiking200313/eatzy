@@ -1,5 +1,5 @@
-import 'package:chowflow/features/cart/data/cart_storage.dart';
-import 'package:chowflow/features/cart/models/cart_item.dart';
+import 'package:chowflow/services/food/data/cart_storage.dart';
+import 'package:chowflow/services/food/models/cart_item.dart';
 
 class MemoryCartStorage implements CartStorage {
   final Map<String, List<CartItem>> _carts = {};

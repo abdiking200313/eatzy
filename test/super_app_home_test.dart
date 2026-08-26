@@ -1,7 +1,7 @@
 import 'package:chowflow/config/theme.dart';
 import 'package:chowflow/app/service_module.dart';
-import 'package:chowflow/features/home/models/restaurant.dart';
 import 'package:chowflow/features/super_app/presentation/super_app_home_screen.dart';
+import 'package:chowflow/services/food/models/restaurant.dart';
 import 'package:chowflow/platform/activity/models/activity_item.dart';
 import 'package:chowflow/platform/activity/presentation/activity_controller.dart';
 import 'package:flutter/material.dart';

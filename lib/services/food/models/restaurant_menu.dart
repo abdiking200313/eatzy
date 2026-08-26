@@ -1,4 +1,4 @@
-import '../../home/models/restaurant.dart';
+import 'restaurant.dart';
 
 class RestaurantMenu {
   const RestaurantMenu({required this.restaurant, required this.categories});

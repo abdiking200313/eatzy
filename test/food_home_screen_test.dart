@@ -2,9 +2,9 @@ import 'dart:async';
 
 import 'package:chowflow/app/service_module.dart';
 import 'package:chowflow/config/theme.dart';
-import 'package:chowflow/features/home/models/category.dart';
-import 'package:chowflow/features/home/models/restaurant.dart';
-import 'package:chowflow/features/home/presentation/home_screen.dart';
+import 'package:chowflow/services/food/models/category.dart';
+import 'package:chowflow/services/food/models/restaurant.dart';
+import 'package:chowflow/services/food/presentation/home_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 

@@ -5,13 +5,13 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../app/app_routes.dart';
 import '../../../config/theme.dart';
-import '../../../features/cart/models/cart_item.dart';
-import '../../../features/cart/presentation/cart_controller.dart';
-import '../../../services/food/data/food_repository.dart';
-import '../../../services/food/models/food_models.dart';
 import '../../../widgets/app_cards.dart';
+import '../data/food_repository.dart';
 import '../data/restaurant_menu_repository.dart';
+import '../models/cart_item.dart';
+import '../models/food_models.dart';
 import '../models/restaurant_menu.dart';
+import 'cart_controller.dart';
 import 'widgets/menu_item_card.dart';
 
 typedef RestaurantMenuLoader =

@@ -5,12 +5,12 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'app/app_router.dart';
 import 'config/theme.dart';
-import 'features/cart/presentation/cart_controller.dart';
 import 'platform/activity/data/activity_repository.dart';
 import 'platform/activity/presentation/activity_controller.dart';
 import 'platform/session/account_state_coordinator.dart';
 import 'platform/session/secure_session_storage.dart';
 import 'platform/system_ui/android_navigation_bar_controller.dart';
+import 'services/food/presentation/cart_controller.dart';
 import 'widgets/zivo_logo.dart';
 
 void main() async {

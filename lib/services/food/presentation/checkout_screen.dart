@@ -7,11 +7,11 @@ import '../../../app/service_module.dart';
 import '../../../config/theme.dart';
 import '../../../platform/activity/models/activity_item.dart';
 import '../../../platform/activity/presentation/activity_controller.dart';
-import '../../cart/presentation/cart_controller.dart';
-import '../../../services/food/data/food_repository.dart';
-import '../../../services/food/models/food_models.dart';
 import '../../../widgets/app_cards.dart';
 import '../../../widgets/app_scaffold.dart';
+import '../data/food_repository.dart';
+import '../models/food_models.dart';
+import 'cart_controller.dart';
 import 'widgets/delivery_address_card.dart';
 import 'widgets/order_summary_card.dart';
 

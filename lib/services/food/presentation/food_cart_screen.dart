@@ -2,14 +2,14 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import '../app/app_routes.dart';
-import '../config/theme.dart';
-import '../features/cart/models/cart_item.dart';
-import '../features/cart/presentation/cart_controller.dart';
-import '../platform/localization/app_money.dart';
-import '../widgets/app_cards.dart';
-import '../widgets/app_misc.dart';
-import '../widgets/app_scaffold.dart';
+import '../../../app/app_routes.dart';
+import '../../../config/theme.dart';
+import '../../../platform/localization/app_money.dart';
+import '../../../widgets/app_cards.dart';
+import '../../../widgets/app_misc.dart';
+import '../../../widgets/app_scaffold.dart';
+import '../models/cart_item.dart';
+import 'cart_controller.dart';
 
 class CartScreen extends StatelessWidget {
   const CartScreen({super.key, this.cartController});

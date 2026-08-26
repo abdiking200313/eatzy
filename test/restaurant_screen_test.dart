@@ -1,9 +1,9 @@
 import 'package:chowflow/config/theme.dart';
-import 'package:chowflow/features/cart/presentation/cart_controller.dart';
-import 'package:chowflow/features/home/models/restaurant.dart';
-import 'package:chowflow/features/restaurant/models/restaurant_menu.dart';
-import 'package:chowflow/features/restaurant/presentation/restaurant_screen.dart';
-import 'package:chowflow/features/restaurant/presentation/widgets/menu_item_card.dart';
+import 'package:chowflow/services/food/models/restaurant.dart';
+import 'package:chowflow/services/food/models/restaurant_menu.dart';
+import 'package:chowflow/services/food/presentation/cart_controller.dart';
+import 'package:chowflow/services/food/presentation/restaurant_screen.dart';
+import 'package:chowflow/services/food/presentation/widgets/menu_item_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 

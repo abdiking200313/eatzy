@@ -3,10 +3,10 @@ import 'package:go_router/go_router.dart';
 
 import '../../../app/app_routes.dart';
 import '../../../config/theme.dart';
-import '../../../features/home/data/restaurant_repository.dart';
-import '../../../features/home/models/restaurant.dart';
-import '../../../features/home/presentation/widgets/restaurant_card.dart';
 import '../../../widgets/app_scaffold.dart';
+import '../data/restaurant_repository.dart';
+import '../models/restaurant.dart';
+import 'widgets/restaurant_card.dart';
 
 class FoodExploreScreen extends StatefulWidget {
   const FoodExploreScreen({super.key, this.repository, this.restaurants});

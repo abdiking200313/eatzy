@@ -1,5 +1,5 @@
 import 'package:chowflow/config/theme.dart';
-import 'package:chowflow/features/home/models/restaurant.dart';
+import 'package:chowflow/services/food/models/restaurant.dart';
 import 'package:chowflow/services/food/presentation/food_explore_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
