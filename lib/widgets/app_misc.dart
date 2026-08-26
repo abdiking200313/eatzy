@@ -98,9 +98,16 @@ class StatusPill extends StatelessWidget {
             Icon(icon, color: fg, size: fontSize + 2),
             const SizedBox(width: TwSpacing.x1),
           ],
-          Text(
-            label,
-            style: TwText.textXs().copyWith(color: fg, fontSize: fontSize),
+          // Flexible + ellipsis lets the pill shrink gracefully instead of
+          // overflowing when its parent gives it a tight width (e.g. a
+          // narrow screen at a large text scale).
+          Flexible(
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TwText.textXs().copyWith(color: fg, fontSize: fontSize),
+            ),
           ),
         ],
       ),

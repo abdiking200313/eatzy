@@ -19,11 +19,12 @@ class MenuItemCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final palette = context.serviceColors;
+    // White card only — the per-service accent stays confined to the
+    // fallback imagery, never the card fill or border.
     return OutlinedCard(
-      backgroundColor: palette.card,
-      borderColor: palette.border,
-      borderRadius: 18,
+      backgroundColor: TwColors.card,
+      borderColor: TwColors.border,
+      borderRadius: TwRadius.xl,
       padding: EdgeInsets.zero,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -45,14 +46,14 @@ class MenuItemCard extends StatelessWidget {
                     const SizedBox(height: TwSpacing.x1),
                     Text(item.description, style: TwText.textSm()),
                   ],
-                  const SizedBox(height: TwSpacing.x3),
+                  const SizedBox(height: TwSpacing.rhythmDefault),
                   Row(
                     children: [
                       Expanded(
                         child: Text(
                           AppMoney.format(item.price),
                           style: TwText.fontBoldBase().copyWith(
-                            color: palette.accent,
+                            color: TwColors.primary,
                           ),
                         ),
                       ),

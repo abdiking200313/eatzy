@@ -70,4 +70,68 @@ void main() {
       expect(tester.takeException(), isNull);
     },
   );
+
+  testWidgets(
+    'pharmacy catalog stays overflow-free on a narrow, large-text screen',
+    (tester) async {
+      await tester.binding.setSurfaceSize(const Size(320, 640));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      final controller = PharmacyController(
+        repository: const SeededPharmacyRepository(),
+        activityController: ActivityController(),
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: buildAppTheme(),
+          home: ZivoServiceTheme(
+            serviceId: ServiceId.pharmacy,
+            child: MediaQuery(
+              data: const MediaQueryData(
+                size: Size(320, 640),
+                textScaler: TextScaler.linear(1.4),
+              ),
+              child: PharmacyCatalogScreen(controller: controller),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Over-the-counter (OTC) only'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets(
+    'grocery catalog stays overflow-free on a narrow, large-text screen',
+    (tester) async {
+      await tester.binding.setSurfaceSize(const Size(320, 640));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      final controller = GroceryController(
+        repository: const SeededGroceryRepository(),
+        activityController: ActivityController(),
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: buildAppTheme(),
+          home: ZivoServiceTheme(
+            serviceId: ServiceId.grocery,
+            child: MediaQuery(
+              data: const MediaQueryData(
+                size: Size(320, 640),
+                textScaler: TextScaler.linear(1.4),
+              ),
+              child: GroceryScreen(controller: controller),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Essentials from Somali stores'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    },
+  );
 }

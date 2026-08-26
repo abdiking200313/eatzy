@@ -7,6 +7,7 @@ import '../../../config/theme.dart';
 import '../../../platform/localization/app_money.dart';
 import '../../../widgets/add_to_cart_button.dart';
 import '../../../widgets/app_cards.dart';
+import '../../../widgets/app_misc.dart';
 import '../../../widgets/app_scaffold.dart';
 import '../models/grocery_models.dart';
 import 'grocery_controller.dart';
@@ -164,8 +165,24 @@ class _StoreHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Expanded(child: Text(store.name, style: TwText.textXl())),
-        Text(store.area, style: TwText.textXs()),
+        Expanded(
+          child: Text(
+            store.name,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TwText.textXl(),
+          ),
+        ),
+        const SizedBox(width: TwSpacing.x2),
+        Flexible(
+          child: Text(
+            store.area,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.right,
+            style: TwText.textXs(),
+          ),
+        ),
       ],
     );
   }
@@ -185,33 +202,56 @@ class _ProductCard extends StatelessWidget {
       GroceryStockState.lowStock => 'Low stock',
       GroceryStockState.outOfStock => 'Out of stock',
     };
-    final stockColor = switch (product.stockState) {
-      GroceryStockState.inStock => palette.accent,
-      GroceryStockState.lowStock => Colors.orange.shade800,
-      GroceryStockState.outOfStock => TwColors.error,
+    final stockPillColors = switch (product.stockState) {
+      GroceryStockState.inStock => (
+        bg: TwColors.tertiary.withOpacityValue(0.14),
+        fg: const Color(0xFF0F7A54),
+      ),
+      GroceryStockState.lowStock => (
+        bg: const Color(0xFFFFF1D6),
+        fg: Colors.orange.shade800,
+      ),
+      GroceryStockState.outOfStock => (
+        bg: TwColors.errorSoft,
+        fg: TwColors.error,
+      ),
     };
 
+    // White card only (dimmed to neutral stone for the unavailable state);
+    // the per-service accent is confined to the 48px icon chip.
     return OutlinedCard(
-      backgroundColor: product.isAvailable ? palette.card : TwColors.stone100,
-      borderColor: product.isAvailable ? palette.border : TwColors.stone300,
+      backgroundColor: product.isAvailable ? TwColors.card : TwColors.stone100,
+      borderColor: product.isAvailable ? TwColors.border : TwColors.stone300,
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(product.icon, style: const TextStyle(fontSize: 34)),
-          const SizedBox(width: TwSpacing.x4),
+          Container(
+            width: ServiceIconChip.size,
+            height: ServiceIconChip.size,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: product.isAvailable ? palette.accent : TwColors.stone300,
+              borderRadius: BorderRadius.circular(TwRadius.lg),
+            ),
+            child: Text(product.icon, style: const TextStyle(fontSize: 24)),
+          ),
+          const SizedBox(width: TwSpacing.rhythmDefault),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(product.name, style: TwText.fontBoldBase()),
                 Text(product.description, style: TwText.textSm()),
-                const SizedBox(height: TwSpacing.x1),
+                const SizedBox(height: TwSpacing.rhythmTight),
                 Text(
                   '${AppMoney.format(product.unitPrice)} ${product.unitLabel}',
                   style: TwText.fontBoldSm(),
                 ),
-                Text(
-                  stockLabel,
-                  style: TwText.textXs().copyWith(color: stockColor),
+                const SizedBox(height: TwSpacing.rhythmTight),
+                StatusPill(
+                  label: stockLabel,
+                  backgroundColor: stockPillColors.bg,
+                  foregroundColor: stockPillColors.fg,
                 ),
               ],
             ),
