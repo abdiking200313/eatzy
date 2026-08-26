@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 
 import '../../../../config/theme.dart';
-import '../../../../widgets/app_cards.dart';
 
+/// A single settings row. Rendered bare (no card of its own) so a screen
+/// can compose several rows inside one shared [OutlinedCard] with internal
+/// dividers — "one card per list, not one card per row" (#21/#27).
 class SettingCard extends StatelessWidget {
   const SettingCard({
     super.key,
@@ -19,7 +21,11 @@ class SettingCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final card = OutlinedCard(
+    final row = Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: TwSpacing.x4,
+        vertical: TwSpacing.rhythmDefault,
+      ),
       child: Row(
         children: [
           Icon(icon, color: TwColors.primary, size: 24),
@@ -29,7 +35,7 @@ class SettingCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(title, style: TwText.fontBoldSm()),
-                const SizedBox(height: TwSpacing.x1),
+                const SizedBox(height: TwSpacing.rhythmTight),
                 Text(
                   subtitle,
                   style: TwText.textXs().copyWith(color: TwColors.textMuted),
@@ -46,12 +52,8 @@ class SettingCard extends StatelessWidget {
       ),
     );
 
-    if (onTap == null) return card;
+    if (onTap == null) return row;
 
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(TwRadius.lg),
-      child: card,
-    );
+    return InkWell(onTap: onTap, child: row);
   }
 }

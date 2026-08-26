@@ -14,30 +14,36 @@ class RewardBadgeCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final palette = context.serviceColors;
     return OutlinedCard(
-      padding: const EdgeInsets.all(TwSpacing.x3),
-      backgroundColor: badge.earned ? palette.soft : palette.card,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            badge.icon,
-            size: 32,
-            color: badge.earned ? palette.accent : TwColors.textMuted,
-          ),
-          const SizedBox(height: TwSpacing.x3),
-          Text(
-            badge.label,
-            textAlign: TextAlign.center,
-            style: TwText.textXs().copyWith(
-              color: badge.earned ? TwColors.text : TwColors.textMuted,
+      padding: const EdgeInsets.all(TwSpacing.x2),
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              badge.icon,
+              size: 28,
+              color: badge.earned ? palette.accent : TwColors.textMuted,
             ),
-          ),
-        ],
+            const SizedBox(height: TwSpacing.rhythmTight),
+            Text(
+              badge.label,
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              style: TwText.textXs().copyWith(
+                color: badge.earned ? TwColors.text : TwColors.textMuted,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 }
 
+/// A single redeemable-reward row. Rendered bare so [RewardsScreen] can
+/// compose several rows inside one shared [OutlinedCard] with internal
+/// dividers — "one card per list, not one card per row" (#21/#27).
 class RewardCard extends StatelessWidget {
   const RewardCard({super.key, required this.reward});
 
@@ -45,42 +51,48 @@ class RewardCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return OutlinedCard(
-      padding: const EdgeInsets.all(TwSpacing.x4),
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: TwSpacing.x4,
+        vertical: TwSpacing.rhythmDefault,
+      ),
       child: Row(
         children: [
-          Container(
-            width: 50,
-            height: 50,
-            decoration: BoxDecoration(
-              color: reward.color.withOpacityValue(0.2),
-              borderRadius: BorderRadius.circular(TwRadius.md),
-            ),
-            child: Icon(
-              Icons.card_giftcard_outlined,
-              color: reward.color,
-              size: 24,
-            ),
+          ServiceIconChip(
+            icon: Icons.card_giftcard_outlined,
+            background: reward.color.withOpacityValue(0.15),
+            foreground: reward.color,
           ),
           const SizedBox(width: TwSpacing.x4),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(reward.title, style: TwText.fontBoldSm()),
-                Text(reward.description, style: TwText.textSm()),
+                Text(
+                  reward.title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TwText.fontBoldSm(),
+                ),
+                Text(
+                  reward.description,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TwText.textSm(),
+                ),
               ],
             ),
           ),
           StatusPill(
             label: '${reward.points} pts',
-            backgroundColor: reward.color.withOpacityValue(0.2),
+            backgroundColor: reward.color.withOpacityValue(0.15),
             foregroundColor: reward.color,
+            fontSize: 11,
           ),
-          const SizedBox(width: TwSpacing.x2),
+          const SizedBox(width: TwSpacing.rhythmTight),
           Icon(
             Icons.arrow_forward_rounded,
-            size: 18,
+            size: 16,
             color: Theme.of(context).colorScheme.onSurfaceVariant,
           ),
         ],

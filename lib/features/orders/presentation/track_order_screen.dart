@@ -36,16 +36,20 @@ class TrackOrderScreen extends StatelessWidget {
         padding: const EdgeInsets.all(TwSpacing.x5),
         children: [
           OutlinedCard(
-            backgroundColor: palette.card,
-            borderColor: palette.border,
-            borderRadius: 16,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('Order #45782', style: TwText.fontBoldBase()),
+                    Expanded(
+                      child: Text(
+                        'Order #45782',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TwText.fontBoldBase(),
+                      ),
+                    ),
+                    const SizedBox(width: TwSpacing.x2),
                     StatusPill(
                       label: 'On the way',
                       backgroundColor: palette.soft,
@@ -58,13 +62,8 @@ class TrackOrderScreen extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(height: TwSpacing.x8),
-          Container(
-            padding: const EdgeInsets.all(TwSpacing.x5),
-            decoration: BoxDecoration(
-              color: palette.accent,
-              borderRadius: BorderRadius.circular(16),
-            ),
+          const SizedBox(height: TwSpacing.rhythmSection),
+          OutlinedCard(
             child: Row(
               children: [
                 const NetworkAvatar(imageUrl: _courierImageUrl, radius: 35),
@@ -76,42 +75,33 @@ class TrackOrderScreen extends StatelessWidget {
                       Text(
                         'Delivery Partner',
                         style: TwText.textXs().copyWith(
-                          color: Colors.white.withOpacityValue(0.8),
+                          color: TwColors.textMuted,
                         ),
                       ),
-                      Text(
-                        'Yusuf Adeyemi',
-                        style: TwText.fontBoldBase().copyWith(
-                          color: Colors.white,
-                        ),
-                      ),
+                      Text('Yusuf Adeyemi', style: TwText.fontBoldBase()),
                       Row(
                         children: [
-                          const Icon(Icons.star, size: 14, color: Colors.white),
+                          Icon(Icons.star, size: 14, color: palette.accent),
                           const SizedBox(width: TwSpacing.x1),
-                          Text(
-                            '4.9',
-                            style: TwText.textXs().copyWith(
-                              color: Colors.white,
-                            ),
-                          ),
+                          Text('4.9', style: TwText.textXs()),
                         ],
                       ),
                     ],
                   ),
                 ),
-                IconButton(
+                IconButton.filled(
                   onPressed: () {},
-                  icon: const Icon(Icons.call, color: Colors.white),
+                  style: IconButton.styleFrom(
+                    backgroundColor: palette.accent,
+                    foregroundColor: palette.onAccent,
+                  ),
+                  icon: const Icon(Icons.call),
                 ),
               ],
             ),
           ),
-          const SizedBox(height: TwSpacing.x8),
+          const SizedBox(height: TwSpacing.rhythmSection),
           OutlinedCard(
-            backgroundColor: palette.card,
-            borderColor: palette.border,
-            borderRadius: 16,
             child: Column(
               children: [
                 Text(
@@ -164,10 +154,12 @@ class _TimelineStepRow extends StatelessWidget {
             ],
           ),
           const SizedBox(width: TwSpacing.x5),
-          Text(
-            step.label,
-            style: TwText.fontBoldSm().copyWith(
-              color: step.isCompleted ? TwColors.text : TwColors.textMuted,
+          Expanded(
+            child: Text(
+              step.label,
+              style: TwText.fontBoldSm().copyWith(
+                color: step.isCompleted ? TwColors.text : TwColors.textMuted,
+              ),
             ),
           ),
         ],

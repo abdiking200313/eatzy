@@ -58,13 +58,12 @@ class RewardsScreen extends StatelessWidget {
     return AppScaffold(
       title: 'Rewards & Achievements',
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(TwSpacing.x4),
+        padding: const EdgeInsets.all(TwSpacing.x5),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             OutlinedCard(
               padding: const EdgeInsets.all(TwSpacing.x5),
-              backgroundColor: palette.soft,
               child: Column(
                 children: [
                   Text(
@@ -87,9 +86,14 @@ class RewardsScreen extends StatelessWidget {
                       onPressed: () {},
                       child: const Row(
                         mainAxisAlignment: MainAxisAlignment.center,
-                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          Text('Redeem Rewards'),
+                          Flexible(
+                            child: Text(
+                              'Redeem Rewards',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
                           SizedBox(width: TwSpacing.x2),
                           Icon(Icons.arrow_forward_rounded, size: 18),
                         ],
@@ -105,9 +109,16 @@ class RewardsScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text('Level $_userLevel', style: TwText.textXl()),
+                      Expanded(
+                        child: Text(
+                          'Level $_userLevel',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TwText.textXl(),
+                        ),
+                      ),
+                      const SizedBox(width: TwSpacing.x2),
                       Text('Level 6', style: TwText.textSm()),
                     ],
                   ),
@@ -145,13 +156,20 @@ class RewardsScreen extends StatelessWidget {
               itemBuilder: (context, index) =>
                   RewardBadgeCard(badge: _badges[index]),
             ),
-            const SizedBox(height: TwSpacing.x5),
+            const SizedBox(height: TwSpacing.rhythmSection),
             const SectionTitle('Rewards Catalog'),
-            const SizedBox(height: TwSpacing.x4),
-            for (final reward in _rewards) ...[
-              RewardCard(reward: reward),
-              if (reward != _rewards.last) const SizedBox(height: TwSpacing.x4),
-            ],
+            const SizedBox(height: TwSpacing.rhythmDefault),
+            OutlinedCard(
+              padding: EdgeInsets.zero,
+              child: Column(
+                children: [
+                  for (final reward in _rewards) ...[
+                    RewardCard(reward: reward),
+                    if (reward != _rewards.last) const Divider(height: 1),
+                  ],
+                ],
+              ),
+            ),
           ],
         ),
       ),

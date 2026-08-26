@@ -40,101 +40,132 @@ class _SettingsScreenState extends State<SettingsScreen> {
       title: 'Settings',
       showBackButton: true,
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(TwSpacing.x4),
+        padding: const EdgeInsets.all(TwSpacing.x5),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SectionTitle('Notifications', fontSize: 18),
-            const SizedBox(height: TwSpacing.x4),
-            ToggleCard(
-              title: 'Push Notifications',
-              subtitle: 'Get notifications about your orders',
-              value: pushNotifications,
-              onChanged: (value) => setState(() => pushNotifications = value),
+            const SizedBox(height: TwSpacing.rhythmDefault),
+            OutlinedCard(
+              padding: EdgeInsets.zero,
+              child: Column(
+                children: [
+                  ToggleCard(
+                    title: 'Push Notifications',
+                    subtitle: 'Get notifications about your orders',
+                    value: pushNotifications,
+                    onChanged: (value) =>
+                        setState(() => pushNotifications = value),
+                  ),
+                  const Divider(height: 1),
+                  ToggleCard(
+                    title: 'Email Notifications',
+                    subtitle: 'Receive updates via email',
+                    value: emailNotifications,
+                    onChanged: (value) =>
+                        setState(() => emailNotifications = value),
+                  ),
+                  const Divider(height: 1),
+                  ToggleCard(
+                    title: 'Promotional Emails',
+                    subtitle: 'Get exclusive deals and offers',
+                    value: promotionalEmails,
+                    onChanged: (value) =>
+                        setState(() => promotionalEmails = value),
+                  ),
+                  const Divider(height: 1),
+                  ToggleCard(
+                    title: 'Order Updates',
+                    subtitle: 'Receive order status updates',
+                    value: orderUpdates,
+                    onChanged: (value) => setState(() => orderUpdates = value),
+                  ),
+                ],
+              ),
             ),
-            const SizedBox(height: TwSpacing.x3),
-            ToggleCard(
-              title: 'Email Notifications',
-              subtitle: 'Receive updates via email',
-              value: emailNotifications,
-              onChanged: (value) => setState(() => emailNotifications = value),
-            ),
-            const SizedBox(height: TwSpacing.x3),
-            ToggleCard(
-              title: 'Promotional Emails',
-              subtitle: 'Get exclusive deals and offers',
-              value: promotionalEmails,
-              onChanged: (value) => setState(() => promotionalEmails = value),
-            ),
-            const SizedBox(height: TwSpacing.x3),
-            ToggleCard(
-              title: 'Order Updates',
-              subtitle: 'Receive order status updates',
-              value: orderUpdates,
-              onChanged: (value) => setState(() => orderUpdates = value),
-            ),
-            const SizedBox(height: TwSpacing.x5),
+            const SizedBox(height: TwSpacing.rhythmSection),
             const SectionTitle('Account', fontSize: 18),
-            const SizedBox(height: TwSpacing.x4),
-            const SettingCard(
-              title: 'Email Address',
-              subtitle: 'user@example.com',
-              icon: Icons.email_outlined,
+            const SizedBox(height: TwSpacing.rhythmDefault),
+            OutlinedCard(
+              padding: EdgeInsets.zero,
+              child: Column(
+                children: [
+                  const SettingCard(
+                    title: 'Email Address',
+                    subtitle: 'user@example.com',
+                    icon: Icons.email_outlined,
+                  ),
+                  const Divider(height: 1),
+                  const SettingCard(
+                    title: 'Phone Number',
+                    subtitle: '+1 234 567 8900',
+                    icon: Icons.phone_outlined,
+                  ),
+                  const Divider(height: 1),
+                  SettingCard(
+                    title: 'Change Password',
+                    subtitle: 'Update your password',
+                    icon: Icons.lock_outlined,
+                    onTap: () => context.push(AppRoutes.resetPassword),
+                  ),
+                ],
+              ),
             ),
-            const SizedBox(height: TwSpacing.x3),
-            const SettingCard(
-              title: 'Phone Number',
-              subtitle: '+1 234 567 8900',
-              icon: Icons.phone_outlined,
-            ),
-            const SizedBox(height: TwSpacing.x3),
-            SettingCard(
-              title: 'Change Password',
-              subtitle: 'Update your password',
-              icon: Icons.lock_outlined,
-              onTap: () => context.push(AppRoutes.resetPassword),
-            ),
-            const SizedBox(height: TwSpacing.x5),
+            const SizedBox(height: TwSpacing.rhythmSection),
             const SectionTitle('Preferences', fontSize: 18),
-            const SizedBox(height: TwSpacing.x4),
-            const SettingCard(
-              title: 'Language',
-              subtitle: 'English',
-              icon: Icons.language_outlined,
+            const SizedBox(height: TwSpacing.rhythmDefault),
+            OutlinedCard(
+              padding: EdgeInsets.zero,
+              child: Column(
+                children: [
+                  const SettingCard(
+                    title: 'Language',
+                    subtitle: 'English',
+                    icon: Icons.language_outlined,
+                  ),
+                  const Divider(height: 1),
+                  const SettingCard(
+                    title: 'Currency',
+                    subtitle: 'USD',
+                    icon: Icons.attach_money_outlined,
+                  ),
+                  const Divider(height: 1),
+                  const SettingCard(
+                    title: 'Theme',
+                    subtitle: 'Light',
+                    icon: Icons.brightness_7_outlined,
+                  ),
+                ],
+              ),
             ),
-            const SizedBox(height: TwSpacing.x3),
-            const SettingCard(
-              title: 'Currency',
-              subtitle: 'USD',
-              icon: Icons.attach_money_outlined,
-            ),
-            const SizedBox(height: TwSpacing.x3),
-            const SettingCard(
-              title: 'Theme',
-              subtitle: 'Light',
-              icon: Icons.brightness_7_outlined,
-            ),
-            const SizedBox(height: TwSpacing.x5),
+            const SizedBox(height: TwSpacing.rhythmSection),
             const SectionTitle('Support', fontSize: 18),
-            const SizedBox(height: TwSpacing.x4),
-            const SettingCard(
-              title: 'About Us',
-              subtitle: 'Learn about Zivo',
-              icon: Icons.info_outlined,
+            const SizedBox(height: TwSpacing.rhythmDefault),
+            OutlinedCard(
+              padding: EdgeInsets.zero,
+              child: Column(
+                children: [
+                  const SettingCard(
+                    title: 'About Us',
+                    subtitle: 'Learn about Zivo',
+                    icon: Icons.info_outlined,
+                  ),
+                  const Divider(height: 1),
+                  const SettingCard(
+                    title: 'Privacy Policy',
+                    subtitle: 'Read our privacy policy',
+                    icon: Icons.privacy_tip_outlined,
+                  ),
+                  const Divider(height: 1),
+                  const SettingCard(
+                    title: 'Terms & Conditions',
+                    subtitle: 'Review our terms',
+                    icon: Icons.description_outlined,
+                  ),
+                ],
+              ),
             ),
-            const SizedBox(height: TwSpacing.x3),
-            const SettingCard(
-              title: 'Privacy Policy',
-              subtitle: 'Read our privacy policy',
-              icon: Icons.privacy_tip_outlined,
-            ),
-            const SizedBox(height: TwSpacing.x3),
-            const SettingCard(
-              title: 'Terms & Conditions',
-              subtitle: 'Review our terms',
-              icon: Icons.description_outlined,
-            ),
-            const SizedBox(height: TwSpacing.x5),
+            const SizedBox(height: TwSpacing.rhythmSection),
             PrimaryButton(
               label: 'Logout',
               onPressed: _logout,

@@ -89,7 +89,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return AppScaffold(
       title: 'Profile',
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(TwSpacing.x4),
+        padding: const EdgeInsets.all(TwSpacing.x5),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
