@@ -12,6 +12,9 @@ import 'package:chowflow/features/rewards/presentation/rewards_profile_screen.da
 import 'package:chowflow/features/rewards/presentation/rewards_screen.dart';
 import 'package:chowflow/features/settings/presentation/settings_screen.dart';
 import 'package:chowflow/features/support/presentation/support_screen.dart';
+import 'package:chowflow/features/wallet/data/wallet_repository.dart';
+import 'package:chowflow/features/wallet/models/wallet_payment_method_record.dart';
+import 'package:chowflow/features/wallet/models/wallet_transaction_record.dart';
 import 'package:chowflow/features/wallet/presentation/wallet_screen.dart';
 import 'package:chowflow/platform/activity/models/activity_item.dart';
 import 'package:chowflow/platform/activity/presentation/activity_controller.dart';
@@ -151,7 +154,11 @@ void main() {
     });
 
     testWidgets('Wallet', (tester) async {
-      await pumpNarrow(tester, const WalletScreen());
+      await pumpNarrow(
+        tester,
+        WalletScreen(walletRepository: _FakeWalletRepository()),
+      );
+      await tester.pumpAndSettle();
 
       expect(tester.takeException(), isNull);
       expect(find.byType(StatusPill), findsWidgets);
@@ -185,4 +192,33 @@ class _FakeProfileRepository implements ProfileRepository {
 
   @override
   Future<CustomerProfile?> fetchCurrentProfile() async => profile;
+}
+
+class _FakeWalletRepository implements WalletRepository {
+  @override
+  Future<double> fetchBalance() async => 120.5;
+
+  @override
+  Future<List<WalletTransactionRecord>> fetchTransactions({
+    int limit = 20,
+  }) async => [
+    WalletTransactionRecord(
+      id: 'txn-1',
+      type: WalletTransactionType.orderPayment,
+      amount: -18.5,
+      description: 'Jollof Feast Order',
+      createdAt: DateTime.utc(2026, 8, 1),
+      orderId: '45782',
+    ),
+  ];
+
+  @override
+  Future<List<WalletPaymentMethodRecord>> fetchPaymentMethods() async => const [
+    WalletPaymentMethodRecord(
+      id: 'pm-1',
+      brand: 'Visa Card',
+      lastFour: '4829',
+      isDefault: true,
+    ),
+  ];
 }
