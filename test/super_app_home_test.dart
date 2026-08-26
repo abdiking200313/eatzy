@@ -1,5 +1,6 @@
 import 'package:chowflow/config/theme.dart';
 import 'package:chowflow/app/service_module.dart';
+import 'package:chowflow/features/home/models/restaurant.dart';
 import 'package:chowflow/features/super_app/presentation/super_app_home_screen.dart';
 import 'package:chowflow/platform/activity/models/activity_item.dart';
 import 'package:chowflow/platform/activity/presentation/activity_controller.dart';
@@ -8,6 +9,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 
+Future<List<Restaurant>> _noRestaurants() async => const <Restaurant>[];
+
 void main() {
   testWidgets('super-app home exposes every service and Somalia locale', (
     tester,
@@ -15,7 +18,11 @@ void main() {
     final router = GoRouter(
       initialLocation: '/',
       routes: [
-        GoRoute(path: '/', builder: (_, _) => const SuperAppHomeScreen()),
+        GoRoute(
+          path: '/',
+          builder: (_, _) =>
+              const SuperAppHomeScreen(restaurantLoader: _noRestaurants),
+        ),
         for (final path in const ['/food', '/grocery', '/pharmacy'])
           GoRoute(
             path: path,
@@ -64,13 +71,13 @@ void main() {
     addTearDown(() => tester.binding.setSurfaceSize(null));
 
     await tester.pumpWidget(
-      const MaterialApp(
+      MaterialApp(
         home: MediaQuery(
-          data: MediaQueryData(
+          data: const MediaQueryData(
             size: Size(320, 640),
             textScaler: TextScaler.linear(1.4),
           ),
-          child: SuperAppHomeScreen(),
+          child: const SuperAppHomeScreen(restaurantLoader: _noRestaurants),
         ),
       ),
     );
@@ -97,13 +104,22 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         theme: buildAppTheme(),
-        home: SuperAppHomeScreen(activityController: controller),
+        home: SuperAppHomeScreen(
+          activityController: controller,
+          restaurantLoader: _noRestaurants,
+        ),
       ),
     );
 
+    for (
+      var attempt = 0;
+      attempt < 8 && find.text('Bakaara groceries').evaluate().isEmpty;
+      attempt++
+    ) {
+      await tester.drag(find.byType(ListView), const Offset(0, -300));
+      await tester.pump();
+    }
     expect(find.text('Recent Activity'), findsOneWidget);
-    await tester.drag(find.byType(ListView), const Offset(0, -260));
-    await tester.pump();
     expect(find.text('Bakaara groceries'), findsOneWidget);
     expect(find.text(r'$24.00'), findsOneWidget);
     // Status pills instead of bare colored status text.

@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
@@ -5,77 +6,276 @@ import 'package:intl/intl.dart';
 import '../../../app/app_routes.dart';
 import '../../../app/service_module.dart';
 import '../../../config/theme.dart';
+import '../../../features/home/data/restaurant_repository.dart';
+import '../../../features/home/models/restaurant.dart';
 import '../../../platform/activity/models/activity_item.dart';
 import '../../../platform/activity/presentation/activity_controller.dart';
 import '../../../platform/localization/app_money.dart';
 import '../../../widgets/app_misc.dart';
 import '../../../widgets/zivo_logo.dart';
+import '../../../widgets/app_cards.dart';
 
-class SuperAppHomeScreen extends StatelessWidget {
-  const SuperAppHomeScreen({super.key, this.activityController});
+class SuperAppHomeScreen extends StatefulWidget {
+  const SuperAppHomeScreen({
+    super.key,
+    this.activityController,
+    this.restaurantLoader,
+  });
 
   final ActivityController? activityController;
+  final Future<List<Restaurant>> Function()? restaurantLoader;
+
+  @override
+  State<SuperAppHomeScreen> createState() => _SuperAppHomeScreenState();
+}
+
+class _SuperAppHomeScreenState extends State<SuperAppHomeScreen> {
+  late final Future<List<Restaurant>> _restaurantsFuture = _loadRestaurants();
+
+  Future<List<Restaurant>> _loadRestaurants() async {
+    final loader =
+        widget.restaurantLoader ?? RestaurantRepository().fetchRestaurants;
+    return loader();
+  }
 
   @override
   Widget build(BuildContext context) {
-    final controller = activityController ?? ActivityController.instance;
+    final controller = widget.activityController ?? ActivityController.instance;
     return AnimatedBuilder(
       animation: controller,
       builder: (context, _) {
         final recentItems = controller.items.take(3).toList(growable: false);
         return Scaffold(
-          appBar: AppBar(
-            title: const ZivoLogo(height: 30),
-            actions: [
-              IconButton(
-                tooltip: 'Notifications',
-                onPressed: () {},
-                icon: const Icon(Icons.notifications_none_rounded),
-              ),
-              IconButton(
-                tooltip: 'Settings',
-                onPressed: () => context.push(AppRoutes.settings),
-                icon: const Icon(Icons.settings_outlined),
-              ),
-              const SizedBox(width: TwSpacing.x2),
-            ],
-          ),
+          backgroundColor: TwColors.bg,
           body: ListView(
-            padding: const EdgeInsets.fromLTRB(
-              TwSpacing.x5,
-              TwSpacing.x3,
-              TwSpacing.x5,
-              TwSpacing.x8,
-            ),
+            padding: const EdgeInsets.only(bottom: TwSpacing.x8),
             children: [
-              Text('Good morning', style: TwText.text2xl()),
-              const SizedBox(height: TwSpacing.x1),
-              Text(
-                DateFormat('EEEE, MMMM d').format(DateTime.now()),
-                style: TwText.textSm(),
+              _HomeHeader(
+                onSearch: () => context.push(AppRoutes.foodExplore),
+                onNotifications: () {},
+                onSettings: () => context.push(AppRoutes.settings),
               ),
-              const SizedBox(height: TwSpacing.rhythmSection),
-              Text('Our Services', style: TwText.sectionLabel()),
-              const SizedBox(height: TwSpacing.rhythmDefault),
-              _ServiceGrid(modules: ServiceRegistry.modules),
-              if (recentItems.isNotEmpty) ...[
-                const SizedBox(height: TwSpacing.rhythmSection),
-                _SectionHeader(
-                  title: 'Recent Activity',
-                  actionLabel: 'View all',
-                  onPressed: () => context.go(AppRoutes.activity),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  TwSpacing.x4,
+                  TwSpacing.x5,
+                  TwSpacing.x4,
+                  0,
                 ),
-                const SizedBox(height: TwSpacing.rhythmDefault),
-                for (var index = 0; index < recentItems.length; index++) ...[
-                  _RecentActivityCard(item: recentItems[index]),
-                  if (index != recentItems.length - 1)
-                    const SizedBox(height: TwSpacing.x2),
-                ],
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Good morning', style: TwText.text2xl()),
+                    const SizedBox(height: TwSpacing.x1),
+                    Text(
+                      DateFormat('EEEE, MMMM d').format(DateTime.now()),
+                      style: TwText.textSm(),
+                    ),
+                    const SizedBox(height: TwSpacing.x6),
+                    _PromoBanner(
+                      onExplore: () => context.push(AppRoutes.foodExplore),
+                    ),
+                    const SizedBox(height: TwSpacing.x8),
+                    _SectionHeader(
+                      title: 'Categories',
+                      actionLabel: 'See all',
+                      onPressed: () => context.push(AppRoutes.services),
+                    ),
+                    const SizedBox(height: TwSpacing.x3),
+                    _ServiceGrid(modules: ServiceRegistry.modules),
+                    const SizedBox(height: TwSpacing.x8),
+                    _SectionHeader(
+                      title: 'Popular Restaurants',
+                      actionLabel: 'View all',
+                      onPressed: () => context.push(AppRoutes.foodExplore),
+                    ),
+                    const SizedBox(height: TwSpacing.x3),
+                  ],
+                ),
+              ),
+              _PopularRestaurants(future: _restaurantsFuture),
+              if (recentItems.isNotEmpty) ...[
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    TwSpacing.x4,
+                    TwSpacing.x8,
+                    TwSpacing.x4,
+                    0,
+                  ),
+                  child: _SectionHeader(
+                    title: 'Recent Activity',
+                    actionLabel: 'View all',
+                    onPressed: () => context.go(AppRoutes.activity),
+                  ),
+                ),
+                const SizedBox(height: TwSpacing.x3),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: TwSpacing.x4),
+                  child: Column(
+                    children: [
+                      for (
+                        var index = 0;
+                        index < recentItems.length;
+                        index++
+                      ) ...[
+                        _RecentActivityCard(item: recentItems[index]),
+                        if (index != recentItems.length - 1)
+                          const SizedBox(height: TwSpacing.x2),
+                      ],
+                    ],
+                  ),
+                ),
               ],
             ],
           ),
         );
       },
+    );
+  }
+}
+
+class _HomeHeader extends StatelessWidget {
+  const _HomeHeader({
+    required this.onSearch,
+    required this.onNotifications,
+    required this.onSettings,
+  });
+
+  final VoidCallback onSearch;
+  final VoidCallback onNotifications;
+  final VoidCallback onSettings;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: const BoxDecoration(
+        gradient: TwColors.primaryGradient,
+        borderRadius: BorderRadius.vertical(bottom: Radius.circular(28)),
+      ),
+      child: SafeArea(
+        bottom: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(
+            TwSpacing.x5,
+            TwSpacing.x3,
+            TwSpacing.x3,
+            TwSpacing.x6,
+          ),
+          child: Column(
+            children: [
+              Row(
+                children: [
+                  Text(
+                    'zivo',
+                    style: TwText.textXl().copyWith(
+                      color: TwColors.white,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: -0.4,
+                    ),
+                  ),
+                  const Spacer(),
+                  IconButton(
+                    tooltip: 'Notifications',
+                    onPressed: onNotifications,
+                    icon: const Icon(
+                      Icons.notifications_none_rounded,
+                      color: TwColors.white,
+                    ),
+                  ),
+                  IconButton(
+                    tooltip: 'Settings',
+                    onPressed: onSettings,
+                    icon: const Icon(
+                      Icons.settings_outlined,
+                      color: TwColors.white,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: TwSpacing.x2),
+              Material(
+                color: TwColors.white,
+                borderRadius: BorderRadius.circular(TwRadius.full),
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(TwRadius.full),
+                  onTap: onSearch,
+                  child: const Padding(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: TwSpacing.x4,
+                      vertical: TwSpacing.x4,
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.search, color: TwColors.textMuted),
+                        SizedBox(width: TwSpacing.x3),
+                        Expanded(
+                          child: Text(
+                            'Search restaurants, stores...',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(color: TwColors.textMuted),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _PromoBanner extends StatelessWidget {
+  const _PromoBanner({required this.onExplore});
+
+  final VoidCallback onExplore;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(TwSpacing.x5),
+      decoration: BoxDecoration(
+        gradient: TwColors.primaryGradient,
+        borderRadius: BorderRadius.circular(TwRadius.xl),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Everything nearby,\none tap away',
+                  style: TwText.textLg().copyWith(
+                    color: TwColors.white,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: TwSpacing.x3),
+                OutlinedButton(
+                  onPressed: onExplore,
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: TwColors.white,
+                    side: const BorderSide(color: TwColors.white),
+                    minimumSize: const Size(0, 36),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: TwSpacing.x4,
+                    ),
+                  ),
+                  child: const Text('Explore'),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: TwSpacing.x2),
+          const Icon(Icons.storefront_rounded, color: TwColors.white, size: 52),
+        ],
+      ),
     );
   }
 }
@@ -88,27 +288,24 @@ class _ServiceGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textScale = MediaQuery.textScalerOf(context).scale(1);
-    // Base height nudged up slightly from the pre-redesign 170.0 to fit the
-    // 48px ServiceIconChip (was a 44px icon container) without overflowing
-    // the fixed grid cell at high text-scale.
-    final cardHeight = 178.0 + ((textScale - 1).clamp(0.0, 1.0) * 54.0);
+    final tileHeight = 92.0 + ((textScale - 1).clamp(0.0, 1.0) * 30.0);
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       itemCount: modules.length,
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
+        crossAxisCount: 3,
         crossAxisSpacing: TwSpacing.x3,
         mainAxisSpacing: TwSpacing.x3,
-        mainAxisExtent: cardHeight,
+        mainAxisExtent: tileHeight,
       ),
-      itemBuilder: (context, index) => _ServiceCard(module: modules[index]),
+      itemBuilder: (context, index) => _ServiceTile(module: modules[index]),
     );
   }
 }
 
-class _ServiceCard extends StatelessWidget {
-  const _ServiceCard({required this.module});
+class _ServiceTile extends StatelessWidget {
+  const _ServiceTile({required this.module});
 
   final ServiceDescriptor module;
 
@@ -117,9 +314,9 @@ class _ServiceCard extends StatelessWidget {
     final colors = ServiceThemes.forId(module.id);
     return Material(
       key: Key('service-${module.id.name}'),
-      color: TwColors.card,
-      elevation: 0.8,
-      shadowColor: TwColors.slate900.withOpacityValue(0.12),
+      color: colors.card,
+      elevation: 0.6,
+      shadowColor: TwColors.slate900.withOpacityValue(0.1),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(TwRadius.xl),
         side: const BorderSide(color: TwColors.border),
@@ -128,37 +325,135 @@ class _ServiceCard extends StatelessWidget {
       child: InkWell(
         onTap: () => context.push(module.entryRoute),
         child: Padding(
-          padding: const EdgeInsets.all(TwSpacing.x3),
+          padding: const EdgeInsets.symmetric(
+            vertical: TwSpacing.x2,
+            horizontal: TwSpacing.x1,
+          ),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  ServiceIconChip(
-                    icon: module.icon,
-                    background: colors.accent,
-                    foreground: colors.onAccent,
-                  ),
-                  const Spacer(),
-                  Icon(
-                    Icons.arrow_forward_ios_rounded,
-                    color: colors.accent,
-                    size: 17,
-                  ),
-                ],
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: colors.soft,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(module.icon, color: colors.accent, size: 22),
               ),
-              const Spacer(),
-              Text(module.title, style: TwText.fontBoldBase()),
-              const SizedBox(height: TwSpacing.rhythmTight),
+              const SizedBox(height: TwSpacing.x1),
               Text(
-                module.description,
-                maxLines: 2,
+                module.title,
+                maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: TwText.textXs().copyWith(color: TwColors.textMuted),
+                textAlign: TextAlign.center,
+                style: TwText.fontBoldSm(),
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _PopularRestaurants extends StatelessWidget {
+  const _PopularRestaurants({required this.future});
+
+  final Future<List<Restaurant>> future;
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<List<Restaurant>>(
+      future: future,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const SizedBox(
+            height: 172,
+            child: Center(child: CircularProgressIndicator()),
+          );
+        }
+        final restaurants = snapshot.data ?? const <Restaurant>[];
+        if (snapshot.hasError || restaurants.isEmpty) {
+          return const SizedBox.shrink();
+        }
+        return SizedBox(
+          height: 172,
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: TwSpacing.x4),
+            child: Row(
+              children: [
+                for (final restaurant in restaurants.take(6))
+                  Padding(
+                    padding: const EdgeInsets.only(right: TwSpacing.x3),
+                    child: _PopularRestaurantCard(restaurant: restaurant),
+                  ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _PopularRestaurantCard extends StatelessWidget {
+  const _PopularRestaurantCard({required this.restaurant});
+
+  final Restaurant restaurant;
+
+  @override
+  Widget build(BuildContext context) {
+    final logoUrl = restaurant.logoUrl.trim();
+    return SizedBox(
+      width: 140,
+      child: OutlinedCard(
+        padding: EdgeInsets.zero,
+        borderRadius: TwRadius.xl,
+        onTap: () => context.push(AppRoutes.restaurantDetails(restaurant.id)),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ClipRRect(
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(TwRadius.xl),
+              ),
+              child: SizedBox(
+                height: 88,
+                width: double.infinity,
+                child: logoUrl.isEmpty
+                    ? const ColoredBox(
+                        color: TwColors.primarySoft,
+                        child: Icon(
+                          Icons.storefront_outlined,
+                          color: TwColors.primary,
+                        ),
+                      )
+                    : CachedNetworkImage(
+                        imageUrl: logoUrl,
+                        fit: BoxFit.cover,
+                        errorWidget: (_, _, _) => const ColoredBox(
+                          color: TwColors.primarySoft,
+                          child: Icon(
+                            Icons.storefront_outlined,
+                            color: TwColors.primary,
+                          ),
+                        ),
+                      ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(TwSpacing.x2),
+              child: Text(
+                restaurant.name,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TwText.fontBoldSm(),
+              ),
+            ),
+          ],
         ),
       ),
     );
