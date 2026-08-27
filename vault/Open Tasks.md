@@ -7,9 +7,13 @@ upstream_concept: 00-Index
 
 # Open Tasks
 
-Refreshed 2026-08-26 (8th run today). **Source of truth is always a live `list_issues`/`gh issue list --repo abdiking200313/eatzy --state open` call** — re-check before relying on this for anything that matters.
+Refreshed 2026-08-27 (10th run). **Source of truth is always a live `list_issues`/`gh issue list --repo abdiking200313/eatzy --state open` call** — re-check before relying on this for anything that matters.
 
-**Major update 2026-08-26 ~19:20 UTC**: the human approved a huge batch of previously-`needs-approval` issues — open `needs-approval` count dropped from ~57 to 14. This ended the 11-day queue stall (stuck since 2026-08-15). The board worker processed 6 issues in its 7th run and another 6 in its 8th run today; see [[Status Log]] 2026-08-26 for full detail on both. ~33 issues remained `todo`-only after the 7th run; the 8th run took the oldest 6 of those (#53/#54/#56/#57/#58/#61, all from the #52 audit).
+**Major update 2026-08-26 ~19:20 UTC**: the human approved a huge batch of previously-`needs-approval` issues — open `needs-approval` count dropped from ~57 to 14. This ended the 11-day queue stall (stuck since 2026-08-15). The board worker processed 6 issues in its 7th run and another 6 in its 8th run that day; see [[Status Log]] 2026-08-26 for full detail on both.
+
+**9th run (2026-08-27, early UTC morning)**: processed the next 6 oldest `todo` issues, all from the #52 audit batch: #62/#63/#64/#65/#66/#67 → PRs #107/#110/#108/#106/#105/#109. All 6 dispatched as independent worktree-isolated background agents in parallel; all opened clean/mergeable PRs with full verification (`dart format`/`flutter analyze`/`flutter test`) passing. Two agents (#63, #67) hit the session's shared API rate limit mid-task and were resumed via `SendMessage` to the same agent id once the limit reset — both picked up from their in-progress worktree state rather than restarting, see [[Status Log]] 2026-08-27 for detail. **New process note**: nested subagents spawned via the top-level `Agent` tool do NOT themselves have access to a further `Agent`/`Task` tool — all 6 agents independently reported this and implemented directly instead of fanning out to `ui-agent`/`logic-agent`/etc., while still respecting each role's declared file scope by hand. See [[Multi-Agent Setup]] for the implication this has on how `/build`-flow dispatch actually nests.
+
+**10th run (2026-08-27, later UTC morning)**: processed the next 6 oldest `todo` issues (all from the #52 audit batch, the last of the ones not gated by `needs-approval`): #68/#69/#70/#71/#72/#75 → PRs #115/#111/#116/#114/#112/#113. Same worktree-isolated parallel-dispatch pattern as the 9th run, all 6 opened clean PRs with full DoD checks passing. See [[Status Log]] 2026-08-27 for full detail including per-issue judgment calls (#70's search/filter wiring, #71's delete-vs-keep-vs-wire route decisions, #72's finish-vs-revert call, #75's dead-table investigation).
 
 ## `waiting-on-you` — paused on a human reply
 
@@ -39,11 +43,27 @@ Refreshed 2026-08-26 (8th run today). **Source of truth is always a live `list_i
 | 57 | [High] Food vertical has no module boundary | #103 |
 | 58 | [High] Session coordinator imports service controllers directly | #102 |
 | 61 | [High] Catalog reads unbounded, no list virtualization | #104 |
+| 62 | [High] Malformed activity row blanks order history; menu price falls back to $0.00 | #107 |
+| 63 | [Medium] Grocery/pharmacy carts never persisted | #110 |
+| 64 | [Medium] No refresh/cache-invalidation path (stale stock/prices/order status) | #108 |
+| 65 | [Medium] Text design tokens are per-build GoogleFonts lookups, blocking const | #106 |
+| 66 | [Medium] No image resize/decode limits anywhere | #105 |
+| 67 | [Medium] No ShellRoute for bottom nav — vertical entry hides nav bar | #109 |
+| 68 | [Medium] Raw exception text in auth/profile messages; malformed email regex | #115 |
+| 69 | [Medium] Nine raw route-string literals bypass AppRoutes convention | #111 |
+| 70 | [Medium] Food home screen search bar/category filter non-functional | #116 |
+| 71 | [Medium] Twelve registered routes/~600 lines of feature UI unreachable | #114 |
+| 72 | [High] Uncommitted/never-wired-in dedup-extraction helpers | #112 |
+| 75 | [High] schema.sql client-trusting order-insert RLS path | #113 |
 
 **Known merge-conflict pairs, human decision needed on order (none resolved by the routine)**:
 - PR #95 (#2) and PR #98 (#4) both rework `checkout_screen.dart` from the same pre-#95 baseline — whichever merges second needs a rebase threading #95's `FoodDeliveryAddress` through `FoodController.confirmOrder()`.
 - PR #103 (#57, moves `features/{home,restaurant,cart,checkout}` → `services/food/`) and PR #104 (#61, edits `restaurant_screen.dart`/repository internals at their old paths) touch the same files — whichever merges second needs to re-apply the other's changes at the post-move paths.
 - PR #103 (#57) also expects a conflict with PR #98 (#4) on `checkout_screen.dart`, since #103 branched before #98 merged.
+- PR #107 (#62) and PR #108 (#64) both touch `activity_controller.dart`/`activity_screen.dart` — whichever merges second needs to reconcile.
+- PR #108 (#64) and PR #110 (#63) both touch `pharmacy_controller.dart` (#64 adds a staleness timestamp/early-return replacement, #63 adds persistence load/save) — whichever merges second needs to reconcile.
+- PR #112 (#72, wires shared helpers into `grocery_controller.dart`/`pharmacy_controller.dart`) also touches both of those same files as #108 (#64) and #110 (#63) — a three-way reconciliation, not just a pair, whichever of the three merges last.
+- PR #111 (#69) and PR #114 (#71) both touch `app_router.dart`/`app_routes.dart` — whichever merges second needs to reconcile the route-literal fixes against the route deletions/entry-point additions.
 
 Phase 7 (#28) still can't start: depends on all of phases 1-6, and phases 2 (#23) and 5 (#26) are still open/unmerged.
 
@@ -58,8 +78,8 @@ Phase 7 (#28) still can't start: depends on all of phases 1-6, and phases 2 (#23
 
 ## Remaining `todo`, not yet picked up
 
-After the 8th run pulled #53/54/56/57/58/61 into `agent-in-progress`, remaining unpicked `todo` issues (all from the #52 audit batch, oldest-first): **#62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 75, 76, 77, 78, 79, 80, 83** (18 issues). Note #72's issue text describes an *uncommitted* working-tree landmine from 2026-08-15 — re-verified 2026-08-26: it's since been committed as-is (still real: `lib/services/shared/{loadable_state_mixin,confirm_order_flow}.dart` exist but have zero call sites anywhere in `lib/`), so the fix is still needed, just reframe "uncommitted" as "committed but never wired in" when picking it up. Only 14 issues remain `needs-approval`-gated as of 2026-08-26 (#9, 12, 30, 32, 38, 43, 49, 55, 59, 60, 73, 74, 81, 82).
+After the 10th run pulled #68/69/70/71/72/75 into `agent-in-progress`, remaining unpicked `todo` issues (all from the #52 audit batch, oldest-first): **#76, 77, 78, 79, 80, 83** (6 issues — all `agent:supabase`-scoped per their labels, i.e. next run's batch is entirely Supabase work). Only 14 issues remain `needs-approval`-gated as of 2026-08-26 (#9, 12, 30, 32, 38, 43, 49, 55, 59, 60, 73, 74, 81, 82).
 
 ## Known in-flight / interrupted work (not yet resolved)
 
-- The 2026-08-12 dedup-extraction interruption (RPC-unwrap helper, load/error mixin, confirm-order flow left partially wired) was independently rediscovered and filed as **issue #72** (`needs-approval`) during the 2026-08-15 deploy-readiness audit — treat #72 as the current tracker for that, this note's old freestanding description is superseded.
+- The 2026-08-12 dedup-extraction interruption (RPC-unwrap helper, load/error mixin, confirm-order flow left partially wired) was tracked as **issue #72**, resolved by PR #112 (10th run, 2026-08-27) which wired `LoadableState`/`confirmDemoOrder` into the grocery/pharmacy controllers — pending merge, see the three-way conflict note above against PRs #108/#110.
