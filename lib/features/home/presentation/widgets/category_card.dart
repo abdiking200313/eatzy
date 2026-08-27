@@ -46,7 +46,7 @@ class CategoryCard extends StatelessWidget {
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
           textAlign: TextAlign.center,
-          style: TwText.textXs().copyWith(
+          style: TwText.textXs.copyWith(
             color: isSelected ? palette.accent : TwColors.textMuted,
           ),
         ),

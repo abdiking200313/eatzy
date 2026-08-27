@@ -41,10 +41,10 @@ class MenuItemCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text(item.name, style: TwText.fontBoldBase()),
+                  Text(item.name, style: TwText.fontBoldBase),
                   if (item.description.trim().isNotEmpty) ...[
                     const SizedBox(height: TwSpacing.x1),
-                    Text(item.description, style: TwText.textSm()),
+                    Text(item.description, style: TwText.textSm),
                   ],
                   const SizedBox(height: TwSpacing.rhythmDefault),
                   Row(
@@ -52,7 +52,7 @@ class MenuItemCard extends StatelessWidget {
                       Expanded(
                         child: Text(
                           AppMoney.format(item.price),
-                          style: TwText.fontBoldBase().copyWith(
+                          style: TwText.fontBoldBase.copyWith(
                             color: TwColors.primary,
                           ),
                         ),

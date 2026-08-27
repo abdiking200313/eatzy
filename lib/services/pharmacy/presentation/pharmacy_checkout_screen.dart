@@ -68,7 +68,7 @@ class _PharmacyCheckoutScreenState extends State<PharmacyCheckoutScreen> {
                   children: [
                     const _DemoNotice(),
                     const SizedBox(height: TwSpacing.x5),
-                    Text('Delivery address', style: TwText.textXl()),
+                    Text('Delivery address', style: TwText.textXl),
                     const SizedBox(height: TwSpacing.x3),
                     TextFormField(
                       initialValue: PharmacyCheckoutDetails.country,
@@ -135,7 +135,7 @@ class _PharmacyCheckoutScreenState extends State<PharmacyCheckoutScreen> {
                         _errors['cart'] ??
                             _errors['stock'] ??
                             _errors['order']!,
-                        style: TwText.textSm().copyWith(color: TwColors.error),
+                        style: TwText.textSm.copyWith(color: TwColors.error),
                       ),
                     ],
                     const SizedBox(height: TwSpacing.x5),
@@ -252,7 +252,7 @@ class _DemoNotice extends StatelessWidget {
             child: Text(
               'Interactive preview only. This confirms a demo OTC order; '
               'no payment is processed and no pharmacy receives it.',
-              style: TwText.textSm(),
+              style: TwText.textSm,
             ),
           ),
         ],
@@ -275,25 +275,25 @@ class _CheckoutSummary extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Order summary', style: TwText.fontBoldBase()),
+          Text('Order summary', style: TwText.fontBoldBase),
           const SizedBox(height: TwSpacing.x3),
           Text(
             '${controller.itemCount} OTC '
             '${controller.itemCount == 1 ? 'item' : 'items'}',
-            style: TwText.textSm(),
+            style: TwText.textSm,
           ),
           const SizedBox(height: TwSpacing.x2),
           Text(
             'Delivery: ${AppMoney.format(PharmacyController.deliveryFee)}',
-            style: TwText.textSm(),
+            style: TwText.textSm,
           ),
           const Divider(height: TwSpacing.x6),
           Row(
             children: [
-              Expanded(child: Text('Total', style: TwText.fontBoldBase())),
+              Expanded(child: Text('Total', style: TwText.fontBoldBase)),
               Text(
                 AppMoney.format(controller.total),
-                style: TwText.fontBoldBase().copyWith(color: palette.accent),
+                style: TwText.fontBoldBase.copyWith(color: palette.accent),
               ),
             ],
           ),
@@ -320,7 +320,7 @@ class _EmptyCheckout extends StatelessWidget {
               size: 52,
             ),
             const SizedBox(height: TwSpacing.x4),
-            Text('Your pharmacy cart is empty', style: TwText.textXl()),
+            Text('Your pharmacy cart is empty', style: TwText.textXl),
             const SizedBox(height: TwSpacing.x4),
             TextButton(
               onPressed: () => context.go('/pharmacy'),

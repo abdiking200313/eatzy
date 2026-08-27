@@ -90,11 +90,11 @@ class _GroceryScreenState extends State<GroceryScreen> {
         TwSpacing.x8,
       ),
       children: [
-        Text('Essentials from Somali stores', style: TwText.textXl()),
+        Text('Essentials from Somali stores', style: TwText.textXl),
         const SizedBox(height: TwSpacing.x2),
         Text(
           'Products marked per kg can be added in 0.5 kg steps.',
-          style: TwText.textSm(),
+          style: TwText.textSm,
         ),
         const SizedBox(height: TwSpacing.x6),
         for (final store in _controller.stores) ...[
@@ -170,7 +170,7 @@ class _StoreHeader extends StatelessWidget {
             store.name,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: TwText.textXl(),
+            style: TwText.textXl,
           ),
         ),
         const SizedBox(width: TwSpacing.x2),
@@ -180,7 +180,7 @@ class _StoreHeader extends StatelessWidget {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             textAlign: TextAlign.right,
-            style: TwText.textXs(),
+            style: TwText.textXs,
           ),
         ),
       ],
@@ -240,12 +240,12 @@ class _ProductCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(product.name, style: TwText.fontBoldBase()),
-                Text(product.description, style: TwText.textSm()),
+                Text(product.name, style: TwText.fontBoldBase),
+                Text(product.description, style: TwText.textSm),
                 const SizedBox(height: TwSpacing.rhythmTight),
                 Text(
                   '${AppMoney.format(product.unitPrice)} ${product.unitLabel}',
-                  style: TwText.fontBoldSm(),
+                  style: TwText.fontBoldSm,
                 ),
                 const SizedBox(height: TwSpacing.rhythmTight),
                 StatusPill(

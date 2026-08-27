@@ -96,11 +96,11 @@ class _LoginScreenState extends State<LoginScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('Welcome back', style: TwText.text3xl()),
+                            Text('Welcome back', style: TwText.text3xl),
                             const SizedBox(height: TwSpacing.rhythmTight),
                             Text(
                               'Sign in to continue your orders, favorites, and rewards.',
-                              style: TwText.textSm(),
+                              style: TwText.textSm,
                             ),
                             const SizedBox(height: TwSpacing.rhythmSection),
                             AppTextField(
@@ -133,7 +133,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                     context.push(AppRoutes.forgotPassword),
                                 child: Text(
                                   'Forgot password?',
-                                  style: TwText.link(),
+                                  style: TwText.link,
                                 ),
                               ),
                             ),
@@ -157,10 +157,10 @@ class _LoginScreenState extends State<LoginScreen> {
                         alignment: WrapAlignment.center,
                         crossAxisAlignment: WrapCrossAlignment.center,
                         children: [
-                          Text('New to Zivo?', style: TwText.textSm()),
+                          Text('New to Zivo?', style: TwText.textSm),
                           TextButton(
                             onPressed: () => context.go(AppRoutes.register),
-                            child: Text('Create account', style: TwText.link()),
+                            child: Text('Create account', style: TwText.link),
                           ),
                         ],
                       ),

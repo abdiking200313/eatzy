@@ -58,13 +58,13 @@ class OnboardingPage extends StatelessWidget {
                 Text(
                   title,
                   textAlign: TextAlign.center,
-                  style: TwText.text3xl().copyWith(color: TwColors.text),
+                  style: TwText.text3xl.copyWith(color: TwColors.text),
                 ),
                 const SizedBox(height: TwSpacing.x3),
                 Text(
                   description,
                   textAlign: TextAlign.center,
-                  style: TwText.textBase().copyWith(
+                  style: TwText.textBase.copyWith(
                     color: TwColors.textMuted,
                     height: 1.5,
                   ),

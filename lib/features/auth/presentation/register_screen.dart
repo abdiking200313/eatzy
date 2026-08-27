@@ -154,14 +154,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              'Create your account',
-                              style: TwText.text3xl(),
-                            ),
+                            Text('Create your account', style: TwText.text3xl),
                             const SizedBox(height: TwSpacing.rhythmTight),
                             Text(
                               'Join Zivo and make every food order faster and more rewarding.',
-                              style: TwText.textSm(),
+                              style: TwText.textSm,
                             ),
                             const SizedBox(height: TwSpacing.rhythmSection),
                             AppTextField(
@@ -207,7 +204,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 Expanded(
                                   child: Text(
                                     'Your account is protected by Supabase authentication.',
-                                    style: TwText.textXs().copyWith(
+                                    style: TwText.textXs.copyWith(
                                       color: TwColors.textMuted,
                                     ),
                                   ),
@@ -236,11 +233,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         children: [
                           Text(
                             'Already have an account?',
-                            style: TwText.textSm(),
+                            style: TwText.textSm,
                           ),
                           TextButton(
                             onPressed: () => context.go(AppRoutes.login),
-                            child: Text('Sign in', style: TwText.link()),
+                            child: Text('Sign in', style: TwText.link),
                           ),
                         ],
                       ),

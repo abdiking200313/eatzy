@@ -257,10 +257,10 @@ class _RestaurantMenuView extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(menu.restaurant.name, style: TwText.text2xl()),
+                    Text(menu.restaurant.name, style: TwText.text2xl),
                     if (menu.restaurant.description.trim().isNotEmpty) ...[
                       const SizedBox(height: TwSpacing.x2),
-                      Text(menu.restaurant.description, style: TwText.textSm()),
+                      Text(menu.restaurant.description, style: TwText.textSm),
                     ],
                     const SizedBox(height: TwSpacing.x3),
                     Row(
@@ -273,7 +273,7 @@ class _RestaurantMenuView extends StatelessWidget {
                         const SizedBox(width: TwSpacing.x2),
                         Text(
                           '${menu.itemCount} items',
-                          style: TwText.fontBoldSm(),
+                          style: TwText.fontBoldSm,
                         ),
                         const Padding(
                           padding: EdgeInsets.symmetric(
@@ -286,7 +286,7 @@ class _RestaurantMenuView extends StatelessWidget {
                         ),
                         Text(
                           '${menu.categories.length} categories',
-                          style: TwText.textSm(),
+                          style: TwText.textSm,
                         ),
                       ],
                     ),
@@ -314,7 +314,7 @@ class _RestaurantMenuView extends StatelessWidget {
                                   locations
                                       .map((location) => location.storeName)
                                       .join(' • '),
-                                  style: TwText.textSm(),
+                                  style: TwText.textSm,
                                 ),
                               ),
                             ],
@@ -360,15 +360,12 @@ class _RestaurantMenuView extends StatelessWidget {
                         Row(
                           children: [
                             Expanded(
-                              child: Text(
-                                category.name,
-                                style: TwText.textXl(),
-                              ),
+                              child: Text(category.name, style: TwText.textXl),
                             ),
                             Text(
                               '${category.items.length} '
                               '${category.items.length == 1 ? 'item' : 'items'}',
-                              style: TwText.textXs().copyWith(
+                              style: TwText.textXs.copyWith(
                                 color: TwColors.textMuted,
                               ),
                             ),
@@ -417,7 +414,7 @@ class _RestaurantAppBar extends StatelessWidget {
         menu.restaurant.name,
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
-        style: TwText.fontBoldBase().copyWith(color: palette.onAccent),
+        style: TwText.fontBoldBase.copyWith(color: palette.onAccent),
       ),
       flexibleSpace: FlexibleSpaceBar(
         background: _RestaurantHero(imageUrl: menu.restaurant.logoUrl),
@@ -545,7 +542,7 @@ class _CategoryHeaderDelegate extends SliverPersistentHeaderDelegate {
                   color: isSelected ? palette.accent : palette.border,
                 ),
                 label: Text(category.name),
-                labelStyle: TwText.textXs().copyWith(
+                labelStyle: TwText.textXs.copyWith(
                   color: isSelected ? palette.onAccent : palette.accent,
                 ),
                 onSelected: (_) => onSelected(category),
@@ -584,7 +581,7 @@ class _RestaurantLoading extends StatelessWidget {
               children: [
                 const CircularProgressIndicator(),
                 const SizedBox(height: TwSpacing.x4),
-                Text('Loading menu…', style: TwText.textSm()),
+                Text('Loading menu…', style: TwText.textSm),
               ],
             ),
           ),
@@ -630,15 +627,12 @@ class _RestaurantError extends StatelessWidget {
                         size: 42,
                       ),
                       const SizedBox(height: TwSpacing.x3),
-                      Text(
-                        'We could not load this menu',
-                        style: TwText.textXl(),
-                      ),
+                      Text('We could not load this menu', style: TwText.textXl),
                       const SizedBox(height: TwSpacing.x2),
                       Text(
                         'Check your connection and try again.',
                         textAlign: TextAlign.center,
-                        style: TwText.textSm(),
+                        style: TwText.textSm,
                       ),
                       const SizedBox(height: TwSpacing.x5),
                       TextButton(
@@ -674,12 +668,12 @@ class _EmptyMenu extends StatelessWidget {
               color: context.serviceColors.accent,
             ),
             const SizedBox(height: TwSpacing.x3),
-            Text('No menu items yet', style: TwText.textXl()),
+            Text('No menu items yet', style: TwText.textXl),
             const SizedBox(height: TwSpacing.x2),
             Text(
               'This restaurant has not added any items.',
               textAlign: TextAlign.center,
-              style: TwText.textSm(),
+              style: TwText.textSm,
             ),
           ],
         ),

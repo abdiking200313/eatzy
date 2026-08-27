@@ -63,11 +63,11 @@ class _SuperAppHomeScreenState extends State<SuperAppHomeScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Good morning', style: TwText.text2xl()),
+                    Text('Good morning', style: TwText.text2xl),
                     const SizedBox(height: TwSpacing.x1),
                     Text(
                       DateFormat('EEEE, MMMM d').format(DateTime.now()),
-                      style: TwText.textSm(),
+                      style: TwText.textSm,
                     ),
                     const SizedBox(height: TwSpacing.x6),
                     _PromoBanner(
@@ -165,7 +165,7 @@ class _HomeHeader extends StatelessWidget {
                 children: [
                   Text(
                     'zivo',
-                    style: TwText.textXl().copyWith(
+                    style: TwText.textXl.copyWith(
                       color: TwColors.white,
                       fontWeight: FontWeight.w800,
                       letterSpacing: -0.4,
@@ -249,7 +249,7 @@ class _PromoBanner extends StatelessWidget {
               children: [
                 Text(
                   'Everything nearby,\none tap away',
-                  style: TwText.textLg().copyWith(
+                  style: TwText.textLg.copyWith(
                     color: TwColors.white,
                     fontWeight: FontWeight.w700,
                   ),
@@ -345,7 +345,7 @@ class _ServiceTile extends StatelessWidget {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 textAlign: TextAlign.center,
-                style: TwText.fontBoldSm(),
+                style: TwText.fontBoldSm,
               ),
             ],
           ),
@@ -448,7 +448,7 @@ class _PopularRestaurantCard extends StatelessWidget {
                 restaurant.name,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: TwText.fontBoldSm(),
+                style: TwText.fontBoldSm,
               ),
             ),
           ],
@@ -473,7 +473,7 @@ class _SectionHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Expanded(child: Text(title, style: TwText.textXl())),
+        Expanded(child: Text(title, style: TwText.textXl)),
         TextButton(onPressed: onPressed, child: Text(actionLabel)),
       ],
     );
@@ -508,16 +508,16 @@ class _RecentActivityCard extends StatelessWidget {
           foregroundColor: colors.accent,
           child: Icon(module.icon, size: 20),
         ),
-        title: Text(item.title, style: TwText.fontBoldSm()),
+        title: Text(item.title, style: TwText.fontBoldSm),
         subtitle: Text(
           item.status,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
-          style: TwText.textXs(),
+          style: TwText.textXs,
         ),
         trailing: Text(
           AppMoney.format(item.amount),
-          style: TwText.fontBoldSm().copyWith(color: colors.accent),
+          style: TwText.fontBoldSm.copyWith(color: colors.accent),
         ),
       ),
     );

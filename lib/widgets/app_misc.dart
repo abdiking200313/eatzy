@@ -106,7 +106,7 @@ class StatusPill extends StatelessWidget {
               label,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: TwText.textXs().copyWith(color: fg, fontSize: fontSize),
+              style: TwText.textXs.copyWith(color: fg, fontSize: fontSize),
             ),
           ),
         ],
@@ -131,10 +131,10 @@ class SummaryRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final labelStyle = isBold ? TwText.fontBoldBase() : TwText.textSm();
+    final labelStyle = isBold ? TwText.fontBoldBase : TwText.textSm;
     final valueStyle = isBold
-        ? TwText.fontBoldBase().copyWith(color: scheme.primary)
-        : TwText.fontBoldSm();
+        ? TwText.fontBoldBase.copyWith(color: scheme.primary)
+        : TwText.fontBoldSm;
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [

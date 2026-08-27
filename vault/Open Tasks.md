@@ -58,7 +58,7 @@ Phase 7 (#28) still can't start: depends on all of phases 1-6, and phases 2 (#23
 
 ## Remaining `todo`, not yet picked up
 
-After the 8th run pulled #53/54/56/57/58/61 into `agent-in-progress`, remaining unpicked `todo` issues (all from the #52 audit batch, oldest-first): **#62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 75, 76, 77, 78, 79, 80, 83** (18 issues). Note #72's issue text describes an *uncommitted* working-tree landmine from 2026-08-15 — re-verified 2026-08-26: it's since been committed as-is (still real: `lib/services/shared/{loadable_state_mixin,confirm_order_flow}.dart` exist but have zero call sites anywhere in `lib/`), so the fix is still needed, just reframe "uncommitted" as "committed but never wired in" when picking it up. Only 14 issues remain `needs-approval`-gated as of 2026-08-26 (#9, 12, 30, 32, 38, 43, 49, 55, 59, 60, 73, 74, 81, 82).
+After the 8th run pulled #53/54/56/57/58/61 into `agent-in-progress`, and a direct dispatch (not board-worker) picked up #65 on 2026-08-27 (PR pending, see [[Status Log]]), remaining unpicked `todo` issues (all from the #52 audit batch, oldest-first): **#62, 63, 64, 66, 67, 68, 69, 70, 71, 72, 75, 76, 77, 78, 79, 80, 83** (17 issues). Note #72's issue text describes an *uncommitted* working-tree landmine from 2026-08-15 — re-verified 2026-08-26: it's since been committed as-is (still real: `lib/services/shared/{loadable_state_mixin,confirm_order_flow}.dart` exist but have zero call sites anywhere in `lib/`), so the fix is still needed, just reframe "uncommitted" as "committed but never wired in" when picking it up. Only 14 issues remain `needs-approval`-gated as of 2026-08-26 (#9, 12, 30, 32, 38, 43, 49, 55, 59, 60, 73, 74, 81, 82).
 
 ## Known in-flight / interrupted work (not yet resolved)
 

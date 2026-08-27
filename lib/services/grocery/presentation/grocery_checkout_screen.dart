@@ -94,7 +94,7 @@ class _GroceryCheckoutScreenState extends State<GroceryCheckoutScreen> {
           child: Text(
             'Demo checkout only. No payment is taken and no real grocery '
             'order is sent to a store.',
-            style: TwText.fontBoldSm().copyWith(color: TwColors.error),
+            style: TwText.fontBoldSm.copyWith(color: TwColors.error),
           ),
         ),
         const SizedBox(height: TwSpacing.x6),
@@ -170,7 +170,7 @@ class _GroceryCheckoutScreenState extends State<GroceryCheckoutScreen> {
                 RadioListTile<GroceryDeliverySlot>(
                   contentPadding: EdgeInsets.zero,
                   value: slot,
-                  title: Text(slot.label, style: TwText.fontBoldSm()),
+                  title: Text(slot.label, style: TwText.fontBoldSm),
                   subtitle: Text(slot.detail),
                 ),
             ],
@@ -179,7 +179,7 @@ class _GroceryCheckoutScreenState extends State<GroceryCheckoutScreen> {
         const SizedBox(height: TwSpacing.x6),
         const SectionTitle('If an item becomes unavailable'),
         const SizedBox(height: TwSpacing.x2),
-        Text('Choose one option before confirming.', style: TwText.textSm()),
+        Text('Choose one option before confirming.', style: TwText.textSm),
         RadioGroup<GrocerySubstitutionPreference>(
           groupValue: _substitutionPreference,
           onChanged: (value) {
@@ -191,7 +191,7 @@ class _GroceryCheckoutScreenState extends State<GroceryCheckoutScreen> {
                 RadioListTile<GrocerySubstitutionPreference>(
                   contentPadding: EdgeInsets.zero,
                   value: preference,
-                  title: Text(preference.label, style: TwText.fontBoldSm()),
+                  title: Text(preference.label, style: TwText.fontBoldSm),
                   subtitle: Text(preference.description),
                 ),
             ],
@@ -207,13 +207,13 @@ class _GroceryCheckoutScreenState extends State<GroceryCheckoutScreen> {
               children: [
                 Text(
                   'Please complete the following:',
-                  style: TwText.fontBoldSm().copyWith(color: TwColors.error),
+                  style: TwText.fontBoldSm.copyWith(color: TwColors.error),
                 ),
                 const SizedBox(height: TwSpacing.x2),
                 for (final error in _errors)
                   Text(
                     '• $error',
-                    style: TwText.textSm().copyWith(color: TwColors.error),
+                    style: TwText.textSm.copyWith(color: TwColors.error),
                   ),
               ],
             ),
@@ -304,7 +304,7 @@ class _EmptyCheckout extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text('Your grocery cart is empty.', style: TwText.textXl()),
+            Text('Your grocery cart is empty.', style: TwText.textXl),
             const SizedBox(height: TwSpacing.x5),
             PrimaryButton(
               label: 'Browse groceries',
@@ -331,7 +331,7 @@ class _SummaryRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final style = emphasized ? TwText.fontBoldBase() : TwText.textSm();
+    final style = emphasized ? TwText.fontBoldBase : TwText.textSm;
     return Row(
       children: [
         Expanded(child: Text(label, style: style)),

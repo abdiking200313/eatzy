@@ -64,7 +64,7 @@ class _EmptyCart extends StatelessWidget {
               color: TwColors.textMuted,
             ),
             const SizedBox(height: TwSpacing.x4),
-            Text('Your grocery cart is empty', style: TwText.textXl()),
+            Text('Your grocery cart is empty', style: TwText.textXl),
             const SizedBox(height: TwSpacing.x5),
             PrimaryButton(
               label: 'Browse groceries',
@@ -93,7 +93,7 @@ class _CartBody extends StatelessWidget {
         TwSpacing.x8,
       ),
       children: [
-        Text(controller.storeName ?? 'Grocery store', style: TwText.textXl()),
+        Text(controller.storeName ?? 'Grocery store', style: TwText.textXl),
         const SizedBox(height: TwSpacing.x4),
         for (final line in controller.cart) ...[
           _CartLineCard(line: line, controller: controller),
@@ -141,8 +141,8 @@ class _CartLineCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(line.product.name, style: TwText.fontBoldBase()),
-                Text(AppMoney.format(line.total), style: TwText.textSm()),
+                Text(line.product.name, style: TwText.fontBoldBase),
+                Text(AppMoney.format(line.total), style: TwText.textSm),
                 TextButton(
                   onPressed: () => controller.remove(line.product.id),
                   style: TextButton.styleFrom(
@@ -164,7 +164,7 @@ class _CartLineCard extends StatelessWidget {
             child: Text(
               _quantityLabel(line),
               textAlign: TextAlign.center,
-              style: TwText.fontBoldSm(),
+              style: TwText.fontBoldSm,
             ),
           ),
           IconButton(
@@ -207,7 +207,7 @@ class _TotalRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final style = emphasized ? TwText.fontBoldBase() : TwText.textSm();
+    final style = emphasized ? TwText.fontBoldBase : TwText.textSm;
     return Row(
       children: [
         Expanded(child: Text(label, style: style)),

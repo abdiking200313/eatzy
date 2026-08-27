@@ -27,7 +27,7 @@ class DeliveryAddressCard extends StatelessWidget {
                 onPressed: onChangePressed,
                 child: Text(
                   'Change',
-                  style: TwText.link().copyWith(color: palette.accent),
+                  style: TwText.link.copyWith(color: palette.accent),
                 ),
               ),
             ],
@@ -41,10 +41,10 @@ class DeliveryAddressCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Home', style: TwText.fontBoldSm()),
+                    Text('Home', style: TwText.fontBoldSm),
                     Text(
                       'Maka Al-Mukarama Road, Mogadishu',
-                      style: TwText.textSm(),
+                      style: TwText.textSm,
                     ),
                   ],
                 ),
