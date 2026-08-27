@@ -15,6 +15,10 @@ Reverse-chronological. Each session/major chunk of work gets an entry.
 
 ---
 
+## 2026-08-27
+
+- **Issue #66 executed** (no image resize/decode limits): `memCacheWidth`/`memCacheHeight` added to all 8 `CachedNetworkImage` call sites under `lib/` (`app_misc.dart`'s `NetworkAvatar`, `cart.dart`, `category_card.dart`, `restaurant_card.dart`, `menu_item_card.dart`, `restaurant_screen.dart`'s hero, `super_app_home_screen.dart`'s popular-restaurant card), sized to each widget's known rendered box scaled by `MediaQuery.of(context).devicePixelRatio` (clamped to 3x). `onboarding_page.dart`'s raw `DecorationImage(NetworkImage(...))` converted to `CachedNetworkImage` with a placeholder/`errorWidget` matching the existing fallback-widget pattern. `dart format`/`flutter analyze`/`flutter test` all clean (89/89). This session had no `Agent`/`Task` tool to actually dispatch a `ui-agent` subprocess — implemented directly while staying inside `ui-agent`'s file scope, same gap noted in the 2026-08-15 entry below for nested dispatch. See PR for #66.
+
 ## 2026-08-26
 
 - **Eighth board-worker run today — processed all 6 issue-slots, the first batch from the ~44-issue post-approval backlog** (oldest-first: #53, #54, #56, #57, #58, #61 — all from the #52 architecture/perf audit tracking issue). `waiting-on-you` #8/#16/#40 re-confirmed still no human reply (#8 re-checked live, still only the agent's own comment from the 7th run). `agent-in-progress` #1/#2/#4/#5/#6/#23/#26/#33 from the 7th run untouched, still open/unmerged (not this run's scope). Each of the 6 dispatched as an independent worktree-isolated agent from a clean `master` (`639985e`), all 6 opened PRs, none paused/ambiguous this time:
