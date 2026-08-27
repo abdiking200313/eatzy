@@ -32,7 +32,11 @@ class CategoriesScreen extends StatelessWidget {
           return OutlinedCard(
             child: InkWell(
               key: Key('services-${module.id.name}'),
-              onTap: () => context.push(module.entryRoute),
+              // `go`, not `push`: module.entryRoute belongs to its own shell
+              // branch (see app_router.dart), so this switches branches
+              // within the persistent bottom-nav shell instead of stacking a
+              // full-screen route over it and hiding the nav bar (#67).
+              onTap: () => context.go(module.entryRoute),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [

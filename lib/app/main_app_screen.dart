@@ -1,72 +1,81 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 import '../config/theme.dart';
-import '../features/profile/presentation/profile_screen.dart';
-import '../features/super_app/presentation/super_app_home_screen.dart';
-import '../platform/activity/presentation/activity_screen.dart';
-import '../screens/explore.dart';
 
+/// The persistent shell around the bottom-nav tabs (Home, Explore, Activity,
+/// Profile) and the food/grocery/pharmacy vertical branches.
+///
+/// [navigationShell] is supplied by `StatefulShellRoute.indexedStack` in
+/// `app_router.dart` — it keeps every branch's own navigator (and therefore
+/// its scroll position, in-flight futures, and back stack) alive in an
+/// `IndexedStack` behind the scenes, so switching branches never rebuilds
+/// this widget or discards the other branches' state. See issue #67.
 class MainAppScreen extends StatefulWidget {
-  const MainAppScreen({super.key, this.screens, this.initialIndex = 0})
-    : assert(screens == null || screens.length == 4),
-      assert(initialIndex >= 0 && initialIndex < 4);
+  const MainAppScreen({super.key, required this.navigationShell});
 
-  final List<Widget>? screens;
-  final int initialIndex;
+  final StatefulNavigationShell navigationShell;
 
   @override
   State<MainAppScreen> createState() => _MainAppScreenState();
 }
 
 class _MainAppScreenState extends State<MainAppScreen> {
-  late int _selectedIndex;
-
   static const List<_NavigationItem> _navigationItems = [
-    _NavigationItem(
-      label: 'Home',
-      icon: Icons.home_outlined,
-      screen: SuperAppHomeScreen(),
-    ),
-    _NavigationItem(
-      label: 'Explore',
-      icon: Icons.explore_outlined,
-      screen: ExploreScreen(),
-    ),
-    _NavigationItem(
-      label: 'Activity',
-      icon: Icons.receipt_long_outlined,
-      screen: ActivityScreen(),
-    ),
-    _NavigationItem(
-      label: 'Profile',
-      icon: Icons.person_outline,
-      screen: ProfileScreen(),
-    ),
+    _NavigationItem(label: 'Home', icon: Icons.home_outlined),
+    _NavigationItem(label: 'Explore', icon: Icons.explore_outlined),
+    _NavigationItem(label: 'Activity', icon: Icons.receipt_long_outlined),
+    _NavigationItem(label: 'Profile', icon: Icons.person_outline),
   ];
+
+  // The food/grocery/pharmacy verticals are additional shell branches beyond
+  // these four (so entering one keeps this nav bar on screen instead of
+  // stacking a full-screen route over it), but they aren't destinations of
+  // their own in the bottom nav. While one of them is active, keep
+  // highlighting whichever of the four primary tabs the user was last on,
+  // rather than an out-of-range index or no selection at all.
+  int _lastPrimaryIndex = 0;
 
   @override
   void initState() {
     super.initState();
-    _selectedIndex = widget.initialIndex;
+    _syncLastPrimaryIndex();
+  }
+
+  @override
+  void didUpdateWidget(covariant MainAppScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _syncLastPrimaryIndex();
+  }
+
+  void _syncLastPrimaryIndex() {
+    final index = widget.navigationShell.currentIndex;
+    if (index < _navigationItems.length) {
+      _lastPrimaryIndex = index;
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final screens =
-        widget.screens ??
-        _navigationItems.map((item) => item.screen).toList(growable: false);
+    final currentIndex = widget.navigationShell.currentIndex;
+    final selectedIndex = currentIndex < _navigationItems.length
+        ? currentIndex
+        : _lastPrimaryIndex;
 
     return Scaffold(
-      body: IndexedStack(index: _selectedIndex, children: screens),
+      body: widget.navigationShell,
       bottomNavigationBar: DecoratedBox(
         decoration: const BoxDecoration(
           color: TwColors.white,
           border: Border(top: BorderSide(color: TwColors.border)),
         ),
         child: NavigationBar(
-          selectedIndex: _selectedIndex,
+          selectedIndex: selectedIndex,
           onDestinationSelected: (index) {
-            setState(() => _selectedIndex = index);
+            widget.navigationShell.goBranch(
+              index,
+              initialLocation: index == widget.navigationShell.currentIndex,
+            );
           },
           destinations: [
             for (final item in _navigationItems)
@@ -86,13 +95,8 @@ class _MainAppScreenState extends State<MainAppScreen> {
 }
 
 class _NavigationItem {
-  const _NavigationItem({
-    required this.label,
-    required this.icon,
-    required this.screen,
-  });
+  const _NavigationItem({required this.label, required this.icon});
 
   final String label;
   final IconData icon;
-  final Widget screen;
 }

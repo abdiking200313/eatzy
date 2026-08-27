@@ -21,8 +21,10 @@ import '../features/restaurant/presentation/restaurant_screen.dart';
 import '../features/rewards/presentation/rewards_profile_screen.dart';
 import '../features/rewards/presentation/rewards_screen.dart';
 import '../features/settings/presentation/settings_screen.dart';
+import '../features/super_app/presentation/super_app_home_screen.dart';
 import '../features/support/presentation/support_screen.dart';
 import '../features/wallet/presentation/wallet_screen.dart';
+import '../platform/activity/presentation/activity_screen.dart';
 import '../screens/addresses.dart';
 import '../screens/cart.dart';
 import '../screens/categories.dart';
@@ -67,29 +69,23 @@ class AppRouter {
     _page(AppRoutes.onboardingThree, const OnboardingPage3()),
   ];
 
-  // Every page in this map requires a valid Supabase session.
-  static const Map<String, Widget> _protectedPages = {
-    AppRoutes.mainApp: MainAppScreen(),
-    AppRoutes.services: CategoriesScreen(),
+  // The four bottom-nav tabs. Each is its own StatefulShellBranch below, so
+  // switching between them (and into a vertical, see _serviceBranches) keeps
+  // every branch's own navigator/scroll/future state alive and leaves the
+  // persistent bottom nav bar on screen — see issue #67.
+  static const Map<String, Widget> _shellTabPages = {
+    AppRoutes.mainApp: SuperAppHomeScreen(),
     AppRoutes.explore: ExploreScreen(),
-    AppRoutes.activity: MainAppScreen(initialIndex: 2),
+    AppRoutes.activity: ActivityScreen(),
     AppRoutes.profile: ProfileScreen(),
-    AppRoutes.orders: OrdersScreen(),
-    AppRoutes.addresses: AddressesScreen(),
-    AppRoutes.paymentMethods: PaymentMethodsScreen(),
-    AppRoutes.settings: SettingsScreen(),
-    // Reachable both from Settings (normal session) and by tapping a
-    // password-recovery email link (temporary recovery session) — both
-    // already carry a valid Supabase session by the time this route loads.
-    AppRoutes.resetPassword: ResetPasswordScreen(),
-    AppRoutes.support: SupportScreen(),
-    AppRoutes.wallet: WalletScreen(),
-    AppRoutes.trackOrder: ZivoServiceTheme(
-      serviceId: ServiceId.food,
-      child: TrackOrderScreen(),
-    ),
-    AppRoutes.rewards: RewardsScreen(),
-    AppRoutes.rewardsProfile: RewardsProfileScreen(),
+  };
+
+  // Food, grocery, and pharmacy are also StatefulShellBranches of the same
+  // shell (not bottom-nav destinations themselves — they're reached by
+  // `context.go` from a service card). Keeping each vertical's whole
+  // sub-tree inside the shell, rather than as standalone top-level routes,
+  // is what keeps the bottom nav bar visible while browsing a vertical.
+  static const Map<String, Widget> _foodPages = {
     AppRoutes.food: ZivoServiceTheme(
       serviceId: ServiceId.food,
       child: FoodHomeScreen(),
@@ -110,6 +106,9 @@ class AppRouter {
       serviceId: ServiceId.food,
       child: CheckoutScreen(),
     ),
+  };
+
+  static const Map<String, Widget> _groceryPages = {
     AppRoutes.grocery: ZivoServiceTheme(
       serviceId: ServiceId.grocery,
       child: GroceryScreen(),
@@ -122,6 +121,9 @@ class AppRouter {
       serviceId: ServiceId.grocery,
       child: GroceryCheckoutScreen(),
     ),
+  };
+
+  static const Map<String, Widget> _pharmacyPages = {
     AppRoutes.pharmacy: ZivoServiceTheme(
       serviceId: ServiceId.pharmacy,
       child: PharmacyCatalogScreen(),
@@ -136,16 +138,33 @@ class AppRouter {
     ),
   };
 
-  static final List<RouteBase> _protectedRoutes = [
-    ..._protectedPages.entries.map((entry) => _page(entry.key, entry.value)),
-    GoRoute(
-      path: AppRoutes.foodRestaurant,
-      builder: (_, state) => ZivoServiceTheme(
-        serviceId: ServiceId.food,
-        child: RestaurantScreen(
-          restaurantId: state.pathParameters['restaurantId']!,
-        ),
-      ),
+  // Pages that intentionally stay outside the shell: pushed full-screen,
+  // with their own back button, and not part of the persistent bottom nav.
+  // Unaffected by issue #67 — only the four tabs and the three verticals
+  // above needed to move into the shell.
+  static const Map<String, Widget> _standaloneProtectedPages = {
+    AppRoutes.services: CategoriesScreen(),
+    AppRoutes.orders: OrdersScreen(),
+    AppRoutes.addresses: AddressesScreen(),
+    AppRoutes.paymentMethods: PaymentMethodsScreen(),
+    AppRoutes.settings: SettingsScreen(),
+    // Reachable both from Settings (normal session) and by tapping a
+    // password-recovery email link (temporary recovery session) — both
+    // already carry a valid Supabase session by the time this route loads.
+    AppRoutes.resetPassword: ResetPasswordScreen(),
+    AppRoutes.support: SupportScreen(),
+    AppRoutes.wallet: WalletScreen(),
+    AppRoutes.trackOrder: ZivoServiceTheme(
+      serviceId: ServiceId.food,
+      child: TrackOrderScreen(),
+    ),
+    AppRoutes.rewards: RewardsScreen(),
+    AppRoutes.rewardsProfile: RewardsProfileScreen(),
+  };
+
+  static final List<RouteBase> _standaloneProtectedRoutes = [
+    ..._standaloneProtectedPages.entries.map(
+      (entry) => _page(entry.key, entry.value),
     ),
     GoRoute(path: AppRoutes.home, redirect: (_, _) => AppRoutes.mainApp),
     GoRoute(path: AppRoutes.categories, redirect: (_, _) => AppRoutes.services),
@@ -162,13 +181,51 @@ class AppRouter {
     ),
   ];
 
+  // The persistent bottom-nav shell: Home/Explore/Activity/Profile plus the
+  // food/grocery/pharmacy verticals, each its own branch so branch-switching
+  // (via `context.go` or `navigationShell.goBranch`) never tears down the
+  // other branches' navigator state, and the nav bar built by MainAppScreen
+  // stays on screen the whole time. See issue #67.
+  static final StatefulShellRoute _shellRoute = StatefulShellRoute.indexedStack(
+    builder: (context, state, navigationShell) =>
+        MainAppScreen(navigationShell: navigationShell),
+    branches: [
+      for (final entry in _shellTabPages.entries)
+        StatefulShellBranch(routes: [_page(entry.key, entry.value)]),
+      StatefulShellBranch(
+        routes: [
+          ..._foodPages.entries.map((entry) => _page(entry.key, entry.value)),
+          GoRoute(
+            path: AppRoutes.foodRestaurant,
+            builder: (_, state) => ZivoServiceTheme(
+              serviceId: ServiceId.food,
+              child: RestaurantScreen(
+                restaurantId: state.pathParameters['restaurantId']!,
+              ),
+            ),
+          ),
+        ],
+      ),
+      StatefulShellBranch(
+        routes: _groceryPages.entries
+            .map((entry) => _page(entry.key, entry.value))
+            .toList(growable: false),
+      ),
+      StatefulShellBranch(
+        routes: _pharmacyPages.entries
+            .map((entry) => _page(entry.key, entry.value))
+            .toList(growable: false),
+      ),
+    ],
+  );
+
   static final _authRefresh = _AuthStateRefresh();
 
   static final GoRouter router = GoRouter(
     initialLocation: AppRoutes.welcome,
     refreshListenable: _authRefresh,
     redirect: _redirect,
-    routes: [..._publicRoutes, ..._protectedRoutes],
+    routes: [..._publicRoutes, _shellRoute, ..._standaloneProtectedRoutes],
   );
 
   static String? _redirect(BuildContext context, GoRouterState state) {
@@ -200,7 +257,8 @@ class AppRouter {
   }
 
   static bool isProtectedLocation(String location) {
-    return _protectedPages.containsKey(location) ||
+    return _standaloneProtectedPages.containsKey(location) ||
+        _shellTabPages.containsKey(location) ||
         AppRoutes.isServicePath(location) ||
         AppRoutes.isRestaurantDetails(location) ||
         const {
