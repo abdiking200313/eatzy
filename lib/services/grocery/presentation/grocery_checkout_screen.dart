@@ -58,7 +58,7 @@ class _GroceryCheckoutScreenState extends State<GroceryCheckoutScreen> {
         title: 'Grocery checkout',
         showBackButton: true,
         body: _controller.isEmpty
-            ? _EmptyCheckout(onBrowse: () => context.go('/grocery'))
+            ? _EmptyCheckout(onBrowse: () => context.go(AppRoutes.grocery))
             : _checkoutBody(),
         bottomNavigationBar: _controller.isEmpty
             ? null

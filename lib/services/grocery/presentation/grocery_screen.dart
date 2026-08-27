@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../app/app_routes.dart';
 import '../../../config/theme.dart';
 import '../../../platform/localization/app_money.dart';
 import '../../../widgets/add_to_cart_button.dart';
@@ -44,7 +45,7 @@ class _GroceryScreenState extends State<GroceryScreen> {
           actions: [
             IconButton(
               tooltip: 'Grocery cart (${_controller.itemCount})',
-              onPressed: () => context.push('/grocery/cart'),
+              onPressed: () => context.push(AppRoutes.groceryCart),
               icon: Badge(
                 isLabelVisible: _controller.itemCount > 0,
                 label: Text('${_controller.itemCount}'),
