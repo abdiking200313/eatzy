@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:collection';
 
 import 'package:flutter/foundation.dart';
@@ -6,6 +7,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../app/service_module.dart';
 import '../../../platform/activity/models/activity_item.dart';
 import '../../../platform/activity/presentation/activity_controller.dart';
+import '../../shared/data/cart_storage.dart';
 import '../data/grocery_repository.dart';
 import '../models/grocery_models.dart';
 
@@ -20,10 +22,12 @@ enum GroceryAddResult {
 class GroceryController extends ChangeNotifier {
   GroceryController({
     required GroceryRepository repository,
+    required CartStorage<GroceryCartLine> storage,
     GroceryCatalogRepository? catalogRepository,
     GroceryOrderRepository? orderRepository,
     ActivityController? activityController,
   }) : _repository = repository,
+       _storage = storage,
        _catalogRepository =
            catalogRepository ??
            (repository is GroceryCatalogRepository
@@ -39,6 +43,11 @@ class GroceryController extends ChangeNotifier {
       repository: catalog,
       catalogRepository: catalog,
       orderRepository: SupabaseGroceryOrderRepository(client: client),
+      storage: SharedPreferencesCartStorage<GroceryCartLine>(
+        keyPrefix: 'zivo.cart.v1.grocery',
+        toJson: (line) => line.toJson(),
+        fromJson: GroceryCartLine.fromJson,
+      ),
     )..load();
   }();
 
@@ -63,6 +72,7 @@ class GroceryController extends ChangeNotifier {
   ];
 
   final GroceryRepository _repository;
+  final CartStorage<GroceryCartLine> _storage;
   final GroceryCatalogRepository? _catalogRepository;
   final GroceryOrderRepository? _orderRepository;
   final ActivityController _activityController;
@@ -70,12 +80,19 @@ class GroceryController extends ChangeNotifier {
   final List<GroceryDeliverySlot> _deliverySlots = [];
   final Map<String, GroceryCartLine> _cart = {};
 
+  static const String _guestCartOwner = 'guest';
+
   bool _isLoading = false;
   bool _hasLoaded = false;
   String? _loadError;
   bool _slotsLoading = false;
   String? _slotLoadError;
   GroceryOrderConfirmation? _lastConfirmation;
+
+  Future<void> _pendingCartWrite = Future<void>.value();
+  String? _cartOwnerId;
+  int _cartLoadGeneration = 0;
+  bool _isCartLoading = false;
 
   UnmodifiableListView<GroceryStore> get stores =>
       UnmodifiableListView(_stores);
@@ -94,6 +111,17 @@ class GroceryController extends ChangeNotifier {
   bool get isNotEmpty => _cart.isNotEmpty;
   int get itemCount => _cart.length;
   GroceryOrderConfirmation? get lastConfirmation => _lastConfirmation;
+  String? get cartOwnerId => _cartOwnerId;
+  bool get isCartLoading => _isCartLoading;
+  String get _cartStorageOwner => _cartOwnerId ?? _guestCartOwner;
+
+  /// Resolves once every cart write queued so far has been persisted. Cart
+  /// mutations persist fire-and-forget so callers don't need to await them;
+  /// tests that need to observe the persisted result deterministically
+  /// (e.g. before loading a second controller from the same storage) should
+  /// await this first.
+  @visibleForTesting
+  Future<void> get pendingCartWrite => _pendingCartWrite;
   String? get storeId =>
       _cart.isEmpty ? null : _cart.values.first.product.storeId;
 
@@ -114,6 +142,34 @@ class GroceryController extends ChangeNotifier {
       _cart.values.fold(0, (total, line) => total + line.total);
   double get deliveryFee => _cart.isEmpty ? 0 : standardDeliveryFee;
   double get total => subtotal + deliveryFee;
+
+  /// Loads the persisted grocery cart for [ownerId] (or the guest cart when
+  /// `null`), replacing whatever cart is currently in memory. Mirrors
+  /// `CartController.loadForOwner`: a monotonically increasing generation
+  /// guards against a stale read finishing after a later account switch.
+  Future<void> loadForOwner(String? ownerId) async {
+    final generation = ++_cartLoadGeneration;
+    _cartOwnerId = ownerId;
+    _cart.clear();
+    _isCartLoading = true;
+    notifyListeners();
+
+    List<GroceryCartLine> loadedLines;
+    try {
+      loadedLines = await _storage.read(_cartStorageOwner);
+    } on Object {
+      loadedLines = const [];
+    }
+    if (generation != _cartLoadGeneration) {
+      return;
+    }
+
+    _cart
+      ..clear()
+      ..addEntries(loadedLines.map((line) => MapEntry(line.product.id, line)));
+    _isCartLoading = false;
+    notifyListeners();
+  }
 
   Future<void> load() async {
     if (_isLoading) {
@@ -188,6 +244,7 @@ class GroceryController extends ChangeNotifier {
     );
     _lastConfirmation = null;
     notifyListeners();
+    unawaited(_persistCart());
     return existing == null
         ? GroceryAddResult.added
         : GroceryAddResult.quantityIncreased;
@@ -202,6 +259,7 @@ class GroceryController extends ChangeNotifier {
     if (quantity <= 0) {
       _cart.remove(productId);
       notifyListeners();
+      unawaited(_persistCart());
       return true;
     }
 
@@ -216,6 +274,7 @@ class GroceryController extends ChangeNotifier {
       quantity: _normalizeQuantity(quantity),
     );
     notifyListeners();
+    unawaited(_persistCart());
     return true;
   }
 
@@ -244,6 +303,7 @@ class GroceryController extends ChangeNotifier {
   void remove(String productId) {
     if (_cart.remove(productId) != null) {
       notifyListeners();
+      unawaited(_persistCart());
     }
   }
 
@@ -349,14 +409,20 @@ class GroceryController extends ChangeNotifier {
     _cart.clear();
     _lastConfirmation = confirmation;
     notifyListeners();
+    unawaited(_persistCart());
     return GroceryCheckoutResult.confirmed(confirmation);
   }
 
   @visibleForTesting
-  void clear() => resetSessionState();
-
-  void resetSessionState() {
+  void clear() {
     _cart.clear();
+    resetSessionState();
+  }
+
+  /// Resets ephemeral, non-persisted MVP state on an account switch. The
+  /// cart itself is handled separately by [loadForOwner], which reloads
+  /// (rather than simply clearing) the incoming owner's persisted cart.
+  void resetSessionState() {
     _deliverySlots.clear();
     _lastConfirmation = null;
     notifyListeners();
@@ -364,4 +430,24 @@ class GroceryController extends ChangeNotifier {
 
   double _normalizeQuantity(double quantity) =>
       (quantity * 100).roundToDouble() / 100;
+
+  Future<void> _persistCart() {
+    final owner = _cartStorageOwner;
+    final snapshot = _cart.values.toList(growable: false);
+    return _queueCartWrite(() => _storage.write(owner, snapshot));
+  }
+
+  Future<void> _queueCartWrite(Future<void> Function() write) {
+    final previousWrite = _pendingCartWrite;
+    final operation = () async {
+      try {
+        await previousWrite;
+      } on Object {
+        // A later cart change should still get a chance to persist.
+      }
+      await write();
+    }();
+    _pendingCartWrite = operation;
+    return operation;
+  }
 }

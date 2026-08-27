@@ -1,20 +1,26 @@
 import 'package:chowflow/app/service_module.dart';
 import 'package:chowflow/platform/activity/presentation/activity_controller.dart';
 import 'package:chowflow/services/pharmacy/data/pharmacy_repository.dart';
+import 'package:chowflow/services/pharmacy/models/pharmacy_cart_item.dart';
 import 'package:chowflow/services/pharmacy/models/pharmacy_checkout.dart';
 import 'package:chowflow/services/pharmacy/models/pharmacy_product.dart';
 import 'package:chowflow/services/pharmacy/presentation/pharmacy_controller.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'helpers/memory_cart_storage.dart';
+
 void main() {
   late ActivityController activityController;
   late PharmacyController controller;
+  late MemoryCartStorage<PharmacyCartItem> storage;
 
   setUp(() async {
     activityController = ActivityController();
+    storage = MemoryCartStorage<PharmacyCartItem>();
     controller = PharmacyController(
       repository: const SeededPharmacyRepository(),
       activityController: activityController,
+      storage: storage,
       now: () => DateTime.utc(2026, 7, 27, 12),
     );
     await controller.loadProducts();
@@ -113,5 +119,48 @@ void main() {
     expect(activityController.items.single.serviceId, ServiceId.pharmacy);
     expect(activityController.items.single.status, 'Demo confirmed');
     expect(activityController.items.single.amount, 5.25);
+  });
+
+  test('pharmacy cart survives a simulated app reload', () async {
+    await controller.loadForOwner('user-1');
+    final paracetamol = controller.products.first;
+    controller.addProduct(paracetamol);
+    controller.increment(paracetamol.id);
+    await controller.pendingCartWrite;
+
+    // Simulate the app restarting: a brand new controller backed by the
+    // same underlying storage should restore the persisted cart.
+    final restarted = PharmacyController(
+      repository: const SeededPharmacyRepository(),
+      activityController: activityController,
+      storage: storage,
+      now: () => DateTime.utc(2026, 7, 27, 12),
+    );
+    await restarted.loadProducts();
+    await restarted.loadForOwner('user-1');
+
+    expect(restarted.cartItems, hasLength(1));
+    expect(restarted.cartItems.single.product.id, paracetamol.id);
+    expect(restarted.cartItems.single.quantity, 2);
+  });
+
+  test('switching accounts clears and reloads the pharmacy cart', () async {
+    await controller.loadForOwner('user-1');
+    final paracetamol = controller.products.first;
+    controller.addProduct(paracetamol);
+    expect(controller.isCartNotEmpty, isTrue);
+    await controller.pendingCartWrite;
+
+    await controller.loadForOwner('user-2');
+    expect(controller.isCartEmpty, isTrue);
+
+    final otherProduct = controller.products[1];
+    controller.addProduct(otherProduct);
+    await controller.pendingCartWrite;
+    await controller.loadForOwner('user-1');
+    expect(controller.cartItems.single.product.id, paracetamol.id);
+
+    await controller.loadForOwner('user-2');
+    expect(controller.cartItems.single.product.id, otherProduct.id);
   });
 }
