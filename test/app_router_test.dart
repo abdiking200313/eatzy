@@ -28,7 +28,7 @@ void main() {
       final redirect = AppRouter.resolveRedirect(
         isLoggedIn: false,
         isProtected: true,
-        location: AppRoutes.orders,
+        location: AppRoutes.wallet,
       );
 
       expect(redirect, AppRoutes.login);

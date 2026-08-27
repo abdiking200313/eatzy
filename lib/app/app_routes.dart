@@ -48,7 +48,6 @@ class AppRoutes {
   static const cart = '/cart';
   static const checkout = '/checkout';
   static const profile = '/profile';
-  static const orders = '/orders';
   static const addresses = '/addresses';
   static const paymentMethods = '/payment-methods';
   static const settings = '/settings';
