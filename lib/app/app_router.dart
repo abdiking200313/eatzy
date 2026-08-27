@@ -98,10 +98,6 @@ class AppRouter {
       serviceId: ServiceId.food,
       child: FoodCategoriesScreen(),
     ),
-    AppRoutes.foodExplore: ZivoServiceTheme(
-      serviceId: ServiceId.food,
-      child: FoodExploreScreen(),
-    ),
     AppRoutes.foodCart: ZivoServiceTheme(
       serviceId: ServiceId.food,
       child: CartScreen(),
@@ -138,6 +134,18 @@ class AppRouter {
 
   static final List<RouteBase> _protectedRoutes = [
     ..._protectedPages.entries.map((entry) => _page(entry.key, entry.value)),
+    GoRoute(
+      // Reads an optional ?categoryId=&categoryName= pair, set when reached
+      // from a category card in FoodCategoriesScreen, to pre-filter the list.
+      path: AppRoutes.foodExplore,
+      builder: (_, state) => ZivoServiceTheme(
+        serviceId: ServiceId.food,
+        child: FoodExploreScreen(
+          categoryId: state.uri.queryParameters['categoryId'],
+          categoryName: state.uri.queryParameters['categoryName'],
+        ),
+      ),
+    ),
     GoRoute(
       path: AppRoutes.foodRestaurant,
       builder: (_, state) => ZivoServiceTheme(
