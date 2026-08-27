@@ -216,6 +216,18 @@ class AppRouter {
   static GoRoute _page(String path, Widget screen) {
     return GoRoute(path: path, builder: (_, _) => screen);
   }
+
+  /// True when [path] is registered as an exact, static route (public or
+  /// protected). Only matches literal paths — it does not resolve dynamic
+  /// segments such as `:restaurantId`, since none of the callers this exists
+  /// for (route-registration contract tests) need that. Deliberately built
+  /// from the route lists directly rather than the `router` field, so it can
+  /// be used from a plain unit test without a Supabase session having been
+  /// initialized first.
+  static bool hasRegisteredRoute(String path) {
+    bool matches(RouteBase route) => route is GoRoute && route.path == path;
+    return _publicRoutes.any(matches) || _protectedRoutes.any(matches);
+  }
 }
 
 // Notifies GoRouter whenever Supabase restores, creates, or removes a session.

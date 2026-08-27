@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../app/app_routes.dart';
 import '../../../config/theme.dart';
 import '../../../platform/localization/app_money.dart';
 import '../../../widgets/app_cards.dart';
@@ -24,7 +25,7 @@ class GroceryCartScreen extends StatelessWidget {
           title: 'Grocery cart',
           showBackButton: true,
           body: _controller.isEmpty
-              ? _EmptyCart(onBrowse: () => context.go('/grocery'))
+              ? _EmptyCart(onBrowse: () => context.go(AppRoutes.grocery))
               : _CartBody(controller: _controller),
           bottomNavigationBar: _controller.isEmpty
               ? null
@@ -32,7 +33,7 @@ class GroceryCartScreen extends StatelessWidget {
                   minimum: const EdgeInsets.all(TwSpacing.x4),
                   child: GradientActionButton(
                     label: 'Continue • ${AppMoney.format(_controller.total)}',
-                    onPressed: () => context.push('/grocery/checkout'),
+                    onPressed: () => context.push(AppRoutes.groceryCheckout),
                     icon: const Icon(
                       Icons.arrow_forward,
                       color: TwColors.onPrimary,

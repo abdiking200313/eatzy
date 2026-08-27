@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../app/app_routes.dart';
 import '../../../config/theme.dart';
 import '../../../platform/localization/app_money.dart';
 import '../../../widgets/app_cards.dart';
@@ -78,7 +79,7 @@ class _CartContents extends StatelessWidget {
         GradientActionButton(
           label: 'Continue to checkout',
           icon: const Icon(Icons.arrow_forward, color: Colors.white),
-          onPressed: () => context.push('/pharmacy/checkout'),
+          onPressed: () => context.push(AppRoutes.pharmacyCheckout),
         ),
         const SizedBox(height: TwSpacing.x8),
       ],
@@ -271,7 +272,7 @@ class _EmptyPharmacyCart extends StatelessWidget {
             ),
             const SizedBox(height: TwSpacing.x4),
             TextButton(
-              onPressed: () => context.go('/pharmacy'),
+              onPressed: () => context.go(AppRoutes.pharmacy),
               child: const Text('Browse pharmacy'),
             ),
           ],

@@ -323,7 +323,7 @@ class _EmptyCheckout extends StatelessWidget {
             Text('Your pharmacy cart is empty', style: TwText.textXl()),
             const SizedBox(height: TwSpacing.x4),
             TextButton(
-              onPressed: () => context.go('/pharmacy'),
+              onPressed: () => context.go(AppRoutes.pharmacy),
               child: const Text('Browse OTC products'),
             ),
           ],
