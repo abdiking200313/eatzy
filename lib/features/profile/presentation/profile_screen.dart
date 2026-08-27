@@ -5,6 +5,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../app/app_routes.dart';
 import '../../../config/theme.dart';
 import '../../../widgets/app_scaffold.dart';
+import '../../auth/data/auth_error_message.dart';
 import '../../auth/data/auth_service.dart';
 import '../data/profile_repository.dart';
 import '../models/customer_profile.dart';
@@ -47,9 +48,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
       if (context.mounted) context.go(AppRoutes.login);
     } catch (error) {
       if (!context.mounted) return;
+      final message = describeAuthError(error, context: 'Logout');
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text('Could not log out: $error')));
+      ).showSnackBar(SnackBar(content: Text('Could not log out: $message')));
     }
   }
 
