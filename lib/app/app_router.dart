@@ -14,7 +14,6 @@ import '../features/onboarding/presentation/onboarding_page_1.dart';
 import '../features/onboarding/presentation/onboarding_page_2.dart';
 import '../features/onboarding/presentation/onboarding_page_3.dart';
 import '../features/onboarding/presentation/welcome_screen.dart';
-import '../features/orders/presentation/orders_screen.dart';
 import '../features/orders/presentation/track_order_screen.dart';
 import '../features/profile/presentation/profile_screen.dart';
 import '../features/restaurant/presentation/restaurant_screen.dart';
@@ -71,10 +70,16 @@ class AppRouter {
   static const Map<String, Widget> _protectedPages = {
     AppRoutes.mainApp: MainAppScreen(),
     AppRoutes.services: CategoriesScreen(),
+    // No context.push/go targets this path directly — ExploreScreen's
+    // content is already reachable as the "Explore" bottom-nav tab inside
+    // MainAppScreen (an IndexedStack swap, not a router push). It also
+    // renders the same ServiceRegistry.modules list as CategoriesScreen in a
+    // different card style; see test/route_reachability_test.dart (#71).
     AppRoutes.explore: ExploreScreen(),
     AppRoutes.activity: MainAppScreen(initialIndex: 2),
+    // Same story as /explore above: reachable as the "Profile" bottom-nav
+    // tab, the standalone route is deep-link-only (#71).
     AppRoutes.profile: ProfileScreen(),
-    AppRoutes.orders: OrdersScreen(),
     AppRoutes.addresses: AddressesScreen(),
     AppRoutes.paymentMethods: PaymentMethodsScreen(),
     AppRoutes.settings: SettingsScreen(),
@@ -84,10 +89,16 @@ class AppRouter {
     AppRoutes.resetPassword: ResetPasswordScreen(),
     AppRoutes.support: SupportScreen(),
     AppRoutes.wallet: WalletScreen(),
+    // Deliberately deep-link-only for now: the natural entry point (an
+    // activity item's detailsRoute) is owned by checkout/activity code that
+    // concurrent in-flight PRs are actively reworking, and #43 tracks that
+    // this screen's data is fake regardless. See test/route_reachability_test.dart (#71).
     AppRoutes.trackOrder: ZivoServiceTheme(
       serviceId: ServiceId.food,
       child: TrackOrderScreen(),
     ),
+    // Real entry points added for #71: ProfileScreen's account options link
+    // to /rewards, and RewardsScreen links to /rewards-profile.
     AppRoutes.rewards: RewardsScreen(),
     AppRoutes.rewardsProfile: RewardsProfileScreen(),
     AppRoutes.food: ZivoServiceTheme(

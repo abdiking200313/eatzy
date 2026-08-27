@@ -70,6 +70,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
       route: AppRoutes.wallet,
       trailingText: '\$120.50',
     ),
+    ProfileOption(
+      title: 'Rewards & Achievements',
+      icon: Icons.emoji_events_outlined,
+      route: AppRoutes.rewards,
+    ),
     ProfileOption(title: 'Coupons & Offers', icon: Icons.local_offer_outlined),
     ProfileOption(title: 'Notifications', icon: Icons.notifications_none),
     ProfileOption(
