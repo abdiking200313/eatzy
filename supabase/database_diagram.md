@@ -1,8 +1,21 @@
 # Zivo Supabase Database Diagram
 
-This is the simple version of the database for the Flutter food-delivery app.
+This diagram covers the shared base tables defined in `supabase/schema.sql`.
 Supabase Auth owns login accounts in `auth.users`; the app stores public user
 data in `profiles`.
+
+**This is not the whole database.** Ordering lives in the per-vertical tables
+created by `supabase/migrations/` — `food_orders`/`food_order_items`,
+`grocery_orders`/`grocery_order_items`,
+`pharmacy_orders`/`pharmacy_order_items`, plus the `customer_activity` view
+that unions them for the activity feed. Those are written only by the
+`place_food_order` / `place_grocery_order` / `place_pharmacy_order`
+`SECURITY DEFINER` RPCs, which recompute every price server-side.
+
+A generic `carts` / `cart_items` / `orders` / `order_items` / `order_events`
+model used to be drawn here as well. It was never queried by any Dart code and
+its insert policies trusted client-supplied prices, so it was removed in issue
+#75 — see the header of `supabase/schema.sql`.
 
 ## Core Diagram
 
@@ -11,23 +24,10 @@ erDiagram
     auth_users ||--|| profiles : owns
     profiles ||--o{ addresses : saves
     profiles ||--o{ payment_methods : saves
-    profiles ||--o{ carts : owns
-    profiles ||--o{ orders : places
     profiles ||--o{ wallet_transactions : has
 
     categories ||--o{ restaurants : groups
     restaurants ||--o{ menu_items : sells
-    restaurants ||--o{ orders : receives
-
-    carts ||--o{ cart_items : contains
-    menu_items ||--o{ cart_items : selected
-
-    orders ||--o{ order_items : contains
-    menu_items ||--o{ order_items : purchased
-    addresses ||--o{ orders : delivers_to
-    payment_methods ||--o{ orders : paid_with
-    delivery_partners ||--o{ orders : delivers
-    orders ||--o{ order_events : tracks
 
     auth_users {
       uuid id PK
@@ -91,44 +91,6 @@ erDiagram
       boolean is_available
     }
 
-    carts {
-      uuid id PK
-      uuid profile_id FK
-      uuid restaurant_id FK
-      text status
-    }
-
-    cart_items {
-      uuid id PK
-      uuid cart_id FK
-      uuid menu_item_id FK
-      integer quantity
-      integer unit_price
-    }
-
-    orders {
-      uuid id PK
-      uuid profile_id FK
-      uuid restaurant_id FK
-      uuid address_id FK
-      uuid payment_method_id FK
-      uuid delivery_partner_id FK
-      text status
-      integer subtotal
-      integer delivery_fee
-      integer tax
-      integer total
-    }
-
-    order_items {
-      uuid id PK
-      uuid order_id FK
-      uuid menu_item_id FK
-      text item_name
-      integer quantity
-      integer unit_price
-    }
-
     delivery_partners {
       uuid id PK
       text full_name
@@ -137,18 +99,10 @@ erDiagram
       boolean is_active
     }
 
-    order_events {
-      uuid id PK
-      uuid order_id FK
-      text status
-      text message
-      timestamptz created_at
-    }
-
     wallet_transactions {
       uuid id PK
       uuid profile_id FK
-      uuid order_id FK
+      uuid order_id
       text type
       integer amount
       text description
@@ -156,30 +110,37 @@ erDiagram
     }
 ```
 
+`delivery_partners` is drawn unconnected on purpose: nothing links a profile to
+a courier yet. `wallet_transactions.order_id` is not a foreign key — the order
+it names lives in whichever per-vertical order table the transaction relates
+to.
+
 ## Why This Is Kept Simple
 
 - `profiles.id` is the same value as `auth.users.id`, so there is no duplicate
   auth table.
-- Prices are stored as integers in the smallest currency unit, for example
-  `350000` for NGN 3,500.00. This avoids floating point money bugs.
-- `order_items.item_name` stores a snapshot so old orders still show the right
-  dish name if a restaurant edits its menu later.
+- Prices in these base tables are stored as integers in the smallest currency
+  unit, for example `350000` for NGN 3,500.00, which avoids floating point
+  money bugs. Note the per-vertical order tables in `supabase/migrations/` use
+  `numeric(12, 2)` instead — that inconsistency is tracked separately in issue
+  #8, not resolved here.
 - Cards are not stored directly. `payment_methods` keeps only display metadata
-  plus the payment provider's token/id.
-- Order tracking is one flexible `order_events` table instead of many delivery
-  tracking tables.
+  plus the payment provider's token/id, and the token column is not readable
+  by the client at all (column-level grants in `supabase/schema.sql`).
+- The `*_order_items.item_name` columns store a snapshot so old orders still
+  show the right item name if a menu or catalog is edited later.
 
-## Tables To Build First
+## Write Paths
 
-1. `profiles`
-2. `addresses`
-3. `categories`
-4. `restaurants`
-5. `menu_items`
-6. `carts`
-7. `cart_items`
-8. `orders`
-9. `order_items`
+There are no client-writable order tables. Everything that creates an order
+goes through a `SECURITY DEFINER` RPC that derives `profile_id` from
+`auth.uid()` and recomputes prices from the database:
 
-Add `payment_methods`, `delivery_partners`, `order_events`, and
-`wallet_transactions` after the basic ordering flow works.
+- `place_food_order`
+- `place_grocery_order`
+- `place_pharmacy_order`
+
+`payment_methods`, `delivery_partners` and `wallet_transactions` are read-only
+to clients (and `delivery_partners` is not readable at all). Adding a payment
+method or crediting a wallet needs an equivalent RPC that does not exist yet —
+do not open those up with a plain insert policy.
