@@ -49,11 +49,8 @@ Refreshed 2026-08-27 (10th run). **Source of truth is always a live `list_issues
 | 65 | [Medium] Text design tokens are per-build GoogleFonts lookups, blocking const | #106 |
 | 66 | [Medium] No image resize/decode limits anywhere | #105 |
 | 67 | [Medium] No ShellRoute for bottom nav — vertical entry hides nav bar | #109 |
-| 68 | [Medium] Raw exception text in auth/profile messages; malformed email regex | #115 |
-| 69 | [Medium] Nine raw route-string literals bypass AppRoutes convention | #111 |
-| 70 | [Medium] Food home screen search bar/category filter non-functional | #116 |
-| 71 | [Medium] Twelve registered routes/~600 lines of feature UI unreachable | #114 |
-| 75 | [High] schema.sql client-trusting order-insert RLS path | #113 |
+
+**#68/#69/#70/#71/#72/#75 all merged 2026-08-27 ~09:48-09:49 UTC**, within ~1 minute of each other — the human cleared the entire 10th-run batch almost immediately after it opened. Dropped from this table (closed via their PRs). The flagged #69×#71 (`app_router.dart`) conflict evidently didn't materialize as a blocking git conflict (both merged cleanly in sequence).
 
 **Known merge-conflict pairs, human decision needed on order (none resolved by the routine)**:
 - PR #95 (#2) and PR #98 (#4) both rework `checkout_screen.dart` from the same pre-#95 baseline — whichever merges second needs a rebase threading #95's `FoodDeliveryAddress` through `FoodController.confirmOrder()`.
@@ -61,8 +58,7 @@ Refreshed 2026-08-27 (10th run). **Source of truth is always a live `list_issues
 - PR #103 (#57) also expects a conflict with PR #98 (#4) on `checkout_screen.dart`, since #103 branched before #98 merged.
 - PR #107 (#62) and PR #108 (#64) both touch `activity_controller.dart`/`activity_screen.dart` — whichever merges second needs to reconcile.
 - PR #108 (#64) and PR #110 (#63) both touch `pharmacy_controller.dart` (#64 adds a staleness timestamp/early-return replacement, #63 adds persistence load/save) — whichever merges second needs to reconcile.
-- **PR #112 (#72) merged 2026-08-27 ~09:48 UTC** — it touched `grocery_controller.dart`/`pharmacy_controller.dart`, the same files as still-open PRs #108 (#64) and #110 (#63); whichever of those two merges next will need to rebase against #112's changes (the conflict shifted from three-way to two, each now against merged `master` rather than each other).
-- PR #111 (#69) and PR #114 (#71) both touch `app_router.dart`/`app_routes.dart` — whichever merges second needs to reconcile the route-literal fixes against the route deletions/entry-point additions.
+- **Both #108 (#64) and #110 (#63) also now individually conflict with merged `master`** (PR #112/#72 already landed changes to the same `grocery_controller.dart`/`pharmacy_controller.dart` files these two PRs touch) — whichever of the two is reviewed next will need a rebase against current `master` regardless of which merges first between themselves.
 
 Phase 7 (#28) still can't start: depends on all of phases 1-6, and phases 2 (#23) and 5 (#26) are still open/unmerged.
 
@@ -81,4 +77,4 @@ After the 10th run pulled #68/69/70/71/72/75 into `agent-in-progress`, remaining
 
 ## Known in-flight / interrupted work (not yet resolved)
 
-- The 2026-08-12 dedup-extraction interruption (RPC-unwrap helper, load/error mixin, confirm-order flow left partially wired) was tracked as **issue #72**, resolved by PR #112 (10th run, 2026-08-27) which wired `LoadableState`/`confirmDemoOrder` into the grocery/pharmacy controllers — pending merge, see the three-way conflict note above against PRs #108/#110.
+- The 2026-08-12 dedup-extraction interruption (RPC-unwrap helper, load/error mixin, confirm-order flow left partially wired) was tracked as **issue #72**, resolved and merged via PR #112 (10th run, 2026-08-27) which wired `LoadableState`/`confirmDemoOrder` into the grocery/pharmacy controllers — closed, no longer in-flight. See the conflict note above: PRs #108/#110 now individually need a rebase against it.
