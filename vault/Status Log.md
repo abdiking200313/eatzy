@@ -15,6 +15,12 @@ Reverse-chronological. Each session/major chunk of work gets an entry.
 
 ---
 
+## 2026-08-27
+
+- **Issue #62 executed** (malformed activity row blanks whole history; menu price silently $0.00) → PR #107. `ActivityRepository.fetchActivities` now parses rows one at a time and skips+logs any row whose `ActivityItem.fromMap` throws, instead of one bad row killing the whole batch; an unrecognized (non-`cleaning`) `service_id` now falls back to a new `ServiceId.unknown` (non-purchasable, generic "Other" descriptor/neutral theme) instead of throwing. `MenuItem.fromMap` now throws on an unparseable/missing/negative price instead of defaulting to `0`; `RestaurantMenuRepository` catches that per item and excludes just that item from the menu rather than showing $0.00 or failing the whole menu load.
+- Assumption flagged in the PR: adding `ServiceId.unknown` to the shared enum (touches `service_module.dart`/`service_theme.dart`, both mechanical/required, not new design) was judged the smallest change consistent with `ActivityItem.serviceId`'s existing type, over a locally-scoped activity-only type.
+- Implemented directly (no `/build` fan-out) since every touched file is squarely `logic-agent` scope (`lib/app/`, `data/`/`models/` folders); test work done in the same pass. 95/95 tests, `dart format`/`flutter analyze` clean.
+
 ## 2026-08-26
 
 - **Eighth board-worker run today — processed all 6 issue-slots, the first batch from the ~44-issue post-approval backlog** (oldest-first: #53, #54, #56, #57, #58, #61 — all from the #52 architecture/perf audit tracking issue). `waiting-on-you` #8/#16/#40 re-confirmed still no human reply (#8 re-checked live, still only the agent's own comment from the 7th run). `agent-in-progress` #1/#2/#4/#5/#6/#23/#26/#33 from the 7th run untouched, still open/unmerged (not this run's scope). Each of the 6 dispatched as an independent worktree-isolated agent from a clean `master` (`639985e`), all 6 opened PRs, none paused/ambiguous this time:
