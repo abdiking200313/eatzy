@@ -22,9 +22,10 @@ upstream_concept: 00-Index
 
 ## Branching / PRs
 
-- Board worker branches: `agent/issue-<number>-<short-kebab-slug>`, off `master`.
-- **Never push directly to `master`, never self-merge.** Every automated change lands as a PR for human review. This applies to interactive sessions too, by extension — treat direct pushes to `master` as something to flag/confirm, not a default.
-- PR body should reference `Closes #<number>` and list any assumptions made (especially for async/unattended runs where no one was there to ask).
+- Board worker branches: `agent/issue-<number>-<short-kebab-slug>`, off the current tip of `master`.
+- **Board worker self-merges (changed 2026-08-27, see [[Decisions Log]])**: it still opens a PR for every issue (branch + PR is never skipped), but now merges it itself — squash merge — once the DoD checks pass, resolving any conflict against `master` itself first rather than waiting on a human. Applies uniformly, including Supabase/migration-touching PRs (the migration *file* lands in git; it is still never applied to the live/production database — that rule is unchanged). A PR whose DoD checks don't pass stays open unmerged with an explanatory comment rather than being force-merged.
+- **Interactive/manual sessions are unchanged**: still never push directly to `master` or self-merge without confirmation. The self-merge exception above is specific to the automated board-worker routine, not a blanket policy change.
+- PR body should reference `Closes #<number>` and list any assumptions made (especially for async/unattended runs where no one was there to ask) — this is also what auto-closes the issue on merge, so no separate "done" label is needed.
 
 ## Migrations / Supabase
 

@@ -75,3 +75,16 @@ The original board-worker routine (`trig_01Mmi2RgzNt2Zj53QvTx8SW2`) was found to
 New routine ID: `trig_017jPchk8L4LVskUZMGwiDDG`. Recreated on the "Default" environment (`env_019RTrnGLdEwaoFEpiC7k2nt`) — the original routine's environment wasn't recoverable either, so this was a judgment call confirmed with the user rather than a known fact. Cadence changed from the original's 2 hours to 5 hours at the user's request during recreation, made before the vault update was pushed.
 
 **Going forward**: if a routine ID in this vault ever 404s, check `list` before assuming it's just misconfigured — an ID that's both 404 on `get` and absent from `list` means the routine itself was deleted or expired, not paused/disabled (those still show up in `list`).
+
+### 2026-08-27 — Board worker: cheap no-op check + self-merge, reversing the "never self-merge" rule
+
+Two explicit user requests, both scoped to the board-worker routine only:
+
+1. **Cheap eligibility check before reading docs.** Every prior run — including the long no-op streaks logged through 2026-08-19 to 2026-08-25 — read AGENTS.md plus the full vault note set before checking whether there was anything eligible at all. User wants the cheap check (a plain label-filtered issue query) done first, so a no-op run costs near-nothing instead of paying the full doc-read every 5 hours for nothing.
+2. **Self-merge, reversing the 2026-08-12 "unattended agent work always lands as a PR, never a direct push" decision.** The worker still opens a PR for every issue (branch + PR isn't skipped), but now merges it itself once DoD checks pass, instead of waiting for the human to review and merge by hand. Specifics confirmed with the user directly (asked via `AskUserQuestion` rather than assumed, since this reverses a standing safety default):
+   - PR-then-self-merge, not a raw push straight to `master` — keeps a reviewable diff/CI record even though nothing waits on it.
+   - Applies uniformly, **including Supabase/migration-touching PRs** — no carve-out for the higher-stakes category despite `supabase-agent` defaulting to opus specifically because schema/RLS mistakes are the costliest to get wrong. The existing separate rule ("never apply a migration to the live/production database") is unchanged and still holds regardless of merge status — merging only lands the migration *file* in git.
+   - Merge-conflict resolution is scoped to **conflicts against `master` only** (rebase/merge master into the branch, resolve, re-run DoD checks, push, merge) — not extended to auto-resolving conflicts between the worker's own sibling PRs in the same run; those still get flagged for human reconciliation same as before.
+   - "Set to done" is satisfied by the existing `Closes #<number>` auto-close on merge — no new label introduced.
+
+**Scope of the reversal**: explicitly limited to the automated board-worker routine. Interactive/manual sessions are unchanged — still never push directly to `master` or self-merge without confirmation; see [[Conventions]]'s "Interactive/manual sessions are unchanged" note. Implemented via `update_trigger` on `trig_017jPchk8L4LVskUZMGwiDDG` plus this vault (`Multi-Agent Setup.md`, `Conventions.md`, this entry, `Status Log.md`).
