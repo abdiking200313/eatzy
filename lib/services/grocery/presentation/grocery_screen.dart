@@ -28,7 +28,8 @@ class _GroceryScreenState extends State<GroceryScreen> {
   @override
   void initState() {
     super.initState();
-    if (!_controller.hasLoaded && !_controller.isLoading) {
+    if ((!_controller.hasLoaded || _controller.isStale) &&
+        !_controller.isLoading) {
       unawaited(_controller.load());
     }
   }
@@ -82,31 +83,35 @@ class _GroceryScreenState extends State<GroceryScreen> {
       );
     }
 
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(
-        TwSpacing.x4,
-        TwSpacing.x2,
-        TwSpacing.x4,
-        TwSpacing.x8,
-      ),
-      children: [
-        Text('Essentials from Somali stores', style: TwText.textXl()),
-        const SizedBox(height: TwSpacing.x2),
-        Text(
-          'Products marked per kg can be added in 0.5 kg steps.',
-          style: TwText.textSm(),
+    return RefreshIndicator(
+      onRefresh: () => _controller.load(forceRefresh: true),
+      child: ListView(
+        padding: const EdgeInsets.fromLTRB(
+          TwSpacing.x4,
+          TwSpacing.x2,
+          TwSpacing.x4,
+          TwSpacing.x8,
         ),
-        const SizedBox(height: TwSpacing.x6),
-        for (final store in _controller.stores) ...[
-          _StoreHeader(store: store),
-          const SizedBox(height: TwSpacing.x3),
-          for (final product in store.products) ...[
-            _ProductCard(product: product, onAdd: () => _add(product)),
+        physics: const AlwaysScrollableScrollPhysics(),
+        children: [
+          Text('Essentials from Somali stores', style: TwText.textXl()),
+          const SizedBox(height: TwSpacing.x2),
+          Text(
+            'Products marked per kg can be added in 0.5 kg steps.',
+            style: TwText.textSm(),
+          ),
+          const SizedBox(height: TwSpacing.x6),
+          for (final store in _controller.stores) ...[
+            _StoreHeader(store: store),
             const SizedBox(height: TwSpacing.x3),
+            for (final product in store.products) ...[
+              _ProductCard(product: product, onAdd: () => _add(product)),
+              const SizedBox(height: TwSpacing.x3),
+            ],
+            const SizedBox(height: TwSpacing.x5),
           ],
-          const SizedBox(height: TwSpacing.x5),
         ],
-      ],
+      ),
     );
   }
 

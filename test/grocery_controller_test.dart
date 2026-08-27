@@ -115,4 +115,73 @@ void main() {
     expect(errors, contains('Choose a delivery slot.'));
     expect(errors, contains('Choose a substitution preference.'));
   });
+
+  group('catalog staleness and pull-to-refresh', () {
+    test('load does not refetch an already-loaded, fresh catalog', () async {
+      final repository = _CountingGroceryRepository();
+      final now = DateTime.utc(2026, 8, 27, 12);
+      final freshController = GroceryController(
+        repository: repository,
+        now: () => now,
+      );
+
+      await freshController.load();
+      expect(repository.fetchCount, 1);
+
+      await freshController.load();
+      expect(
+        repository.fetchCount,
+        1,
+        reason: 'a fresh catalog should not be refetched',
+      );
+    });
+
+    test('load refetches once the catalog goes stale', () async {
+      final repository = _CountingGroceryRepository();
+      var now = DateTime.utc(2026, 8, 27, 12);
+      final staleController = GroceryController(
+        repository: repository,
+        now: () => now,
+      );
+
+      await staleController.load();
+      expect(repository.fetchCount, 1);
+      expect(staleController.isStale, isFalse);
+
+      now = now.add(GroceryController.catalogStaleAfter);
+      expect(staleController.isStale, isTrue);
+
+      await staleController.load();
+      expect(repository.fetchCount, 2);
+      expect(staleController.isStale, isFalse);
+    });
+
+    test(
+      'load(forceRefresh: true) always refetches regardless of staleness',
+      () async {
+        final repository = _CountingGroceryRepository();
+        final now = DateTime.utc(2026, 8, 27, 12);
+        final forcedController = GroceryController(
+          repository: repository,
+          now: () => now,
+        );
+
+        await forcedController.load();
+        expect(repository.fetchCount, 1);
+
+        await forcedController.load(forceRefresh: true);
+        expect(repository.fetchCount, 2);
+      },
+    );
+  });
+}
+
+class _CountingGroceryRepository implements GroceryRepository {
+  int fetchCount = 0;
+
+  @override
+  Future<List<GroceryStore>> fetchStores() async {
+    fetchCount++;
+    return const SeededGroceryRepository().fetchStores();
+  }
 }

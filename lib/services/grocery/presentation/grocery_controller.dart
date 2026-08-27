@@ -23,6 +23,7 @@ class GroceryController extends ChangeNotifier {
     GroceryCatalogRepository? catalogRepository,
     GroceryOrderRepository? orderRepository,
     ActivityController? activityController,
+    DateTime Function()? now,
   }) : _repository = repository,
        _catalogRepository =
            catalogRepository ??
@@ -30,7 +31,8 @@ class GroceryController extends ChangeNotifier {
                ? repository as GroceryCatalogRepository
                : null),
        _orderRepository = orderRepository,
-       _activityController = activityController ?? ActivityController.instance;
+       _activityController = activityController ?? ActivityController.instance,
+       _now = now ?? DateTime.now;
 
   static final GroceryController instance = () {
     final client = Supabase.instance.client;
@@ -43,6 +45,11 @@ class GroceryController extends ChangeNotifier {
   }();
 
   static const double standardDeliveryFee = 2.50;
+
+  /// How long a successful store/catalog load is considered fresh before
+  /// [load] will silently refetch it again. A manual pull-to-refresh (via
+  /// [load]'s `forceRefresh`) always bypasses this.
+  static const Duration catalogStaleAfter = Duration(minutes: 5);
 
   static const List<GroceryDeliverySlot> deliverySlots = [
     GroceryDeliverySlot(
@@ -66,6 +73,7 @@ class GroceryController extends ChangeNotifier {
   final GroceryCatalogRepository? _catalogRepository;
   final GroceryOrderRepository? _orderRepository;
   final ActivityController _activityController;
+  final DateTime Function() _now;
   final List<GroceryStore> _stores = [];
   final List<GroceryDeliverySlot> _deliverySlots = [];
   final Map<String, GroceryCartLine> _cart = {};
@@ -73,6 +81,7 @@ class GroceryController extends ChangeNotifier {
   bool _isLoading = false;
   bool _hasLoaded = false;
   String? _loadError;
+  DateTime? _lastLoadedAt;
   bool _slotsLoading = false;
   String? _slotLoadError;
   GroceryOrderConfirmation? _lastConfirmation;
@@ -84,6 +93,18 @@ class GroceryController extends ChangeNotifier {
   bool get isLoading => _isLoading;
   bool get hasLoaded => _hasLoaded;
   String? get loadError => _loadError;
+
+  /// Whether the loaded stores/catalog are old enough that [load] should
+  /// treat them as needing a refetch: never loaded, or last loaded at least
+  /// [catalogStaleAfter] ago. Stock/price changes made server-side only
+  /// reach the client on the next refetch, so this keeps a session that
+  /// stays open a long time from trusting an indefinitely old snapshot.
+  bool get isStale {
+    final lastLoadedAt = _lastLoadedAt;
+    return lastLoadedAt == null ||
+        _now().difference(lastLoadedAt) >= catalogStaleAfter;
+  }
+
   bool get slotsLoading => _slotsLoading;
   String? get slotLoadError => _slotLoadError;
   UnmodifiableListView<GroceryDeliverySlot> get availableDeliverySlots =>
@@ -115,8 +136,19 @@ class GroceryController extends ChangeNotifier {
   double get deliveryFee => _cart.isEmpty ? 0 : standardDeliveryFee;
   double get total => subtotal + deliveryFee;
 
-  Future<void> load() async {
+  /// Loads the store/product catalog.
+  ///
+  /// By default this is a no-op once the catalog is already loaded and
+  /// still fresh (see [isStale]), so cheap repeat calls (e.g. from
+  /// `initState`) don't refetch pointlessly. Pass [forceRefresh] to always
+  /// refetch — this is what a pull-to-refresh gesture should use, since it
+  /// represents an explicit user request for the latest stock/prices
+  /// regardless of staleness.
+  Future<void> load({bool forceRefresh = false}) async {
     if (_isLoading) {
+      return;
+    }
+    if (!forceRefresh && _hasLoaded && !isStale) {
       return;
     }
     _isLoading = true;
@@ -129,6 +161,7 @@ class GroceryController extends ChangeNotifier {
         ..clear()
         ..addAll(stores);
       _hasLoaded = true;
+      _lastLoadedAt = _now();
     } on Object {
       _loadError = 'Groceries could not be loaded. Please try again.';
     } finally {

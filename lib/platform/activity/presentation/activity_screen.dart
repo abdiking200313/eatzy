@@ -47,13 +47,20 @@ class ActivityScreen extends StatelessWidget {
               ),
             );
           }
-          if (items.isEmpty) {
-            return const _EmptyActivity();
-          }
-
-          return ListView(
-            padding: const EdgeInsets.all(TwSpacing.x5),
-            children: [_ActivityListCard(items: items)],
+          return RefreshIndicator(
+            onRefresh: activityController.load,
+            child: items.isEmpty
+                ? CustomScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    slivers: const [
+                      SliverFillRemaining(child: _EmptyActivity()),
+                    ],
+                  )
+                : ListView(
+                    padding: const EdgeInsets.all(TwSpacing.x5),
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    children: [_ActivityListCard(items: items)],
+                  ),
           );
         },
       ),

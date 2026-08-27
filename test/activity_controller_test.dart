@@ -1,4 +1,5 @@
 import 'package:chowflow/app/service_module.dart';
+import 'package:chowflow/platform/activity/data/activity_repository.dart';
 import 'package:chowflow/platform/activity/models/activity_item.dart';
 import 'package:chowflow/platform/activity/presentation/activity_controller.dart';
 import 'package:chowflow/platform/activity/presentation/activity_screen.dart';
@@ -108,4 +109,39 @@ void main() {
       );
     },
   );
+
+  testWidgets('pulling to refresh reloads activity from the repository', (
+    tester,
+  ) async {
+    final repository = _CountingActivityRepository();
+    final controller = ActivityController(repository: repository);
+    await controller.load();
+    expect(repository.fetchCount, 1);
+
+    await tester.pumpWidget(
+      MaterialApp(home: ActivityScreen(controller: controller)),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.fling(
+      find.byType(CustomScrollView),
+      const Offset(0, 300),
+      1000,
+    );
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+    await tester.pumpAndSettle();
+
+    expect(repository.fetchCount, 2);
+  });
+}
+
+class _CountingActivityRepository implements ActivityRepository {
+  int fetchCount = 0;
+
+  @override
+  Future<List<ActivityItem>> fetchActivities({int limit = 100}) async {
+    fetchCount++;
+    return const [];
+  }
 }

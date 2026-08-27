@@ -41,6 +41,11 @@ class PharmacyController extends ChangeNotifier {
 
   static const double deliveryFee = 2.50;
 
+  /// How long a successful catalog load is considered fresh before
+  /// [loadProducts] will silently refetch it again. A manual pull-to-refresh
+  /// (via [loadProducts]'s `forceRefresh`) always bypasses this.
+  static const Duration catalogStaleAfter = Duration(minutes: 5);
+
   final PharmacyRepository _repository;
   final ActivityController _activityController;
   final PharmacyOrderRepository? _orderRepository;
@@ -50,6 +55,7 @@ class PharmacyController extends ChangeNotifier {
 
   bool _isLoading = false;
   String? _loadError;
+  DateTime? _lastLoadedAt;
 
   UnmodifiableListView<PharmacyProduct> get products =>
       UnmodifiableListView(_products);
@@ -57,6 +63,19 @@ class PharmacyController extends ChangeNotifier {
       UnmodifiableListView(_cartItems);
   bool get isLoading => _isLoading;
   String? get loadError => _loadError;
+
+  /// Whether the loaded catalog is old enough that [loadProducts] should
+  /// treat it as needing a refetch: never loaded, or last loaded at least
+  /// [catalogStaleAfter] ago. Stock/price changes made server-side (e.g. an
+  /// item selling out) only reach the client on the next refetch, so this
+  /// keeps a session that stays open a long time from trusting an
+  /// indefinitely old snapshot.
+  bool get isStale {
+    final lastLoadedAt = _lastLoadedAt;
+    return lastLoadedAt == null ||
+        _now().difference(lastLoadedAt) >= catalogStaleAfter;
+  }
+
   bool get isCartEmpty => _cartItems.isEmpty;
   bool get isCartNotEmpty => _cartItems.isNotEmpty;
   int get itemCount =>
@@ -65,8 +84,19 @@ class PharmacyController extends ChangeNotifier {
       _cartItems.fold(0, (total, item) => total + item.total);
   double get total => subtotal + (isCartEmpty ? 0 : deliveryFee);
 
-  Future<void> loadProducts() async {
-    if (_products.isNotEmpty || _isLoading) {
+  /// Loads the OTC catalog.
+  ///
+  /// By default this is a no-op once a catalog is already loaded and still
+  /// fresh (see [isStale]), so cheap repeat calls (e.g. from `initState`)
+  /// don't refetch pointlessly. Pass [forceRefresh] to always refetch —
+  /// this is what a pull-to-refresh gesture should use, since it represents
+  /// an explicit user request for the latest stock/prices regardless of
+  /// staleness.
+  Future<void> loadProducts({bool forceRefresh = false}) async {
+    if (_isLoading) {
+      return;
+    }
+    if (!forceRefresh && _products.isNotEmpty && !isStale) {
       return;
     }
 
@@ -79,6 +109,7 @@ class PharmacyController extends ChangeNotifier {
       _products
         ..clear()
         ..addAll(products.where((product) => product.isOverTheCounter));
+      _lastLoadedAt = _now();
     } on Object {
       _loadError = 'The pharmacy catalog could not be loaded.';
     } finally {

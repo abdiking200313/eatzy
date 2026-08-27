@@ -62,28 +62,32 @@ class _PharmacyCatalogScreenState extends State<PharmacyCatalogScreen> {
       );
     }
 
-    return ListView(
-      padding: const EdgeInsets.all(TwSpacing.x5),
-      children: [
-        const _OtcNotice(),
-        const SizedBox(height: TwSpacing.rhythmDefault),
-        Text('Health essentials', style: TwText.textXl()),
-        const SizedBox(height: TwSpacing.x1),
-        Text(
-          'Seeded products for the interactive Zivo preview.',
-          style: TwText.textSm(),
-        ),
-        const SizedBox(height: TwSpacing.rhythmDefault),
-        for (var index = 0; index < _controller.products.length; index++) ...[
-          _ProductCard(
-            product: _controller.products[index],
-            onAdd: () => _addProduct(_controller.products[index]),
+    return RefreshIndicator(
+      onRefresh: () => _controller.loadProducts(forceRefresh: true),
+      child: ListView(
+        padding: const EdgeInsets.all(TwSpacing.x5),
+        physics: const AlwaysScrollableScrollPhysics(),
+        children: [
+          const _OtcNotice(),
+          const SizedBox(height: TwSpacing.rhythmDefault),
+          Text('Health essentials', style: TwText.textXl()),
+          const SizedBox(height: TwSpacing.x1),
+          Text(
+            'Seeded products for the interactive Zivo preview.',
+            style: TwText.textSm(),
           ),
-          if (index != _controller.products.length - 1)
-            const SizedBox(height: TwSpacing.x3),
+          const SizedBox(height: TwSpacing.rhythmDefault),
+          for (var index = 0; index < _controller.products.length; index++) ...[
+            _ProductCard(
+              product: _controller.products[index],
+              onAdd: () => _addProduct(_controller.products[index]),
+            ),
+            if (index != _controller.products.length - 1)
+              const SizedBox(height: TwSpacing.x3),
+          ],
+          const SizedBox(height: TwSpacing.x8),
         ],
-        const SizedBox(height: TwSpacing.x8),
-      ],
+      ),
     );
   }
 

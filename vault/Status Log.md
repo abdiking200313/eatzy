@@ -15,6 +15,12 @@ Reverse-chronological. Each session/major chunk of work gets an entry.
 
 ---
 
+## 2026-08-27
+
+- **Issue #64 executed** (no refresh/cache-invalidation path — stock, prices, order status go stale for the session): added `RefreshIndicator` to pharmacy catalog, grocery catalog, and Activity screens, each wired to a new `forceRefresh`-aware controller reload. `PharmacyController.loadProducts`/`GroceryController.load` replaced their naive "already have data → skip" guards with a `catalogStaleAfter` (5 min) staleness timestamp + `isStale` getter + `forceRefresh` param (grocery gained an injectable `now` clock to match pharmacy's, for testability). `MainAppScreen` gained an `onActivityTabFocused` callback (defaults to `ActivityController.instance.load`) fired when the bottom nav switches *into* the Activity tab (index 2), since it's an `IndexedStack` shell where screens are built once and never see `initState` again. Added unit tests for staleness/forceRefresh on both controllers, widget pull-to-refresh tests for all three screens (new `test/grocery_screen_test.dart`), and a tab-focus-reload test in `main_app_screen_test.dart`. `dart format`/`flutter analyze`/`flutter test` all clean (99/99).
+- **Flagged expected merge conflicts** (per the task): touches `activity_controller.dart`/`activity_screen.dart` (also #62, parsing robustness) and `pharmacy_controller.dart` (also #63, cart persistence) — both concurrent sibling PRs, called out in the PR body per instructions.
+- Ran directly rather than via nested `ui-agent`/`logic-agent`/`qa-agent` dispatch — this session had no `Agent`/`Task` tool available to spawn further subagents (consistent with the 2026-08-26 log's note that only the top-level session can dispatch the 4 named subagents).
+
 ## 2026-08-26
 
 - **Eighth board-worker run today — processed all 6 issue-slots, the first batch from the ~44-issue post-approval backlog** (oldest-first: #53, #54, #56, #57, #58, #61 — all from the #52 architecture/perf audit tracking issue). `waiting-on-you` #8/#16/#40 re-confirmed still no human reply (#8 re-checked live, still only the agent's own comment from the 7th run). `agent-in-progress` #1/#2/#4/#5/#6/#23/#26/#33 from the 7th run untouched, still open/unmerged (not this run's scope). Each of the 6 dispatched as an independent worktree-isolated agent from a clean `master` (`639985e`), all 6 opened PRs, none paused/ambiguous this time:
