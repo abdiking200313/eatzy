@@ -53,7 +53,6 @@ Refreshed 2026-08-27 (10th run). **Source of truth is always a live `list_issues
 | 69 | [Medium] Nine raw route-string literals bypass AppRoutes convention | #111 |
 | 70 | [Medium] Food home screen search bar/category filter non-functional | #116 |
 | 71 | [Medium] Twelve registered routes/~600 lines of feature UI unreachable | #114 |
-| 72 | [High] Uncommitted/never-wired-in dedup-extraction helpers | #112 |
 | 75 | [High] schema.sql client-trusting order-insert RLS path | #113 |
 
 **Known merge-conflict pairs, human decision needed on order (none resolved by the routine)**:
@@ -62,7 +61,7 @@ Refreshed 2026-08-27 (10th run). **Source of truth is always a live `list_issues
 - PR #103 (#57) also expects a conflict with PR #98 (#4) on `checkout_screen.dart`, since #103 branched before #98 merged.
 - PR #107 (#62) and PR #108 (#64) both touch `activity_controller.dart`/`activity_screen.dart` — whichever merges second needs to reconcile.
 - PR #108 (#64) and PR #110 (#63) both touch `pharmacy_controller.dart` (#64 adds a staleness timestamp/early-return replacement, #63 adds persistence load/save) — whichever merges second needs to reconcile.
-- PR #112 (#72, wires shared helpers into `grocery_controller.dart`/`pharmacy_controller.dart`) also touches both of those same files as #108 (#64) and #110 (#63) — a three-way reconciliation, not just a pair, whichever of the three merges last.
+- **PR #112 (#72) merged 2026-08-27 ~09:48 UTC** — it touched `grocery_controller.dart`/`pharmacy_controller.dart`, the same files as still-open PRs #108 (#64) and #110 (#63); whichever of those two merges next will need to rebase against #112's changes (the conflict shifted from three-way to two, each now against merged `master` rather than each other).
 - PR #111 (#69) and PR #114 (#71) both touch `app_router.dart`/`app_routes.dart` — whichever merges second needs to reconcile the route-literal fixes against the route deletions/entry-point additions.
 
 Phase 7 (#28) still can't start: depends on all of phases 1-6, and phases 2 (#23) and 5 (#26) are still open/unmerged.
