@@ -7,7 +7,7 @@ upstream_concept: 00-Index
 
 # Open Tasks
 
-Refreshed 2026-08-27 (10th run). **Source of truth is always a live `list_issues`/`gh issue list --repo abdiking200313/eatzy --state open` call** — re-check before relying on this for anything that matters.
+Refreshed 2026-08-27 (11th run). **Source of truth is always a live `list_issues`/`gh issue list --repo abdiking200313/eatzy --state open` call** — re-check before relying on this for anything that matters.
 
 **Major update 2026-08-26 ~19:20 UTC**: the human approved a huge batch of previously-`needs-approval` issues — open `needs-approval` count dropped from ~57 to 14. This ended the 11-day queue stall (stuck since 2026-08-15). The board worker processed 6 issues in its 7th run and another 6 in its 8th run that day; see [[Status Log]] 2026-08-26 for full detail on both.
 
@@ -22,8 +22,10 @@ Refreshed 2026-08-27 (10th run). **Source of truth is always a live `list_issues
 | 8 | Currency decimal-vs-integer + schema drift (`item_categories`/`icon_url`/etc.) | 2026-08-26 (7th run) | Needs the live `menu_items.price` column type checked (integer cents vs numeric dollars) — no DB credentials available to any session here; comment lays out the mechanical fix for either answer |
 | 16 | Native app identifiers still `com.example.chowflow` | 2026-08-15T00:55 UTC | Needs the reverse-domain identifier to use (no existing `com.zivo.*` anywhere to infer from) |
 | 40 | No global error handling / crash reporting / production logging | 2026-08-17T20:38 UTC | Needs crash-reporting SDK choice (Sentry vs Firebase Crashlytics vs none) + credentials; offered to land the SDK-independent half first |
+| 78 | Every vertical models delivery address/order differently — no shared platform layer | 2026-08-27 (11th run) | Issue itself asks to "decide on a shared platform core" — needs the schema shape picked (shared `delivery_addresses` + mandated column set vs. full `orders` supertype) and how it relates to #2's already-in-flight food-address migration (PR #95) |
+| 79 | Order status can never change after creation — no UPDATE path exists | 2026-08-27 (11th run) | Issue itself asks to "decide the fulfilment model" — needs a pick between service-role/dashboard-only, a separate ops app (out of repo scope), or an in-app operator-role RPC, plus whether customer-initiated cancellation is in scope |
 
-#16/#40 still have only the agent's own clarifying-question comment as of 2026-08-26 — no human reply on either yet (going on ~11 and ~9 days respectively).
+#16/#40 still have only the agent's own clarifying-question comment as of 2026-08-26 — no human reply on either yet (going on ~11 and ~9 days respectively). #78/#79 are new as of this run, too early to expect a reply yet.
 
 ## `agent-in-progress` — open PR awaiting review
 
@@ -73,7 +75,7 @@ Phase 7 (#28) still can't start: depends on all of phases 1-6, and phases 2 (#23
 
 ## Remaining `todo`, not yet picked up
 
-After the 10th run pulled #68/69/70/71/72/75 into `agent-in-progress`, remaining unpicked `todo` issues (all from the #52 audit batch, oldest-first): **#76, 77, 78, 79, 80, 83** (6 issues — all `agent:supabase`-scoped per their labels, i.e. next run's batch is entirely Supabase work). Only 14 issues remain `needs-approval`-gated as of 2026-08-26 (#9, 12, 30, 32, 38, 43, 49, 55, 59, 60, 73, 74, 81, 82).
+**11th run (2026-08-27) processed the last 6 issues from the #52 audit batch's `agent:supabase` tail: #76, 77, 78, 79, 80, 83.** #76/77/80/83 were clear mechanical fixes, implemented and merged same-run (see [[Status Log]] for detail, including the new self-merge policy). #78 and #79 both explicitly ask the reader to "decide" on an architecture/product question (a shared-platform schema shape; which fulfilment/ops model to build) rather than describing one target behavior — judged genuinely ambiguous per AGENTS.md's own criteria (affects data contracts/security/solution size), so both got a clarifying-question comment and moved to `waiting-on-you` instead of a guessed implementation. This was **the last unpicked batch from the #52 audit** — no more `todo`-and-not-`agent-in-progress` issues remain from that source as of this run. Only 14 issues remain `needs-approval`-gated as of 2026-08-26 (#9, 12, 30, 32, 38, 43, 49, 55, 59, 60, 73, 74, 81, 82) — next run has nothing left to pick up unless the human approves more of those, replies to a `waiting-on-you` issue, or a new issue is filed.
 
 ## Known in-flight / interrupted work (not yet resolved)
 
