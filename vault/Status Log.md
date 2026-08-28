@@ -15,6 +15,10 @@ Reverse-chronological. Each session/major chunk of work gets an entry.
 
 ---
 
+## 2026-08-28
+
+- Board-worker run (12th overall), still nothing eligible — no change since the 11th run: `waiting-on-you` #8/#16/#40/#78/#79 re-checked live via `get_comments`, all five still have only the agent's own prior comment(s) (footer-confirmed, no genuine human reply). `todo`-without-`agent-in-progress` issues are still only the 4 tracking/blocked umbrellas (#21/#28/#29/#52), same as the 11th run — no new actionable `todo` work exists (the #52 audit batch is fully drained, per [[Open Tasks]]). Stopped early per step 3, no action taken, no notification (nothing changed since the last run).
+
 ## 2026-08-27
 
 - **11th board-worker run — processed the last 6 issues in the #52 audit batch, and this is the first run under a new self-merge policy.** The routine prompt itself now says the worker "no longer waits for human review to land a change" — after DoD checks and a clean-mergeable PR, the worker squash-merges it directly, superseding the "never self-merge" rule that held from setup through the 10th run. Updated [[Conventions]] accordingly. `waiting-on-you` #8/#16/#40 re-checked live via `get_comments`: all three still only have the agent's own prior comment(s), no genuine human reply. Eligibility check found exactly 6 issues (all `agent:supabase`, the tail of the #52 audit batch): #76, #77, #78, #79, #80, #83.
@@ -184,3 +188,4 @@ Reverse-chronological. Each session/major chunk of work gets an entry.
 ---
 
 Entries older than 2026-08-15 (the 2026-08-12/13 initial setup and first thorough audit pass) archived to `vault/archive/Status Log 2026-08.md`.
+
