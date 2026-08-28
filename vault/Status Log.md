@@ -15,6 +15,10 @@ Reverse-chronological. Each session/major chunk of work gets an entry.
 
 ---
 
+## 2026-08-28
+
+- Board-worker run, nothing eligible — no change since the 11th run (2026-08-27): `waiting-on-you` #8/#16/#40/#78/#79 all re-checked via live `get_comments`, still only the agent's own comment(s) on each, no human reply. All `todo` issues are either `agent-in-progress` with an open PR already (#23, #26, #33, #61-67) or non-actionable tracking/blocked issues (#21, #28, #29, #52). `git log 639985e..41061de` confirmed only the 11th run's own commits landed since — no new human merges that would unblock anything (e.g. #28 still blocked on #23/#26). Stopped early, no action, no notification (unchanged state, nothing new to report).
+
 ## 2026-08-27
 
 - **11th board-worker run — processed the last 6 issues in the #52 audit batch, and this is the first run under a new self-merge policy.** The routine prompt itself now says the worker "no longer waits for human review to land a change" — after DoD checks and a clean-mergeable PR, the worker squash-merges it directly, superseding the "never self-merge" rule that held from setup through the 10th run. Updated [[Conventions]] accordingly. `waiting-on-you` #8/#16/#40 re-checked live via `get_comments`: all three still only have the agent's own prior comment(s), no genuine human reply. Eligibility check found exactly 6 issues (all `agent:supabase`, the tail of the #52 audit batch): #76, #77, #78, #79, #80, #83.
