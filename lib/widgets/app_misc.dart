@@ -12,8 +12,16 @@ class NetworkAvatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Decode at roughly the rendered diameter (radius * 2) scaled for
+    // device pixel density, not at the source image's native resolution.
+    // Capped at 3x since a wider cap buys no visible sharpness on a
+    // circle this small while still inflating decode memory.
+    final cacheScale = MediaQuery.of(context).devicePixelRatio.clamp(1.0, 3.0);
+    final cacheDiameter = (radius * 2 * cacheScale).round();
     return CachedNetworkImage(
       imageUrl: imageUrl,
+      memCacheWidth: cacheDiameter,
+      memCacheHeight: cacheDiameter,
       imageBuilder: (context, imageProvider) =>
           CircleAvatar(backgroundImage: imageProvider, radius: radius),
       placeholder: (context, url) => CircleAvatar(radius: radius),

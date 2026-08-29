@@ -278,12 +278,20 @@ class _CartItemImage extends StatelessWidget {
       return fallback;
     }
 
+    // Decode at roughly the rendered 82x82 box scaled for device pixel
+    // density, not at the source image's native resolution. Capped at 3x
+    // since a wider cap buys no visible sharpness on a thumbnail this
+    // small while still inflating decode memory.
+    final cacheScale = MediaQuery.of(context).devicePixelRatio.clamp(1.0, 3.0);
+    final cacheSize = (82 * cacheScale).round();
     return ClipRRect(
       borderRadius: BorderRadius.circular(12),
       child: CachedNetworkImage(
         imageUrl: imageUrl,
         width: 82,
         height: 82,
+        memCacheWidth: cacheSize,
+        memCacheHeight: cacheSize,
         fit: BoxFit.cover,
         placeholder: (_, _) => fallback,
         errorWidget: (_, _, _) => fallback,

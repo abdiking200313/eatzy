@@ -20,6 +20,7 @@ version: 1.0.0+1
 
 environment:
   sdk: ^3.11.5
+  flutter: ">=3.41.9"
 
 # Config for `dart run flutter_launcher_icons`. Regenerates all platform app
 # icons from assets/icon/. Re-run after changing the source images (see
