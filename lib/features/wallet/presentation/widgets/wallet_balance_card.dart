@@ -57,29 +57,36 @@ class _WalletActionButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final palette = context.serviceColors;
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: TwSpacing.x3,
-        vertical: TwSpacing.x3,
-      ),
-      decoration: BoxDecoration(
-        color: TwColors.card,
-        border: Border.all(color: TwColors.border),
+    return Material(
+      color: TwColors.card,
+      borderRadius: BorderRadius.circular(TwRadius.lg),
+      child: InkWell(
+        onTap: action.onTap,
         borderRadius: BorderRadius.circular(TwRadius.lg),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Flexible(
-            child: Text(
-              action.label,
-              overflow: TextOverflow.ellipsis,
-              style: Theme.of(context).textTheme.labelMedium,
-            ),
+        child: Container(
+          padding: const EdgeInsets.symmetric(
+            horizontal: TwSpacing.x3,
+            vertical: TwSpacing.x3,
           ),
-          const SizedBox(width: TwSpacing.x2),
-          Icon(action.icon, color: palette.accent, size: 18),
-        ],
+          decoration: BoxDecoration(
+            border: Border.all(color: TwColors.border),
+            borderRadius: BorderRadius.circular(TwRadius.lg),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Flexible(
+                child: Text(
+                  action.label,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.labelMedium,
+                ),
+              ),
+              const SizedBox(width: TwSpacing.x2),
+              Icon(action.icon, color: palette.accent, size: 18),
+            ],
+          ),
+        ),
       ),
     );
   }
