@@ -4,14 +4,26 @@ import '../../shared/data/rpc_helpers.dart';
 import '../models/pharmacy_checkout.dart';
 import '../models/pharmacy_product.dart';
 
+/// Default page size for [PharmacyRepository.fetchProducts] and
+/// [PharmacyCatalogRepository.fetchProducts]. A result page shorter than
+/// this signals the end of the catalog to callers doing infinite scroll
+/// (see `PharmacyController.loadMore`).
+const int pharmacyProductsPageSize = 30;
+
 abstract interface class PharmacyRepository {
-  Future<List<PharmacyProduct>> fetchProducts();
+  Future<List<PharmacyProduct>> fetchProducts({
+    int limit = pharmacyProductsPageSize,
+    int offset = 0,
+  });
 }
 
 abstract interface class PharmacyCatalogRepository {
   Future<List<PharmacyCategory>> fetchCategories();
 
-  Future<List<PharmacyProduct>> fetchProducts();
+  Future<List<PharmacyProduct>> fetchProducts({
+    int limit = pharmacyProductsPageSize,
+    int offset = 0,
+  });
 }
 
 abstract interface class PharmacyOrderRepository {
@@ -70,8 +82,15 @@ class SeededPharmacyRepository implements PharmacyRepository {
   ];
 
   @override
-  Future<List<PharmacyProduct>> fetchProducts() async {
-    return List<PharmacyProduct>.unmodifiable(products);
+  Future<List<PharmacyProduct>> fetchProducts({
+    int limit = pharmacyProductsPageSize,
+    int offset = 0,
+  }) async {
+    if (offset >= products.length) {
+      return const [];
+    }
+    final end = (offset + limit).clamp(0, products.length);
+    return List<PharmacyProduct>.unmodifiable(products.sublist(offset, end));
   }
 }
 
@@ -98,7 +117,10 @@ class SupabasePharmacyCatalogRepository
   }
 
   @override
-  Future<List<PharmacyProduct>> fetchProducts() async {
+  Future<List<PharmacyProduct>> fetchProducts({
+    int limit = pharmacyProductsPageSize,
+    int offset = 0,
+  }) async {
     final rows = await _client
         .from('pharmacy_products')
         .select(
@@ -108,7 +130,8 @@ class SupabasePharmacyCatalogRepository
         .eq('is_active', true)
         .eq('sale_type', 'otc')
         .eq('pharmacy_categories.is_active', true)
-        .order('name');
+        .order('name')
+        .range(offset, offset + limit - 1);
 
     final products = rows
         .map((row) => PharmacyProduct.fromMap(Map<String, dynamic>.from(row)))

@@ -94,6 +94,29 @@ void main() {
     expect(find.text(r'$15.99'), findsOneWidget);
 
     await tester.scrollUntilVisible(
+      find.byKey(const ValueKey('food-recipient-name')),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.enterText(
+      find.byKey(const ValueKey('food-recipient-name')),
+      'Amina Yusuf',
+    );
+    await tester.enterText(
+      find.byKey(const ValueKey('food-phone')),
+      '+252611234567',
+    );
+    await tester.enterText(
+      find.byKey(const ValueKey('food-street')),
+      'Maka Al-Mukarama Road',
+    );
+    await tester.enterText(
+      find.byKey(const ValueKey('food-district')),
+      'Hodan',
+    );
+    await tester.pumpAndSettle();
+
+    await tester.scrollUntilVisible(
       find.text('Place demo order'),
       300,
       scrollable: find.byType(Scrollable).first,

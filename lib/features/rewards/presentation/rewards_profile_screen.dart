@@ -62,11 +62,11 @@ class RewardsProfileScreen extends StatelessWidget {
                       const SizedBox(height: TwSpacing.x5),
                       Text(
                         'Amara Johnson',
-                        style: TwText.text2xl().copyWith(color: Colors.white),
+                        style: TwText.text2xl.copyWith(color: Colors.white),
                       ),
                       Text(
                         'Level 5 - Food Connoisseur',
-                        style: TwText.textXs().copyWith(
+                        style: TwText.textXs.copyWith(
                           color: Colors.white.withOpacityValue(0.8),
                         ),
                       ),
@@ -82,7 +82,7 @@ class RewardsProfileScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Experience Points', style: TwText.fontBoldSm()),
+                  Text('Experience Points', style: TwText.fontBoldSm),
                   const SizedBox(height: TwSpacing.x1),
                   Row(
                     children: [
@@ -91,13 +91,13 @@ class RewardsProfileScreen extends StatelessWidget {
                           '2,450/3,000',
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: TwText.textSm(),
+                          style: TwText.textSm,
                         ),
                       ),
                       const SizedBox(width: TwSpacing.x2),
                       Text(
                         '82%',
-                        style: TwText.fontBoldSm().copyWith(
+                        style: TwText.fontBoldSm.copyWith(
                           color: Theme.of(context).colorScheme.primary,
                         ),
                       ),
@@ -125,7 +125,7 @@ class RewardsProfileScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: TwSpacing.x8),
-                  Text('Achievements', style: TwText.textXl()),
+                  Text('Achievements', style: TwText.textXl),
                   const SizedBox(height: TwSpacing.x5),
                   GridView.builder(
                     shrinkWrap: true,
@@ -141,7 +141,7 @@ class RewardsProfileScreen extends StatelessWidget {
                         AchievementCard(achievement: _achievements[index]),
                   ),
                   const SizedBox(height: TwSpacing.x8),
-                  Text('Leaderboard', style: TwText.textXl()),
+                  Text('Leaderboard', style: TwText.textXl),
                   const SizedBox(height: TwSpacing.x5),
                   OutlinedCard(
                     padding: EdgeInsets.zero,

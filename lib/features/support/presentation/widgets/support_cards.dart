@@ -32,10 +32,10 @@ class HelpCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(topic.title, style: TwText.fontBoldSm()),
+                Text(topic.title, style: TwText.fontBoldSm),
                 Text(
                   topic.subtitle,
-                  style: TwText.textXs().copyWith(color: TwColors.textMuted),
+                  style: TwText.textXs.copyWith(color: TwColors.textMuted),
                 ),
               ],
             ),
@@ -79,10 +79,10 @@ class ContactCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(topic.title, style: TwText.fontBoldSm()),
+                Text(topic.title, style: TwText.fontBoldSm),
                 Text(
                   topic.subtitle,
-                  style: TwText.textXs().copyWith(color: TwColors.textMuted),
+                  style: TwText.textXs.copyWith(color: TwColors.textMuted),
                 ),
               ],
             ),
@@ -112,11 +112,11 @@ class FaqCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(item.question, style: TwText.fontBoldSm()),
+          Text(item.question, style: TwText.fontBoldSm),
           const SizedBox(height: TwSpacing.rhythmTight),
           Text(
             item.answer,
-            style: TwText.textXs().copyWith(
+            style: TwText.textXs.copyWith(
               color: TwColors.textMuted,
               height: 1.5,
             ),
