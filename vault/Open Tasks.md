@@ -45,12 +45,11 @@ Refreshed 2026-08-27 (11th run). **Source of truth is always a live `list_issues
 | 57 | [High] Food vertical has no module boundary | #103 |
 | 58 | [High] Session coordinator imports service controllers directly | #102 |
 | 61 | [High] Catalog reads unbounded, no list virtualization | #104 |
-| 62 | [High] Malformed activity row blanks order history; menu price falls back to $0.00 | #107 |
-| 63 | [Medium] Grocery/pharmacy carts never persisted | #110 |
-| 64 | [Medium] No refresh/cache-invalidation path (stale stock/prices/order status) | #108 |
 | 65 | [Medium] Text design tokens are per-build GoogleFonts lookups, blocking const | #106 |
 | 66 | [Medium] No image resize/decode limits anywhere | #105 |
 | 67 | [Medium] No ShellRoute for bottom nav — vertical entry hides nav bar | #109 |
+
+**#62/#63/#64/#66 (PRs #107/#110/#108/#105) confirmed merged as of 2026-08-29** (webhook `pull_request.closed`/`merged` events received directly). #63×#64's `pharmacy_controller.dart` conflict (and their individual conflicts against `master`'s already-merged #72/PR #112) is therefore resolved — per the separate 2026-08-29 "PR-merger run" entry in [[Status Log]], a concurrent session merged `master` into #110 and resolved it directly (extended `SessionResetRegistry` with an owner-aware callback variant so `loadForOwner(ownerId)` could keep working without reverting #58's no-service-imports-in-platform-session fix — see that session's own merge commit for the exact resolution). Dropped both rows from this table. #65/#66/#67 not yet confirmed merged as of this note — check live.
 
 **#68/#69/#70/#71/#72/#75 all merged 2026-08-27 ~09:48-09:49 UTC**, within ~1 minute of each other — the human cleared the entire 10th-run batch almost immediately after it opened. Dropped from this table (closed via their PRs). The flagged #69×#71 (`app_router.dart`) conflict evidently didn't materialize as a blocking git conflict (both merged cleanly in sequence).
 
@@ -58,9 +57,8 @@ Refreshed 2026-08-27 (11th run). **Source of truth is always a live `list_issues
 - PR #95 (#2) and PR #98 (#4) both rework `checkout_screen.dart` from the same pre-#95 baseline — whichever merges second needs a rebase threading #95's `FoodDeliveryAddress` through `FoodController.confirmOrder()`.
 - PR #103 (#57, moves `features/{home,restaurant,cart,checkout}` → `services/food/`) and PR #104 (#61, edits `restaurant_screen.dart`/repository internals at their old paths) touch the same files — whichever merges second needs to re-apply the other's changes at the post-move paths.
 - PR #103 (#57) also expects a conflict with PR #98 (#4) on `checkout_screen.dart`, since #103 branched before #98 merged.
-- PR #107 (#62) and PR #108 (#64) both touch `activity_controller.dart`/`activity_screen.dart` — whichever merges second needs to reconcile.
-- PR #108 (#64) and PR #110 (#63) both touch `pharmacy_controller.dart` (#64 adds a staleness timestamp/early-return replacement, #63 adds persistence load/save) — whichever merges second needs to reconcile.
-- **Both #108 (#64) and #110 (#63) also now individually conflict with merged `master`** (PR #112/#72 already landed changes to the same `grocery_controller.dart`/`pharmacy_controller.dart` files these two PRs touch) — whichever of the two is reviewed next will need a rebase against current `master` regardless of which merges first between themselves.
+- ~~PR #107 (#62) and PR #108 (#64) both touch `activity_controller.dart`/`activity_screen.dart`~~ — both merged (2026-08-29), resolved by whichever session merged second.
+- ~~PR #108 (#64) and PR #110 (#63) both touch `pharmacy_controller.dart`, and both individually conflicted with merged `master`'s #112/#72~~ — both merged (2026-08-29); #110's resolution added `SessionResetRegistry.registerOwnerAware`/`notifyOwnerChanged` (see [[Status Log]] 2026-08-29 PR-merger run).
 
 Phase 7 (#28) still can't start: depends on all of phases 1-6, and phases 2 (#23) and 5 (#26) are still open/unmerged.
 
