@@ -47,13 +47,20 @@ class ActivityScreen extends StatelessWidget {
               ),
             );
           }
-          if (items.isEmpty) {
-            return const _EmptyActivity();
-          }
-
-          return ListView(
-            padding: const EdgeInsets.all(TwSpacing.x5),
-            children: [_ActivityListCard(items: items)],
+          return RefreshIndicator(
+            onRefresh: activityController.load,
+            child: items.isEmpty
+                ? CustomScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    slivers: const [
+                      SliverFillRemaining(child: _EmptyActivity()),
+                    ],
+                  )
+                : ListView(
+                    padding: const EdgeInsets.all(TwSpacing.x5),
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    children: [_ActivityListCard(items: items)],
+                  ),
           );
         },
       ),
@@ -151,7 +158,7 @@ class _ActivityRow extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(item.title, style: TwText.fontBoldSm()),
+                  Text(item.title, style: TwText.fontBoldSm),
                   const SizedBox(height: TwSpacing.rhythmTight),
                   Wrap(
                     crossAxisAlignment: WrapCrossAlignment.center,
@@ -161,7 +168,7 @@ class _ActivityRow extends StatelessWidget {
                       if (item.subtitle?.isNotEmpty == true)
                         Text(
                           item.subtitle!,
-                          style: TwText.textXs().copyWith(
+                          style: TwText.textXs.copyWith(
                             color: TwColors.textMuted,
                           ),
                         ),
@@ -178,7 +185,7 @@ class _ActivityRow extends StatelessWidget {
             const SizedBox(width: TwSpacing.x2),
             Text(
               AppMoney.format(item.amount),
-              style: TwText.fontBoldSm().copyWith(color: colors.accent),
+              style: TwText.fontBoldSm.copyWith(color: colors.accent),
             ),
           ],
         ),

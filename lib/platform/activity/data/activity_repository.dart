@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../models/activity_item.dart';
@@ -34,10 +35,24 @@ class SupabaseActivityRepository implements ActivityRepository {
         .order('occurred_at', ascending: false)
         .limit(limit);
 
-    return List.unmodifiable(
-      rows
-          .map((row) => ActivityItem.fromMap(Map<String, dynamic>.from(row)))
-          .whereType<ActivityItem>(),
-    );
+    // Parse each row independently: one malformed row (missing/blank field,
+    // an unparseable date or amount, etc.) must not blank the whole activity
+    // list for the user. Skip and log just that row instead — see #62.
+    final items = <ActivityItem>[];
+    for (final row in rows) {
+      final rowMap = Map<String, dynamic>.from(row);
+      try {
+        final item = ActivityItem.fromMap(rowMap);
+        if (item != null) {
+          items.add(item);
+        }
+      } on FormatException catch (error, stackTrace) {
+        debugPrint(
+          'Skipping malformed customer_activity row (id: '
+          '${rowMap['id']}): $error\n$stackTrace',
+        );
+      }
+    }
+    return List.unmodifiable(items);
   }
 }

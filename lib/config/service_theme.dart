@@ -97,6 +97,9 @@ abstract final class ServiceThemes {
     ServiceId.food => food,
     ServiceId.grocery => grocery,
     ServiceId.pharmacy => pharmacy,
+    // No dedicated palette for a fallback/legacy service — reuse the
+    // neutral platform colors instead of inventing a new accent.
+    ServiceId.unknown => ZivoServiceColors.platform,
   };
 }
 

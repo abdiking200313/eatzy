@@ -91,74 +91,83 @@ class TwRadius {
 }
 
 class TwText {
-  static TextStyle text3xl() => GoogleFonts.outfit(
+  // Resolved once at first use (not per-build): `GoogleFonts.outfit(...)`
+  // does font-asset lookup + TextStyle allocation, so it must not be called
+  // by `build()` on every rebuild. See issue #65. `copyWith`-based variants
+  // below reuse the already-resolved base style instead of re-resolving.
+  static final TextStyle text3xl = GoogleFonts.outfit(
     fontSize: 30,
     fontWeight: FontWeight.w700,
     height: 1.15,
     color: TwColors.text,
   );
 
-  static TextStyle text2xl() => GoogleFonts.outfit(
+  static final TextStyle text2xl = GoogleFonts.outfit(
     fontSize: 26,
     fontWeight: FontWeight.w700,
     height: 1.2,
     color: TwColors.text,
   );
 
-  static TextStyle textXl() => GoogleFonts.outfit(
+  static final TextStyle textXl = GoogleFonts.outfit(
     fontSize: 22,
     fontWeight: FontWeight.w700,
     height: 1.25,
     color: TwColors.text,
   );
 
-  static TextStyle textLg() => GoogleFonts.outfit(
+  static final TextStyle textLg = GoogleFonts.outfit(
     fontSize: 19,
     fontWeight: FontWeight.w500,
     height: 1.4,
     color: TwColors.text,
   );
 
-  static TextStyle textBase() => GoogleFonts.outfit(
+  static final TextStyle textBase = GoogleFonts.outfit(
     fontSize: 17,
     fontWeight: FontWeight.w400,
     height: 1.4,
     color: TwColors.text,
   );
 
-  static TextStyle textSm() => GoogleFonts.outfit(
+  static final TextStyle textSm = GoogleFonts.outfit(
     fontSize: 15,
     fontWeight: FontWeight.w400,
     height: 1.35,
     color: TwColors.textMuted,
   );
 
-  static TextStyle textXs() => GoogleFonts.outfit(
+  static final TextStyle textXs = GoogleFonts.outfit(
     fontSize: 13,
     fontWeight: FontWeight.w500,
     height: 1.3,
     color: TwColors.text,
   );
 
-  static TextStyle fontBoldSm() =>
-      textSm().copyWith(fontWeight: FontWeight.w600, color: TwColors.text);
+  static final TextStyle fontBoldSm = textSm.copyWith(
+    fontWeight: FontWeight.w600,
+    color: TwColors.text,
+  );
 
-  static TextStyle fontBoldBase() =>
-      textBase().copyWith(fontWeight: FontWeight.w600);
+  static final TextStyle fontBoldBase = textBase.copyWith(
+    fontWeight: FontWeight.w600,
+  );
 
-  static TextStyle button() => GoogleFonts.outfit(
+  static final TextStyle button = GoogleFonts.outfit(
     fontSize: 15,
     fontWeight: FontWeight.w600,
     color: TwColors.onPrimary,
   );
 
-  static TextStyle link() =>
-      textXs().copyWith(fontWeight: FontWeight.w600, color: TwColors.primary);
+  static final TextStyle link = textXs.copyWith(
+    fontWeight: FontWeight.w600,
+    color: TwColors.primary,
+  );
 
   /// Small uppercase "eyebrow"/section-kicker style for headings like
   /// "OUR SERVICES". Applied to existing all-caps section headers by
   /// whichever later redesign phase touches that screen.
-  static TextStyle sectionLabel() => GoogleFonts.outfit(
+  static final TextStyle sectionLabel = GoogleFonts.outfit(
     fontSize: 13,
     fontWeight: FontWeight.w700,
     height: 1.3,
@@ -205,19 +214,19 @@ ThemeData buildAppTheme() {
     primaryColor: TwColors.primary,
     colorScheme: colorScheme,
     textTheme: baseTextTheme.copyWith(
-      displayLarge: TwText.text3xl(),
-      displayMedium: TwText.text3xl(),
-      displaySmall: TwText.text2xl(),
-      headlineSmall: TwText.text3xl(),
-      titleLarge: TwText.textXl(),
-      titleMedium: TwText.fontBoldBase(),
-      titleSmall: TwText.fontBoldSm(),
-      bodyLarge: TwText.textLg(),
-      bodyMedium: TwText.textBase(),
-      bodySmall: TwText.textSm(),
-      labelLarge: TwText.button(),
-      labelMedium: TwText.fontBoldSm(),
-      labelSmall: TwText.textXs(),
+      displayLarge: TwText.text3xl,
+      displayMedium: TwText.text3xl,
+      displaySmall: TwText.text2xl,
+      headlineSmall: TwText.text3xl,
+      titleLarge: TwText.textXl,
+      titleMedium: TwText.fontBoldBase,
+      titleSmall: TwText.fontBoldSm,
+      bodyLarge: TwText.textLg,
+      bodyMedium: TwText.textBase,
+      bodySmall: TwText.textSm,
+      labelLarge: TwText.button,
+      labelMedium: TwText.fontBoldSm,
+      labelSmall: TwText.textXs,
     ),
     appBarTheme: AppBarTheme(
       backgroundColor: TwColors.bg,
@@ -228,7 +237,7 @@ ThemeData buildAppTheme() {
       centerTitle: false,
       toolbarHeight: 64,
       titleSpacing: TwSpacing.x5,
-      titleTextStyle: TwText.textXl(),
+      titleTextStyle: TwText.textXl,
     ),
     cardTheme: CardThemeData(
       color: TwColors.card,
@@ -267,7 +276,7 @@ ThemeData buildAppTheme() {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(TwRadius.lg),
         ),
-        textStyle: TwText.button(),
+        textStyle: TwText.button,
       ),
     ),
     outlinedButtonTheme: OutlinedButtonThemeData(
@@ -292,7 +301,7 @@ ThemeData buildAppTheme() {
       surfaceTintColor: Colors.transparent,
       indicatorColor: Colors.transparent,
       labelTextStyle: WidgetStateProperty.resolveWith((states) {
-        return TwText.textXs().copyWith(
+        return TwText.textXs.copyWith(
           color: states.contains(WidgetState.selected)
               ? TwColors.primary
               : TwColors.textMuted,

@@ -31,7 +31,7 @@ class OnboardingPage3 extends StatelessWidget {
               const SizedBox(width: TwSpacing.x2),
               Text(
                 '50% OFF',
-                style: TwText.fontBoldSm().copyWith(color: Colors.white),
+                style: TwText.fontBoldSm.copyWith(color: Colors.white),
               ),
             ],
           ),

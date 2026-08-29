@@ -30,7 +30,7 @@ class SectionHeader extends StatelessWidget {
             title,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: TwText.textXl(),
+            style: TwText.textXl,
           ),
         ),
         if (actionLabel != null)
@@ -38,7 +38,7 @@ class SectionHeader extends StatelessWidget {
             onPressed: onPressed,
             child: Text(
               actionLabel!,
-              style: TwText.link().copyWith(
+              style: TwText.link.copyWith(
                 color: Theme.of(context).colorScheme.primary,
               ),
             ),

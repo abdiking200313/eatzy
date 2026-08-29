@@ -160,4 +160,129 @@ void main() {
     await controller.loadForOwner('user-2');
     expect(controller.cart.single.product.id, 'bakaal-bananas');
   });
+
+  test('confirmOrder surfaces an error, resets loading, and keeps the cart '
+      'when the order repository throws', () async {
+    final throwingController = GroceryController(
+      repository: const SeededGroceryRepository(),
+      orderRepository: const _ThrowingGroceryOrderRepository(),
+      activityController: activityController,
+      storage: MemoryCartStorage<GroceryCartLine>(),
+    );
+    await throwingController.load();
+    final rice = throwingController.stores
+        .expand((store) => store.products)
+        .firstWhere((product) => product.id == 'bakaal-rice');
+    throwingController.addProduct(rice);
+
+    const address = GroceryDeliveryAddress(
+      recipientName: 'Amina',
+      phone: '+252 61 234 5678',
+      street: 'Near Taleex Road',
+      district: 'Hodan',
+      city: 'Mogadishu',
+    );
+
+    final result = await throwingController.confirmOrder(
+      address: address,
+      slot: GroceryController.deliverySlots.first,
+      substitutionPreference: GrocerySubstitutionPreference.contactMe,
+      now: DateTime.utc(2026, 7, 27, 12),
+    );
+
+    expect(result.isSuccess, isFalse);
+    expect(
+      result.errors,
+      contains('The grocery order could not be saved. Please try again.'),
+    );
+    expect(throwingController.isLoading, isFalse);
+    expect(throwingController.isEmpty, isFalse);
+    expect(throwingController.cart, hasLength(1));
+    expect(throwingController.lastConfirmation, isNull);
+    expect(activityController.items, isEmpty);
+  });
+
+  group('catalog staleness and pull-to-refresh', () {
+    test('load does not refetch an already-loaded, fresh catalog', () async {
+      final repository = _CountingGroceryRepository();
+      final now = DateTime.utc(2026, 8, 27, 12);
+      final freshController = GroceryController(
+        repository: repository,
+        now: () => now,
+        storage: MemoryCartStorage<GroceryCartLine>(),
+      );
+
+      await freshController.load();
+      expect(repository.fetchCount, 1);
+
+      await freshController.load();
+      expect(
+        repository.fetchCount,
+        1,
+        reason: 'a fresh catalog should not be refetched',
+      );
+    });
+
+    test('load refetches once the catalog goes stale', () async {
+      final repository = _CountingGroceryRepository();
+      var now = DateTime.utc(2026, 8, 27, 12);
+      final staleController = GroceryController(
+        repository: repository,
+        now: () => now,
+        storage: MemoryCartStorage<GroceryCartLine>(),
+      );
+
+      await staleController.load();
+      expect(repository.fetchCount, 1);
+      expect(staleController.isStale, isFalse);
+
+      now = now.add(GroceryController.catalogStaleAfter);
+      expect(staleController.isStale, isTrue);
+
+      await staleController.load();
+      expect(repository.fetchCount, 2);
+      expect(staleController.isStale, isFalse);
+    });
+
+    test(
+      'load(forceRefresh: true) always refetches regardless of staleness',
+      () async {
+        final repository = _CountingGroceryRepository();
+        final now = DateTime.utc(2026, 8, 27, 12);
+        final forcedController = GroceryController(
+          repository: repository,
+          now: () => now,
+          storage: MemoryCartStorage<GroceryCartLine>(),
+        );
+
+        await forcedController.load();
+        expect(repository.fetchCount, 1);
+
+        await forcedController.load(forceRefresh: true);
+        expect(repository.fetchCount, 2);
+      },
+    );
+  });
+}
+
+class _CountingGroceryRepository implements GroceryRepository {
+  int fetchCount = 0;
+
+  @override
+  Future<List<GroceryStore>> fetchStores() async {
+    fetchCount++;
+    return const SeededGroceryRepository().fetchStores();
+  }
+}
+
+/// A [GroceryOrderRepository] fake that always fails, simulating a network
+/// error, Supabase exception, or RPC validation error surfaced during
+/// order placement.
+class _ThrowingGroceryOrderRepository implements GroceryOrderRepository {
+  const _ThrowingGroceryOrderRepository();
+
+  @override
+  Future<String> placeOrder(GroceryOrderRequest request) {
+    throw Exception('Simulated network failure while placing grocery order');
+  }
 }

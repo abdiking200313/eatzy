@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'app/app_router.dart';
@@ -17,6 +18,15 @@ import 'widgets/zivo_logo.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Lock the app to portrait orientation. This is the single cross-platform
+  // source of truth; ios/Runner/Info.plist and
+  // android/app/src/main/AndroidManifest.xml are also restricted to portrait
+  // for defense-in-depth (see issue #56).
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]);
 
   await Supabase.initialize(
     url: 'https://jzubookmbrtslocuzepe.supabase.co',

@@ -114,16 +114,14 @@ class _PaymentMethodRow extends StatelessWidget {
                       method.type,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: TwText.fontBoldSm(),
+                      style: TwText.fontBoldSm,
                     ),
                     const SizedBox(height: 2),
                     Text(
                       '**** ${method.lastFour}',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: TwText.textXs().copyWith(
-                        color: TwColors.textMuted,
-                      ),
+                      style: TwText.textXs.copyWith(color: TwColors.textMuted),
                     ),
                   ],
                 ),
@@ -149,9 +147,9 @@ class _PaymentMethodRow extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text('Expires', style: TwText.textXs()),
+                  Text('Expires', style: TwText.textXs),
                   const SizedBox(height: 2),
-                  Text(method.expiry, style: TwText.fontBoldSm()),
+                  Text(method.expiry, style: TwText.fontBoldSm),
                 ],
               ),
               FittedBox(

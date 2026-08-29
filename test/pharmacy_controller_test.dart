@@ -163,4 +163,135 @@ void main() {
     await controller.loadForOwner('user-2');
     expect(controller.cartItems.single.product.id, otherProduct.id);
   });
+
+  test('placeDemoOrder surfaces an error, resets loading, and keeps the cart '
+      'when the order repository throws', () async {
+    final throwingActivityController = ActivityController();
+    final throwingController = PharmacyController(
+      repository: const SeededPharmacyRepository(),
+      orderRepository: const _ThrowingPharmacyOrderRepository(),
+      activityController: throwingActivityController,
+      now: () => DateTime.utc(2026, 7, 27, 12),
+      storage: MemoryCartStorage<PharmacyCartItem>(),
+    );
+    await throwingController.loadProducts();
+    throwingController.addProduct(throwingController.products.first);
+
+    const details = PharmacyCheckoutDetails(
+      customerName: 'Asha Ali',
+      phoneNumber: '+252 61 234 5678',
+      city: 'Mogadishu',
+      district: 'Hodan',
+      addressLine: 'Taleex Road, blue gate',
+      deliveryInstructions: 'Please call on arrival.',
+    );
+
+    final result = await throwingController.placeDemoOrder(details);
+
+    expect(result.isSuccess, isFalse);
+    expect(
+      result.validation.errorFor('order'),
+      contains('The pharmacy order could not be saved'),
+    );
+    expect(throwingController.isLoading, isFalse);
+    expect(throwingController.isCartEmpty, isFalse);
+    expect(throwingController.cartItems, hasLength(1));
+    expect(throwingActivityController.items, isEmpty);
+  });
+
+  group('catalog staleness and pull-to-refresh', () {
+    test(
+      'loadProducts does not refetch an already-loaded, fresh catalog',
+      () async {
+        final repository = _CountingPharmacyRepository();
+        final now = DateTime.utc(2026, 8, 27, 12);
+        final freshController = PharmacyController(
+          repository: repository,
+          activityController: ActivityController(),
+          now: () => now,
+          storage: MemoryCartStorage<PharmacyCartItem>(),
+        );
+
+        await freshController.loadProducts();
+        expect(repository.fetchCount, 1);
+
+        await freshController.loadProducts();
+        expect(
+          repository.fetchCount,
+          1,
+          reason: 'a fresh catalog should not be refetched',
+        );
+      },
+    );
+
+    test('loadProducts refetches once the catalog goes stale', () async {
+      final repository = _CountingPharmacyRepository();
+      var now = DateTime.utc(2026, 8, 27, 12);
+      final staleController = PharmacyController(
+        repository: repository,
+        activityController: ActivityController(),
+        now: () => now,
+        storage: MemoryCartStorage<PharmacyCartItem>(),
+      );
+
+      await staleController.loadProducts();
+      expect(repository.fetchCount, 1);
+      expect(staleController.isStale, isFalse);
+
+      now = now.add(PharmacyController.catalogStaleAfter);
+      expect(staleController.isStale, isTrue);
+
+      await staleController.loadProducts();
+      expect(repository.fetchCount, 2);
+      expect(staleController.isStale, isFalse);
+    });
+
+    test(
+      'loadProducts(forceRefresh: true) always refetches regardless of staleness',
+      () async {
+        final repository = _CountingPharmacyRepository();
+        final now = DateTime.utc(2026, 8, 27, 12);
+        final forcedController = PharmacyController(
+          repository: repository,
+          activityController: ActivityController(),
+          now: () => now,
+          storage: MemoryCartStorage<PharmacyCartItem>(),
+        );
+
+        await forcedController.loadProducts();
+        expect(repository.fetchCount, 1);
+
+        await forcedController.loadProducts(forceRefresh: true);
+        expect(repository.fetchCount, 2);
+      },
+    );
+  });
+}
+
+class _CountingPharmacyRepository implements PharmacyRepository {
+  int fetchCount = 0;
+
+  @override
+  Future<List<PharmacyProduct>> fetchProducts({
+    int limit = pharmacyProductsPageSize,
+    int offset = 0,
+  }) async {
+    fetchCount++;
+    return const SeededPharmacyRepository().fetchProducts(
+      limit: limit,
+      offset: offset,
+    );
+  }
+}
+
+/// A [PharmacyOrderRepository] fake that always fails, simulating a network
+/// error, Supabase exception, or RPC validation error surfaced during
+/// order placement.
+class _ThrowingPharmacyOrderRepository implements PharmacyOrderRepository {
+  const _ThrowingPharmacyOrderRepository();
+
+  @override
+  Future<String> placeOrder(PharmacyOrderRequest request) {
+    throw Exception('Simulated network failure while placing pharmacy order');
+  }
 }

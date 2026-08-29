@@ -7,7 +7,10 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../app/service_module.dart';
 import '../../../platform/activity/models/activity_item.dart';
 import '../../../platform/activity/presentation/activity_controller.dart';
+import '../../../platform/session/session_reset_registry.dart';
 import '../../shared/data/cart_storage.dart';
+import '../../shared/presentation/confirm_order_flow.dart';
+import '../../shared/presentation/loadable_state_mixin.dart';
 import '../data/pharmacy_repository.dart';
 import '../models/pharmacy_cart_item.dart';
 import '../models/pharmacy_checkout.dart';
@@ -21,7 +24,7 @@ enum PharmacyCartAddResult {
   maximumStockReached,
 }
 
-class PharmacyController extends ChangeNotifier {
+class PharmacyController extends ChangeNotifier with LoadableState {
   PharmacyController({
     required PharmacyRepository repository,
     required ActivityController activityController,
@@ -36,7 +39,7 @@ class PharmacyController extends ChangeNotifier {
 
   static final PharmacyController instance = () {
     final client = Supabase.instance.client;
-    return PharmacyController(
+    final controller = PharmacyController(
       repository: SupabasePharmacyCatalogRepository(client: client),
       orderRepository: SupabasePharmacyOrderRepository(client: client),
       activityController: ActivityController.instance,
@@ -46,9 +49,18 @@ class PharmacyController extends ChangeNotifier {
         fromJson: PharmacyCartItem.fromJson,
       ),
     );
+    SessionResetRegistry.instance.register(
+      (ownerId) => unawaited(controller.loadForOwner(ownerId)),
+    );
+    return controller;
   }();
 
   static const double deliveryFee = 2.50;
+
+  /// How long a successful catalog load is considered fresh before
+  /// [loadProducts] will silently refetch it again. A manual pull-to-refresh
+  /// (via [loadProducts]'s `forceRefresh`) always bypasses this.
+  static const Duration catalogStaleAfter = Duration(minutes: 5);
 
   final PharmacyRepository _repository;
   final ActivityController _activityController;
@@ -60,8 +72,9 @@ class PharmacyController extends ChangeNotifier {
 
   static const String _guestCartOwner = 'guest';
 
-  bool _isLoading = false;
-  String? _loadError;
+  DateTime? _lastLoadedAt;
+  bool _isLoadingMore = false;
+  bool _hasMore = true;
 
   Future<void> _pendingCartWrite = Future<void>.value();
   String? _cartOwnerId;
@@ -72,8 +85,25 @@ class PharmacyController extends ChangeNotifier {
       UnmodifiableListView(_products);
   UnmodifiableListView<PharmacyCartItem> get cartItems =>
       UnmodifiableListView(_cartItems);
-  bool get isLoading => _isLoading;
-  String? get loadError => _loadError;
+
+  /// Whether the loaded catalog is old enough that [loadProducts] should
+  /// treat it as needing a refetch: never loaded, or last loaded at least
+  /// [catalogStaleAfter] ago. Stock/price changes made server-side (e.g. an
+  /// item selling out) only reach the client on the next refetch, so this
+  /// keeps a session that stays open a long time from trusting an
+  /// indefinitely old snapshot.
+  bool get isStale {
+    final lastLoadedAt = _lastLoadedAt;
+    return lastLoadedAt == null ||
+        _now().difference(lastLoadedAt) >= catalogStaleAfter;
+  }
+
+  bool get isLoadingMore => _isLoadingMore;
+
+  /// Whether another page of products may exist. Starts `true` and flips
+  /// to `false` once a fetched page comes back shorter than the requested
+  /// page size (see [loadMore]).
+  bool get hasMore => _hasMore;
   bool get isCartEmpty => _cartItems.isEmpty;
   bool get isCartNotEmpty => _cartItems.isNotEmpty;
   int get itemCount =>
@@ -121,24 +151,60 @@ class PharmacyController extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> loadProducts() async {
-    if (_products.isNotEmpty || _isLoading) {
+  /// Loads the OTC catalog.
+  ///
+  /// By default this is a no-op once a catalog is already loaded and still
+  /// fresh (see [isStale]), so cheap repeat calls (e.g. from `initState`)
+  /// don't refetch pointlessly. Pass [forceRefresh] to always refetch —
+  /// this is what a pull-to-refresh gesture should use, since it represents
+  /// an explicit user request for the latest stock/prices regardless of
+  /// staleness.
+  Future<void> loadProducts({bool forceRefresh = false}) async {
+    if (isLoading) {
+      return;
+    }
+    if (!forceRefresh && _products.isNotEmpty && !isStale) {
       return;
     }
 
-    _isLoading = true;
-    _loadError = null;
+    await runLoad(
+      fetch: () async {
+        final products = await _repository.fetchProducts(
+          limit: pharmacyProductsPageSize,
+        );
+        _products
+          ..clear()
+          ..addAll(products.where((product) => product.isOverTheCounter));
+        _hasMore = products.length >= pharmacyProductsPageSize;
+        _lastLoadedAt = _now();
+      },
+      onError: (error, stackTrace) =>
+          'The pharmacy catalog could not be loaded.',
+    );
+  }
+
+  /// Fetches and appends the next page of products. No-ops while a load is
+  /// already in flight or once [hasMore] is `false`.
+  Future<void> loadMore() async {
+    if (isLoading || _isLoadingMore || !_hasMore) {
+      return;
+    }
+
+    _isLoadingMore = true;
     notifyListeners();
 
     try {
-      final products = await _repository.fetchProducts();
-      _products
-        ..clear()
-        ..addAll(products.where((product) => product.isOverTheCounter));
+      final nextPage = await _repository.fetchProducts(
+        limit: pharmacyProductsPageSize,
+        offset: _products.length,
+      );
+      _products.addAll(nextPage.where((product) => product.isOverTheCounter));
+      _hasMore = nextPage.length >= pharmacyProductsPageSize;
     } on Object {
-      _loadError = 'The pharmacy catalog could not be loaded.';
+      // Leave `_hasMore` as-is so the trailing "load more" control stays
+      // visible and a subsequent scroll/tap can retry.
     } finally {
-      _isLoading = false;
+      _isLoadingMore = false;
       notifyListeners();
     }
   }
@@ -263,61 +329,59 @@ class PharmacyController extends ChangeNotifier {
 
   Future<PharmacyCheckoutResult> placeDemoOrder(
     PharmacyCheckoutDetails details,
-  ) async {
+  ) {
     final validation = validateCheckout(details);
-    if (!validation.isValid) {
-      return PharmacyCheckoutResult.invalid(validation);
-    }
-
     final confirmedAt = _now();
+    // Snapshot cart-derived values before the shared flow clears the cart.
     final confirmedTotal = total;
     final confirmedItemCount = itemCount;
-    String orderId;
-    try {
-      orderId =
-          await _orderRepository?.placeOrder(
-            PharmacyOrderRequest(
-              details: details,
-              items: _cartItems
-                  .map(
-                    (item) => PharmacyOrderLineInput(
-                      productId: item.product.id,
-                      quantity: item.quantity,
-                    ),
-                  )
-                  .toList(growable: false),
-            ),
+    final confirmedItems = _cartItems
+        .map(
+          (item) => PharmacyOrderLineInput(
+            productId: item.product.id,
+            quantity: item.quantity,
+          ),
+        )
+        .toList(growable: false);
+
+    return confirmDemoOrder<PharmacyCheckoutResult, PharmacyCheckoutValidation>(
+      validation: validation,
+      isValid: (validation) => validation.isValid,
+      onInvalid: (validation) => PharmacyCheckoutResult.invalid(validation),
+      placeOrder: () =>
+          _orderRepository?.placeOrder(
+            PharmacyOrderRequest(details: details, items: confirmedItems),
           ) ??
-          'pharmacy-${confirmedAt.microsecondsSinceEpoch}';
-    } on Object {
-      return PharmacyCheckoutResult.invalid(
+          Future.value(null),
+      fallbackOrderId: () => 'pharmacy-${confirmedAt.microsecondsSinceEpoch}',
+      onSaveFailed: () => PharmacyCheckoutResult.invalid(
         const PharmacyCheckoutValidation({
           'order': 'The pharmacy order could not be saved. Please try again.',
         }),
-      );
-    }
-
-    _activityController.record(
-      ActivityItem(
-        id: orderId,
-        serviceId: ServiceId.pharmacy,
-        title: 'Pharmacy order',
-        subtitle:
-            '$confirmedItemCount OTC '
-            '${confirmedItemCount == 1 ? 'item' : 'items'}',
-        status: 'Demo confirmed',
-        occurredAt: confirmedAt,
-        amount: confirmedTotal,
-        detailsRoute: '/pharmacy',
       ),
-    );
-    clearCart();
-
-    return PharmacyCheckoutResult.success(
-      orderId: orderId,
-      message:
-          'Demo order confirmed. No payment was processed and no order '
-          'was sent to a pharmacy.',
+      recordActivity: (orderId) {
+        _activityController.record(
+          ActivityItem(
+            id: orderId,
+            serviceId: ServiceId.pharmacy,
+            title: 'Pharmacy order',
+            subtitle:
+                '$confirmedItemCount OTC '
+                '${confirmedItemCount == 1 ? 'item' : 'items'}',
+            status: 'Demo confirmed',
+            occurredAt: confirmedAt,
+            amount: confirmedTotal,
+            detailsRoute: '/pharmacy',
+          ),
+        );
+      },
+      clearCart: clearCart,
+      onConfirmed: (orderId) => PharmacyCheckoutResult.success(
+        orderId: orderId,
+        message:
+            'Demo order confirmed. No payment was processed and no order '
+            'was sent to a pharmacy.',
+      ),
     );
   }
 
