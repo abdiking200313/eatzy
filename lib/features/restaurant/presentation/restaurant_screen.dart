@@ -341,7 +341,7 @@ class _RestaurantMenuView extends StatelessWidget {
         if (menu.categories.isEmpty)
           const SliverFillRemaining(hasScrollBody: false, child: _EmptyMenu())
         else
-          for (final category in menu.categories)
+          for (final category in menu.categories) ...[
             SliverToBoxAdapter(
               child: Center(
                 child: ConstrainedBox(
@@ -351,49 +351,57 @@ class _RestaurantMenuView extends StatelessWidget {
                       TwSpacing.x5,
                       TwSpacing.x6,
                       TwSpacing.x5,
-                      0,
+                      TwSpacing.x4,
                     ),
-                    child: Column(
+                    child: Row(
                       key: sectionKeyFor(category.id),
-                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Row(
-                          children: [
-                            Expanded(
-                              child: Text(
-                                category.name,
-                                style: TwText.textXl(),
-                              ),
-                            ),
-                            Text(
-                              '${category.items.length} '
-                              '${category.items.length == 1 ? 'item' : 'items'}',
-                              style: TwText.textXs().copyWith(
-                                color: TwColors.textMuted,
-                              ),
-                            ),
-                          ],
+                        Expanded(
+                          child: Text(category.name, style: TwText.textXl()),
                         ),
-                        const SizedBox(height: TwSpacing.x4),
-                        for (
-                          var index = 0;
-                          index < category.items.length;
-                          index++
-                        ) ...[
-                          MenuItemCard(
-                            item: category.items[index],
-                            onAddToCart: () =>
-                                onAddToCart(category.items[index]),
+                        Text(
+                          '${category.items.length} '
+                          '${category.items.length == 1 ? 'item' : 'items'}',
+                          style: TwText.textXs().copyWith(
+                            color: TwColors.textMuted,
                           ),
-                          if (index != category.items.length - 1)
-                            const SizedBox(height: TwSpacing.x3),
-                        ],
+                        ),
                       ],
                     ),
                   ),
                 ),
               ),
             ),
+            // A per-category `SliverList.builder` (rather than the whole
+            // category folded into one eager `SliverToBoxAdapter`+`Column`)
+            // so item cards — and the `CachedNetworkImage` requests they
+            // kick off — are only built once they scroll into view. The
+            // header above stays an eager `SliverToBoxAdapter` so its
+            // `GlobalKey` context is always mounted for the category-chip
+            // "jump to section" scroll (`Scrollable.ensureVisible`).
+            SliverList(
+              delegate: SliverChildBuilderDelegate((context, index) {
+                final item = category.items[index];
+                return Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 760),
+                    child: Padding(
+                      padding: EdgeInsets.fromLTRB(
+                        TwSpacing.x5,
+                        0,
+                        TwSpacing.x5,
+                        index == category.items.length - 1 ? 0 : TwSpacing.x3,
+                      ),
+                      child: MenuItemCard(
+                        item: item,
+                        onAddToCart: () => onAddToCart(item),
+                      ),
+                    ),
+                  ),
+                );
+              }, childCount: category.items.length),
+            ),
+          ],
         const SliverToBoxAdapter(child: SizedBox(height: TwSpacing.x10)),
       ],
     );

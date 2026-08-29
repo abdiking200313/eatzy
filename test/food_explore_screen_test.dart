@@ -16,6 +16,8 @@ class _FakeRestaurantRepository implements RestaurantRepository {
   Future<List<Restaurant>> fetchRestaurants({
     String? searchQuery,
     String? categoryId,
+    int limit = RestaurantRepository.defaultPageSize,
+    int offset = 0,
   }) async {
     capturedSearchQuery = searchQuery;
     capturedCategoryId = categoryId;

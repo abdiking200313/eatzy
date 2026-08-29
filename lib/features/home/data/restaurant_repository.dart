@@ -7,19 +7,26 @@ class RestaurantRepository {
 
   final SupabaseClient _client;
 
-  /// Cap applied to the new search/category-filtered query paths below so
-  /// they can't become another unbounded query (a separately tracked issue
-  /// for the plain unfiltered listing, which this leaves untouched).
-  static const int _filteredResultLimit = 30;
+  /// Default page size for restaurant queries below.
+  ///
+  /// The home screen (`HomeScreen`) does not yet page through the plain
+  /// unfiltered listing — see issue #61 — so [limit]/[offset] here only
+  /// bound the worst case (every restaurant in the catalog fetched on every
+  /// load). A real "load more"/infinite scroll contract for the home feed
+  /// is left as a follow-up.
+  static const int defaultPageSize = 50;
 
   /// Fetches restaurants, optionally narrowed by a case-insensitive [name]
   /// substring match and/or restaurants that have at least one menu item in
   /// [categoryId] (an `item_categories.id`, joined via the existing
   /// `menu_items.categorie_id` relationship also used by
-  /// `RestaurantMenuRepository`/`CategoryRepository`).
+  /// `RestaurantMenuRepository`/`CategoryRepository`), bounded to [limit]
+  /// rows starting at [offset].
   Future<List<Restaurant>> fetchRestaurants({
     String? searchQuery,
     String? categoryId,
+    int limit = defaultPageSize,
+    int offset = 0,
   }) async {
     final query = searchQuery?.trim();
     final hasSearch = query != null && query.isNotEmpty;
@@ -29,7 +36,9 @@ class RestaurantRepository {
     if (!hasSearch && !hasCategory) {
       final rows = await _client
           .from('restaurants')
-          .select('id, name, description, logo_url');
+          .select('id, name, description, logo_url')
+          .order('name')
+          .range(offset, offset + limit - 1);
       return rows.map(Restaurant.fromMap).toList();
     }
 
@@ -48,7 +57,7 @@ class RestaurantRepository {
       builder = builder.ilike('name', '%$query%');
     }
 
-    final rows = await builder.order('name').limit(_filteredResultLimit);
+    final rows = await builder.order('name').range(offset, offset + limit - 1);
     return rows.map(Restaurant.fromMap).toList();
   }
 }
