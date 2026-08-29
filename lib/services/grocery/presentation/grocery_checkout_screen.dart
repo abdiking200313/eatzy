@@ -81,9 +81,9 @@ class _GroceryCheckoutScreenState extends State<GroceryCheckoutScreen> {
   Widget _checkoutBody() {
     return ListView(
       padding: const EdgeInsets.fromLTRB(
-        TwSpacing.x4,
+        TwSpacing.x5,
         TwSpacing.x2,
-        TwSpacing.x4,
+        TwSpacing.x5,
         TwSpacing.x8,
       ),
       children: [

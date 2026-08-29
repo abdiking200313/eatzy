@@ -125,4 +125,65 @@ void main() {
     // Status pills instead of bare colored status text.
     expect(find.widgetWithText(StatusPill, 'Confirmed'), findsOneWidget);
   });
+
+  testWidgets(
+    'Recent Activity preview is one list card with row dividers, not one '
+    'card per row',
+    (tester) async {
+      final controller = ActivityController()
+        ..record(
+          ActivityItem(
+            id: 'grocery-preview',
+            serviceId: ServiceId.grocery,
+            title: 'Bakaara groceries',
+            status: 'Confirmed',
+            occurredAt: DateTime(2026, 7, 27),
+            amount: 24,
+            detailsRoute: '/grocery',
+          ),
+        )
+        ..record(
+          ActivityItem(
+            id: 'food-preview',
+            serviceId: ServiceId.food,
+            title: 'Lunch order',
+            status: 'Delivered',
+            occurredAt: DateTime(2026, 7, 28),
+            amount: 12,
+            detailsRoute: '/food',
+          ),
+        );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: buildAppTheme(),
+          home: SuperAppHomeScreen(
+            activityController: controller,
+            restaurantLoader: _noRestaurants,
+          ),
+        ),
+      );
+
+      for (
+        var attempt = 0;
+        attempt < 8 && find.text('Lunch order').evaluate().isEmpty;
+        attempt++
+      ) {
+        await tester.drag(find.byType(ListView), const Offset(0, -300));
+        await tester.pump();
+      }
+      expect(find.text('Bakaara groceries'), findsOneWidget);
+      expect(find.text('Lunch order'), findsOneWidget);
+
+      // One card holds every recent-activity row — this would regress to
+      // 2 (one per row) if the list ever went back to a per-item bordered
+      // card, per the "one card per list, not one card per row" rule.
+      expect(find.byType(Card), findsOneWidget);
+      // A divider separates the two rows inside that single card.
+      expect(
+        find.descendant(of: find.byType(Card), matching: find.byType(Divider)),
+        findsOneWidget,
+      );
+    },
+  );
 }
