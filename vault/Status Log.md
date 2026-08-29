@@ -15,6 +15,13 @@ Reverse-chronological. Each session/major chunk of work gets an entry.
 
 ---
 
+## 2026-08-29
+
+- **Resolved PR #89's merge conflict and merged it, closing out all 5 redesign phases 2-6.** Received PR-merge webhook events for #90/#91/#92/#93 (issues #24-27) over the past several days in this session (continuing from the 2026-08-18 run) — all merged cleanly. #89 (#23) alone had drifted: `mergeable_state` came back `unknown` after the other 4 landed, and a local `git merge-tree` check found a real conflict in `vault/Status Log.md` (this file — a stale duplicate section from my own 2026-08-18 entry vs. ~11 days of newer entries) plus otherwise-clean auto-merges elsewhere.
+- Merged `master` into the PR branch, resolved the vault conflict (kept master's fuller history, dropped my old duplicate section), re-ran the full DoD. **Caught a real bug**: `flutter test` failed on `super_app_home_test.dart` — `_ServiceTile` (the Home screen's Food/Grocery/Pharmacy grid) never actually got the white-card/48px-`ServiceIconChip` treatment the original PR #89 description claimed; it still used the tinted `ServiceThemes.*.card` fill and an ad-hoc 44px icon circle. Fixed to match the pattern used elsewhere (`background: colors.soft, foreground: colors.accent`). 107/107 tests passing after the fix (suite grew substantially since PR #89 was opened 11 days ago).
+- Squash-merged #89 per the self-merge policy (added 2026-08-27, see [[Conventions]]). All of redesign phases 1-6 are now in `master` — **issue #28 (phase 7/7, closeout sweep) is unblocked** for the next scheduled run; it was deliberately deferred on 2026-08-18 pending exactly this.
+- **Vault upkeep**: fixed a broken archive from earlier in this file — a prior session's archive pointer (just above the 2026-08-15 section) claimed pre-08-15 content had been moved to `vault/archive/Status Log 2026-08.md`, but the actual 08-12/13 content was still duplicated in this file for ~2 weeks, plus a split `## 2026-08-15` header. Cleaned up: merged the two 08-15 entries, dropped the now-genuinely-redundant 08-13 content (verified already present in the archive file), moved the pointer to the true end.
+
 ## 2026-08-28
 
 - Board-worker run (14th overall), still nothing eligible — no change since the 13th run: `waiting-on-you` #8/#16/#40/#78/#79 re-checked live via `get_comments`, all five still have only the agent's own prior comment(s) (footer-confirmed, no genuine human reply). `todo`-without-`agent-in-progress` issues are still only the 4 tracking/blocked umbrellas (#21/#28/#29/#52). Stopped early per step 3, no action taken, no notification (nothing changed since the last run).
@@ -185,33 +192,10 @@ Reverse-chronological. Each session/major chunk of work gets an entry.
 - Board-worker routine had vanished entirely (404 + absent from `list`) — recreated as `trig_017jPchk8L4LVskUZMGwiDDG`, now every 5h (was 2h, changed at user request), rebuilt from [[Multi-Agent Setup]]'s spec since the original prompt wasn't recoverable. See [[Decisions Log]] for full detail.
 - Added: routine now processes up to 6 issues per run (was 1), each dispatched via a fresh `Task` per issue to keep the top-level session's context from compounding.
 - **Issue #50 executed**: cleaning/cleaner vertical deleted entirely — `lib/services/cleaning/`, its 2 dedicated test files, all `ServiceId.cleaning`/route/theme/session references removed; `ActivityItem.fromMap` now drops legacy `'cleaning'`-typed activity rows instead of throwing. New unapplied migration `supabase/migrations/20260815153920_remove_cleaning_vertical.sql` drops the cleaning tables/RPCs/view branch — **not run against the live DB**, manual follow-up. `dart format`/`flutter analyze`/`flutter test` (53/53) all clean. See PR for #50.
-
-
----
-
-## 2026-08-13
-
-**User directly challenged whether the prior audits were actually thorough** ("did you take a good look at the project"). Honest answer given: no — never ran the app, never reconciled `.codex`/AGENTS.md, several areas never read at all (native configs, `lib/platform/`, several feature verticals), issue #8 left uninvestigated. User asked for a real pass, pre-authorizing investigation questions.
-
-**Ran a genuinely thorough pass**: 5 parallel read-only investigation agents (agent-system reconciliation, currency/schema deep-dive, native-platform/branding audit, remaining-verticals audit, full test-suite read) plus an actual live-app launch. See [[Audit Findings]] Pass 3 for the full writeup. Highlights:
-- **Release-blocking bug found and fixed same-session**: Android release manifest was missing the `INTERNET` permission entirely.
-- Currency/schema drift (issue #8) went from "documented claim, unverified" to a precise, evidence-backed finding — two conflicting SQL conventions in the repo, one live crossing point (`menu_items.price`), needs a live DB check to close.
-- 6 new "looks-done-but-isn't" feature gaps found (rewards, settings, addresses, payment methods, profile-edit, onboarding-gating) — filed as issues #9-15, not auto-built, matching the existing wallet/food-address precedent.
-- Plus: branding/bundle-ID drift (#16), no CI/CD (#17), test-suite gaps (#18), `ActivityController` architecture violation (#19).
-- **A misdiagnosis happened and was caught**: an investigation agent, not pointed at the vault, rediscovered and misapplied the `chowflow_flutter/`-path confusion, wrongly concluding AGENTS.md's repo-authority claim was stale. Corrected in [[Decisions Log]] — no fix to AGENTS.md was actually needed.
-- **Live-app check was honest about its limits**: launched the app for real (Flutter web + a scratch Playwright script, no project run-skill existed), got a real screenshot of the welcome screen rendering correctly — but could not reach the two specific refactored screens (restaurant detail, cleaning booking) because they're auth-gated and this sandbox can't reach Supabase's network. Reported that limitation plainly rather than claiming a visual check that didn't happen.
-
-**Fixed directly this session** (mechanical/low-risk, same pattern as before): the INTERNET permission bug, dead code in `app_widgets.dart`/`app_money.dart`/`app_cards.dart`, `ActivityController`'s error-swallowing, `test/widget_test.dart` renamed, `chowflow_flutter/README.md` rewritten to stop being stale, stale-warning banners added to all 6 outer `eatzy/*.md` docs, and three `.claude/skills/build/SKILL.md` process gaps closed (3-question cap, task-brief schema, explicit pubspec/native-platform non-ownership) — adopted from the AGENTS.md/`.codex` reconciliation findings. Verified with a full `dart format --set-exit-if-changed lib test` / `flutter analyze` / `flutter test` pass — all clean, 60/60 tests passing.
-
-**Also fixed two stale issue-number references** in [[Audit Findings]] Pass 2 (had #4/#6 where it should've said #5/#7) — a small internal-consistency bug in the vault itself, worth remembering the vault needs its own accuracy upkeep, not just the code's.
-
-**Not done this session, tracked in [[Open Tasks]]**: the interrupted dedup extraction from 2026-08-12 is still sitting uncommitted, untouched; the 6 new feature-gap issues (#9-15) and the currency verdict (#8) all still need either a live DB check or a product decision from the user before anyone can act further.
-
----
-
-## 2026-08-15
-
-**Board worker built issue #33** (stock Flutter template app icons/splash screen on Android+iOS): made `ZivoMarkPainter` in `lib/widgets/zivo_logo.dart` public and added `tool/generate_brand_assets.dart` (a `flutter_test`-based rasterizer) so the app-icon/splash source PNGs under `assets/icon/` are generated from the exact same brand mark used in-app, not a separate hand-made asset. Wired via `flutter_launcher_icons` + `flutter_native_splash` (new dev deps, config in `pubspec.yaml`); ran both generators for Android (incl. adaptive icon)/iOS/macOS/Windows/web. `flutter_launcher_icons` has no Linux target — left Linux icon untouched, noted as an assumption in the PR. Also fixed the stale "A new Flutter project." description in `web/manifest.json` and `web/index.html` per the issue. Format/analyze/test all clean (60/60).
+- **Board worker built issue #33** (stock Flutter template app icons/splash screen on Android+iOS): made `ZivoMarkPainter` in `lib/widgets/zivo_logo.dart` public and added `tool/generate_brand_assets.dart` (a `flutter_test`-based rasterizer) so the app-icon/splash source PNGs under `assets/icon/` are generated from the exact same brand mark used in-app, not a separate hand-made asset. Wired via `flutter_launcher_icons` + `flutter_native_splash` (new dev deps, config in `pubspec.yaml`); ran both generators for Android (incl. adaptive icon)/iOS/macOS/Windows/web. `flutter_launcher_icons` has no Linux target — left Linux icon untouched, noted as an assumption in the PR. Also fixed the stale "A new Flutter project." description in `web/manifest.json` and `web/index.html` per the issue. Format/analyze/test all clean (60/60).
 - Issue #16 (native bundle identifiers) is still `waiting-on-you` — my clarifying question is up, no reply yet.
-Entries older than 2026-08-15 (the 2026-08-12/13 initial setup and first thorough audit pass) archived to `vault/archive/Status Log 2026-08.md`.
+
+---
+
+Entries older than 2026-08-15 (the 2026-08-12/13 initial setup and first thorough audit pass) archived to `vault/archive/Status Log 2026-08.md`. **Fixed 2026-08-29**: a prior archive attempt had added this pointer without actually removing the archived content, leaving a duplicate `## 2026-08-13` section and a split `## 2026-08-15` header sitting below it for ~2 weeks — cleaned up (merged the two 08-15 entries, dropped the duplicate 08-13 content, which was already safe in the archive file).
 
