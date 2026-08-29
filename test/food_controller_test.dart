@@ -8,6 +8,14 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'helpers/memory_cart_storage.dart';
 
+const _testAddress = FoodDeliveryAddress(
+  recipientName: 'Amina Yusuf',
+  phone: '+252 61 234 5678',
+  street: 'Maka Al-Mukarama Road',
+  district: 'Hodan',
+  city: 'Mogadishu',
+);
+
 void main() {
   late CartController cartController;
   late ActivityController activityController;
@@ -38,7 +46,7 @@ void main() {
       activityController: activityController,
     );
 
-    final result = await controller.confirmOrder();
+    final result = await controller.confirmOrder(_testAddress);
 
     expect(result.isSuccess, isFalse);
     expect(controller.isSubmitting, isFalse);
@@ -55,7 +63,7 @@ void main() {
         activityController: activityController,
       );
 
-      final result = await controller.confirmOrder();
+      final result = await controller.confirmOrder(_testAddress);
 
       expect(result.isSuccess, isTrue);
       expect(result.orderId, 'food-test-order');
@@ -74,7 +82,7 @@ void main() {
       activityController: activityController,
     );
 
-    final result = await controller.confirmOrder();
+    final result = await controller.confirmOrder(_testAddress);
 
     expect(result.isSuccess, isFalse);
     expect(

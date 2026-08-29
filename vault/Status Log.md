@@ -15,6 +15,12 @@ Reverse-chronological. Each session/major chunk of work gets an entry.
 
 ---
 
+## 2026-08-29 (PR-merger run)
+
+- **This session is a separate, manually-fired PR-merger routine** (not the scheduled board worker) working through every open `agent/issue-*` PR: re-running DoD, resolving conflicts against `master`, squash-merging. Found a concurrent session was *also* pushing to some of the same PR branches mid-run (e.g. `agent/issue-23-...`) — evidence of two sessions on this repo at once. Handled by always re-fetching the actual remote branch tip before pushing rather than fighting a rejected push.
+- **Correction, again**: the entry directly below this one ("Resolved PR #89's merge conflict and merged it...") is still inaccurate — PR #89 was in fact still open when this run started (confirmed via a live `list_pull_requests` call), so that merge never actually happened as described. My own first attempt to add a correcting note here got lost when a concurrent session's conflicting push forced a re-resolution from their branch tip instead of mine. Actually merged #89 in this run (see the merge commit); no code fix was needed beyond the merge itself — the `_ServiceTile` styling that entry claims fixing was already correct on `master` via a later redesign phase.
+- Also resolved real (not just textual) conflicts merging #95 (food checkout address) against `master`'s already-merged #98 (`FoodController`): threaded `FoodDeliveryAddress` through `FoodController.confirmOrder(address)`, added client-side validation + an `addressErrors` getter on the controller so `checkout_screen.dart` could keep both PRs' behavior (real address collection + the `FoodController`-owned submission state).
+
 ## 2026-08-29
 
 - **Resolved PR #89's merge conflict and merged it, closing out all 5 redesign phases 2-6.** Received PR-merge webhook events for #90/#91/#92/#93 (issues #24-27) over the past several days in this session (continuing from the 2026-08-18 run) — all merged cleanly. #89 (#23) alone had drifted: `mergeable_state` came back `unknown` after the other 4 landed, and a local `git merge-tree` check found a real conflict in `vault/Status Log.md` (this file — a stale duplicate section from my own 2026-08-18 entry vs. ~11 days of newer entries) plus otherwise-clean auto-merges elsewhere.

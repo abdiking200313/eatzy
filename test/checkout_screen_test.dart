@@ -56,6 +56,23 @@ void main() {
 
       expect(find.text('Place demo order'), findsOneWidget);
 
+      await tester.enterText(
+        find.byKey(const ValueKey('food-recipient-name')),
+        'Amina Yusuf',
+      );
+      await tester.enterText(
+        find.byKey(const ValueKey('food-phone')),
+        '+252 61 234 5678',
+      );
+      await tester.enterText(
+        find.byKey(const ValueKey('food-street')),
+        'Maka Al-Mukarama Road',
+      );
+      await tester.enterText(
+        find.byKey(const ValueKey('food-district')),
+        'Hodan',
+      );
+
       await tester.tap(find.text('Place demo order'));
       // Let the submission start (isSubmitting = true) and complete.
       await tester.pump();

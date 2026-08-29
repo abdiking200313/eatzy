@@ -6,6 +6,7 @@ import '../../../config/theme.dart';
 import '../../../platform/activity/presentation/activity_controller.dart';
 import '../../cart/presentation/cart_controller.dart';
 import '../../../services/food/data/food_repository.dart';
+import '../../../services/food/models/food_models.dart';
 import '../../../services/food/presentation/food_controller.dart';
 import '../../../widgets/app_cards.dart';
 import '../../../widgets/app_scaffold.dart';
@@ -29,6 +30,12 @@ class CheckoutScreen extends StatefulWidget {
 }
 
 class _CheckoutScreenState extends State<CheckoutScreen> {
+  final _recipientController = TextEditingController();
+  final _phoneController = TextEditingController();
+  final _streetController = TextEditingController();
+  final _districtController = TextEditingController();
+  final _cityController = TextEditingController(text: 'Mogadishu');
+
   late final CartController _cartController =
       widget.cartController ?? CartController.instance;
   late final FoodController _foodController = FoodController(
@@ -39,6 +46,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   @override
   void dispose() {
+    _recipientController.dispose();
+    _phoneController.dispose();
+    _streetController.dispose();
+    _districtController.dispose();
+    _cityController.dispose();
     _foodController.dispose();
     super.dispose();
   }
@@ -66,7 +78,12 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   ),
                   const SizedBox(height: TwSpacing.x8),
                   DeliveryAddressCard(
-                    onChangePressed: () => context.push(AppRoutes.addresses),
+                    recipientController: _recipientController,
+                    phoneController: _phoneController,
+                    streetController: _streetController,
+                    districtController: _districtController,
+                    cityController: _cityController,
+                    errors: _foodController.addressErrors,
                   ),
                   const SizedBox(height: TwSpacing.x8),
                   if (_foodController.submissionError case final error?) ...[
@@ -96,7 +113,14 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   }
 
   Future<void> _placeOrder() async {
-    final result = await _foodController.confirmOrder();
+    final address = FoodDeliveryAddress(
+      recipientName: _recipientController.text,
+      phone: _phoneController.text,
+      street: _streetController.text,
+      district: _districtController.text,
+      city: _cityController.text,
+    );
+    final result = await _foodController.confirmOrder(address);
     if (result.isSuccess && mounted) {
       context.go(AppRoutes.activity);
     }
