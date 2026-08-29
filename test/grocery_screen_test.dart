@@ -5,10 +5,15 @@ import 'package:chowflow/services/grocery/presentation/grocery_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'helpers/memory_cart_storage.dart';
+
 void main() {
   testWidgets('pulling to refresh reloads the grocery catalog', (tester) async {
     final repository = _CountingGroceryRepository();
-    final controller = GroceryController(repository: repository);
+    final controller = GroceryController(
+      repository: repository,
+      storage: MemoryCartStorage<GroceryCartLine>(),
+    );
 
     await tester.pumpWidget(
       MaterialApp(home: GroceryScreen(controller: controller)),

@@ -6,10 +6,12 @@ import 'package:chowflow/features/checkout/presentation/checkout_screen.dart';
 import 'package:chowflow/platform/activity/presentation/activity_controller.dart';
 import 'package:chowflow/screens/cart.dart';
 import 'package:chowflow/services/grocery/data/grocery_repository.dart';
+import 'package:chowflow/services/grocery/models/grocery_models.dart';
 import 'package:chowflow/services/grocery/presentation/grocery_cart_screen.dart';
 import 'package:chowflow/services/grocery/presentation/grocery_checkout_screen.dart';
 import 'package:chowflow/services/grocery/presentation/grocery_controller.dart';
 import 'package:chowflow/services/pharmacy/data/pharmacy_repository.dart';
+import 'package:chowflow/services/pharmacy/models/pharmacy_cart_item.dart';
 import 'package:chowflow/services/pharmacy/presentation/pharmacy_cart_screen.dart';
 import 'package:chowflow/services/pharmacy/presentation/pharmacy_checkout_screen.dart';
 import 'package:chowflow/services/pharmacy/presentation/pharmacy_controller.dart';
@@ -103,6 +105,7 @@ void main() {
       final controller = GroceryController(
         repository: const SeededGroceryRepository(),
         activityController: ActivityController(),
+        storage: MemoryCartStorage<GroceryCartLine>(),
       );
       await controller.load();
       final products = controller.stores
@@ -132,6 +135,7 @@ void main() {
       final controller = GroceryController(
         repository: const SeededGroceryRepository(),
         activityController: ActivityController(),
+        storage: MemoryCartStorage<GroceryCartLine>(),
       );
       await controller.load();
       final product = controller.stores
@@ -167,6 +171,7 @@ void main() {
       final controller = PharmacyController(
         repository: const SeededPharmacyRepository(),
         activityController: ActivityController(),
+        storage: MemoryCartStorage<PharmacyCartItem>(),
       );
       await controller.loadProducts();
       for (final product in controller.products.take(2)) {
@@ -191,6 +196,7 @@ void main() {
       final controller = PharmacyController(
         repository: const SeededPharmacyRepository(),
         activityController: ActivityController(),
+        storage: MemoryCartStorage<PharmacyCartItem>(),
       );
       await controller.loadProducts();
       controller.addProduct(controller.products.first);

@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 
-import '../data/cart_storage.dart';
+import '../../../services/shared/data/cart_storage.dart';
 import '../models/cart_item.dart';
 
 enum CartAddResult {
@@ -12,10 +12,14 @@ enum CartAddResult {
 }
 
 class CartController extends ChangeNotifier {
-  CartController({required CartStorage storage}) : _storage = storage;
+  CartController({required CartStorage<CartItem> storage}) : _storage = storage;
 
   static final CartController instance = CartController(
-    storage: SharedPreferencesCartStorage(),
+    storage: SharedPreferencesCartStorage<CartItem>(
+      keyPrefix: 'zivo.cart.v1',
+      toJson: (item) => item.toJson(),
+      fromJson: CartItem.fromJson,
+    ),
   );
 
   static const int maximumQuantity = 99;
@@ -23,7 +27,7 @@ class CartController extends ChangeNotifier {
   static const double standardDeliveryFee = 4.99;
   static const String _guestOwner = 'guest';
 
-  final CartStorage _storage;
+  final CartStorage<CartItem> _storage;
   final List<CartItem> _items = [];
 
   Future<void> _pendingWrite = Future<void>.value();

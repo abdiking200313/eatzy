@@ -12,6 +12,8 @@ import 'platform/activity/presentation/activity_controller.dart';
 import 'platform/session/account_state_coordinator.dart';
 import 'platform/session/secure_session_storage.dart';
 import 'platform/system_ui/android_navigation_bar_controller.dart';
+import 'services/grocery/presentation/grocery_controller.dart';
+import 'services/pharmacy/presentation/pharmacy_controller.dart';
 import 'widgets/zivo_logo.dart';
 
 void main() async {
@@ -35,6 +37,8 @@ void main() async {
   final cartController = CartController.instance;
   final currentUserId = Supabase.instance.client.auth.currentUser?.id;
   await cartController.loadForOwner(currentUserId);
+  await GroceryController.instance.loadForOwner(currentUserId);
+  await PharmacyController.instance.loadForOwner(currentUserId);
   ActivityController.instance.configureRepository(
     SupabaseActivityRepository(client: Supabase.instance.client),
   );

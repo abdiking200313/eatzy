@@ -5,15 +5,20 @@ import 'package:chowflow/services/grocery/models/grocery_models.dart';
 import 'package:chowflow/services/grocery/presentation/grocery_controller.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'helpers/memory_cart_storage.dart';
+
 void main() {
   late GroceryController controller;
   late ActivityController activityController;
+  late MemoryCartStorage<GroceryCartLine> storage;
 
   setUp(() async {
     activityController = ActivityController();
+    storage = MemoryCartStorage<GroceryCartLine>();
     controller = GroceryController(
       repository: const SeededGroceryRepository(),
       activityController: activityController,
+      storage: storage,
     );
     await controller.load();
   });
@@ -116,12 +121,53 @@ void main() {
     expect(errors, contains('Choose a substitution preference.'));
   });
 
+  test('grocery cart survives a simulated app reload', () async {
+    await controller.loadForOwner('user-1');
+    final rice = product('bakaal-rice');
+    controller.addProduct(rice);
+    controller.setQuantity(rice.id, 2);
+    await controller.pendingCartWrite;
+
+    // Simulate the app restarting: a brand new controller backed by the
+    // same underlying storage should restore the persisted cart.
+    final restarted = GroceryController(
+      repository: const SeededGroceryRepository(),
+      activityController: activityController,
+      storage: storage,
+    );
+    await restarted.load();
+    await restarted.loadForOwner('user-1');
+
+    expect(restarted.cart, hasLength(1));
+    expect(restarted.cart.single.product.id, rice.id);
+    expect(restarted.cart.single.quantity, 2);
+  });
+
+  test('switching accounts clears and reloads the grocery cart', () async {
+    await controller.loadForOwner('user-1');
+    controller.addProduct(product('bakaal-rice'));
+    expect(controller.isNotEmpty, isTrue);
+    await controller.pendingCartWrite;
+
+    await controller.loadForOwner('user-2');
+    expect(controller.isEmpty, isTrue);
+
+    controller.addProduct(product('bakaal-bananas'));
+    await controller.pendingCartWrite;
+    await controller.loadForOwner('user-1');
+    expect(controller.cart.single.product.id, 'bakaal-rice');
+
+    await controller.loadForOwner('user-2');
+    expect(controller.cart.single.product.id, 'bakaal-bananas');
+  });
+
   test('confirmOrder surfaces an error, resets loading, and keeps the cart '
       'when the order repository throws', () async {
     final throwingController = GroceryController(
       repository: const SeededGroceryRepository(),
       orderRepository: const _ThrowingGroceryOrderRepository(),
       activityController: activityController,
+      storage: MemoryCartStorage<GroceryCartLine>(),
     );
     await throwingController.load();
     final rice = throwingController.stores
@@ -163,6 +209,7 @@ void main() {
       final freshController = GroceryController(
         repository: repository,
         now: () => now,
+        storage: MemoryCartStorage<GroceryCartLine>(),
       );
 
       await freshController.load();
@@ -182,6 +229,7 @@ void main() {
       final staleController = GroceryController(
         repository: repository,
         now: () => now,
+        storage: MemoryCartStorage<GroceryCartLine>(),
       );
 
       await staleController.load();
@@ -204,6 +252,7 @@ void main() {
         final forcedController = GroceryController(
           repository: repository,
           now: () => now,
+          storage: MemoryCartStorage<GroceryCartLine>(),
         );
 
         await forcedController.load();

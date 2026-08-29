@@ -114,6 +114,41 @@ class GroceryProduct {
       icon: _optionalString(map, 'icon', fallback: '🛒'),
     );
   }
+
+  /// Serializes this product for local cart persistence. Distinct from
+  /// [fromMap]/the Supabase row shape, since this snapshot is a flat,
+  /// stable format meant only for round-tripping through local storage.
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'store_id': storeId,
+      'name': name,
+      'description': description,
+      'unit_price': unitPrice,
+      'pricing_unit': pricingUnit.name,
+      'stock_state': stockState.name,
+      'available_quantity': availableQuantity,
+      'icon': icon,
+    };
+  }
+
+  factory GroceryProduct.fromJson(Map<String, dynamic> json) {
+    return GroceryProduct(
+      id: _requiredString(json, 'id'),
+      storeId: _requiredString(json, 'store_id'),
+      name: _requiredString(json, 'name'),
+      description: _optionalString(json, 'description'),
+      unitPrice: _requiredNonNegativeDouble(json, 'unit_price'),
+      pricingUnit: GroceryPricingUnit.values.byName(
+        _requiredString(json, 'pricing_unit'),
+      ),
+      stockState: GroceryStockState.values.byName(
+        _requiredString(json, 'stock_state'),
+      ),
+      availableQuantity: _requiredDouble(json, 'available_quantity'),
+      icon: _optionalString(json, 'icon', fallback: '🛒'),
+    );
+  }
 }
 
 class GroceryCartLine {
@@ -128,6 +163,27 @@ class GroceryCartLine {
     return GroceryCartLine(
       product: product,
       quantity: quantity ?? this.quantity,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {'product': product.toJson(), 'quantity': quantity};
+  }
+
+  factory GroceryCartLine.fromJson(Map<String, dynamic> json) {
+    final rawQuantity = json['quantity'];
+    final quantity = rawQuantity is num
+        ? rawQuantity.toDouble()
+        : double.parse(rawQuantity.toString());
+    if (!quantity.isFinite || quantity <= 0) {
+      throw const FormatException('Invalid grocery cart line quantity');
+    }
+
+    return GroceryCartLine(
+      product: GroceryProduct.fromJson(
+        Map<String, dynamic>.from(json['product'] as Map),
+      ),
+      quantity: quantity,
     );
   }
 }

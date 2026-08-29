@@ -9,7 +9,10 @@ import 'session_reset_registry.dart';
 /// such as grocery and pharmacy instead register a reset callback with
 /// [SessionResetRegistry], typically from their controller's lazy singleton
 /// initializer; [ActivityController] is imported directly because activity
-/// history is shared platform state, not a service-module concept.
+/// history is shared platform state, not a service-module concept. The
+/// grocery and pharmacy carts are persisted per-owner (like the food cart),
+/// so their registered callbacks reload the incoming owner's saved cart
+/// rather than merely clearing it.
 class AccountStateCoordinator {
   AccountStateCoordinator({
     required String? initialOwnerId,
@@ -32,7 +35,7 @@ class AccountStateCoordinator {
 
     _ownerId = nextOwnerId;
     _activityController.resetSessionState();
-    _registry.notifyAll();
+    _registry.notifyAll(nextOwnerId);
     return true;
   }
 }
