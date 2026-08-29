@@ -23,7 +23,7 @@ class OnboardingPage2 extends StatelessWidget {
           padding: const EdgeInsets.all(TwSpacing.x2),
           decoration: BoxDecoration(
             color: Colors.white.withOpacityValue(0.2),
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(TwRadius.lg),
             border: Border.all(color: Colors.white.withOpacityValue(0.3)),
           ),
           child: Column(

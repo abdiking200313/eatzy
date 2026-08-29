@@ -94,6 +94,14 @@ class _RestaurantImage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final logoUrl = restaurant.logoUrl.trim();
+    // The image is full-bleed width (no fixed logical width in this
+    // widget), so use the screen width as the practical upper bound for
+    // the decoded width; height is the known fixed 180. Both are scaled
+    // for device pixel density and capped at 3x since a wider cap buys no
+    // visible sharpness while still inflating decode memory.
+    final cacheScale = MediaQuery.of(context).devicePixelRatio.clamp(1.0, 3.0);
+    final cacheWidth = (MediaQuery.of(context).size.width * cacheScale).round();
+    final cacheHeight = (180 * cacheScale).round();
     return SizedBox(
       height: 180,
       width: double.infinity,
@@ -102,6 +110,8 @@ class _RestaurantImage extends StatelessWidget {
           : CachedNetworkImage(
               imageUrl: logoUrl,
               fit: BoxFit.cover,
+              memCacheWidth: cacheWidth,
+              memCacheHeight: cacheHeight,
               placeholder: (_, _) => const _ImageFallback(showLoader: true),
               errorWidget: (_, _, _) => const _ImageFallback(),
             ),

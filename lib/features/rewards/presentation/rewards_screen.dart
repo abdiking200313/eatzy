@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../../app/app_routes.dart';
 import '../../../config/theme.dart';
 import '../../../widgets/app_cards.dart';
 import '../../../widgets/app_scaffold.dart';
@@ -57,6 +59,13 @@ class RewardsScreen extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     return AppScaffold(
       title: 'Rewards & Achievements',
+      actions: [
+        IconButton(
+          tooltip: 'View rewards profile',
+          icon: const Icon(Icons.person_outline),
+          onPressed: () => context.push(AppRoutes.rewardsProfile),
+        ),
+      ],
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(TwSpacing.x5),
         child: Column(

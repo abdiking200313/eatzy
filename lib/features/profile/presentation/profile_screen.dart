@@ -5,6 +5,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../app/app_routes.dart';
 import '../../../config/theme.dart';
 import '../../../widgets/app_scaffold.dart';
+import '../../auth/data/auth_error_message.dart';
 import '../../auth/data/auth_service.dart';
 import '../data/profile_repository.dart';
 import '../models/customer_profile.dart';
@@ -47,9 +48,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
       if (context.mounted) context.go(AppRoutes.login);
     } catch (error) {
       if (!context.mounted) return;
+      final message = describeAuthError(error, context: 'Logout');
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text('Could not log out: $error')));
+      ).showSnackBar(SnackBar(content: Text('Could not log out: $message')));
     }
   }
 
@@ -69,6 +71,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
       icon: Icons.account_balance_wallet_outlined,
       route: AppRoutes.wallet,
       trailingText: '\$120.50',
+    ),
+    ProfileOption(
+      title: 'Rewards & Achievements',
+      icon: Icons.emoji_events_outlined,
+      route: AppRoutes.rewards,
     ),
     ProfileOption(title: 'Coupons & Offers', icon: Icons.local_offer_outlined),
     ProfileOption(title: 'Notifications', icon: Icons.notifications_none),

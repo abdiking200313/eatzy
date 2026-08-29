@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'app_routes.dart';
+
 enum ServiceId { food, grocery, pharmacy }
 
 class ServiceDescriptor {
@@ -24,21 +26,21 @@ abstract final class ServiceRegistry {
       id: ServiceId.food,
       title: 'Food',
       description: 'Meals from nearby restaurants',
-      entryRoute: '/food',
+      entryRoute: AppRoutes.food,
       icon: Icons.restaurant_outlined,
     ),
     ServiceDescriptor(
       id: ServiceId.grocery,
       title: 'Grocery',
       description: 'Everyday essentials delivered',
-      entryRoute: '/grocery',
+      entryRoute: AppRoutes.grocery,
       icon: Icons.local_grocery_store_outlined,
     ),
     ServiceDescriptor(
       id: ServiceId.pharmacy,
       title: 'Pharmacy',
       description: 'Over-the-counter health essentials',
-      entryRoute: '/pharmacy',
+      entryRoute: AppRoutes.pharmacy,
       icon: Icons.local_pharmacy_outlined,
     ),
   ];

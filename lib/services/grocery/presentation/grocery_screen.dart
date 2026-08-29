@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../app/app_routes.dart';
 import '../../../config/theme.dart';
 import '../../../platform/localization/app_money.dart';
 import '../../../widgets/add_to_cart_button.dart';
@@ -21,48 +22,100 @@ class GroceryScreen extends StatefulWidget {
   State<GroceryScreen> createState() => _GroceryScreenState();
 }
 
+/// A flattened row in the grocery browse list, so the whole store+product
+/// layout can be driven by one `ListView.builder` instead of eagerly
+/// building every store section and product card up front.
+sealed class _GroceryRow {}
+
+class _StoreHeaderRow extends _GroceryRow {
+  _StoreHeaderRow(this.store);
+  final GroceryStore store;
+}
+
+class _ProductRow extends _GroceryRow {
+  _ProductRow(this.product);
+  final GroceryProduct product;
+}
+
+class _StoreSpacerRow extends _GroceryRow {}
+
 class _GroceryScreenState extends State<GroceryScreen> {
   GroceryController get _controller =>
       widget.controller ?? GroceryController.instance;
 
+  // Mirrors only the load-relevant slice of the controller's state. Cart
+  // mutations (`addProduct`) also call `notifyListeners()` on the same
+  // controller, but never change any of these fields, so
+  // `_handleControllerChanged` skips `setState` for them — only the cart
+  // badge below listens for those directly.
+  late bool _isLoading;
+  late bool _hasLoaded;
+  late String? _loadError;
+  late int _storeCount;
+
   @override
   void initState() {
     super.initState();
+    // Kick off the load first: if it actually starts, its synchronous
+    // prefix (setting `isLoading` and calling `notifyListeners()`) runs
+    // immediately, before the first `await`. Snapshotting state after
+    // that call — rather than listening first — means our own `setState`
+    // only ever runs in response to a later, async notification, never
+    // re-entrantly during this `initState()`/first-build pass.
     if (!_controller.hasLoaded && !_controller.isLoading) {
       unawaited(_controller.load());
     }
+    _syncLoadState();
+    _controller.addListener(_handleControllerChanged);
+  }
+
+  @override
+  void dispose() {
+    _controller.removeListener(_handleControllerChanged);
+    super.dispose();
+  }
+
+  void _syncLoadState() {
+    _isLoading = _controller.isLoading;
+    _hasLoaded = _controller.hasLoaded;
+    _loadError = _controller.loadError;
+    _storeCount = _controller.stores.length;
+  }
+
+  void _handleControllerChanged() {
+    final isLoading = _controller.isLoading;
+    final hasLoaded = _controller.hasLoaded;
+    final loadError = _controller.loadError;
+    final storeCount = _controller.stores.length;
+    if (isLoading == _isLoading &&
+        hasLoaded == _hasLoaded &&
+        loadError == _loadError &&
+        storeCount == _storeCount) {
+      return;
+    }
+    setState(() {
+      _isLoading = isLoading;
+      _hasLoaded = hasLoaded;
+      _loadError = loadError;
+      _storeCount = storeCount;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _controller,
-      builder: (context, _) {
-        return AppScaffold(
-          title: 'Groceries',
-          showBackButton: true,
-          actions: [
-            IconButton(
-              tooltip: 'Grocery cart (${_controller.itemCount})',
-              onPressed: () => context.push('/grocery/cart'),
-              icon: Badge(
-                isLabelVisible: _controller.itemCount > 0,
-                label: Text('${_controller.itemCount}'),
-                child: const Icon(Icons.shopping_basket_outlined),
-              ),
-            ),
-          ],
-          body: _body(),
-        );
-      },
+    return AppScaffold(
+      title: 'Groceries',
+      showBackButton: true,
+      actions: [_CartBadgeAction(controller: _controller)],
+      body: _body(),
     );
   }
 
   Widget _body() {
-    if (_controller.isLoading && !_controller.hasLoaded) {
+    if (_isLoading && !_hasLoaded) {
       return const Center(child: CircularProgressIndicator());
     }
-    if (_controller.loadError case final error?) {
+    if (_loadError case final error?) {
       return Center(
         child: Padding(
           padding: const EdgeInsets.all(TwSpacing.x6),
@@ -82,32 +135,60 @@ class _GroceryScreenState extends State<GroceryScreen> {
       );
     }
 
-    return ListView(
+    final rows = _buildRows();
+
+    return ListView.builder(
       padding: const EdgeInsets.fromLTRB(
         TwSpacing.x4,
         TwSpacing.x2,
         TwSpacing.x4,
         TwSpacing.x8,
       ),
-      children: [
-        Text('Essentials from Somali stores', style: TwText.textXl),
-        const SizedBox(height: TwSpacing.x2),
-        Text(
-          'Products marked per kg can be added in 0.5 kg steps.',
-          style: TwText.textSm,
-        ),
-        const SizedBox(height: TwSpacing.x6),
-        for (final store in _controller.stores) ...[
-          _StoreHeader(store: store),
-          const SizedBox(height: TwSpacing.x3),
-          for (final product in store.products) ...[
-            _ProductCard(product: product, onAdd: () => _add(product)),
-            const SizedBox(height: TwSpacing.x3),
-          ],
-          const SizedBox(height: TwSpacing.x5),
-        ],
-      ],
+      itemCount: rows.length + 1,
+      itemBuilder: (context, index) {
+        if (index == 0) {
+          return Padding(
+            padding: const EdgeInsets.only(bottom: TwSpacing.x6),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Essentials from Somali stores', style: TwText.textXl),
+                const SizedBox(height: TwSpacing.x2),
+                Text(
+                  'Products marked per kg can be added in 0.5 kg steps.',
+                  style: TwText.textSm,
+                ),
+              ],
+            ),
+          );
+        }
+
+        final row = rows[index - 1];
+        return switch (row) {
+          _StoreHeaderRow(:final store) => Padding(
+            padding: const EdgeInsets.only(bottom: TwSpacing.x3),
+            child: _StoreHeader(store: store),
+          ),
+          _ProductRow(:final product) => Padding(
+            padding: const EdgeInsets.only(bottom: TwSpacing.x3),
+            child: _ProductCard(product: product, onAdd: () => _add(product)),
+          ),
+          _StoreSpacerRow() => const SizedBox(height: TwSpacing.x5),
+        };
+      },
     );
+  }
+
+  List<_GroceryRow> _buildRows() {
+    final rows = <_GroceryRow>[];
+    for (final store in _controller.stores) {
+      rows.add(_StoreHeaderRow(store));
+      for (final product in store.products) {
+        rows.add(_ProductRow(product));
+      }
+      rows.add(_StoreSpacerRow());
+    }
+    return rows;
   }
 
   Future<void> _add(GroceryProduct product) async {
@@ -153,6 +234,33 @@ class _GroceryScreenState extends State<GroceryScreen> {
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(SnackBar(content: Text(message)));
+  }
+}
+
+/// Isolated so an add-to-cart tap only rebuilds this small badge, not the
+/// (potentially long) store/product list underneath it.
+class _CartBadgeAction extends StatelessWidget {
+  const _CartBadgeAction({required this.controller});
+
+  final GroceryController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: controller,
+      builder: (context, _) {
+        final itemCount = controller.itemCount;
+        return IconButton(
+          tooltip: 'Grocery cart ($itemCount)',
+          onPressed: () => context.push(AppRoutes.groceryCart),
+          icon: Badge(
+            isLabelVisible: itemCount > 0,
+            label: Text('$itemCount'),
+            child: const Icon(Icons.shopping_basket_outlined),
+          ),
+        );
+      },
+    );
   }
 }
 

@@ -341,7 +341,7 @@ class _RestaurantMenuView extends StatelessWidget {
         if (menu.categories.isEmpty)
           const SliverFillRemaining(hasScrollBody: false, child: _EmptyMenu())
         else
-          for (final category in menu.categories)
+          for (final category in menu.categories) ...[
             SliverToBoxAdapter(
               child: Center(
                 child: ConstrainedBox(
@@ -351,46 +351,57 @@ class _RestaurantMenuView extends StatelessWidget {
                       TwSpacing.x5,
                       TwSpacing.x6,
                       TwSpacing.x5,
-                      0,
+                      TwSpacing.x4,
                     ),
-                    child: Column(
+                    child: Row(
                       key: sectionKeyFor(category.id),
-                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Row(
-                          children: [
-                            Expanded(
-                              child: Text(category.name, style: TwText.textXl),
-                            ),
-                            Text(
-                              '${category.items.length} '
-                              '${category.items.length == 1 ? 'item' : 'items'}',
-                              style: TwText.textXs.copyWith(
-                                color: TwColors.textMuted,
-                              ),
-                            ),
-                          ],
+                        Expanded(
+                          child: Text(category.name, style: TwText.textXl),
                         ),
-                        const SizedBox(height: TwSpacing.x4),
-                        for (
-                          var index = 0;
-                          index < category.items.length;
-                          index++
-                        ) ...[
-                          MenuItemCard(
-                            item: category.items[index],
-                            onAddToCart: () =>
-                                onAddToCart(category.items[index]),
+                        Text(
+                          '${category.items.length} '
+                          '${category.items.length == 1 ? 'item' : 'items'}',
+                          style: TwText.textXs.copyWith(
+                            color: TwColors.textMuted,
                           ),
-                          if (index != category.items.length - 1)
-                            const SizedBox(height: TwSpacing.x3),
-                        ],
+                        ),
                       ],
                     ),
                   ),
                 ),
               ),
             ),
+            // A per-category `SliverList.builder` (rather than the whole
+            // category folded into one eager `SliverToBoxAdapter`+`Column`)
+            // so item cards — and the `CachedNetworkImage` requests they
+            // kick off — are only built once they scroll into view. The
+            // header above stays an eager `SliverToBoxAdapter` so its
+            // `GlobalKey` context is always mounted for the category-chip
+            // "jump to section" scroll (`Scrollable.ensureVisible`).
+            SliverList(
+              delegate: SliverChildBuilderDelegate((context, index) {
+                final item = category.items[index];
+                return Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 760),
+                    child: Padding(
+                      padding: EdgeInsets.fromLTRB(
+                        TwSpacing.x5,
+                        0,
+                        TwSpacing.x5,
+                        index == category.items.length - 1 ? 0 : TwSpacing.x3,
+                      ),
+                      child: MenuItemCard(
+                        item: item,
+                        onAddToCart: () => onAddToCart(item),
+                      ),
+                    ),
+                  ),
+                );
+              }, childCount: category.items.length),
+            ),
+          ],
         const SliverToBoxAdapter(child: SizedBox(height: TwSpacing.x10)),
       ],
     );
@@ -431,11 +442,22 @@ class _RestaurantHero extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final trimmedUrl = imageUrl.trim();
+    // The hero fills the SliverAppBar's expandedHeight (230) at full
+    // screen width; there's no fixed logical width available here, so the
+    // screen width is used as the practical upper bound for the decoded
+    // width. Both dimensions are scaled for device pixel density and
+    // capped at 3x since a wider cap buys no visible sharpness while
+    // still inflating decode memory.
+    final cacheScale = MediaQuery.of(context).devicePixelRatio.clamp(1.0, 3.0);
+    final cacheWidth = (MediaQuery.of(context).size.width * cacheScale).round();
+    final cacheHeight = (230 * cacheScale).round();
     final image = trimmedUrl.isEmpty
         ? const _RestaurantHeroFallback()
         : CachedNetworkImage(
             imageUrl: trimmedUrl,
             fit: BoxFit.cover,
+            memCacheWidth: cacheWidth,
+            memCacheHeight: cacheHeight,
             placeholder: (_, _) =>
                 const _RestaurantHeroFallback(showLoader: true),
             errorWidget: (_, _, _) => const _RestaurantHeroFallback(),

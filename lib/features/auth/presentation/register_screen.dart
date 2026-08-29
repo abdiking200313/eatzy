@@ -6,6 +6,7 @@ import '../../../config/theme.dart';
 import '../../../widgets/app_cards.dart';
 import '../../../widgets/app_widgets.dart';
 import '../../../widgets/zivo_logo.dart';
+import '../data/auth_error_message.dart';
 import '../data/auth_service.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -52,7 +53,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     }
 
     final emailRegex = RegExp(
-      r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+",
+      r"^[a-zA-Z0-9.!#$%&'*+\-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+$",
     );
     if (!emailRegex.hasMatch(email)) {
       _showMessage('Please enter a valid email address.');
@@ -81,7 +82,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
       context.go(AppRoutes.login);
     } catch (error) {
       if (!mounted) return;
-      _showMessage('Registration failed: $error');
+      _showMessage(
+        'Registration failed: ${describeAuthError(error, context: 'Registration')}',
+      );
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }

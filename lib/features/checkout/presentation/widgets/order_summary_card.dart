@@ -25,11 +25,10 @@ class OrderSummaryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final palette = context.serviceColors;
+    // White card only — a single card holds every line item plus the
+    // subtotal/tax/delivery/total rows, separated by internal dividers
+    // rather than one card per line item.
     return OutlinedCard(
-      backgroundColor: palette.card,
-      borderColor: palette.border,
-      borderRadius: 16,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -39,7 +38,7 @@ class OrderSummaryCard extends StatelessWidget {
             _CheckoutItemRow(item: item),
             if (item != items.last) const SizedBox(height: TwSpacing.x4),
           ],
-          const Divider(height: 32),
+          const Divider(height: TwSpacing.x8),
           SummaryRow(label: 'Subtotal', value: _formatCurrency(subtotal)),
           const SizedBox(height: TwSpacing.x5),
           SummaryRow(label: 'Tax', value: _formatCurrency(tax)),
@@ -48,16 +47,13 @@ class OrderSummaryCard extends StatelessWidget {
             label: 'Delivery Fee',
             value: _formatCurrency(deliveryFee),
           ),
-          const SizedBox(height: TwSpacing.x5),
-          OutlinedCard(
-            backgroundColor: palette.soft,
-            borderColor: palette.border,
-            borderRadius: 12,
-            child: SummaryRow(
-              label: 'Total',
-              value: _formatCurrency(total),
-              isBold: true,
-            ),
+          const SizedBox(height: TwSpacing.x4),
+          const Divider(),
+          const SizedBox(height: TwSpacing.x4),
+          SummaryRow(
+            label: 'Total',
+            value: _formatCurrency(total),
+            isBold: true,
           ),
         ],
       ),
@@ -86,9 +82,7 @@ class _CheckoutItemRow extends StatelessWidget {
         ),
         Text(
           _formatCurrency(item.total),
-          style: TwText.fontBoldSm.copyWith(
-            color: context.serviceColors.accent,
-          ),
+          style: TwText.fontBoldSm.copyWith(color: TwColors.primary),
         ),
       ],
     );

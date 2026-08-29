@@ -12,8 +12,16 @@ class NetworkAvatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Decode at roughly the rendered diameter (radius * 2) scaled for
+    // device pixel density, not at the source image's native resolution.
+    // Capped at 3x since a wider cap buys no visible sharpness on a
+    // circle this small while still inflating decode memory.
+    final cacheScale = MediaQuery.of(context).devicePixelRatio.clamp(1.0, 3.0);
+    final cacheDiameter = (radius * 2 * cacheScale).round();
     return CachedNetworkImage(
       imageUrl: imageUrl,
+      memCacheWidth: cacheDiameter,
+      memCacheHeight: cacheDiameter,
       imageBuilder: (context, imageProvider) =>
           CircleAvatar(backgroundImage: imageProvider, radius: radius),
       placeholder: (context, url) => CircleAvatar(radius: radius),
@@ -130,15 +138,20 @@ class SummaryRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
+    // The bold/total row intentionally uses the fixed platform primary
+    // rather than `Theme.of(context).colorScheme.primary` — under a
+    // `ZivoServiceTheme` that scheme slot resolves to the per-service
+    // accent, which would break the "accent confined to the 48px icon
+    // chip" redesign rule for every cart/checkout summary using this row.
     final labelStyle = isBold ? TwText.fontBoldBase : TwText.textSm;
     final valueStyle = isBold
-        ? TwText.fontBoldBase.copyWith(color: scheme.primary)
+        ? TwText.fontBoldBase.copyWith(color: TwColors.primary)
         : TwText.fontBoldSm;
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: labelStyle),
+        Expanded(child: Text(label, style: labelStyle)),
+        const SizedBox(width: TwSpacing.x3),
         Text(value, style: valueStyle),
       ],
     );

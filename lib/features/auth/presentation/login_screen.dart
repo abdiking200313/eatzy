@@ -6,6 +6,7 @@ import '../../../config/theme.dart';
 import '../../../widgets/app_cards.dart';
 import '../../../widgets/app_widgets.dart';
 import '../../../widgets/zivo_logo.dart';
+import '../data/auth_error_message.dart';
 import '../data/auth_service.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -49,7 +50,9 @@ class _LoginScreenState extends State<LoginScreen> {
       context.go(AppRoutes.mainApp);
     } catch (error) {
       if (!mounted) return;
-      _showMessage('Login failed: $error');
+      _showMessage(
+        'Login failed: ${describeAuthError(error, context: 'Login')}',
+      );
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
