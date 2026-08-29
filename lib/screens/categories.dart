@@ -48,13 +48,13 @@ class CategoriesScreen extends StatelessWidget {
                   Text(
                     module.title,
                     textAlign: TextAlign.center,
-                    style: TwText.fontBoldBase(),
+                    style: TwText.fontBoldBase,
                   ),
                   const SizedBox(height: TwSpacing.rhythmTight),
                   Text(
                     module.description,
                     textAlign: TextAlign.center,
-                    style: TwText.textSm(),
+                    style: TwText.textSm,
                   ),
                 ],
               ),

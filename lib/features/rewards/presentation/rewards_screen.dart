@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../../app/app_routes.dart';
 import '../../../config/theme.dart';
 import '../../../widgets/app_cards.dart';
 import '../../../widgets/app_scaffold.dart';
@@ -57,6 +59,13 @@ class RewardsScreen extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     return AppScaffold(
       title: 'Rewards & Achievements',
+      actions: [
+        IconButton(
+          tooltip: 'View rewards profile',
+          icon: const Icon(Icons.person_outline),
+          onPressed: () => context.push(AppRoutes.rewardsProfile),
+        ),
+      ],
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(TwSpacing.x5),
         child: Column(
@@ -115,11 +124,11 @@ class RewardsScreen extends StatelessWidget {
                           'Level $_userLevel',
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: TwText.textXl(),
+                          style: TwText.textXl,
                         ),
                       ),
                       const SizedBox(width: TwSpacing.x2),
-                      Text('Level 6', style: TwText.textSm()),
+                      Text('Level 6', style: TwText.textSm),
                     ],
                   ),
                   const SizedBox(height: TwSpacing.x4),
@@ -135,7 +144,7 @@ class RewardsScreen extends StatelessWidget {
                   const SizedBox(height: TwSpacing.x3),
                   Text(
                     '${(_progressPercent * 100).toInt()}% to next level',
-                    style: TwText.textSm(),
+                    style: TwText.textSm,
                   ),
                 ],
               ),

@@ -15,7 +15,7 @@ void main() {
   );
 
   test('adding the same menu item increases its quantity and totals', () async {
-    final controller = CartController(storage: MemoryCartStorage());
+    final controller = CartController(storage: MemoryCartStorage<CartItem>());
     await controller.loadForOwner('user-1');
 
     expect(await controller.addItem(burger), CartAddResult.added);
@@ -31,7 +31,7 @@ void main() {
   });
 
   test('cart restores from storage for the same signed-in account', () async {
-    final storage = MemoryCartStorage();
+    final storage = MemoryCartStorage<CartItem>();
     final original = CartController(storage: storage);
     await original.loadForOwner('user-1');
     await original.addItem(burger);
@@ -59,7 +59,7 @@ void main() {
         unitPrice: 12,
         imageUrl: '',
       );
-      final controller = CartController(storage: MemoryCartStorage());
+      final controller = CartController(storage: MemoryCartStorage<CartItem>());
       await controller.loadForOwner('user-1');
       await controller.addItem(burger);
 
@@ -81,7 +81,7 @@ void main() {
   );
 
   test('quantity changes, removal, and clear are persisted', () async {
-    final storage = MemoryCartStorage();
+    final storage = MemoryCartStorage<CartItem>();
     final controller = CartController(storage: storage);
     await controller.loadForOwner('user-1');
     await controller.addItem(burger);

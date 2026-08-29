@@ -125,6 +125,20 @@ class SupabaseGroceryCatalogRepository
 
   final SupabaseClient _client;
 
+  /// Bounds on the multi-store browse read.
+  ///
+  /// `fetchStores()` renders every active store *and* its products
+  /// together on one screen (see `GroceryScreen`), grouping products by
+  /// store client-side. There is no "selected store" concept in the
+  /// current UX to filter by, so a real keyset/RPC-based per-store
+  /// pagination contract isn't a drop-in fix here without also changing
+  /// the browse UX (out of scope for issue #61 — tracked as a follow-up).
+  /// Until then, these limits only bound the worst case: previously this
+  /// query had no limit at all and pulled the entire multi-store catalog
+  /// on every load.
+  static const int maxStores = 30;
+  static const int maxProducts = 300;
+
   @override
   Future<List<GroceryStore>> fetchStores() async {
     final results = await Future.wait<dynamic>([
@@ -132,7 +146,8 @@ class SupabaseGroceryCatalogRepository
           .from('grocery_stores')
           .select('id, name, area')
           .eq('is_active', true)
-          .order('name'),
+          .order('name')
+          .limit(maxStores),
       _client
           .from('grocery_products')
           .select(
@@ -140,7 +155,8 @@ class SupabaseGroceryCatalogRepository
             'quantity_step, available_quantity, low_stock_threshold, icon',
           )
           .eq('is_active', true)
-          .order('name'),
+          .order('name')
+          .limit(maxProducts),
     ]);
 
     final storeRows = _mapRows(results.first, 'grocery stores');

@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../config/theme.dart';
+import '../platform/activity/presentation/activity_controller.dart';
 
 /// The persistent shell around the bottom-nav tabs (Home, Explore, Activity,
 /// Profile) and the food/grocery/pharmacy vertical branches.
@@ -12,9 +15,24 @@ import '../config/theme.dart';
 /// `IndexedStack` behind the scenes, so switching branches never rebuilds
 /// this widget or discards the other branches' state. See issue #67.
 class MainAppScreen extends StatefulWidget {
-  const MainAppScreen({super.key, required this.navigationShell});
+  const MainAppScreen({
+    super.key,
+    required this.navigationShell,
+    this.onActivityTabFocused,
+  });
 
   final StatefulNavigationShell navigationShell;
+
+  /// Called whenever the bottom navigation switches *to* the Activity tab
+  /// (index [activityTabIndex]). Defaults to [ActivityController.instance]'s
+  /// `load()` so the Activity feed picks up server-side status changes
+  /// (courier updates, etc. — see issue #64) instead of only ever showing
+  /// whatever was loaded at app startup. Overridable so tests can observe
+  /// the reload without a real [ActivityController].
+  final Future<void> Function()? onActivityTabFocused;
+
+  /// Index of the Activity tab within [_navigationItems].
+  static const int activityTabIndex = 2;
 
   @override
   State<MainAppScreen> createState() => _MainAppScreenState();
@@ -72,10 +90,19 @@ class _MainAppScreenState extends State<MainAppScreen> {
         child: NavigationBar(
           selectedIndex: selectedIndex,
           onDestinationSelected: (index) {
+            final isSwitchingToActivity =
+                index == MainAppScreen.activityTabIndex &&
+                widget.navigationShell.currentIndex != index;
             widget.navigationShell.goBranch(
               index,
               initialLocation: index == widget.navigationShell.currentIndex,
             );
+            if (isSwitchingToActivity) {
+              unawaited(
+                (widget.onActivityTabFocused ??
+                    ActivityController.instance.load)(),
+              );
+            }
           },
           destinations: [
             for (final item in _navigationItems)

@@ -66,6 +66,38 @@ void main() {
     expect(item.categoryId, 'wraps');
   });
 
+  test('menu item throws instead of silently pricing at \$0.00 for an '
+      'unparseable price (#62)', () {
+    expect(
+      () => MenuItem.fromMap({
+        'id': 'item-2',
+        'name': 'Mystery Item',
+        'description': null,
+        'price': 'not-a-number',
+        'image_url': null,
+        'categorie_id': 'mains',
+      }),
+      throwsFormatException,
+    );
+  });
+
+  test(
+    'menu item throws for a missing price rather than defaulting to \$0.00',
+    () {
+      expect(
+        () => MenuItem.fromMap({
+          'id': 'item-3',
+          'name': 'No Price Item',
+          'description': null,
+          'price': null,
+          'image_url': null,
+          'categorie_id': 'mains',
+        }),
+        throwsFormatException,
+      );
+    },
+  );
+
   testWidgets('restaurant page groups and navigates categorized items', (
     tester,
   ) async {

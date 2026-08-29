@@ -7,6 +7,8 @@ abstract interface class FoodDealRepository {
   Future<List<FoodDeal>> fetchDeals({
     String? restaurantId,
     DateTime? availableAt,
+    int limit,
+    int offset,
   });
 }
 
@@ -24,6 +26,13 @@ class SupabaseFoodDealRepository implements FoodDealRepository {
 
   final SupabaseClient _client;
 
+  /// Default page size for the deals catalog read. Bounds the worst case
+  /// (every active deal fetched on every load) — see issue #61. No screen
+  /// currently wires a "load more" flow for deals (`fetchDeals` has no
+  /// callers in `lib/` yet), so this is a safety bound rather than a fully
+  /// wired infinite-scroll contract.
+  static const int defaultPageSize = 30;
+
   static const _selection =
       'id, restaurant_id, name, description, deal_price, image_url, '
       'starts_at, ends_at, restaurants!inner(name), '
@@ -33,6 +42,8 @@ class SupabaseFoodDealRepository implements FoodDealRepository {
   Future<List<FoodDeal>> fetchDeals({
     String? restaurantId,
     DateTime? availableAt,
+    int limit = defaultPageSize,
+    int offset = 0,
   }) async {
     final rows = restaurantId == null
         ? await _client
@@ -40,12 +51,14 @@ class SupabaseFoodDealRepository implements FoodDealRepository {
               .select(_selection)
               .eq('is_active', true)
               .order('created_at', ascending: false)
+              .range(offset, offset + limit - 1)
         : await _client
               .from('deals')
               .select(_selection)
               .eq('is_active', true)
               .eq('restaurant_id', restaurantId)
-              .order('created_at', ascending: false);
+              .order('created_at', ascending: false)
+              .range(offset, offset + limit - 1);
 
     final moment = availableAt ?? DateTime.now();
     return List.unmodifiable(

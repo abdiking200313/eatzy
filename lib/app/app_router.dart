@@ -14,7 +14,6 @@ import '../features/onboarding/presentation/onboarding_page_1.dart';
 import '../features/onboarding/presentation/onboarding_page_2.dart';
 import '../features/onboarding/presentation/onboarding_page_3.dart';
 import '../features/onboarding/presentation/welcome_screen.dart';
-import '../features/orders/presentation/orders_screen.dart';
 import '../features/orders/presentation/track_order_screen.dart';
 import '../features/profile/presentation/profile_screen.dart';
 import '../features/restaurant/presentation/restaurant_screen.dart';
@@ -85,6 +84,8 @@ class AppRouter {
   // `context.go` from a service card). Keeping each vertical's whole
   // sub-tree inside the shell, rather than as standalone top-level routes,
   // is what keeps the bottom nav bar visible while browsing a vertical.
+  // foodExplore/foodRestaurant aren't listed here since they need custom
+  // GoRoutes (query params / path params) — see the food branch below.
   static const Map<String, Widget> _foodPages = {
     AppRoutes.food: ZivoServiceTheme(
       serviceId: ServiceId.food,
@@ -93,10 +94,6 @@ class AppRouter {
     AppRoutes.foodCategories: ZivoServiceTheme(
       serviceId: ServiceId.food,
       child: FoodCategoriesScreen(),
-    ),
-    AppRoutes.foodExplore: ZivoServiceTheme(
-      serviceId: ServiceId.food,
-      child: FoodExploreScreen(),
     ),
     AppRoutes.foodCart: ZivoServiceTheme(
       serviceId: ServiceId.food,
@@ -144,7 +141,6 @@ class AppRouter {
   // above needed to move into the shell.
   static const Map<String, Widget> _standaloneProtectedPages = {
     AppRoutes.services: CategoriesScreen(),
-    AppRoutes.orders: OrdersScreen(),
     AppRoutes.addresses: AddressesScreen(),
     AppRoutes.paymentMethods: PaymentMethodsScreen(),
     AppRoutes.settings: SettingsScreen(),
@@ -195,6 +191,19 @@ class AppRouter {
       StatefulShellBranch(
         routes: [
           ..._foodPages.entries.map((entry) => _page(entry.key, entry.value)),
+          GoRoute(
+            // Reads an optional ?categoryId=&categoryName= pair, set when
+            // reached from a category card in FoodCategoriesScreen, to
+            // pre-filter the list.
+            path: AppRoutes.foodExplore,
+            builder: (_, state) => ZivoServiceTheme(
+              serviceId: ServiceId.food,
+              child: FoodExploreScreen(
+                categoryId: state.uri.queryParameters['categoryId'],
+                categoryName: state.uri.queryParameters['categoryName'],
+              ),
+            ),
+          ),
           GoRoute(
             path: AppRoutes.foodRestaurant,
             builder: (_, state) => ZivoServiceTheme(
@@ -273,6 +282,21 @@ class AppRouter {
   // Most routes only need a path and a screen, so keep that boilerplate here.
   static GoRoute _page(String path, Widget screen) {
     return GoRoute(path: path, builder: (_, _) => screen);
+  }
+
+  /// True when [path] is registered as an exact, static route (public or
+  /// protected). Only matches literal paths — it does not resolve dynamic
+  /// segments such as `:restaurantId`, since none of the callers this exists
+  /// for (route-registration contract tests) need that. Deliberately built
+  /// from the route lists directly rather than the `router` field, so it can
+  /// be used from a plain unit test without a Supabase session having been
+  /// initialized first.
+  static bool hasRegisteredRoute(String path) {
+    bool matches(RouteBase route) => route is GoRoute && route.path == path;
+    final shellRoutes = _shellRoute.branches.expand((branch) => branch.routes);
+    return _publicRoutes.any(matches) ||
+        _standaloneProtectedRoutes.any(matches) ||
+        shellRoutes.any(matches);
   }
 }
 

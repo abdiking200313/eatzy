@@ -30,7 +30,7 @@ class AchievementCard extends StatelessWidget {
               achievement.label,
               textAlign: TextAlign.center,
               maxLines: 2,
-              style: TwText.textXs().copyWith(
+              style: TwText.textXs.copyWith(
                 color: achievement.unlocked
                     ? TwColors.text
                     : TwColors.textMuted,
@@ -62,7 +62,7 @@ class LeaderboardCard extends StatelessWidget {
         children: [
           Text(
             '#${entry.rank}',
-            style: TwText.textSm().copyWith(
+            style: TwText.textSm.copyWith(
               fontWeight: FontWeight.w700,
               color: entry.highlighted ? TwColors.primary : TwColors.text,
             ),
@@ -73,7 +73,7 @@ class LeaderboardCard extends StatelessWidget {
               entry.name,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: TwText.fontBoldSm().copyWith(
+              style: TwText.fontBoldSm.copyWith(
                 color: entry.highlighted ? TwColors.primary : TwColors.text,
               ),
             ),
@@ -85,7 +85,7 @@ class LeaderboardCard extends StatelessWidget {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               textAlign: TextAlign.right,
-              style: TwText.textSm().copyWith(
+              style: TwText.textSm.copyWith(
                 fontWeight: FontWeight.w700,
                 color: TwColors.primary,
               ),

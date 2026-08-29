@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'app/app_router.dart';
@@ -11,10 +12,21 @@ import 'platform/activity/presentation/activity_controller.dart';
 import 'platform/session/account_state_coordinator.dart';
 import 'platform/session/secure_session_storage.dart';
 import 'platform/system_ui/android_navigation_bar_controller.dart';
+import 'services/grocery/presentation/grocery_controller.dart';
+import 'services/pharmacy/presentation/pharmacy_controller.dart';
 import 'widgets/zivo_logo.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Lock the app to portrait orientation. This is the single cross-platform
+  // source of truth; ios/Runner/Info.plist and
+  // android/app/src/main/AndroidManifest.xml are also restricted to portrait
+  // for defense-in-depth (see issue #56).
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]);
 
   await Supabase.initialize(
     url: 'https://jzubookmbrtslocuzepe.supabase.co',
@@ -25,6 +37,8 @@ void main() async {
   final cartController = CartController.instance;
   final currentUserId = Supabase.instance.client.auth.currentUser?.id;
   await cartController.loadForOwner(currentUserId);
+  await GroceryController.instance.loadForOwner(currentUserId);
+  await PharmacyController.instance.loadForOwner(currentUserId);
   ActivityController.instance.configureRepository(
     SupabaseActivityRepository(client: Supabase.instance.client),
   );
