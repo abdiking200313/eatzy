@@ -1,15 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../app/app_routes.dart';
-import '../../../app/service_module.dart';
 import '../../../config/theme.dart';
-import '../../../platform/activity/models/activity_item.dart';
 import '../../../platform/activity/presentation/activity_controller.dart';
 import '../../cart/presentation/cart_controller.dart';
 import '../../../services/food/data/food_repository.dart';
 import '../../../services/food/models/food_models.dart';
+import '../../../services/food/presentation/food_controller.dart';
 import '../../../widgets/app_cards.dart';
 import '../../../widgets/app_scaffold.dart';
 import 'widgets/delivery_address_card.dart';
@@ -32,38 +30,63 @@ class CheckoutScreen extends StatefulWidget {
 }
 
 class _CheckoutScreenState extends State<CheckoutScreen> {
-  bool _isSubmitting = false;
-  String? _submissionError;
+  final _recipientController = TextEditingController();
+  final _phoneController = TextEditingController();
+  final _streetController = TextEditingController();
+  final _districtController = TextEditingController();
+  final _cityController = TextEditingController(text: 'Mogadishu');
+
+  late final CartController _cartController =
+      widget.cartController ?? CartController.instance;
+  late final FoodController _foodController = FoodController(
+    cartController: _cartController,
+    orderRepository: widget.orderRepository,
+    activityController: widget.activityController,
+  );
+
+  @override
+  void dispose() {
+    _recipientController.dispose();
+    _phoneController.dispose();
+    _streetController.dispose();
+    _districtController.dispose();
+    _cityController.dispose();
+    _foodController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    final controller = widget.cartController ?? CartController.instance;
-
     return AnimatedBuilder(
-      animation: controller,
+      animation: Listenable.merge([_cartController, _foodController]),
       builder: (context, _) => AppScaffold(
         title: 'Checkout',
         showBackButton: true,
-        body: controller.isLoading
+        body: _cartController.isLoading
             ? const Center(child: CircularProgressIndicator())
-            : controller.isEmpty
+            : _cartController.isEmpty
             ? const _EmptyCheckout()
             : ListView(
                 padding: const EdgeInsets.all(TwSpacing.x5),
                 children: [
                   OrderSummaryCard(
-                    items: controller.items,
-                    subtotal: controller.subtotal,
-                    tax: controller.tax,
-                    deliveryFee: controller.deliveryFee,
-                    total: controller.total,
+                    items: _cartController.items,
+                    subtotal: _cartController.subtotal,
+                    tax: _cartController.tax,
+                    deliveryFee: _cartController.deliveryFee,
+                    total: _cartController.total,
                   ),
                   const SizedBox(height: TwSpacing.x8),
                   DeliveryAddressCard(
-                    onChangePressed: () => context.push(AppRoutes.addresses),
+                    recipientController: _recipientController,
+                    phoneController: _phoneController,
+                    streetController: _streetController,
+                    districtController: _districtController,
+                    cityController: _cityController,
+                    errors: _foodController.addressErrors,
                   ),
                   const SizedBox(height: TwSpacing.x8),
-                  if (_submissionError case final error?) ...[
+                  if (_foodController.submissionError case final error?) ...[
                     Text(
                       error,
                       style: TwText.textSm().copyWith(color: TwColors.error),
@@ -71,16 +94,16 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     const SizedBox(height: TwSpacing.x3),
                   ],
                   GradientActionButton(
-                    label: _isSubmitting
+                    label: _foodController.isSubmitting
                         ? 'Saving order...'
                         : 'Place demo order',
                     icon: const Icon(
                       Icons.arrow_forward_rounded,
                       color: Colors.white,
                     ),
-                    onPressed: _isSubmitting
+                    onPressed: _foodController.isSubmitting
                         ? null
-                        : () => _placeOrder(context, controller),
+                        : _placeOrder,
                   ),
                   const SizedBox(height: TwSpacing.x8),
                 ],
@@ -89,62 +112,17 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     );
   }
 
-  Future<void> _placeOrder(
-    BuildContext context,
-    CartController controller,
-  ) async {
-    final restaurantId = controller.restaurantId;
-    if (restaurantId == null || controller.items.isEmpty) {
-      return;
-    }
-
-    setState(() {
-      _isSubmitting = true;
-      _submissionError = null;
-    });
-    try {
-      final repository =
-          widget.orderRepository ??
-          SupabaseFoodOrderRepository(client: Supabase.instance.client);
-      final orderId = await repository.placeOrder(
-        FoodOrderRequest(
-          restaurantId: restaurantId,
-          items: [
-            for (final item in controller.items)
-              FoodOrderLineInput(
-                menuItemId: item.menuItemId,
-                quantity: item.quantity,
-              ),
-          ],
-        ),
-      );
-      (widget.activityController ?? ActivityController.instance).record(
-        ActivityItem(
-          id: orderId,
-          serviceId: ServiceId.food,
-          title: controller.restaurantName ?? 'Food order',
-          subtitle: 'Demo order • Somalia',
-          status: 'Confirmed',
-          occurredAt: DateTime.now(),
-          amount: controller.total,
-          detailsRoute: AppRoutes.food,
-        ),
-      );
-      await controller.clear();
-      if (context.mounted) {
-        context.go(AppRoutes.activity);
-      }
-    } on Object {
-      if (mounted) {
-        setState(() {
-          _submissionError =
-              'The food order could not be saved. Please try again.';
-        });
-      }
-    } finally {
-      if (mounted) {
-        setState(() => _isSubmitting = false);
-      }
+  Future<void> _placeOrder() async {
+    final address = FoodDeliveryAddress(
+      recipientName: _recipientController.text,
+      phone: _phoneController.text,
+      street: _streetController.text,
+      district: _districtController.text,
+      city: _cityController.text,
+    );
+    final result = await _foodController.confirmOrder(address);
+    if (result.isSuccess && mounted) {
+      context.go(AppRoutes.activity);
     }
   }
 }
@@ -160,10 +138,10 @@ class _EmptyCheckout extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
+            const Icon(
               Icons.remove_shopping_cart_outlined,
               size: 52,
-              color: context.serviceColors.accent,
+              color: TwColors.textMuted,
             ),
             const SizedBox(height: TwSpacing.x4),
             Text('Your cart is empty', style: TwText.textXl()),

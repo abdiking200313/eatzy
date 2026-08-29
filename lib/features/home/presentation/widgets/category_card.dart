@@ -19,6 +19,10 @@ class CategoryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final palette = context.serviceColors;
+    // The base tile stays on the neutral white/border tokens (list-style
+    // content, not the icon chip) — the per-service accent is only allowed
+    // to appear here as a selection indicator (fill + border), the same
+    // narrow, interactive-state exception used for selected nav items.
     return Column(
       children: [
         GestureDetector(
@@ -27,10 +31,10 @@ class CategoryCard extends StatelessWidget {
             width: 90,
             height: 90,
             decoration: BoxDecoration(
-              color: isSelected ? palette.soft : palette.card,
+              color: isSelected ? palette.soft : TwColors.card,
               borderRadius: BorderRadius.circular(TwRadius.xl),
               border: Border.all(
-                color: isSelected ? palette.accent : palette.border,
+                color: isSelected ? palette.accent : TwColors.border,
                 width: isSelected ? 2 : 1,
               ),
             ),
@@ -66,9 +70,17 @@ class _CategoryImage extends StatelessWidget {
       return const _ImageFallback();
     }
 
+    // Decode at roughly the rendered 90x90 box scaled for device pixel
+    // density, not at the source image's native resolution. Capped at 3x
+    // since a wider cap buys no visible sharpness on a chip this small
+    // while still inflating decode memory.
+    final cacheScale = MediaQuery.of(context).devicePixelRatio.clamp(1.0, 3.0);
+    final cacheSize = (90 * cacheScale).round();
     return CachedNetworkImage(
       imageUrl: imageUrl,
       fit: BoxFit.fill,
+      memCacheWidth: cacheSize,
+      memCacheHeight: cacheSize,
       placeholder: (context, url) => const _ImageLoading(),
       errorWidget: (context, url, error) => const _ImageFallback(),
     );
