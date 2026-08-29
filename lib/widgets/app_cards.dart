@@ -102,6 +102,7 @@ class GradientActionButton extends StatelessWidget {
           Flexible(
             child: Text(
               label,
+              maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: TwText.button().copyWith(
                 color: scheme.onPrimary,

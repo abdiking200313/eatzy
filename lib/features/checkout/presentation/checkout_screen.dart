@@ -160,10 +160,10 @@ class _EmptyCheckout extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
+            const Icon(
               Icons.remove_shopping_cart_outlined,
               size: 52,
-              color: context.serviceColors.accent,
+              color: TwColors.textMuted,
             ),
             const SizedBox(height: TwSpacing.x4),
             Text('Your cart is empty', style: TwText.textXl()),

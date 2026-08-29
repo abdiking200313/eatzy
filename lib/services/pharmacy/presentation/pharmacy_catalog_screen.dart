@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../app/app_routes.dart';
 import '../../../config/theme.dart';
 import '../../../platform/localization/app_money.dart';
 import '../../../widgets/add_to_cart_button.dart';
@@ -40,7 +41,7 @@ class _PharmacyCatalogScreenState extends State<PharmacyCatalogScreen> {
           actions: [
             _CartAction(
               itemCount: _controller.itemCount,
-              onPressed: () => context.push('/pharmacy/cart'),
+              onPressed: () => context.push(AppRoutes.pharmacyCart),
             ),
             const SizedBox(width: TwSpacing.x2),
           ],

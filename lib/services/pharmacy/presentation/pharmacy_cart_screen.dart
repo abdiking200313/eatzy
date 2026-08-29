@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../app/app_routes.dart';
 import '../../../config/theme.dart';
 import '../../../platform/localization/app_money.dart';
 import '../../../widgets/app_cards.dart';
+import '../../../widgets/app_misc.dart';
 import '../../../widgets/app_scaffold.dart';
 import '../models/pharmacy_cart_item.dart';
 import 'pharmacy_controller.dart';
@@ -53,32 +55,14 @@ class _CartContents extends StatelessWidget {
       children: [
         const _OtcCartReminder(),
         const SizedBox(height: TwSpacing.x5),
-        for (var index = 0; index < controller.cartItems.length; index++) ...[
-          _CartItemCard(
-            item: controller.cartItems[index],
-            onDecrease: () =>
-                controller.decrement(controller.cartItems[index].product.id),
-            onIncrease:
-                controller.cartItems[index].quantity <
-                    controller.cartItems[index].product.stockQuantity
-                ? () => controller.increment(
-                    controller.cartItems[index].product.id,
-                  )
-                : null,
-            onRemove: () => controller.removeProduct(
-              controller.cartItems[index].product.id,
-            ),
-          ),
-          if (index != controller.cartItems.length - 1)
-            const SizedBox(height: TwSpacing.x3),
-        ],
+        _CartItemsCard(controller: controller),
         const SizedBox(height: TwSpacing.x6),
         _PharmacySummary(controller: controller),
         const SizedBox(height: TwSpacing.x6),
         GradientActionButton(
           label: 'Continue to checkout',
           icon: const Icon(Icons.arrow_forward, color: Colors.white),
-          onPressed: () => context.push('/pharmacy/checkout'),
+          onPressed: () => context.push(AppRoutes.pharmacyCheckout),
         ),
         const SizedBox(height: TwSpacing.x8),
       ],
@@ -99,8 +83,45 @@ class _OtcCartReminder extends StatelessWidget {
   }
 }
 
-class _CartItemCard extends StatelessWidget {
-  const _CartItemCard({
+/// One card holding every pharmacy cart line item with internal dividers
+/// between rows, per the redesign's "one card per list" rule — never a
+/// separate card per line item.
+class _CartItemsCard extends StatelessWidget {
+  const _CartItemsCard({required this.controller});
+
+  final PharmacyController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    final items = controller.cartItems;
+    return OutlinedCard(
+      padding: const EdgeInsets.all(TwSpacing.x4),
+      child: Column(
+        children: [
+          for (var index = 0; index < items.length; index++) ...[
+            _CartItemRow(
+              item: items[index],
+              onDecrease: () => controller.decrement(items[index].product.id),
+              onIncrease:
+                  items[index].quantity < items[index].product.stockQuantity
+                  ? () => controller.increment(items[index].product.id)
+                  : null,
+              onRemove: () => controller.removeProduct(items[index].product.id),
+            ),
+            if (index != items.length - 1) ...[
+              const SizedBox(height: TwSpacing.rhythmDefault),
+              const Divider(),
+              const SizedBox(height: TwSpacing.rhythmDefault),
+            ],
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _CartItemRow extends StatelessWidget {
+  const _CartItemRow({
     required this.item,
     required this.onDecrease,
     required this.onIncrease,
@@ -114,73 +135,116 @@ class _CartItemCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final palette = context.serviceColors;
-    return OutlinedCard(
-      backgroundColor: palette.card,
-      borderColor: palette.border,
-      padding: const EdgeInsets.all(TwSpacing.x4),
-      child: Row(
-        children: [
-          CircleAvatar(
-            backgroundColor: palette.soft,
-            foregroundColor: palette.accent,
-            child: const Icon(Icons.medication_outlined),
-          ),
-          const SizedBox(width: TwSpacing.x3),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(item.product.name, style: TwText.fontBoldBase()),
-                Text(
-                  '${AppMoney.format(item.product.unitPrice)} each',
-                  style: TwText.textSm(),
-                ),
-                const SizedBox(height: TwSpacing.x2),
-                Row(
-                  children: [
-                    IconButton.outlined(
-                      key: ValueKey('decrease-pharmacy-${item.product.id}'),
-                      tooltip: 'Decrease ${item.product.name}',
-                      onPressed: onDecrease,
-                      icon: const Icon(Icons.remove),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: TwSpacing.x2,
-                      ),
-                      child: Text(
-                        '${item.quantity}',
-                        style: TwText.fontBoldSm(),
-                      ),
-                    ),
-                    IconButton.outlined(
-                      key: ValueKey('increase-pharmacy-${item.product.id}'),
-                      tooltip: 'Increase ${item.product.name}',
-                      onPressed: onIncrease,
-                      icon: const Icon(Icons.add),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const ServiceIconChip(icon: Icons.medication_outlined),
+        const SizedBox(width: TwSpacing.rhythmDefault),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              IconButton(
-                key: ValueKey('remove-pharmacy-${item.product.id}'),
-                tooltip: 'Remove ${item.product.name}',
-                onPressed: onRemove,
-                icon: const Icon(Icons.close),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Text(
+                      item.product.name,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: TwText.fontBoldBase(),
+                    ),
+                  ),
+                  SizedBox.square(
+                    dimension: 32,
+                    child: IconButton(
+                      key: ValueKey('remove-pharmacy-${item.product.id}'),
+                      tooltip: 'Remove ${item.product.name}',
+                      padding: EdgeInsets.zero,
+                      icon: const Icon(
+                        Icons.close_rounded,
+                        size: 20,
+                        color: TwColors.textMuted,
+                      ),
+                      onPressed: onRemove,
+                    ),
+                  ),
+                ],
               ),
+              const SizedBox(height: TwSpacing.rhythmTight),
               Text(
                 AppMoney.format(item.total),
-                style: TwText.fontBoldSm().copyWith(color: palette.accent),
+                style: TwText.fontBoldSm().copyWith(color: TwColors.primary),
+              ),
+              const SizedBox(height: TwSpacing.rhythmDefault),
+              // A `Wrap` rather than a `Row` so the "$X each" note drops to
+              // its own line instead of overflowing on a narrow screen with
+              // enlarged text.
+              Wrap(
+                crossAxisAlignment: WrapCrossAlignment.center,
+                spacing: TwSpacing.x3,
+                runSpacing: TwSpacing.x1,
+                children: [
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      _QuantityButton(
+                        key: ValueKey('decrease-pharmacy-${item.product.id}'),
+                        tooltip: 'Decrease ${item.product.name}',
+                        icon: Icons.remove,
+                        onPressed: onDecrease,
+                      ),
+                      SizedBox(
+                        width: 32,
+                        child: Text(
+                          '${item.quantity}',
+                          textAlign: TextAlign.center,
+                          style: TwText.fontBoldSm(),
+                        ),
+                      ),
+                      _QuantityButton(
+                        key: ValueKey('increase-pharmacy-${item.product.id}'),
+                        tooltip: 'Increase ${item.product.name}',
+                        icon: Icons.add,
+                        onPressed: onIncrease,
+                      ),
+                    ],
+                  ),
+                  Text(
+                    '${AppMoney.format(item.product.unitPrice)} each',
+                    style: TwText.textXs().copyWith(color: TwColors.textMuted),
+                  ),
+                ],
               ),
             ],
           ),
-        ],
+        ),
+      ],
+    );
+  }
+}
+
+class _QuantityButton extends StatelessWidget {
+  const _QuantityButton({
+    super.key,
+    required this.tooltip,
+    required this.icon,
+    required this.onPressed,
+  });
+
+  final String tooltip;
+  final IconData icon;
+  final VoidCallback? onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox.square(
+      dimension: 32,
+      child: IconButton.outlined(
+        tooltip: tooltip,
+        padding: EdgeInsets.zero,
+        onPressed: onPressed,
+        icon: Icon(icon, size: 16),
       ),
     );
   }
@@ -193,9 +257,9 @@ class _PharmacySummary extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // White card only — a plain OutlinedCard already uses the neutral
+    // fill/border tokens.
     return OutlinedCard(
-      backgroundColor: context.serviceColors.card,
-      borderColor: context.serviceColors.border,
       child: Column(
         children: [
           _SummaryRow(
@@ -256,9 +320,9 @@ class _EmptyPharmacyCart extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
+            const Icon(
               Icons.shopping_bag_outlined,
-              color: context.serviceColors.accent,
+              color: TwColors.textMuted,
               size: 52,
             ),
             const SizedBox(height: TwSpacing.x4),
@@ -271,7 +335,7 @@ class _EmptyPharmacyCart extends StatelessWidget {
             ),
             const SizedBox(height: TwSpacing.x4),
             TextButton(
-              onPressed: () => context.go('/pharmacy'),
+              onPressed: () => context.go(AppRoutes.pharmacy),
               child: const Text('Browse pharmacy'),
             ),
           ],

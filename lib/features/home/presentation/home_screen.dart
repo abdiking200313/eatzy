@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -17,11 +19,30 @@ import 'widgets/section_header.dart';
 typedef CategoryLoader = Future<List<Category>> Function();
 typedef RestaurantLoader = Future<List<Restaurant>> Function();
 
+/// Runs a server-side search/category-filtered restaurant query. Defaults to
+/// [RestaurantRepository.fetchRestaurants]; overridable in tests the same
+/// way [RestaurantLoader]/[CategoryLoader] are.
+typedef RestaurantQuery =
+    Future<List<Restaurant>> Function({
+      String? searchQuery,
+      String? categoryId,
+    });
+
+/// How long to wait after the last keystroke before running a search query,
+/// so typing quickly doesn't fire a request per character.
+const Duration _searchDebounce = Duration(milliseconds: 400);
+
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key, this.categoryLoader, this.restaurantLoader});
+  const HomeScreen({
+    super.key,
+    this.categoryLoader,
+    this.restaurantLoader,
+    this.restaurantQuery,
+  });
 
   final CategoryLoader? categoryLoader;
   final RestaurantLoader? restaurantLoader;
+  final RestaurantQuery? restaurantQuery;
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -30,11 +51,25 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   late Future<_FoodHomeData> _homeFuture;
   String? _selectedCategoryId;
+  final _searchController = TextEditingController();
+  Timer? _debounce;
+
+  /// Non-null once a category is selected or a search term has been
+  /// submitted — replaces the unfiltered `data.restaurants` list in the
+  /// results section below until cleared.
+  Future<List<Restaurant>>? _filteredRestaurants;
 
   @override
   void initState() {
     super.initState();
     _homeFuture = _loadHome();
+  }
+
+  @override
+  void dispose() {
+    _debounce?.cancel();
+    _searchController.dispose();
+    super.dispose();
   }
 
   Future<_FoodHomeData> _loadHome() async {
@@ -57,8 +92,47 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _selectCategory(String categoryId) {
     setState(() {
-      _selectedCategoryId = categoryId;
+      // Tapping the already-selected chip clears the filter.
+      _selectedCategoryId = _selectedCategoryId == categoryId
+          ? null
+          : categoryId;
+      _filteredRestaurants = _buildFilteredRestaurants();
     });
+  }
+
+  void _onSearchChanged(String value) {
+    _debounce?.cancel();
+    _debounce = Timer(_searchDebounce, () {
+      if (!mounted) return;
+      setState(() {
+        _filteredRestaurants = _buildFilteredRestaurants();
+      });
+    });
+    // Show/hide the clear button immediately without waiting on the debounce.
+    setState(() {});
+  }
+
+  void _clearSearch() {
+    _debounce?.cancel();
+    _searchController.clear();
+    setState(() => _filteredRestaurants = _buildFilteredRestaurants());
+  }
+
+  /// Builds the filtered restaurant future for the current search text and
+  /// selected category, or `null` when neither filter is active (meaning the
+  /// unfiltered `data.restaurants` list should be shown instead).
+  Future<List<Restaurant>>? _buildFilteredRestaurants() {
+    final categoryId = _selectedCategoryId;
+    final searchQuery = _searchController.text.trim();
+    if (categoryId == null && searchQuery.isEmpty) {
+      return null;
+    }
+    final query =
+        widget.restaurantQuery ?? RestaurantRepository().fetchRestaurants;
+    return query(
+      searchQuery: searchQuery.isEmpty ? null : searchQuery,
+      categoryId: categoryId,
+    );
   }
 
   void _openCategories() => context.push(AppRoutes.foodCategories);
@@ -127,16 +201,35 @@ class _HomeScreenState extends State<HomeScreen> {
                   backgroundColor: TwColors.card,
                   borderColor: TwColors.border,
                   borderRadius: 50,
-                  child: const Row(
+                  child: Row(
                     children: [
-                      Icon(Icons.search, color: TwColors.textMuted),
-                      SizedBox(width: TwSpacing.x4),
+                      const Icon(Icons.search, color: TwColors.textMuted),
+                      const SizedBox(width: TwSpacing.x4),
                       Expanded(
-                        child: Text(
-                          'Search restaurants...',
-                          style: TextStyle(color: TwColors.textMuted),
+                        child: TextField(
+                          controller: _searchController,
+                          onChanged: _onSearchChanged,
+                          textInputAction: TextInputAction.search,
+                          decoration: const InputDecoration(
+                            isCollapsed: true,
+                            border: InputBorder.none,
+                            hintText: 'Search restaurants...',
+                            hintStyle: TextStyle(color: TwColors.textMuted),
+                          ),
                         ),
                       ),
+                      if (_searchController.text.isNotEmpty)
+                        GestureDetector(
+                          onTap: _clearSearch,
+                          child: const Padding(
+                            padding: EdgeInsets.only(left: TwSpacing.x2),
+                            child: Icon(
+                              Icons.clear,
+                              size: 20,
+                              color: TwColors.textMuted,
+                            ),
+                          ),
+                        ),
                     ],
                   ),
                 ),
@@ -162,18 +255,21 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
         ),
-        _buildRestaurantResults(data.restaurants),
+        _filteredRestaurants == null
+            ? _buildRestaurantResults(data.restaurants)
+            : _buildFilteredRestaurantResults(_filteredRestaurants!),
         const SliverToBoxAdapter(child: SizedBox(height: TwSpacing.x5)),
       ],
     );
   }
 
+  /// Results for the default, unfiltered home view.
   Widget _buildRestaurantResults(List<Restaurant> restaurants) {
     if (restaurants.isEmpty) {
       return const SliverToBoxAdapter(
         child: Padding(
           padding: EdgeInsets.all(TwSpacing.x8),
-          child: Center(child: Text('No restaurants found in this category.')),
+          child: Center(child: Text('No restaurants found.')),
         ),
       );
     }
@@ -186,6 +282,60 @@ class _HomeScreenState extends State<HomeScreen> {
             _buildRestaurant(context, restaurants[index]),
       ),
     );
+  }
+
+  /// Results while a category and/or a search term is active, resolved
+  /// server-side via [RestaurantRepository.fetchRestaurants].
+  Widget _buildFilteredRestaurantResults(Future<List<Restaurant>> future) {
+    return SliverToBoxAdapter(
+      child: FutureBuilder<List<Restaurant>>(
+        future: future,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Padding(
+              padding: EdgeInsets.all(TwSpacing.x8),
+              child: Center(child: CircularProgressIndicator()),
+            );
+          }
+          if (snapshot.hasError) {
+            return const Padding(
+              padding: EdgeInsets.all(TwSpacing.x8),
+              child: Center(child: Text('Restaurants could not be loaded.')),
+            );
+          }
+
+          final restaurants = snapshot.data ?? const <Restaurant>[];
+          if (restaurants.isEmpty) {
+            return Padding(
+              padding: const EdgeInsets.all(TwSpacing.x8),
+              child: Center(child: Text(_emptyFilterMessage())),
+            );
+          }
+
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: TwSpacing.x5),
+            child: Column(
+              children: [
+                for (final restaurant in restaurants)
+                  _buildRestaurant(context, restaurant),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  String _emptyFilterMessage() {
+    final searchQuery = _searchController.text.trim();
+    final hasCategory = _selectedCategoryId != null;
+    if (searchQuery.isNotEmpty && hasCategory) {
+      return 'No restaurants match "$searchQuery" in this category.';
+    }
+    if (searchQuery.isNotEmpty) {
+      return 'No restaurants match "$searchQuery".';
+    }
+    return 'No restaurants found in this category.';
   }
 
   Widget _buildRestaurant(BuildContext context, Restaurant restaurant) {
