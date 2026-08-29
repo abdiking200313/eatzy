@@ -6,6 +6,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../app/service_module.dart';
 import '../../../platform/activity/models/activity_item.dart';
 import '../../../platform/activity/presentation/activity_controller.dart';
+import '../../../platform/session/session_reset_registry.dart';
 import '../../shared/presentation/confirm_order_flow.dart';
 import '../../shared/presentation/loadable_state_mixin.dart';
 import '../data/pharmacy_repository.dart';
@@ -34,11 +35,13 @@ class PharmacyController extends ChangeNotifier with LoadableState {
 
   static final PharmacyController instance = () {
     final client = Supabase.instance.client;
-    return PharmacyController(
+    final controller = PharmacyController(
       repository: SupabasePharmacyCatalogRepository(client: client),
       orderRepository: SupabasePharmacyOrderRepository(client: client),
       activityController: ActivityController.instance,
     );
+    SessionResetRegistry.instance.register(controller.resetSessionState);
+    return controller;
   }();
 
   static const double deliveryFee = 2.50;
