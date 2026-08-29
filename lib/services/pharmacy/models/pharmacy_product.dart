@@ -57,6 +57,35 @@ class PharmacyProduct {
       saleType: saleType,
     );
   }
+
+  /// Serializes this product for local cart persistence. Distinct from
+  /// [fromMap]/the Supabase row shape, since this snapshot is a flat,
+  /// stable format meant only for round-tripping through local storage.
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'description': description,
+      'category': category,
+      'unit_price': unitPrice,
+      'stock_quantity': stockQuantity,
+      'sale_type': saleType.name,
+    };
+  }
+
+  factory PharmacyProduct.fromJson(Map<String, dynamic> json) {
+    return PharmacyProduct(
+      id: _requiredString(json, 'id'),
+      name: _requiredString(json, 'name'),
+      description: _optionalString(json, 'description'),
+      category: _requiredString(json, 'category'),
+      unitPrice: _requiredDouble(json, 'unit_price'),
+      stockQuantity: _requiredInt(json, 'stock_quantity'),
+      saleType: PharmacySaleType.values.byName(
+        _requiredString(json, 'sale_type'),
+      ),
+    );
+  }
 }
 
 class PharmacyCategory {

@@ -1,5 +1,4 @@
 import 'package:chowflow/features/checkout/presentation/checkout_screen.dart';
-import 'package:chowflow/features/orders/presentation/orders_screen.dart';
 import 'package:chowflow/features/profile/presentation/profile_screen.dart';
 import 'package:chowflow/features/rewards/presentation/rewards_screen.dart';
 import 'package:chowflow/features/settings/presentation/settings_screen.dart';
@@ -15,7 +14,6 @@ void main() {
   testWidgets('representative moved feature screens render', (tester) async {
     final cases = <({Widget screen, String title})>[
       (screen: const CheckoutScreen(), title: 'Checkout'),
-      (screen: const OrdersScreen(), title: 'Orders'),
       (screen: const ProfileScreen(), title: 'Profile'),
       (screen: const RewardsScreen(), title: 'Rewards & Achievements'),
       (screen: const SettingsScreen(), title: 'Settings'),

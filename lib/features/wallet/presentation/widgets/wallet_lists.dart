@@ -34,10 +34,10 @@ class WalletPaymentMethodRow extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(method.brand, style: TwText.fontBoldSm()),
+                Text(method.brand, style: TwText.fontBoldSm),
                 Text(
                   '**** **** **** ${method.lastFour}',
-                  style: TwText.textXs().copyWith(color: TwColors.textMuted),
+                  style: TwText.textXs.copyWith(color: TwColors.textMuted),
                 ),
               ],
             ),
@@ -86,19 +86,19 @@ class WalletTransactionRow extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(transaction.description, style: TwText.fontBoldSm()),
+                Text(transaction.description, style: TwText.fontBoldSm),
                 Text(
                   transaction.orderId != null
                       ? 'Order #${transaction.orderId}'
                       : _typeLabel(transaction.type),
-                  style: TwText.textXs().copyWith(color: TwColors.textMuted),
+                  style: TwText.textXs.copyWith(color: TwColors.textMuted),
                 ),
               ],
             ),
           ),
           Text(
             formattedAmount,
-            style: TwText.fontBoldSm().copyWith(
+            style: TwText.fontBoldSm.copyWith(
               color: isCredit ? TwColors.secondary : TwColors.text,
             ),
           ),

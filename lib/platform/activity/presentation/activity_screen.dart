@@ -47,13 +47,20 @@ class ActivityScreen extends StatelessWidget {
               ),
             );
           }
-          if (items.isEmpty) {
-            return const _EmptyActivity();
-          }
-
-          return ListView(
-            padding: const EdgeInsets.all(TwSpacing.x5),
-            children: [_ActivityListCard(items: items)],
+          return RefreshIndicator(
+            onRefresh: activityController.load,
+            child: items.isEmpty
+                ? CustomScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    slivers: const [
+                      SliverFillRemaining(child: _EmptyActivity()),
+                    ],
+                  )
+                : ListView(
+                    padding: const EdgeInsets.all(TwSpacing.x5),
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    children: [_ActivityListCard(items: items)],
+                  ),
           );
         },
       ),
@@ -130,9 +137,12 @@ class _ActivityRow extends StatelessWidget {
     final module = ServiceRegistry.byId(item.serviceId);
     final colors = ServiceThemes.forId(item.serviceId);
     return InkWell(
+      // `go`, not `push` — detailsRoute is always a service vertical's shell
+      // branch root (see app_router.dart); switch to it within the shell
+      // instead of stacking a route over the nav bar (issue #67).
       onTap: item.detailsRoute.isEmpty
           ? null
-          : () => context.push(item.detailsRoute),
+          : () => context.go(item.detailsRoute),
       child: Padding(
         padding: const EdgeInsets.symmetric(
           horizontal: TwSpacing.x4,
@@ -151,7 +161,7 @@ class _ActivityRow extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(item.title, style: TwText.fontBoldSm()),
+                  Text(item.title, style: TwText.fontBoldSm),
                   const SizedBox(height: TwSpacing.rhythmTight),
                   Wrap(
                     crossAxisAlignment: WrapCrossAlignment.center,
@@ -161,7 +171,7 @@ class _ActivityRow extends StatelessWidget {
                       if (item.subtitle?.isNotEmpty == true)
                         Text(
                           item.subtitle!,
-                          style: TwText.textXs().copyWith(
+                          style: TwText.textXs.copyWith(
                             color: TwColors.textMuted,
                           ),
                         ),
@@ -178,7 +188,7 @@ class _ActivityRow extends StatelessWidget {
             const SizedBox(width: TwSpacing.x2),
             Text(
               AppMoney.format(item.amount),
-              style: TwText.fontBoldSm().copyWith(color: colors.accent),
+              style: TwText.fontBoldSm.copyWith(color: colors.accent),
             ),
           ],
         ),

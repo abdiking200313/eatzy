@@ -194,7 +194,7 @@ class _EmptySectionCard extends StatelessWidget {
           Text(
             message,
             textAlign: TextAlign.center,
-            style: TwText.textSm().copyWith(color: TwColors.textMuted),
+            style: TwText.textSm.copyWith(color: TwColors.textMuted),
           ),
           if (actionLabel != null && onAction != null) ...[
             const SizedBox(height: TwSpacing.x3),

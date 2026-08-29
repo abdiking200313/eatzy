@@ -109,11 +109,11 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('Set a new password', style: TwText.text3xl()),
+                            Text('Set a new password', style: TwText.text3xl),
                             const SizedBox(height: TwSpacing.x2),
                             Text(
                               'Choose a new password for your account.',
-                              style: TwText.textSm(),
+                              style: TwText.textSm,
                             ),
                             const SizedBox(height: TwSpacing.x8),
                             AppTextField(

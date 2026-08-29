@@ -77,9 +77,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   onPressed: _openMainApp,
                   child: Text(
                     'Skip',
-                    style: TwText.fontBoldSm().copyWith(
-                      color: TwColors.primary,
-                    ),
+                    style: TwText.fontBoldSm.copyWith(color: TwColors.primary),
                   ),
                 ),
                 const SizedBox(width: TwSpacing.x5),
@@ -106,7 +104,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                           horizontal: TwSpacing.x2,
                         ),
                         decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(4),
+                          borderRadius: BorderRadius.circular(TwRadius.full),
                           color: index == _currentPage
                               ? TwColors.primary
                               : TwColors.borderStrong,
@@ -130,7 +128,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                       children: [
                         TextSpan(
                           text: 'Already have an account? ',
-                          style: TwText.textXs().copyWith(
+                          style: TwText.textXs.copyWith(
                             color: TwColors.textMuted,
                           ),
                         ),
@@ -142,7 +140,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                               minimumSize: Size.zero,
                               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                             ),
-                            child: Text('Log In', style: TwText.link()),
+                            child: Text('Log In', style: TwText.link),
                           ),
                         ),
                       ],

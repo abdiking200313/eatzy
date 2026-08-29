@@ -1,17 +1,19 @@
-import 'package:chowflow/features/cart/data/cart_storage.dart';
-import 'package:chowflow/features/cart/models/cart_item.dart';
+import 'package:chowflow/services/shared/data/cart_storage.dart';
 
-class MemoryCartStorage implements CartStorage {
-  final Map<String, List<CartItem>> _carts = {};
+/// An in-memory [CartStorage] used across cart/grocery/pharmacy controller
+/// tests so persistence can be exercised without a real SharedPreferences
+/// platform channel.
+class MemoryCartStorage<T> implements CartStorage<T> {
+  final Map<String, List<T>> _carts = {};
 
   @override
-  Future<List<CartItem>> read(String ownerId) async {
-    return List<CartItem>.from(_carts[ownerId] ?? const []);
+  Future<List<T>> read(String ownerId) async {
+    return List<T>.from(_carts[ownerId] ?? const []);
   }
 
   @override
-  Future<void> write(String ownerId, List<CartItem> items) async {
-    _carts[ownerId] = List<CartItem>.from(items);
+  Future<void> write(String ownerId, List<T> items) async {
+    _carts[ownerId] = List<T>.from(items);
   }
 
   @override

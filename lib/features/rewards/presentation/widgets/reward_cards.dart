@@ -30,7 +30,7 @@ class RewardBadgeCard extends StatelessWidget {
               badge.label,
               textAlign: TextAlign.center,
               maxLines: 2,
-              style: TwText.textXs().copyWith(
+              style: TwText.textXs.copyWith(
                 color: badge.earned ? TwColors.text : TwColors.textMuted,
               ),
             ),
@@ -72,13 +72,13 @@ class RewardCard extends StatelessWidget {
                   reward.title,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: TwText.fontBoldSm(),
+                  style: TwText.fontBoldSm,
                 ),
                 Text(
                   reward.description,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: TwText.textSm(),
+                  style: TwText.textSm,
                 ),
               ],
             ),

@@ -3,7 +3,6 @@
 // the #21 per-screen DoD template.
 import 'package:chowflow/app/service_module.dart';
 import 'package:chowflow/config/theme.dart';
-import 'package:chowflow/features/orders/presentation/orders_screen.dart';
 import 'package:chowflow/features/orders/presentation/track_order_screen.dart';
 import 'package:chowflow/features/profile/data/profile_repository.dart';
 import 'package:chowflow/features/profile/models/customer_profile.dart';
@@ -73,16 +72,6 @@ void main() {
   }
 
   group('320x640 @1.4x text-scale stays overflow-free', () {
-    testWidgets('Orders / activity feed', (tester) async {
-      await pumpNarrow(
-        tester,
-        OrdersScreen(activityController: activityWithSampleItems()),
-      );
-
-      expect(tester.takeException(), isNull);
-      expect(find.byType(StatusPill), findsWidgets);
-    });
-
     testWidgets('Activity tab renders status pills, not bare text', (
       tester,
     ) async {

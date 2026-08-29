@@ -46,7 +46,7 @@ class TrackOrderScreen extends StatelessWidget {
                         'Order #45782',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: TwText.fontBoldBase(),
+                        style: TwText.fontBoldBase,
                       ),
                     ),
                     const SizedBox(width: TwSpacing.x2),
@@ -74,16 +74,16 @@ class TrackOrderScreen extends StatelessWidget {
                     children: [
                       Text(
                         'Delivery Partner',
-                        style: TwText.textXs().copyWith(
+                        style: TwText.textXs.copyWith(
                           color: TwColors.textMuted,
                         ),
                       ),
-                      Text('Yusuf Adeyemi', style: TwText.fontBoldBase()),
+                      Text('Yusuf Adeyemi', style: TwText.fontBoldBase),
                       Row(
                         children: [
                           Icon(Icons.star, size: 14, color: palette.accent),
                           const SizedBox(width: TwSpacing.x1),
-                          Text('4.9', style: TwText.textXs()),
+                          Text('4.9', style: TwText.textXs),
                         ],
                       ),
                     ],
@@ -106,12 +106,12 @@ class TrackOrderScreen extends StatelessWidget {
               children: [
                 Text(
                   'Estimated Arrival',
-                  style: TwText.textXs().copyWith(color: TwColors.textMuted),
+                  style: TwText.textXs.copyWith(color: TwColors.textMuted),
                 ),
                 const SizedBox(height: TwSpacing.x2),
                 Text(
                   '12 minutes',
-                  style: TwText.text3xl().copyWith(color: palette.accent),
+                  style: TwText.text3xl.copyWith(color: palette.accent),
                 ),
               ],
             ),
@@ -157,7 +157,7 @@ class _TimelineStepRow extends StatelessWidget {
           Expanded(
             child: Text(
               step.label,
-              style: TwText.fontBoldSm().copyWith(
+              style: TwText.fontBoldSm.copyWith(
                 color: step.isCompleted ? TwColors.text : TwColors.textMuted,
               ),
             ),

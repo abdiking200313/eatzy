@@ -15,10 +15,37 @@ class FoodOrderLineInput {
   }
 }
 
+/// A real delivery address for a food order, matching the
+/// recipient/phone/street/district/city shape already collected and
+/// submitted by grocery (`GroceryDeliveryAddress`) and pharmacy
+/// (`PharmacyCheckoutDetails`) checkout.
+class FoodDeliveryAddress {
+  const FoodDeliveryAddress({
+    required this.recipientName,
+    required this.phone,
+    required this.street,
+    required this.district,
+    required this.city,
+    this.country = 'Somalia',
+  });
+
+  final String recipientName;
+  final String phone;
+  final String street;
+  final String district;
+  final String city;
+  final String country;
+}
+
 class FoodOrderRequest {
-  const FoodOrderRequest({required this.restaurantId, required this.items});
+  const FoodOrderRequest({
+    required this.restaurantId,
+    required this.address,
+    required this.items,
+  });
 
   final String restaurantId;
+  final FoodDeliveryAddress address;
   final List<FoodOrderLineInput> items;
 
   Map<String, dynamic> toRpcParams() {
@@ -28,8 +55,22 @@ class FoodOrderRequest {
     if (items.isEmpty) {
       throw const FormatException('A food order requires at least one item.');
     }
+    if (address.recipientName.trim().isEmpty ||
+        address.phone.trim().isEmpty ||
+        address.street.trim().isEmpty ||
+        address.district.trim().isEmpty ||
+        address.city.trim().isEmpty) {
+      throw const FormatException(
+        'Complete food delivery details are required.',
+      );
+    }
     return {
       'p_restaurant_id': restaurantId,
+      'p_recipient_name': address.recipientName.trim(),
+      'p_phone': address.phone.trim(),
+      'p_street': address.street.trim(),
+      'p_district': address.district.trim(),
+      'p_city': address.city.trim(),
       'p_items': items.map((item) => item.toRpcMap()).toList(growable: false),
     };
   }

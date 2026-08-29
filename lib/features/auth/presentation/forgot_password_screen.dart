@@ -96,13 +96,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Text('Remembered it?', style: TwText.textSm()),
+                          Text('Remembered it?', style: TwText.textSm),
                           TextButton(
                             onPressed: () => context.go(AppRoutes.login),
-                            child: Text(
-                              'Back to sign in',
-                              style: TwText.link(),
-                            ),
+                            child: Text('Back to sign in', style: TwText.link),
                           ),
                         ],
                       ),
@@ -119,12 +116,12 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
   List<Widget> _buildFormContent() {
     return [
-      Text('Forgot password?', style: TwText.text3xl()),
+      Text('Forgot password?', style: TwText.text3xl),
       const SizedBox(height: TwSpacing.x2),
       Text(
         "Enter the email on your account and we'll send you a link to reset "
         'your password.',
-        style: TwText.textSm(),
+        style: TwText.textSm,
       ),
       const SizedBox(height: TwSpacing.x8),
       AppTextField(
@@ -162,13 +159,13 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         size: 40,
       ),
       const SizedBox(height: TwSpacing.x4),
-      Text('Check your email', style: TwText.text3xl()),
+      Text('Check your email', style: TwText.text3xl),
       const SizedBox(height: TwSpacing.x2),
       Text(
         'If an account exists for ${_emailController.text.trim()}, '
         "we've sent a link to reset your password. Open it on this device "
         'to continue.',
-        style: TwText.textSm(),
+        style: TwText.textSm,
       ),
       const SizedBox(height: TwSpacing.x8),
       GradientActionButton(
