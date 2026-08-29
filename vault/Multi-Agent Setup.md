@@ -43,6 +43,15 @@ A cron routine ("eatzy board worker", every 5 hours) runs in Anthropic's cloud, 
 
 **This vault is committed inside the repo specifically so the board worker can read it too** — if updating the routine prompt, point it at `vault/00-Index.md` first so it doesn't re-explore the whole codebase cold every run.
 
+## Manual PR merger routine
+
+A separate routine, **not** on any schedule — fired only when the user explicitly asks for it (via `fire_trigger` or the "Run now" button in the routines UI). Added 2026-08-29 after the user rejected folding backlog-PR reconciliation into the scheduled board worker itself (see [[Decisions Log]] 2026-08-29): the board worker only ever self-merges PRs it opens fresh within its own run; sweeping the backlog of already-open `agent/issue-*` PRs (including known flagged conflict pairs) is this separate routine's job, kept off the 5-hour cron so it only runs when a human decides to.
+
+- Finds every open PR on an `agent/issue-*` branch, re-runs the DoD checks, resolves any conflict against the current `master` tip itself (merges `master` in, regenerates lockfiles/generated files with the repo's own tooling, re-runs checks), then merges (squash). A PR that can't get its checks green stays open with an explanatory comment instead of being force-merged. If two open PRs conflict with each other, merges the more complete one first, then re-resolves the other against the updated `master`.
+- Scoped to `agent/issue-*` branches only — does not touch PRs from interactive sessions (e.g. #85), and does not pick up new `todo`/`waiting-on-you` issues (that stays the scheduled board worker's job).
+- **Mechanics, not a `create_trigger`-created trigger targeting a fresh session**: `create_trigger` has no way to bind a git source repo directly, so a bare fresh-session-per-fire trigger would run with no GitHub access at all (confirmed via a first attempt, `trig_014XYuGXqKxoPJGvpSndKUNv`, deleted after the gap was found). Fixed by creating a dedicated persistent session first (`session_01QyXoT2fRz27JGbgjRq9ZQN`, via `create_session` with `source_url` pointing at this repo, same as any interactive session gets), then binding the trigger to that session's ID (`persistent_session_id` mode) instead of spawning a fresh session per fire. This means the bound session's own conversation history grows a little across repeated manual fires — accepted tradeoff, since there's currently no other mechanism to get both "fresh session per fire" and "real repo access" out of `create_trigger`.
+- Routine ID: `trig_01BhBGebMrc2tJfHy1MyHT6R` — view/manage or fire manually at `https://claude.ai/code/routines/trig_01BhBGebMrc2tJfHy1MyHT6R`.
+
 ## Parallelism policy
 
 Within one task spanning layers, dispatch relevant agents in parallel (that's the whole point of the role split). Across *different* tasks: parallelize only when they touch genuinely disjoint files (e.g. a `lib/services/` refactor + a `supabase/` doc fix ran together safely); default to one-at-a-time when tasks might overlap or build on each other.

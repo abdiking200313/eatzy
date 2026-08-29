@@ -26,6 +26,7 @@ upstream_concept: 00-Index
 - **Board worker self-merges (changed 2026-08-27, see [[Decisions Log]])**: it still opens a PR for every issue (branch + PR is never skipped), but now merges it itself — squash merge — once the DoD checks pass, resolving any conflict against `master` itself first rather than waiting on a human. Applies uniformly, including Supabase/migration-touching PRs (the migration *file* lands in git; it is still never applied to the live/production database — that rule is unchanged). A PR whose DoD checks don't pass stays open unmerged with an explanatory comment rather than being force-merged.
 - **Interactive/manual sessions are unchanged**: still never push directly to `master` or self-merge without confirmation. The self-merge exception above is specific to the automated board-worker routine, not a blanket policy change.
 - PR body should reference `Closes #<number>` and list any assumptions made (especially for async/unattended runs where no one was there to ask) — this is also what auto-closes the issue on merge, so no separate "done" label is needed.
+- **Backlog PR/conflict cleanup is a separate manual-only routine, not part of the scheduled board worker** (added 2026-08-29, see [[Decisions Log]]): the board worker self-merges only what it opens fresh within its own run; sweeping already-open `agent/issue-*` PRs (including known conflict pairs) requires the user to explicitly fire `trig_01BhBGebMrc2tJfHy1MyHT6R` — see [[Multi-Agent Setup]]'s "Manual PR merger routine" section.
 
 ## Migrations / Supabase
 
