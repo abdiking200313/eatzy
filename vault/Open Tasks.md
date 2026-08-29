@@ -7,7 +7,7 @@ upstream_concept: 00-Index
 
 # Open Tasks
 
-Refreshed 2026-08-27 (10th run). **Source of truth is always a live `list_issues`/`gh issue list --repo abdiking200313/eatzy --state open` call** — re-check before relying on this for anything that matters.
+Refreshed 2026-08-27 (11th run). **Source of truth is always a live `list_issues`/`gh issue list --repo abdiking200313/eatzy --state open` call** — re-check before relying on this for anything that matters.
 
 **Major update 2026-08-26 ~19:20 UTC**: the human approved a huge batch of previously-`needs-approval` issues — open `needs-approval` count dropped from ~57 to 14. This ended the 11-day queue stall (stuck since 2026-08-15). The board worker processed 6 issues in its 7th run and another 6 in its 8th run that day; see [[Status Log]] 2026-08-26 for full detail on both.
 
@@ -22,8 +22,10 @@ Refreshed 2026-08-27 (10th run). **Source of truth is always a live `list_issues
 | 8 | Currency decimal-vs-integer + schema drift (`item_categories`/`icon_url`/etc.) | 2026-08-26 (7th run) | Needs the live `menu_items.price` column type checked (integer cents vs numeric dollars) — no DB credentials available to any session here; comment lays out the mechanical fix for either answer |
 | 16 | Native app identifiers still `com.example.chowflow` | 2026-08-15T00:55 UTC | Needs the reverse-domain identifier to use (no existing `com.zivo.*` anywhere to infer from) |
 | 40 | No global error handling / crash reporting / production logging | 2026-08-17T20:38 UTC | Needs crash-reporting SDK choice (Sentry vs Firebase Crashlytics vs none) + credentials; offered to land the SDK-independent half first |
+| 78 | Every vertical models delivery address/order differently — no shared platform layer | 2026-08-27 (11th run) | Issue itself asks to "decide on a shared platform core" — needs the schema shape picked (shared `delivery_addresses` + mandated column set vs. full `orders` supertype) and how it relates to #2's already-in-flight food-address migration (PR #95) |
+| 79 | Order status can never change after creation — no UPDATE path exists | 2026-08-27 (11th run) | Issue itself asks to "decide the fulfilment model" — needs a pick between service-role/dashboard-only, a separate ops app (out of repo scope), or an in-app operator-role RPC, plus whether customer-initiated cancellation is in scope |
 
-#16/#40 still have only the agent's own clarifying-question comment as of 2026-08-26 — no human reply on either yet (going on ~11 and ~9 days respectively).
+#16/#40 still have only the agent's own clarifying-question comment as of 2026-08-26 — no human reply on either yet (going on ~11 and ~9 days respectively). #78/#79 are new as of this run, too early to expect a reply yet.
 
 ## `agent-in-progress` — open PR awaiting review
 
@@ -49,12 +51,8 @@ Refreshed 2026-08-27 (10th run). **Source of truth is always a live `list_issues
 | 65 | [Medium] Text design tokens are per-build GoogleFonts lookups, blocking const | #106 |
 | 66 | [Medium] No image resize/decode limits anywhere | #105 |
 | 67 | [Medium] No ShellRoute for bottom nav — vertical entry hides nav bar | #109 |
-| 68 | [Medium] Raw exception text in auth/profile messages; malformed email regex | #115 |
-| 69 | [Medium] Nine raw route-string literals bypass AppRoutes convention | #111 |
-| 70 | [Medium] Food home screen search bar/category filter non-functional | #116 |
-| 71 | [Medium] Twelve registered routes/~600 lines of feature UI unreachable | #114 |
-| 72 | [High] Uncommitted/never-wired-in dedup-extraction helpers | #112 |
-| 75 | [High] schema.sql client-trusting order-insert RLS path | #113 |
+
+**#68/#69/#70/#71/#72/#75 all merged 2026-08-27 ~09:48-09:49 UTC**, within ~1 minute of each other — the human cleared the entire 10th-run batch almost immediately after it opened. Dropped from this table (closed via their PRs). The flagged #69×#71 (`app_router.dart`) conflict evidently didn't materialize as a blocking git conflict (both merged cleanly in sequence).
 
 **Known merge-conflict pairs, human decision needed on order (none resolved by the routine)**:
 - PR #95 (#2) and PR #98 (#4) both rework `checkout_screen.dart` from the same pre-#95 baseline — whichever merges second needs a rebase threading #95's `FoodDeliveryAddress` through `FoodController.confirmOrder()`.
@@ -62,8 +60,7 @@ Refreshed 2026-08-27 (10th run). **Source of truth is always a live `list_issues
 - PR #103 (#57) also expects a conflict with PR #98 (#4) on `checkout_screen.dart`, since #103 branched before #98 merged.
 - PR #107 (#62) and PR #108 (#64) both touch `activity_controller.dart`/`activity_screen.dart` — whichever merges second needs to reconcile.
 - PR #108 (#64) and PR #110 (#63) both touch `pharmacy_controller.dart` (#64 adds a staleness timestamp/early-return replacement, #63 adds persistence load/save) — whichever merges second needs to reconcile.
-- PR #112 (#72, wires shared helpers into `grocery_controller.dart`/`pharmacy_controller.dart`) also touches both of those same files as #108 (#64) and #110 (#63) — a three-way reconciliation, not just a pair, whichever of the three merges last.
-- PR #111 (#69) and PR #114 (#71) both touch `app_router.dart`/`app_routes.dart` — whichever merges second needs to reconcile the route-literal fixes against the route deletions/entry-point additions.
+- **Both #108 (#64) and #110 (#63) also now individually conflict with merged `master`** (PR #112/#72 already landed changes to the same `grocery_controller.dart`/`pharmacy_controller.dart` files these two PRs touch) — whichever of the two is reviewed next will need a rebase against current `master` regardless of which merges first between themselves.
 
 Phase 7 (#28) still can't start: depends on all of phases 1-6, and phases 2 (#23) and 5 (#26) are still open/unmerged.
 
@@ -78,8 +75,8 @@ Phase 7 (#28) still can't start: depends on all of phases 1-6, and phases 2 (#23
 
 ## Remaining `todo`, not yet picked up
 
-After the 10th run pulled #68/69/70/71/72/75 into `agent-in-progress`, remaining unpicked `todo` issues (all from the #52 audit batch, oldest-first): **#76, 77, 78, 79, 80, 83** (6 issues — all `agent:supabase`-scoped per their labels, i.e. next run's batch is entirely Supabase work). Only 14 issues remain `needs-approval`-gated as of 2026-08-26 (#9, 12, 30, 32, 38, 43, 49, 55, 59, 60, 73, 74, 81, 82).
+**11th run (2026-08-27) processed the last 6 issues from the #52 audit batch's `agent:supabase` tail: #76, 77, 78, 79, 80, 83.** #76/77/80/83 were clear mechanical fixes, implemented and merged same-run (see [[Status Log]] for detail, including the new self-merge policy). #78 and #79 both explicitly ask the reader to "decide" on an architecture/product question (a shared-platform schema shape; which fulfilment/ops model to build) rather than describing one target behavior — judged genuinely ambiguous per AGENTS.md's own criteria (affects data contracts/security/solution size), so both got a clarifying-question comment and moved to `waiting-on-you` instead of a guessed implementation. This was **the last unpicked batch from the #52 audit** — no more `todo`-and-not-`agent-in-progress` issues remain from that source as of this run. Only 14 issues remain `needs-approval`-gated as of 2026-08-26 (#9, 12, 30, 32, 38, 43, 49, 55, 59, 60, 73, 74, 81, 82) — next run has nothing left to pick up unless the human approves more of those, replies to a `waiting-on-you` issue, or a new issue is filed.
 
 ## Known in-flight / interrupted work (not yet resolved)
 
-- The 2026-08-12 dedup-extraction interruption (RPC-unwrap helper, load/error mixin, confirm-order flow left partially wired) was tracked as **issue #72**, resolved by PR #112 (10th run, 2026-08-27) which wired `LoadableState`/`confirmDemoOrder` into the grocery/pharmacy controllers — pending merge, see the three-way conflict note above against PRs #108/#110.
+- The 2026-08-12 dedup-extraction interruption (RPC-unwrap helper, load/error mixin, confirm-order flow left partially wired) was tracked as **issue #72**, resolved and merged via PR #112 (10th run, 2026-08-27) which wired `LoadableState`/`confirmDemoOrder` into the grocery/pharmacy controllers — closed, no longer in-flight. See the conflict note above: PRs #108/#110 now individually need a rebase against it.

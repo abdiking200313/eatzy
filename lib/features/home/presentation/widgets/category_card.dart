@@ -19,6 +19,10 @@ class CategoryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final palette = context.serviceColors;
+    // The base tile stays on the neutral white/border tokens (list-style
+    // content, not the icon chip) — the per-service accent is only allowed
+    // to appear here as a selection indicator (fill + border), the same
+    // narrow, interactive-state exception used for selected nav items.
     return Column(
       children: [
         GestureDetector(
@@ -27,10 +31,10 @@ class CategoryCard extends StatelessWidget {
             width: 90,
             height: 90,
             decoration: BoxDecoration(
-              color: isSelected ? palette.soft : palette.card,
+              color: isSelected ? palette.soft : TwColors.card,
               borderRadius: BorderRadius.circular(TwRadius.xl),
               border: Border.all(
-                color: isSelected ? palette.accent : palette.border,
+                color: isSelected ? palette.accent : TwColors.border,
                 width: isSelected ? 2 : 1,
               ),
             ),

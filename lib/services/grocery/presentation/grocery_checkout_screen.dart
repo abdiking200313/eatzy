@@ -79,7 +79,6 @@ class _GroceryCheckoutScreenState extends State<GroceryCheckoutScreen> {
   }
 
   Widget _checkoutBody() {
-    final palette = context.serviceColors;
     return ListView(
       padding: const EdgeInsets.fromLTRB(
         TwSpacing.x4,
@@ -150,13 +149,11 @@ class _GroceryCheckoutScreenState extends State<GroceryCheckoutScreen> {
           ],
         ),
         const SizedBox(height: TwSpacing.x3),
-        ListTile(
+        const ListTile(
           contentPadding: EdgeInsets.zero,
-          leading: Icon(Icons.flag_outlined, color: palette.accent),
-          title: const Text('Somalia'),
-          subtitle: const Text(
-            'The MVP is configured for delivery in Somalia.',
-          ),
+          leading: Icon(Icons.flag_outlined),
+          title: Text('Somalia'),
+          subtitle: Text('The MVP is configured for delivery in Somalia.'),
         ),
         const SizedBox(height: TwSpacing.x6),
         const SectionTitle('Delivery slot'),
@@ -220,9 +217,9 @@ class _GroceryCheckoutScreenState extends State<GroceryCheckoutScreen> {
           ),
         ],
         const SizedBox(height: TwSpacing.x6),
+        // White card only — a plain OutlinedCard already uses the neutral
+        // fill/border tokens.
         OutlinedCard(
-          backgroundColor: palette.card,
-          borderColor: palette.border,
           child: Column(
             children: [
               _SummaryRow(label: 'Subtotal', amount: _controller.subtotal),
@@ -266,9 +263,9 @@ class _GroceryCheckoutScreenState extends State<GroceryCheckoutScreen> {
       context: context,
       barrierDismissible: false,
       builder: (dialogContext) => AlertDialog(
-        icon: Icon(
+        icon: const Icon(
           Icons.check_circle,
-          color: context.serviceColors.accent,
+          color: TwColors.tertiary,
           size: 44,
         ),
         title: const Text('Demo order confirmed'),

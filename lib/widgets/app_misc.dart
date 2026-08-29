@@ -138,15 +138,20 @@ class SummaryRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
+    // The bold/total row intentionally uses the fixed platform primary
+    // rather than `Theme.of(context).colorScheme.primary` — under a
+    // `ZivoServiceTheme` that scheme slot resolves to the per-service
+    // accent, which would break the "accent confined to the 48px icon
+    // chip" redesign rule for every cart/checkout summary using this row.
     final labelStyle = isBold ? TwText.fontBoldBase() : TwText.textSm();
     final valueStyle = isBold
-        ? TwText.fontBoldBase().copyWith(color: scheme.primary)
+        ? TwText.fontBoldBase().copyWith(color: TwColors.primary)
         : TwText.fontBoldSm();
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: labelStyle),
+        Expanded(child: Text(label, style: labelStyle)),
+        const SizedBox(width: TwSpacing.x3),
         Text(value, style: valueStyle),
       ],
     );

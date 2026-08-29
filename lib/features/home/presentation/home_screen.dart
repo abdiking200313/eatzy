@@ -190,7 +190,6 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildHomeContent(_FoodHomeData data) {
-    final palette = context.serviceColors;
     return CustomScrollView(
       slivers: [
         SliverToBoxAdapter(
@@ -199,8 +198,8 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Column(
               children: [
                 OutlinedCard(
-                  backgroundColor: palette.card,
-                  borderColor: palette.border,
+                  backgroundColor: TwColors.card,
+                  borderColor: TwColors.border,
                   borderRadius: 50,
                   child: Row(
                     children: [
@@ -234,19 +233,19 @@ class _HomeScreenState extends State<HomeScreen> {
                     ],
                   ),
                 ),
-                const SizedBox(height: TwSpacing.x5),
+                const SizedBox(height: TwSpacing.rhythmSection),
                 SectionHeader(
                   title: 'Categories',
                   actionLabel: 'See All',
                   onPressed: _openCategories,
                 ),
-                const SizedBox(height: TwSpacing.x4),
+                const SizedBox(height: TwSpacing.rhythmDefault),
                 CategoriesSection(
                   categories: data.categories,
                   selectedCategoryId: _selectedCategoryId,
                   onCategorySelected: _selectCategory,
                 ),
-                const SizedBox(height: TwSpacing.x8),
+                const SizedBox(height: TwSpacing.rhythmSection),
                 SectionHeader(
                   title: 'Trending Now',
                   actionLabel: 'View All',
