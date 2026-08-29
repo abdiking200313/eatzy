@@ -7,7 +7,9 @@ upstream_concept: 00-Index
 
 # Open Tasks
 
-Refreshed 2026-08-29 (PR-merger run). **Source of truth is always a live `list_issues`/`gh issue list --repo abdiking200313/eatzy --state open` call** — re-check before relying on this for anything that matters.
+Refreshed 2026-08-29 (board worker, 12th run). **Source of truth is always a live `list_issues`/`gh issue list --repo abdiking200313/eatzy --state open` call** — re-check before relying on this for anything that matters.
+
+**12th run (2026-08-29, board worker)**: only one eligible issue existed — #28 (redesign phase 7/7 closeout sweep) — everything else in the `todo`/`waiting-on-you` queues was either still unanswered (`waiting-on-you` #8/#16/#40/#78/#79) or an umbrella/tracking issue with no direct work (#21/#29/#52). Implemented and merged as PR #121, closing #28 and, with it, all 7 phases of #21. Filed two small `needs-approval` follow-ups the sweep found but didn't fix: #122 (checkout address-form input styling) and #123 (`food_home_screen.dart` wrapper indirection). Full detail in [[Status Log]] 2026-08-29 "board worker, 12th run".
 
 **Major update 2026-08-26 ~19:20 UTC**: the human approved a huge batch of previously-`needs-approval` issues — open `needs-approval` count dropped from ~57 to 14. This ended the 11-day queue stall (stuck since 2026-08-15). The board worker processed 6 issues in its 7th run and another 6 in its 8th run that day; see [[Status Log]] 2026-08-26 for full detail on both.
 
@@ -39,15 +41,13 @@ Refreshed 2026-08-29 (PR-merger run). **Source of truth is always a live `list_i
 
 | # | Title | Why not picked up |
 |---|---|---|
-| 21 | Visual redesign: token refresh, card system, nav cleanup (tracking) | Umbrella/index issue, no direct implementation work — phases 22-28 are the real work |
+| 21 | Visual redesign: token refresh, card system, nav cleanup (tracking) | Umbrella/index issue, no direct implementation work — **all 7 phases now merged as of the 12th run (2026-08-29)**, nothing left under this umbrella |
 | 29 | Deploy-readiness audit (tracking) | Umbrella/index issue — findings already filed as the `needs-approval` #30-83 batch |
 | 52 | Architecture, performance & cross-layer review (tracking) | Umbrella/index issue, same pattern as #21/#29 — its 31 child issues (#53-83ish) are the real work |
 
 ## Remaining `todo`, not yet picked up
 
-| # | Title | Notes |
-|---|---|---|
-| 28 | Redesign phase 7/7: App-wide polish pass and closeout sweep | Newly actionable as of the 2026-08-29 PR-merger run — phases 2-6 (#23/#26/#27/#24/#25, the last two of which were #89/#92) all merged. Labeled `todo` already (pre-approved), no open PR. Board worker's to pick up next. |
+**Empty as of the 12th run (2026-08-29)** — #28 (the last actionable `todo`) merged via PR #121. Nothing left to pick up from this queue unless the human approves more `needs-approval` issues, replies to a `waiting-on-you` issue, or a new issue is filed.
 
 **11th run (2026-08-27) processed the last 6 issues from the #52 audit batch's `agent:supabase` tail: #76, 77, 78, 79, 80, 83.** #76/77/80/83 were clear mechanical fixes, implemented and merged same-run (see [[Status Log]] for detail, including the new self-merge policy). #78 and #79 both explicitly ask the reader to "decide" on an architecture/product question (a shared-platform schema shape; which fulfilment/ops model to build) rather than describing one target behavior — judged genuinely ambiguous per AGENTS.md's own criteria (affects data contracts/security/solution size), so both got a clarifying-question comment and moved to `waiting-on-you` instead of a guessed implementation. This was **the last unpicked batch from the #52 audit** — no more `todo`-and-not-`agent-in-progress` issues remain from that source as of this run. Only 14 issues remain `needs-approval`-gated as of 2026-08-26 (#9, 12, 30, 32, 38, 43, 49, 55, 59, 60, 73, 74, 81, 82) — next run has nothing left to pick up unless the human approves more of those, replies to a `waiting-on-you` issue, or a new issue is filed.
 
