@@ -257,10 +257,10 @@ class _RestaurantMenuView extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(menu.restaurant.name, style: TwText.text2xl()),
+                    Text(menu.restaurant.name, style: TwText.text2xl),
                     if (menu.restaurant.description.trim().isNotEmpty) ...[
                       const SizedBox(height: TwSpacing.x2),
-                      Text(menu.restaurant.description, style: TwText.textSm()),
+                      Text(menu.restaurant.description, style: TwText.textSm),
                     ],
                     const SizedBox(height: TwSpacing.x3),
                     Row(
@@ -273,7 +273,7 @@ class _RestaurantMenuView extends StatelessWidget {
                         const SizedBox(width: TwSpacing.x2),
                         Text(
                           '${menu.itemCount} items',
-                          style: TwText.fontBoldSm(),
+                          style: TwText.fontBoldSm,
                         ),
                         const Padding(
                           padding: EdgeInsets.symmetric(
@@ -286,7 +286,7 @@ class _RestaurantMenuView extends StatelessWidget {
                         ),
                         Text(
                           '${menu.categories.length} categories',
-                          style: TwText.textSm(),
+                          style: TwText.textSm,
                         ),
                       ],
                     ),
@@ -314,7 +314,7 @@ class _RestaurantMenuView extends StatelessWidget {
                                   locations
                                       .map((location) => location.storeName)
                                       .join(' • '),
-                                  style: TwText.textSm(),
+                                  style: TwText.textSm,
                                 ),
                               ),
                             ],
@@ -341,7 +341,7 @@ class _RestaurantMenuView extends StatelessWidget {
         if (menu.categories.isEmpty)
           const SliverFillRemaining(hasScrollBody: false, child: _EmptyMenu())
         else
-          for (final category in menu.categories)
+          for (final category in menu.categories) ...[
             SliverToBoxAdapter(
               child: Center(
                 child: ConstrainedBox(
@@ -351,49 +351,57 @@ class _RestaurantMenuView extends StatelessWidget {
                       TwSpacing.x5,
                       TwSpacing.x6,
                       TwSpacing.x5,
-                      0,
+                      TwSpacing.x4,
                     ),
-                    child: Column(
+                    child: Row(
                       key: sectionKeyFor(category.id),
-                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Row(
-                          children: [
-                            Expanded(
-                              child: Text(
-                                category.name,
-                                style: TwText.textXl(),
-                              ),
-                            ),
-                            Text(
-                              '${category.items.length} '
-                              '${category.items.length == 1 ? 'item' : 'items'}',
-                              style: TwText.textXs().copyWith(
-                                color: TwColors.textMuted,
-                              ),
-                            ),
-                          ],
+                        Expanded(
+                          child: Text(category.name, style: TwText.textXl),
                         ),
-                        const SizedBox(height: TwSpacing.x4),
-                        for (
-                          var index = 0;
-                          index < category.items.length;
-                          index++
-                        ) ...[
-                          MenuItemCard(
-                            item: category.items[index],
-                            onAddToCart: () =>
-                                onAddToCart(category.items[index]),
+                        Text(
+                          '${category.items.length} '
+                          '${category.items.length == 1 ? 'item' : 'items'}',
+                          style: TwText.textXs.copyWith(
+                            color: TwColors.textMuted,
                           ),
-                          if (index != category.items.length - 1)
-                            const SizedBox(height: TwSpacing.x3),
-                        ],
+                        ),
                       ],
                     ),
                   ),
                 ),
               ),
             ),
+            // A per-category `SliverList.builder` (rather than the whole
+            // category folded into one eager `SliverToBoxAdapter`+`Column`)
+            // so item cards — and the `CachedNetworkImage` requests they
+            // kick off — are only built once they scroll into view. The
+            // header above stays an eager `SliverToBoxAdapter` so its
+            // `GlobalKey` context is always mounted for the category-chip
+            // "jump to section" scroll (`Scrollable.ensureVisible`).
+            SliverList(
+              delegate: SliverChildBuilderDelegate((context, index) {
+                final item = category.items[index];
+                return Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 760),
+                    child: Padding(
+                      padding: EdgeInsets.fromLTRB(
+                        TwSpacing.x5,
+                        0,
+                        TwSpacing.x5,
+                        index == category.items.length - 1 ? 0 : TwSpacing.x3,
+                      ),
+                      child: MenuItemCard(
+                        item: item,
+                        onAddToCart: () => onAddToCart(item),
+                      ),
+                    ),
+                  ),
+                );
+              }, childCount: category.items.length),
+            ),
+          ],
         const SliverToBoxAdapter(child: SizedBox(height: TwSpacing.x10)),
       ],
     );
@@ -417,7 +425,7 @@ class _RestaurantAppBar extends StatelessWidget {
         menu.restaurant.name,
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
-        style: TwText.fontBoldBase().copyWith(color: palette.onAccent),
+        style: TwText.fontBoldBase.copyWith(color: palette.onAccent),
       ),
       flexibleSpace: FlexibleSpaceBar(
         background: _RestaurantHero(imageUrl: menu.restaurant.logoUrl),
@@ -434,11 +442,22 @@ class _RestaurantHero extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final trimmedUrl = imageUrl.trim();
+    // The hero fills the SliverAppBar's expandedHeight (230) at full
+    // screen width; there's no fixed logical width available here, so the
+    // screen width is used as the practical upper bound for the decoded
+    // width. Both dimensions are scaled for device pixel density and
+    // capped at 3x since a wider cap buys no visible sharpness while
+    // still inflating decode memory.
+    final cacheScale = MediaQuery.of(context).devicePixelRatio.clamp(1.0, 3.0);
+    final cacheWidth = (MediaQuery.of(context).size.width * cacheScale).round();
+    final cacheHeight = (230 * cacheScale).round();
     final image = trimmedUrl.isEmpty
         ? const _RestaurantHeroFallback()
         : CachedNetworkImage(
             imageUrl: trimmedUrl,
             fit: BoxFit.cover,
+            memCacheWidth: cacheWidth,
+            memCacheHeight: cacheHeight,
             placeholder: (_, _) =>
                 const _RestaurantHeroFallback(showLoader: true),
             errorWidget: (_, _, _) => const _RestaurantHeroFallback(),
@@ -545,7 +564,7 @@ class _CategoryHeaderDelegate extends SliverPersistentHeaderDelegate {
                   color: isSelected ? palette.accent : palette.border,
                 ),
                 label: Text(category.name),
-                labelStyle: TwText.textXs().copyWith(
+                labelStyle: TwText.textXs.copyWith(
                   color: isSelected ? palette.onAccent : palette.accent,
                 ),
                 onSelected: (_) => onSelected(category),
@@ -584,7 +603,7 @@ class _RestaurantLoading extends StatelessWidget {
               children: [
                 const CircularProgressIndicator(),
                 const SizedBox(height: TwSpacing.x4),
-                Text('Loading menu…', style: TwText.textSm()),
+                Text('Loading menu…', style: TwText.textSm),
               ],
             ),
           ),
@@ -630,15 +649,12 @@ class _RestaurantError extends StatelessWidget {
                         size: 42,
                       ),
                       const SizedBox(height: TwSpacing.x3),
-                      Text(
-                        'We could not load this menu',
-                        style: TwText.textXl(),
-                      ),
+                      Text('We could not load this menu', style: TwText.textXl),
                       const SizedBox(height: TwSpacing.x2),
                       Text(
                         'Check your connection and try again.',
                         textAlign: TextAlign.center,
-                        style: TwText.textSm(),
+                        style: TwText.textSm,
                       ),
                       const SizedBox(height: TwSpacing.x5),
                       TextButton(
@@ -674,12 +690,12 @@ class _EmptyMenu extends StatelessWidget {
               color: context.serviceColors.accent,
             ),
             const SizedBox(height: TwSpacing.x3),
-            Text('No menu items yet', style: TwText.textXl()),
+            Text('No menu items yet', style: TwText.textXl),
             const SizedBox(height: TwSpacing.x2),
             Text(
               'This restaurant has not added any items.',
               textAlign: TextAlign.center,
-              style: TwText.textSm(),
+              style: TwText.textSm,
             ),
           ],
         ),

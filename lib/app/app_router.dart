@@ -13,14 +13,15 @@ import '../features/onboarding/presentation/onboarding_page_1.dart';
 import '../features/onboarding/presentation/onboarding_page_2.dart';
 import '../features/onboarding/presentation/onboarding_page_3.dart';
 import '../features/onboarding/presentation/welcome_screen.dart';
-import '../features/orders/presentation/orders_screen.dart';
 import '../features/orders/presentation/track_order_screen.dart';
 import '../features/profile/presentation/profile_screen.dart';
 import '../features/rewards/presentation/rewards_profile_screen.dart';
 import '../features/rewards/presentation/rewards_screen.dart';
 import '../features/settings/presentation/settings_screen.dart';
+import '../features/super_app/presentation/super_app_home_screen.dart';
 import '../features/support/presentation/support_screen.dart';
 import '../features/wallet/presentation/wallet_screen.dart';
+import '../platform/activity/presentation/activity_screen.dart';
 import '../screens/addresses.dart';
 import '../screens/categories.dart';
 import '../screens/explore.dart';
@@ -67,14 +68,79 @@ class AppRouter {
     _page(AppRoutes.onboardingThree, const OnboardingPage3()),
   ];
 
-  // Every page in this map requires a valid Supabase session.
-  static const Map<String, Widget> _protectedPages = {
-    AppRoutes.mainApp: MainAppScreen(),
-    AppRoutes.services: CategoriesScreen(),
+  // The four bottom-nav tabs. Each is its own StatefulShellBranch below, so
+  // switching between them (and into a vertical, see _serviceBranches) keeps
+  // every branch's own navigator/scroll/future state alive and leaves the
+  // persistent bottom nav bar on screen — see issue #67.
+  static const Map<String, Widget> _shellTabPages = {
+    AppRoutes.mainApp: SuperAppHomeScreen(),
     AppRoutes.explore: ExploreScreen(),
-    AppRoutes.activity: MainAppScreen(initialIndex: 2),
+    AppRoutes.activity: ActivityScreen(),
     AppRoutes.profile: ProfileScreen(),
-    AppRoutes.orders: OrdersScreen(),
+  };
+
+  // Food, grocery, and pharmacy are also StatefulShellBranches of the same
+  // shell (not bottom-nav destinations themselves — they're reached by
+  // `context.go` from a service card). Keeping each vertical's whole
+  // sub-tree inside the shell, rather than as standalone top-level routes,
+  // is what keeps the bottom nav bar visible while browsing a vertical.
+  // foodExplore/foodRestaurant aren't listed here since they need custom
+  // GoRoutes (query params / path params) — see the food branch below.
+  static const Map<String, Widget> _foodPages = {
+    AppRoutes.food: ZivoServiceTheme(
+      serviceId: ServiceId.food,
+      child: FoodHomeScreen(),
+    ),
+    AppRoutes.foodCategories: ZivoServiceTheme(
+      serviceId: ServiceId.food,
+      child: FoodCategoriesScreen(),
+    ),
+    AppRoutes.foodCart: ZivoServiceTheme(
+      serviceId: ServiceId.food,
+      child: CartScreen(),
+    ),
+    AppRoutes.foodCheckout: ZivoServiceTheme(
+      serviceId: ServiceId.food,
+      child: CheckoutScreen(),
+    ),
+  };
+
+  static const Map<String, Widget> _groceryPages = {
+    AppRoutes.grocery: ZivoServiceTheme(
+      serviceId: ServiceId.grocery,
+      child: GroceryScreen(),
+    ),
+    AppRoutes.groceryCart: ZivoServiceTheme(
+      serviceId: ServiceId.grocery,
+      child: GroceryCartScreen(),
+    ),
+    AppRoutes.groceryCheckout: ZivoServiceTheme(
+      serviceId: ServiceId.grocery,
+      child: GroceryCheckoutScreen(),
+    ),
+  };
+
+  static const Map<String, Widget> _pharmacyPages = {
+    AppRoutes.pharmacy: ZivoServiceTheme(
+      serviceId: ServiceId.pharmacy,
+      child: PharmacyCatalogScreen(),
+    ),
+    AppRoutes.pharmacyCart: ZivoServiceTheme(
+      serviceId: ServiceId.pharmacy,
+      child: PharmacyCartScreen(),
+    ),
+    AppRoutes.pharmacyCheckout: ZivoServiceTheme(
+      serviceId: ServiceId.pharmacy,
+      child: PharmacyCheckoutScreen(),
+    ),
+  };
+
+  // Pages that intentionally stay outside the shell: pushed full-screen,
+  // with their own back button, and not part of the persistent bottom nav.
+  // Unaffected by issue #67 — only the four tabs and the three verticals
+  // above needed to move into the shell.
+  static const Map<String, Widget> _standaloneProtectedPages = {
+    AppRoutes.services: CategoriesScreen(),
     AppRoutes.addresses: AddressesScreen(),
     AppRoutes.paymentMethods: PaymentMethodsScreen(),
     AppRoutes.settings: SettingsScreen(),
@@ -90,62 +156,11 @@ class AppRouter {
     ),
     AppRoutes.rewards: RewardsScreen(),
     AppRoutes.rewardsProfile: RewardsProfileScreen(),
-    AppRoutes.food: ZivoServiceTheme(
-      serviceId: ServiceId.food,
-      child: FoodHomeScreen(),
-    ),
-    AppRoutes.foodCategories: ZivoServiceTheme(
-      serviceId: ServiceId.food,
-      child: FoodCategoriesScreen(),
-    ),
-    AppRoutes.foodExplore: ZivoServiceTheme(
-      serviceId: ServiceId.food,
-      child: FoodExploreScreen(),
-    ),
-    AppRoutes.foodCart: ZivoServiceTheme(
-      serviceId: ServiceId.food,
-      child: CartScreen(),
-    ),
-    AppRoutes.foodCheckout: ZivoServiceTheme(
-      serviceId: ServiceId.food,
-      child: CheckoutScreen(),
-    ),
-    AppRoutes.grocery: ZivoServiceTheme(
-      serviceId: ServiceId.grocery,
-      child: GroceryScreen(),
-    ),
-    AppRoutes.groceryCart: ZivoServiceTheme(
-      serviceId: ServiceId.grocery,
-      child: GroceryCartScreen(),
-    ),
-    AppRoutes.groceryCheckout: ZivoServiceTheme(
-      serviceId: ServiceId.grocery,
-      child: GroceryCheckoutScreen(),
-    ),
-    AppRoutes.pharmacy: ZivoServiceTheme(
-      serviceId: ServiceId.pharmacy,
-      child: PharmacyCatalogScreen(),
-    ),
-    AppRoutes.pharmacyCart: ZivoServiceTheme(
-      serviceId: ServiceId.pharmacy,
-      child: PharmacyCartScreen(),
-    ),
-    AppRoutes.pharmacyCheckout: ZivoServiceTheme(
-      serviceId: ServiceId.pharmacy,
-      child: PharmacyCheckoutScreen(),
-    ),
   };
 
-  static final List<RouteBase> _protectedRoutes = [
-    ..._protectedPages.entries.map((entry) => _page(entry.key, entry.value)),
-    GoRoute(
-      path: AppRoutes.foodRestaurant,
-      builder: (_, state) => ZivoServiceTheme(
-        serviceId: ServiceId.food,
-        child: RestaurantScreen(
-          restaurantId: state.pathParameters['restaurantId']!,
-        ),
-      ),
+  static final List<RouteBase> _standaloneProtectedRoutes = [
+    ..._standaloneProtectedPages.entries.map(
+      (entry) => _page(entry.key, entry.value),
     ),
     GoRoute(path: AppRoutes.home, redirect: (_, _) => AppRoutes.mainApp),
     GoRoute(path: AppRoutes.categories, redirect: (_, _) => AppRoutes.services),
@@ -162,13 +177,64 @@ class AppRouter {
     ),
   ];
 
+  // The persistent bottom-nav shell: Home/Explore/Activity/Profile plus the
+  // food/grocery/pharmacy verticals, each its own branch so branch-switching
+  // (via `context.go` or `navigationShell.goBranch`) never tears down the
+  // other branches' navigator state, and the nav bar built by MainAppScreen
+  // stays on screen the whole time. See issue #67.
+  static final StatefulShellRoute _shellRoute = StatefulShellRoute.indexedStack(
+    builder: (context, state, navigationShell) =>
+        MainAppScreen(navigationShell: navigationShell),
+    branches: [
+      for (final entry in _shellTabPages.entries)
+        StatefulShellBranch(routes: [_page(entry.key, entry.value)]),
+      StatefulShellBranch(
+        routes: [
+          ..._foodPages.entries.map((entry) => _page(entry.key, entry.value)),
+          GoRoute(
+            // Reads an optional ?categoryId=&categoryName= pair, set when
+            // reached from a category card in FoodCategoriesScreen, to
+            // pre-filter the list.
+            path: AppRoutes.foodExplore,
+            builder: (_, state) => ZivoServiceTheme(
+              serviceId: ServiceId.food,
+              child: FoodExploreScreen(
+                categoryId: state.uri.queryParameters['categoryId'],
+                categoryName: state.uri.queryParameters['categoryName'],
+              ),
+            ),
+          ),
+          GoRoute(
+            path: AppRoutes.foodRestaurant,
+            builder: (_, state) => ZivoServiceTheme(
+              serviceId: ServiceId.food,
+              child: RestaurantScreen(
+                restaurantId: state.pathParameters['restaurantId']!,
+              ),
+            ),
+          ),
+        ],
+      ),
+      StatefulShellBranch(
+        routes: _groceryPages.entries
+            .map((entry) => _page(entry.key, entry.value))
+            .toList(growable: false),
+      ),
+      StatefulShellBranch(
+        routes: _pharmacyPages.entries
+            .map((entry) => _page(entry.key, entry.value))
+            .toList(growable: false),
+      ),
+    ],
+  );
+
   static final _authRefresh = _AuthStateRefresh();
 
   static final GoRouter router = GoRouter(
     initialLocation: AppRoutes.welcome,
     refreshListenable: _authRefresh,
     redirect: _redirect,
-    routes: [..._publicRoutes, ..._protectedRoutes],
+    routes: [..._publicRoutes, _shellRoute, ..._standaloneProtectedRoutes],
   );
 
   static String? _redirect(BuildContext context, GoRouterState state) {
@@ -200,7 +266,8 @@ class AppRouter {
   }
 
   static bool isProtectedLocation(String location) {
-    return _protectedPages.containsKey(location) ||
+    return _standaloneProtectedPages.containsKey(location) ||
+        _shellTabPages.containsKey(location) ||
         AppRoutes.isServicePath(location) ||
         AppRoutes.isRestaurantDetails(location) ||
         const {
@@ -215,6 +282,21 @@ class AppRouter {
   // Most routes only need a path and a screen, so keep that boilerplate here.
   static GoRoute _page(String path, Widget screen) {
     return GoRoute(path: path, builder: (_, _) => screen);
+  }
+
+  /// True when [path] is registered as an exact, static route (public or
+  /// protected). Only matches literal paths — it does not resolve dynamic
+  /// segments such as `:restaurantId`, since none of the callers this exists
+  /// for (route-registration contract tests) need that. Deliberately built
+  /// from the route lists directly rather than the `router` field, so it can
+  /// be used from a plain unit test without a Supabase session having been
+  /// initialized first.
+  static bool hasRegisteredRoute(String path) {
+    bool matches(RouteBase route) => route is GoRoute && route.path == path;
+    final shellRoutes = _shellRoute.branches.expand((branch) => branch.routes);
+    return _publicRoutes.any(matches) ||
+        _standaloneProtectedRoutes.any(matches) ||
+        shellRoutes.any(matches);
   }
 }
 

@@ -3,6 +3,7 @@ import 'package:chowflow/services/food/models/category.dart';
 import 'package:chowflow/services/food/presentation/food_categories_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 
 void main() {
   const categories = [
@@ -50,4 +51,41 @@ void main() {
       expect(tester.takeException(), isNull);
     },
   );
+
+  testWidgets('tapping a category card navigates to a filtered explore view', (
+    tester,
+  ) async {
+    final router = GoRouter(
+      initialLocation: '/food/categories',
+      routes: [
+        GoRoute(
+          path: '/food/categories',
+          builder: (_, _) =>
+              FoodCategoriesScreen(categories: Future.value(categories)),
+        ),
+        GoRoute(
+          path: '/food/explore',
+          builder: (_, state) => Scaffold(
+            body: Text(
+              'categoryId=${state.uri.queryParameters['categoryId']} '
+              'categoryName=${state.uri.queryParameters['categoryName']}',
+            ),
+          ),
+        ),
+      ],
+    );
+
+    await tester.pumpWidget(
+      MaterialApp.router(theme: buildAppTheme(), routerConfig: router),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Rice dishes'));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text('categoryId=rice categoryName=Rice dishes'),
+      findsOneWidget,
+    );
+  });
 }

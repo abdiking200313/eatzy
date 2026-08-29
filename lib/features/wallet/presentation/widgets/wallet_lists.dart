@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 
 import '../../../../config/theme.dart';
+import '../../../../platform/localization/app_money.dart';
 import '../../../../widgets/app_misc.dart';
-import '../models/wallet_models.dart';
+import '../../models/wallet_payment_method_record.dart';
+import '../../models/wallet_transaction_record.dart';
 
 /// A single saved payment method row. Rendered bare so [WalletScreen] can
 /// compose several rows inside one shared [OutlinedCard] with internal
@@ -10,7 +12,7 @@ import '../models/wallet_models.dart';
 class WalletPaymentMethodRow extends StatelessWidget {
   const WalletPaymentMethodRow({super.key, required this.method});
 
-  final WalletPaymentMethod method;
+  final WalletPaymentMethodRecord method;
 
   @override
   Widget build(BuildContext context) {
@@ -32,10 +34,10 @@ class WalletPaymentMethodRow extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(method.title, style: TwText.fontBoldSm()),
+                Text(method.brand, style: TwText.fontBoldSm),
                 Text(
-                  method.subtitle,
-                  style: TwText.textXs().copyWith(color: TwColors.textMuted),
+                  '**** **** **** ${method.lastFour}',
+                  style: TwText.textXs.copyWith(color: TwColors.textMuted),
                 ),
               ],
             ),
@@ -59,11 +61,14 @@ class WalletPaymentMethodRow extends StatelessWidget {
 class WalletTransactionRow extends StatelessWidget {
   const WalletTransactionRow({super.key, required this.transaction});
 
-  final WalletTransaction transaction;
+  final WalletTransactionRecord transaction;
 
   @override
   Widget build(BuildContext context) {
     final palette = context.serviceColors;
+    final isCredit = transaction.isCredit;
+    final formattedAmount =
+        '${isCredit ? '+' : '-'}${AppMoney.format(transaction.amount.abs())}';
     return Padding(
       padding: const EdgeInsets.symmetric(
         horizontal: TwSpacing.x4,
@@ -71,35 +76,41 @@ class WalletTransactionRow extends StatelessWidget {
       ),
       child: Row(
         children: [
-          if (transaction.imageUrl != null)
-            NetworkAvatar(imageUrl: transaction.imageUrl!, radius: 24)
-          else
-            ServiceIconChip(
-              icon: Icons.add,
-              background: palette.soft,
-              foreground: palette.accent,
-            ),
+          ServiceIconChip(
+            icon: isCredit ? Icons.arrow_downward : Icons.arrow_upward,
+            background: palette.soft,
+            foreground: palette.accent,
+          ),
           const SizedBox(width: TwSpacing.x4),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(transaction.title, style: TwText.fontBoldSm()),
+                Text(transaction.description, style: TwText.fontBoldSm),
                 Text(
-                  transaction.subtitle,
-                  style: TwText.textXs().copyWith(color: TwColors.textMuted),
+                  transaction.orderId != null
+                      ? 'Order #${transaction.orderId}'
+                      : _typeLabel(transaction.type),
+                  style: TwText.textXs.copyWith(color: TwColors.textMuted),
                 ),
               ],
             ),
           ),
           Text(
-            transaction.amount,
-            style: TwText.fontBoldSm().copyWith(
-              color: transaction.isCredit ? TwColors.secondary : TwColors.text,
+            formattedAmount,
+            style: TwText.fontBoldSm.copyWith(
+              color: isCredit ? TwColors.secondary : TwColors.text,
             ),
           ),
         ],
       ),
     );
   }
+
+  static String _typeLabel(WalletTransactionType type) => switch (type) {
+    WalletTransactionType.topUp => 'Top up',
+    WalletTransactionType.orderPayment => 'Order payment',
+    WalletTransactionType.refund => 'Refund',
+    WalletTransactionType.adjustment => 'Adjustment',
+  };
 }

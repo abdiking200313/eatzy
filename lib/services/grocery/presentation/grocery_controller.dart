@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:collection';
 
 import 'package:flutter/foundation.dart';
@@ -6,6 +7,10 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../app/service_module.dart';
 import '../../../platform/activity/models/activity_item.dart';
 import '../../../platform/activity/presentation/activity_controller.dart';
+import '../../../platform/session/session_reset_registry.dart';
+import '../../shared/data/cart_storage.dart';
+import '../../shared/presentation/confirm_order_flow.dart';
+import '../../shared/presentation/loadable_state_mixin.dart';
 import '../data/grocery_repository.dart';
 import '../models/grocery_models.dart';
 
@@ -17,32 +22,54 @@ enum GroceryAddResult {
   stockLimitReached,
 }
 
-class GroceryController extends ChangeNotifier {
+class GroceryController extends ChangeNotifier with LoadableState {
   GroceryController({
     required GroceryRepository repository,
+    required CartStorage<GroceryCartLine> storage,
     GroceryCatalogRepository? catalogRepository,
     GroceryOrderRepository? orderRepository,
     ActivityController? activityController,
+    DateTime Function()? now,
   }) : _repository = repository,
+       _storage = storage,
        _catalogRepository =
            catalogRepository ??
            (repository is GroceryCatalogRepository
                ? repository as GroceryCatalogRepository
                : null),
        _orderRepository = orderRepository,
-       _activityController = activityController ?? ActivityController.instance;
+       _activityController = activityController ?? ActivityController.instance,
+       _now = now ?? DateTime.now;
 
+  // Deliberately does not call load() here: constructing this singleton
+  // must not issue catalog queries for users who never open the grocery
+  // vertical. Callers (GroceryScreen and friends) trigger load() on demand.
   static final GroceryController instance = () {
     final client = Supabase.instance.client;
     final catalog = SupabaseGroceryCatalogRepository(client: client);
-    return GroceryController(
+    final controller = GroceryController(
       repository: catalog,
       catalogRepository: catalog,
       orderRepository: SupabaseGroceryOrderRepository(client: client),
-    )..load();
+      storage: SharedPreferencesCartStorage<GroceryCartLine>(
+        keyPrefix: 'zivo.cart.v1.grocery',
+        toJson: (line) => line.toJson(),
+        fromJson: GroceryCartLine.fromJson,
+      ),
+    );
+    SessionResetRegistry.instance.register((ownerId) {
+      controller.resetSessionState();
+      unawaited(controller.loadForOwner(ownerId));
+    });
+    return controller;
   }();
 
   static const double standardDeliveryFee = 2.50;
+
+  /// How long a successful store/catalog load is considered fresh before
+  /// [load] will silently refetch it again. A manual pull-to-refresh (via
+  /// [load]'s `forceRefresh`) always bypasses this.
+  static const Duration catalogStaleAfter = Duration(minutes: 5);
 
   static const List<GroceryDeliverySlot> deliverySlots = [
     GroceryDeliverySlot(
@@ -63,27 +90,45 @@ class GroceryController extends ChangeNotifier {
   ];
 
   final GroceryRepository _repository;
+  final CartStorage<GroceryCartLine> _storage;
   final GroceryCatalogRepository? _catalogRepository;
   final GroceryOrderRepository? _orderRepository;
   final ActivityController _activityController;
+  final DateTime Function() _now;
   final List<GroceryStore> _stores = [];
   final List<GroceryDeliverySlot> _deliverySlots = [];
   final Map<String, GroceryCartLine> _cart = {};
 
-  bool _isLoading = false;
+  static const String _guestCartOwner = 'guest';
+
   bool _hasLoaded = false;
-  String? _loadError;
+  DateTime? _lastLoadedAt;
   bool _slotsLoading = false;
   String? _slotLoadError;
   GroceryOrderConfirmation? _lastConfirmation;
+
+  Future<void> _pendingCartWrite = Future<void>.value();
+  String? _cartOwnerId;
+  int _cartLoadGeneration = 0;
+  bool _isCartLoading = false;
 
   UnmodifiableListView<GroceryStore> get stores =>
       UnmodifiableListView(_stores);
   UnmodifiableListView<GroceryCartLine> get cart =>
       UnmodifiableListView(_cart.values.toList(growable: false));
-  bool get isLoading => _isLoading;
   bool get hasLoaded => _hasLoaded;
-  String? get loadError => _loadError;
+
+  /// Whether the loaded stores/catalog are old enough that [load] should
+  /// treat them as needing a refetch: never loaded, or last loaded at least
+  /// [catalogStaleAfter] ago. Stock/price changes made server-side only
+  /// reach the client on the next refetch, so this keeps a session that
+  /// stays open a long time from trusting an indefinitely old snapshot.
+  bool get isStale {
+    final lastLoadedAt = _lastLoadedAt;
+    return lastLoadedAt == null ||
+        _now().difference(lastLoadedAt) >= catalogStaleAfter;
+  }
+
   bool get slotsLoading => _slotsLoading;
   String? get slotLoadError => _slotLoadError;
   UnmodifiableListView<GroceryDeliverySlot> get availableDeliverySlots =>
@@ -94,6 +139,17 @@ class GroceryController extends ChangeNotifier {
   bool get isNotEmpty => _cart.isNotEmpty;
   int get itemCount => _cart.length;
   GroceryOrderConfirmation? get lastConfirmation => _lastConfirmation;
+  String? get cartOwnerId => _cartOwnerId;
+  bool get isCartLoading => _isCartLoading;
+  String get _cartStorageOwner => _cartOwnerId ?? _guestCartOwner;
+
+  /// Resolves once every cart write queued so far has been persisted. Cart
+  /// mutations persist fire-and-forget so callers don't need to await them;
+  /// tests that need to observe the persisted result deterministically
+  /// (e.g. before loading a second controller from the same storage) should
+  /// await this first.
+  @visibleForTesting
+  Future<void> get pendingCartWrite => _pendingCartWrite;
   String? get storeId =>
       _cart.isEmpty ? null : _cart.values.first.product.storeId;
 
@@ -115,26 +171,61 @@ class GroceryController extends ChangeNotifier {
   double get deliveryFee => _cart.isEmpty ? 0 : standardDeliveryFee;
   double get total => subtotal + deliveryFee;
 
-  Future<void> load() async {
-    if (_isLoading) {
-      return;
-    }
-    _isLoading = true;
-    _loadError = null;
+  /// Loads the persisted grocery cart for [ownerId] (or the guest cart when
+  /// `null`), replacing whatever cart is currently in memory. Mirrors
+  /// `CartController.loadForOwner`: a monotonically increasing generation
+  /// guards against a stale read finishing after a later account switch.
+  Future<void> loadForOwner(String? ownerId) async {
+    final generation = ++_cartLoadGeneration;
+    _cartOwnerId = ownerId;
+    _cart.clear();
+    _isCartLoading = true;
     notifyListeners();
 
+    List<GroceryCartLine> loadedLines;
     try {
-      final stores = await _repository.fetchStores();
-      _stores
-        ..clear()
-        ..addAll(stores);
-      _hasLoaded = true;
+      loadedLines = await _storage.read(_cartStorageOwner);
     } on Object {
-      _loadError = 'Groceries could not be loaded. Please try again.';
-    } finally {
-      _isLoading = false;
-      notifyListeners();
+      loadedLines = const [];
     }
+    if (generation != _cartLoadGeneration) {
+      return;
+    }
+
+    _cart
+      ..clear()
+      ..addEntries(loadedLines.map((line) => MapEntry(line.product.id, line)));
+    _isCartLoading = false;
+    notifyListeners();
+  }
+
+  /// Loads the store/product catalog.
+  ///
+  /// By default this is a no-op once the catalog is already loaded and
+  /// still fresh (see [isStale]), so cheap repeat calls (e.g. from
+  /// `initState`) don't refetch pointlessly. Pass [forceRefresh] to always
+  /// refetch — this is what a pull-to-refresh gesture should use, since it
+  /// represents an explicit user request for the latest stock/prices
+  /// regardless of staleness.
+  Future<void> load({bool forceRefresh = false}) async {
+    if (isLoading) {
+      return;
+    }
+    if (!forceRefresh && _hasLoaded && !isStale) {
+      return;
+    }
+    await runLoad(
+      fetch: () async {
+        final stores = await _repository.fetchStores();
+        _stores
+          ..clear()
+          ..addAll(stores);
+        _hasLoaded = true;
+        _lastLoadedAt = _now();
+      },
+      onError: (error, stackTrace) =>
+          'Groceries could not be loaded. Please try again.',
+    );
   }
 
   Future<void> loadDeliverySlots() async {
@@ -188,6 +279,7 @@ class GroceryController extends ChangeNotifier {
     );
     _lastConfirmation = null;
     notifyListeners();
+    unawaited(_persistCart());
     return existing == null
         ? GroceryAddResult.added
         : GroceryAddResult.quantityIncreased;
@@ -202,6 +294,7 @@ class GroceryController extends ChangeNotifier {
     if (quantity <= 0) {
       _cart.remove(productId);
       notifyListeners();
+      unawaited(_persistCart());
       return true;
     }
 
@@ -216,6 +309,7 @@ class GroceryController extends ChangeNotifier {
       quantity: _normalizeQuantity(quantity),
     );
     notifyListeners();
+    unawaited(_persistCart());
     return true;
   }
 
@@ -244,6 +338,7 @@ class GroceryController extends ChangeNotifier {
   void remove(String productId) {
     if (_cart.remove(productId) != null) {
       notifyListeners();
+      unawaited(_persistCart());
     }
   }
 
@@ -288,75 +383,90 @@ class GroceryController extends ChangeNotifier {
     required GroceryDeliverySlot? slot,
     required GrocerySubstitutionPreference? substitutionPreference,
     DateTime? now,
-  }) async {
+  }) {
     final errors = validateCheckout(
       address: address,
       slot: slot,
       substitutionPreference: substitutionPreference,
     );
-    if (errors.isNotEmpty) {
-      return GroceryCheckoutResult.invalid(errors);
-    }
-
     final createdAt = now ?? DateTime.now();
-    String orderId;
-    try {
-      orderId =
-          await _orderRepository?.placeOrder(
+    // Snapshot cart-derived values before the shared flow clears the cart.
+    final confirmedStoreId = storeId;
+    final confirmedStoreName = storeName;
+    final confirmedAmount = total;
+    final confirmedItems = _cart.values
+        .map(
+          (line) => GroceryOrderLineInput(
+            productId: line.product.id,
+            quantity: line.quantity,
+          ),
+        )
+        .toList(growable: false);
+    GroceryOrderConfirmation? confirmation;
+
+    return confirmDemoOrder<GroceryCheckoutResult, List<String>>(
+      validation: errors,
+      isValid: (validation) => validation.isEmpty,
+      onInvalid: (validation) => GroceryCheckoutResult.invalid(validation),
+      placeOrder: () =>
+          _orderRepository?.placeOrder(
             GroceryOrderRequest(
-              storeId: storeId!,
+              storeId: confirmedStoreId!,
               deliverySlotId: slot!.id,
               address: address,
               substitutionPreference: substitutionPreference!,
-              items: _cart.values
-                  .map(
-                    (line) => GroceryOrderLineInput(
-                      productId: line.product.id,
-                      quantity: line.quantity,
-                    ),
-                  )
-                  .toList(growable: false),
+              items: confirmedItems,
             ),
           ) ??
-          'grocery-${createdAt.microsecondsSinceEpoch}';
-    } on Object {
-      return GroceryCheckoutResult.invalid([
+          Future.value(null),
+      fallbackOrderId: () => 'grocery-${createdAt.microsecondsSinceEpoch}',
+      onSaveFailed: () => GroceryCheckoutResult.invalid([
         'The grocery order could not be saved. Please try again.',
-      ]);
-    }
-    final confirmedAmount = total;
-    final confirmation = GroceryOrderConfirmation(
-      orderId: orderId,
-      createdAt: createdAt,
-      amount: confirmedAmount,
-      slot: slot!,
-      address: address,
-      substitutionPreference: substitutionPreference!,
+      ]),
+      recordActivity: (orderId) {
+        confirmation = GroceryOrderConfirmation(
+          orderId: orderId,
+          createdAt: createdAt,
+          amount: confirmedAmount,
+          slot: slot!,
+          address: address,
+          substitutionPreference: substitutionPreference!,
+        );
+        _activityController.record(
+          ActivityItem(
+            id: orderId,
+            serviceId: ServiceId.grocery,
+            title: confirmedStoreName ?? 'Grocery order',
+            subtitle: '${slot.label}, ${slot.detail}',
+            status: 'Demo confirmed',
+            occurredAt: createdAt,
+            amount: confirmedAmount,
+            detailsRoute: '/grocery',
+          ),
+        );
+      },
+      clearCart: () {
+        _cart.clear();
+        return _persistCart();
+      },
+      onConfirmed: (orderId) {
+        _lastConfirmation = confirmation;
+        notifyListeners();
+        return GroceryCheckoutResult.confirmed(confirmation!);
+      },
     );
-
-    _activityController.record(
-      ActivityItem(
-        id: orderId,
-        serviceId: ServiceId.grocery,
-        title: storeName ?? 'Grocery order',
-        subtitle: '${slot.label}, ${slot.detail}',
-        status: 'Demo confirmed',
-        occurredAt: createdAt,
-        amount: confirmedAmount,
-        detailsRoute: '/grocery',
-      ),
-    );
-    _cart.clear();
-    _lastConfirmation = confirmation;
-    notifyListeners();
-    return GroceryCheckoutResult.confirmed(confirmation);
   }
 
   @visibleForTesting
-  void clear() => resetSessionState();
-
-  void resetSessionState() {
+  void clear() {
     _cart.clear();
+    resetSessionState();
+  }
+
+  /// Resets ephemeral, non-persisted MVP state on an account switch. The
+  /// cart itself is handled separately by [loadForOwner], which reloads
+  /// (rather than simply clearing) the incoming owner's persisted cart.
+  void resetSessionState() {
     _deliverySlots.clear();
     _lastConfirmation = null;
     notifyListeners();
@@ -364,4 +474,24 @@ class GroceryController extends ChangeNotifier {
 
   double _normalizeQuantity(double quantity) =>
       (quantity * 100).roundToDouble() / 100;
+
+  Future<void> _persistCart() {
+    final owner = _cartStorageOwner;
+    final snapshot = _cart.values.toList(growable: false);
+    return _queueCartWrite(() => _storage.write(owner, snapshot));
+  }
+
+  Future<void> _queueCartWrite(Future<void> Function() write) {
+    final previousWrite = _pendingCartWrite;
+    final operation = () async {
+      try {
+        await previousWrite;
+      } on Object {
+        // A later cart change should still get a chance to persist.
+      }
+      await write();
+    }();
+    _pendingCartWrite = operation;
+    return operation;
+  }
 }

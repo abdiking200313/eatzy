@@ -9,10 +9,22 @@ import '../models/restaurant.dart';
 import 'widgets/restaurant_card.dart';
 
 class FoodExploreScreen extends StatefulWidget {
-  const FoodExploreScreen({super.key, this.repository, this.restaurants});
+  const FoodExploreScreen({
+    super.key,
+    this.repository,
+    this.restaurants,
+    this.categoryId,
+    this.categoryName,
+  });
 
   final RestaurantRepository? repository;
   final Future<List<Restaurant>>? restaurants;
+
+  /// When set (from tapping a category card in [FoodCategoriesScreen]),
+  /// narrows the list to restaurants with at least one menu item in this
+  /// `item_categories.id`, and [categoryName] is shown as the page title.
+  final String? categoryId;
+  final String? categoryName;
 
   @override
   State<FoodExploreScreen> createState() => _FoodExploreScreenState();
@@ -21,12 +33,14 @@ class FoodExploreScreen extends StatefulWidget {
 class _FoodExploreScreenState extends State<FoodExploreScreen> {
   late final Future<List<Restaurant>> _restaurants =
       widget.restaurants ??
-      (widget.repository ?? RestaurantRepository()).fetchRestaurants();
+      (widget.repository ?? RestaurantRepository()).fetchRestaurants(
+        categoryId: widget.categoryId,
+      );
 
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
-      title: 'Explore restaurants',
+      title: widget.categoryName ?? 'Explore restaurants',
       showBackButton: true,
       body: FutureBuilder<List<Restaurant>>(
         future: _restaurants,
@@ -43,9 +57,11 @@ class _FoodExploreScreenState extends State<FoodExploreScreen> {
 
           final restaurants = snapshot.data ?? const <Restaurant>[];
           if (restaurants.isEmpty) {
-            return const _FoodExploreMessage(
+            return _FoodExploreMessage(
               icon: Icons.restaurant_outlined,
-              text: 'No restaurants are available yet.',
+              text: widget.categoryId == null
+                  ? 'No restaurants are available yet.'
+                  : 'No restaurants found in this category.',
             );
           }
 

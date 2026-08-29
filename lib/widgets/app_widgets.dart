@@ -60,7 +60,7 @@ class _AppTextFieldState extends State<AppTextField> {
       decoration: InputDecoration(
         labelText: widget.label,
         hintText: widget.hint,
-        hintStyle: TwText.textBase().copyWith(color: TwColors.textMuted),
+        hintStyle: TwText.textBase.copyWith(color: TwColors.textMuted),
         prefixIcon: widget.prefixIcon != null
             ? Icon(widget.prefixIcon, color: scheme.primary)
             : null,
@@ -95,7 +95,7 @@ class _AppTextFieldState extends State<AppTextField> {
         filled: true,
         fillColor: TwColors.white,
       ),
-      style: TwText.textBase(),
+      style: TwText.textBase,
     );
   }
 }

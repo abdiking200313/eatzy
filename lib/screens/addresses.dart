@@ -92,7 +92,7 @@ class _AddressRow extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(address.label, style: TwText.fontBoldBase()),
+              Text(address.label, style: TwText.fontBoldBase),
               if (address.isDefault)
                 StatusPill(
                   label: 'Default',
@@ -103,7 +103,7 @@ class _AddressRow extends StatelessWidget {
             ],
           ),
           const SizedBox(height: TwSpacing.rhythmTight),
-          Text(address.address, style: TwText.textSm().copyWith(height: 1.5)),
+          Text(address.address, style: TwText.textSm.copyWith(height: 1.5)),
           const SizedBox(height: TwSpacing.rhythmDefault),
           Row(
             children: [

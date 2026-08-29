@@ -33,12 +33,16 @@ class ExploreScreen extends StatelessWidget {
             ),
             child: ListTile(
               contentPadding: const EdgeInsets.all(TwSpacing.x3),
-              onTap: () => context.push(module.entryRoute),
+              // `go`, not `push`: module.entryRoute belongs to its own shell
+              // branch (see app_router.dart), so this switches branches
+              // within the persistent bottom-nav shell instead of stacking a
+              // full-screen route over it and hiding the nav bar (#67).
+              onTap: () => context.go(module.entryRoute),
               leading: ZivoServiceTheme(
                 serviceId: module.id,
                 child: ServiceIconChip(icon: module.icon),
               ),
-              title: Text(module.title, style: TwText.fontBoldBase()),
+              title: Text(module.title, style: TwText.fontBoldBase),
               subtitle: Text(module.description),
               trailing: const Icon(
                 Icons.chevron_right,

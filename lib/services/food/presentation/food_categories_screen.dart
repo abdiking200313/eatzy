@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../../app/app_routes.dart';
 import '../../../config/theme.dart';
 import '../../../widgets/app_cards.dart';
 import '../../../widgets/app_misc.dart';
@@ -67,6 +69,7 @@ class _FoodCategoriesScreenState extends State<FoodCategoriesScreen> {
               // White card only — the service accent is confined to the
               // 48px ServiceIconChip rather than tinting the card itself.
               return OutlinedCard(
+                onTap: () => _openCategory(context, category),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -77,7 +80,7 @@ class _FoodCategoriesScreenState extends State<FoodCategoriesScreen> {
                       textAlign: TextAlign.center,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: TwText.fontBoldSm(),
+                      style: TwText.fontBoldSm,
                     ),
                   ],
                 ),
@@ -86,6 +89,18 @@ class _FoodCategoriesScreenState extends State<FoodCategoriesScreen> {
           );
         },
       ),
+    );
+  }
+
+  void _openCategory(BuildContext context, Category category) {
+    context.push(
+      Uri(
+        path: AppRoutes.foodExplore,
+        queryParameters: {
+          'categoryId': category.id,
+          'categoryName': category.name,
+        },
+      ).toString(),
     );
   }
 }
