@@ -11,6 +11,7 @@ import '../../../features/home/models/restaurant.dart';
 import '../../../platform/activity/models/activity_item.dart';
 import '../../../platform/activity/presentation/activity_controller.dart';
 import '../../../platform/localization/app_money.dart';
+import '../../../widgets/app_misc.dart';
 import '../../../widgets/app_cards.dart';
 
 class SuperAppHomeScreen extends StatefulWidget {
@@ -312,12 +313,12 @@ class _ServiceTile extends StatelessWidget {
     final colors = ServiceThemes.forId(module.id);
     return Material(
       key: Key('service-${module.id.name}'),
-      color: colors.card,
+      color: TwColors.card,
       elevation: 0.6,
       shadowColor: TwColors.slate900.withOpacityValue(0.1),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(TwRadius.xl),
-        side: BorderSide(color: colors.border),
+        side: const BorderSide(color: TwColors.border),
       ),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
@@ -330,14 +331,11 @@ class _ServiceTile extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: colors.soft,
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(module.icon, color: colors.accent, size: 22),
+              ServiceIconChip(
+                icon: module.icon,
+                background: colors.soft,
+                foreground: colors.accent,
+                borderRadius: TwRadius.full,
               ),
               const SizedBox(height: TwSpacing.x1),
               Text(
@@ -473,7 +471,7 @@ class _SectionHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Expanded(child: Text(title, style: TwText.textXl())),
+        Expanded(child: Text(title, style: TwText.sectionLabel())),
         TextButton(onPressed: onPressed, child: Text(actionLabel)),
       ],
     );
@@ -490,10 +488,10 @@ class _RecentActivityCard extends StatelessWidget {
     final module = ServiceRegistry.byId(item.serviceId);
     final colors = ServiceThemes.forId(item.serviceId);
     return Material(
-      color: TwColors.white,
+      color: TwColors.card,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(TwRadius.xl),
-        side: BorderSide(color: colors.border),
+        side: const BorderSide(color: TwColors.border),
       ),
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(
@@ -503,21 +501,24 @@ class _RecentActivityCard extends StatelessWidget {
         onTap: item.detailsRoute.isEmpty
             ? null
             : () => context.push(item.detailsRoute),
+        // Recent-activity rows use the per-service accent only inside this
+        // small round icon avatar (the list-level equivalent of the 48px
+        // ServiceIconChip used elsewhere), never on the row's own card
+        // fill/border above.
         leading: CircleAvatar(
           backgroundColor: colors.soft,
           foregroundColor: colors.accent,
           child: Icon(module.icon, size: 20),
         ),
         title: Text(item.title, style: TwText.fontBoldSm()),
-        subtitle: Text(
-          item.status,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: TwText.textXs(),
+        subtitle: Padding(
+          padding: const EdgeInsets.only(top: TwSpacing.rhythmTight),
+          child: StatusPill(label: item.status, fontSize: 11),
         ),
+        isThreeLine: false,
         trailing: Text(
           AppMoney.format(item.amount),
-          style: TwText.fontBoldSm().copyWith(color: colors.accent),
+          style: TwText.fontBoldSm(),
         ),
       ),
     );
