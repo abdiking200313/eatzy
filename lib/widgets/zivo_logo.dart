@@ -32,13 +32,13 @@ class ZivoLogo extends StatelessWidget {
         children: [
           CustomPaint(
             size: Size(markSize, markSize),
-            painter: const _ZivoMarkPainter(),
+            painter: const ZivoMarkPainter(),
           ),
           if (showWordmark) ...[
             SizedBox(height: height * 0.06),
             Text(
               'zivo',
-              style: TwText.text2xl().copyWith(
+              style: TwText.text2xl.copyWith(
                 color: wordmarkColor,
                 fontSize: height * 0.42,
                 fontWeight: FontWeight.w700,
@@ -53,8 +53,13 @@ class ZivoLogo extends StatelessWidget {
   }
 }
 
-class _ZivoMarkPainter extends CustomPainter {
-  const _ZivoMarkPainter();
+/// Paints the Zivo brand mark: a gradient "Z" glyph.
+///
+/// Public so it can be reused outside [ZivoLogo], e.g. by
+/// `tool/generate_brand_assets.dart` to rasterize app icon and splash
+/// screen source images from the same shape used in-app.
+class ZivoMarkPainter extends CustomPainter {
+  const ZivoMarkPainter();
 
   @override
   void paint(Canvas canvas, Size size) {

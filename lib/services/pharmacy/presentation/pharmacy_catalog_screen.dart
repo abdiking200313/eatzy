@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../app/app_routes.dart';
 import '../../../config/theme.dart';
 import '../../../platform/localization/app_money.dart';
 import '../../../widgets/add_to_cart_button.dart';
@@ -23,70 +26,162 @@ class _PharmacyCatalogScreenState extends State<PharmacyCatalogScreen> {
   PharmacyController get _controller =>
       widget.controller ?? PharmacyController.instance;
 
+  // Mirrors only the catalog-load-relevant slice of the controller's state.
+  // Cart mutations (add/increment/decrement/remove) also call
+  // `notifyListeners()` on the same controller, but don't change any of
+  // these fields — so `_handleControllerChanged` skips the `setState` and
+  // this screen's (potentially large) product list is left unbuilt. Only
+  // the cart badge in `_CartAction` listens for those changes directly.
+  late bool _isLoading;
+  late bool _isLoadingMore;
+  late bool _hasMore;
+  late int _productCount;
+  late String? _loadError;
+
   @override
   void initState() {
     super.initState();
-    _controller.loadProducts();
+    // Kick off the load first: its synchronous prefix (setting `isLoading`
+    // and calling `notifyListeners()`) runs immediately, before the first
+    // `await`. Snapshotting state after that call — rather than listening
+    // first — means our own `setState` only ever runs in response to a
+    // later, async notification, never re-entrantly during this
+    // `initState()`/first-build pass.
+    unawaited(_controller.loadProducts());
+    _syncLoadState();
+    _controller.addListener(_handleControllerChanged);
+  }
+
+  @override
+  void dispose() {
+    _controller.removeListener(_handleControllerChanged);
+    super.dispose();
+  }
+
+  void _syncLoadState() {
+    _isLoading = _controller.isLoading;
+    _isLoadingMore = _controller.isLoadingMore;
+    _hasMore = _controller.hasMore;
+    _productCount = _controller.products.length;
+    _loadError = _controller.loadError;
+  }
+
+  void _handleControllerChanged() {
+    final isLoading = _controller.isLoading;
+    final isLoadingMore = _controller.isLoadingMore;
+    final hasMore = _controller.hasMore;
+    final productCount = _controller.products.length;
+    final loadError = _controller.loadError;
+    if (isLoading == _isLoading &&
+        isLoadingMore == _isLoadingMore &&
+        hasMore == _hasMore &&
+        productCount == _productCount &&
+        loadError == _loadError) {
+      return;
+    }
+    setState(() {
+      _isLoading = isLoading;
+      _isLoadingMore = isLoadingMore;
+      _hasMore = hasMore;
+      _productCount = productCount;
+      _loadError = loadError;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _controller,
-      builder: (context, _) {
-        return AppScaffold(
-          title: 'Pharmacy',
-          showBackButton: true,
-          actions: [
-            _CartAction(
-              itemCount: _controller.itemCount,
-              onPressed: () => context.push('/pharmacy/cart'),
-            ),
-            const SizedBox(width: TwSpacing.x2),
-          ],
-          body: _buildBody(),
-        );
-      },
+    return AppScaffold(
+      title: 'Pharmacy',
+      showBackButton: true,
+      actions: [
+        _CartAction(
+          controller: _controller,
+          onPressed: () => context.push(AppRoutes.pharmacyCart),
+        ),
+        const SizedBox(width: TwSpacing.x2),
+      ],
+      body: _buildBody(),
     );
   }
 
   Widget _buildBody() {
-    if (_controller.isLoading && _controller.products.isEmpty) {
+    if (_isLoading && _productCount == 0) {
       return const Center(child: CircularProgressIndicator());
     }
 
-    if (_controller.loadError != null && _controller.products.isEmpty) {
+    if (_loadError != null && _productCount == 0) {
       return _CatalogError(
-        message: _controller.loadError!,
+        message: _loadError!,
         onRetry: _controller.loadProducts,
       );
     }
 
+    // 2 fixed header rows (notice + heading block) + one row per product +
+    // an optional trailing "load more" row.
+    final itemCount = 2 + _productCount + (_hasMore ? 1 : 0);
+
     return RefreshIndicator(
       onRefresh: () => _controller.loadProducts(forceRefresh: true),
-      child: ListView(
+      child: ListView.builder(
         padding: const EdgeInsets.all(TwSpacing.x5),
         physics: const AlwaysScrollableScrollPhysics(),
-        children: [
-          const _OtcNotice(),
-          const SizedBox(height: TwSpacing.rhythmDefault),
-          Text('Health essentials', style: TwText.textXl()),
-          const SizedBox(height: TwSpacing.x1),
-          Text(
-            'Seeded products for the interactive Zivo preview.',
-            style: TwText.textSm(),
-          ),
-          const SizedBox(height: TwSpacing.rhythmDefault),
-          for (var index = 0; index < _controller.products.length; index++) ...[
-            _ProductCard(
-              product: _controller.products[index],
-              onAdd: () => _addProduct(_controller.products[index]),
+        itemCount: itemCount,
+        itemBuilder: (context, index) {
+          if (index == 0) {
+            return const Padding(
+              padding: EdgeInsets.only(bottom: TwSpacing.rhythmDefault),
+              child: _OtcNotice(),
+            );
+          }
+          if (index == 1) {
+            return Padding(
+              padding: const EdgeInsets.only(bottom: TwSpacing.rhythmDefault),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Health essentials', style: TwText.textXl),
+                  const SizedBox(height: TwSpacing.x1),
+                  Text(
+                    'Seeded products for the interactive Zivo preview.',
+                    style: TwText.textSm,
+                  ),
+                ],
+              ),
+            );
+          }
+
+          final productIndex = index - 2;
+          if (productIndex >= _productCount) {
+            // Trailing load-more row: triggers the next page once it comes
+            // into view instead of eagerly fetching everything up front.
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted) {
+                _controller.loadMore();
+              }
+            });
+            return Padding(
+              padding: const EdgeInsets.only(top: TwSpacing.x4),
+              child: Center(
+                child: _isLoadingMore
+                    ? const CircularProgressIndicator()
+                    : const SizedBox(height: 32),
+              ),
+            );
+          }
+
+          final product = _controller.products[productIndex];
+          return Padding(
+            padding: EdgeInsets.only(
+              bottom: productIndex == _productCount - 1 && !_hasMore
+                  ? TwSpacing.x8
+                  : TwSpacing.x3,
             ),
-            if (index != _controller.products.length - 1)
-              const SizedBox(height: TwSpacing.x3),
-          ],
-          const SizedBox(height: TwSpacing.x8),
-        ],
+            child: _ProductCard(
+              product: product,
+              onAdd: () => _addProduct(product),
+            ),
+          );
+        },
       ),
     );
   }
@@ -128,13 +223,13 @@ class _OtcNotice extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Over-the-counter (OTC) only', style: TwText.fontBoldSm()),
+                Text('Over-the-counter (OTC) only', style: TwText.fontBoldSm),
                 const SizedBox(height: TwSpacing.rhythmTight),
                 Text(
                   'This preview does not accept prescriptions or include '
                   'regulated medicines. Ask a healthcare professional if you '
                   'are unsure which product is right for you.',
-                  style: TwText.textXs(),
+                  style: TwText.textXs,
                 ),
               ],
             ),
@@ -172,11 +267,11 @@ class _ProductCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(product.category, style: TwText.link()),
+                Text(product.category, style: TwText.link),
                 const SizedBox(height: TwSpacing.rhythmTight),
-                Text(product.name, style: TwText.fontBoldBase()),
+                Text(product.name, style: TwText.fontBoldBase),
                 const SizedBox(height: TwSpacing.rhythmTight),
-                Text(product.description, style: TwText.textSm()),
+                Text(product.description, style: TwText.textSm),
                 const SizedBox(height: TwSpacing.rhythmDefault),
                 Wrap(
                   spacing: TwSpacing.x3,
@@ -185,7 +280,7 @@ class _ProductCard extends StatelessWidget {
                   children: [
                     Text(
                       AppMoney.format(product.unitPrice),
-                      style: TwText.fontBoldBase().copyWith(
+                      style: TwText.fontBoldBase.copyWith(
                         color: TwColors.primary,
                       ),
                     ),
@@ -215,23 +310,32 @@ class _ProductCard extends StatelessWidget {
   }
 }
 
+/// Isolated so a cart mutation (add/increment/decrement/remove) only
+/// rebuilds this small badge, not the (potentially long) product list
+/// above it.
 class _CartAction extends StatelessWidget {
-  const _CartAction({required this.itemCount, required this.onPressed});
+  const _CartAction({required this.controller, required this.onPressed});
 
-  final int itemCount;
+  final PharmacyController controller;
   final VoidCallback onPressed;
 
   @override
   Widget build(BuildContext context) {
-    return IconButton(
-      key: const ValueKey('pharmacy-cart-action'),
-      tooltip: 'Pharmacy cart',
-      onPressed: onPressed,
-      icon: Badge(
-        isLabelVisible: itemCount > 0,
-        label: Text('$itemCount'),
-        child: const Icon(Icons.shopping_bag_outlined),
-      ),
+    return AnimatedBuilder(
+      animation: controller,
+      builder: (context, _) {
+        final itemCount = controller.itemCount;
+        return IconButton(
+          key: const ValueKey('pharmacy-cart-action'),
+          tooltip: 'Pharmacy cart',
+          onPressed: onPressed,
+          icon: Badge(
+            isLabelVisible: itemCount > 0,
+            label: Text('$itemCount'),
+            child: const Icon(Icons.shopping_bag_outlined),
+          ),
+        );
+      },
     );
   }
 }

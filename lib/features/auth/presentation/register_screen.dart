@@ -6,6 +6,7 @@ import '../../../config/theme.dart';
 import '../../../widgets/app_cards.dart';
 import '../../../widgets/app_widgets.dart';
 import '../../../widgets/zivo_logo.dart';
+import '../data/auth_error_message.dart';
 import '../data/auth_service.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -52,7 +53,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     }
 
     final emailRegex = RegExp(
-      r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+",
+      r"^[a-zA-Z0-9.!#$%&'*+\-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+$",
     );
     if (!emailRegex.hasMatch(email)) {
       _showMessage('Please enter a valid email address.');
@@ -81,7 +82,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
       context.go(AppRoutes.login);
     } catch (error) {
       if (!mounted) return;
-      _showMessage('Registration failed: $error');
+      _showMessage(
+        'Registration failed: ${describeAuthError(error, context: 'Registration')}',
+      );
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -154,14 +157,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              'Create your account',
-                              style: TwText.text3xl(),
-                            ),
+                            Text('Create your account', style: TwText.text3xl),
                             const SizedBox(height: TwSpacing.rhythmTight),
                             Text(
                               'Join Zivo and make every food order faster and more rewarding.',
-                              style: TwText.textSm(),
+                              style: TwText.textSm,
                             ),
                             const SizedBox(height: TwSpacing.rhythmSection),
                             AppTextField(
@@ -207,7 +207,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 Expanded(
                                   child: Text(
                                     'Your account is protected by Supabase authentication.',
-                                    style: TwText.textXs().copyWith(
+                                    style: TwText.textXs.copyWith(
                                       color: TwColors.textMuted,
                                     ),
                                   ),
@@ -236,11 +236,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         children: [
                           Text(
                             'Already have an account?',
-                            style: TwText.textSm(),
+                            style: TwText.textSm,
                           ),
                           TextButton(
                             onPressed: () => context.go(AppRoutes.login),
-                            child: Text('Sign in', style: TwText.link()),
+                            child: Text('Sign in', style: TwText.link),
                           ),
                         ],
                       ),

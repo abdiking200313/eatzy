@@ -59,8 +59,14 @@ class _CountingPharmacyRepository implements PharmacyRepository {
   int fetchCount = 0;
 
   @override
-  Future<List<PharmacyProduct>> fetchProducts() async {
+  Future<List<PharmacyProduct>> fetchProducts({
+    int limit = pharmacyProductsPageSize,
+    int offset = 0,
+  }) async {
     fetchCount++;
-    return const SeededPharmacyRepository().fetchProducts();
+    return const SeededPharmacyRepository().fetchProducts(
+      limit: limit,
+      offset: offset,
+    );
   }
 }

@@ -34,11 +34,11 @@ class SettingCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: TwText.fontBoldSm()),
+                Text(title, style: TwText.fontBoldSm),
                 const SizedBox(height: TwSpacing.rhythmTight),
                 Text(
                   subtitle,
-                  style: TwText.textXs().copyWith(color: TwColors.textMuted),
+                  style: TwText.textXs.copyWith(color: TwColors.textMuted),
                 ),
               ],
             ),

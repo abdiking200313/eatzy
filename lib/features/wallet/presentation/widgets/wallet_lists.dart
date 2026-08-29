@@ -32,10 +32,10 @@ class WalletPaymentMethodRow extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(method.title, style: TwText.fontBoldSm()),
+                Text(method.title, style: TwText.fontBoldSm),
                 Text(
                   method.subtitle,
-                  style: TwText.textXs().copyWith(color: TwColors.textMuted),
+                  style: TwText.textXs.copyWith(color: TwColors.textMuted),
                 ),
               ],
             ),
@@ -84,17 +84,17 @@ class WalletTransactionRow extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(transaction.title, style: TwText.fontBoldSm()),
+                Text(transaction.title, style: TwText.fontBoldSm),
                 Text(
                   transaction.subtitle,
-                  style: TwText.textXs().copyWith(color: TwColors.textMuted),
+                  style: TwText.textXs.copyWith(color: TwColors.textMuted),
                 ),
               ],
             ),
           ),
           Text(
             transaction.amount,
-            style: TwText.fontBoldSm().copyWith(
+            style: TwText.fontBoldSm.copyWith(
               color: transaction.isCredit ? TwColors.secondary : TwColors.text,
             ),
           ),

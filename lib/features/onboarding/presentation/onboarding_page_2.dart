@@ -23,7 +23,7 @@ class OnboardingPage2 extends StatelessWidget {
           padding: const EdgeInsets.all(TwSpacing.x2),
           decoration: BoxDecoration(
             color: Colors.white.withOpacityValue(0.2),
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(TwRadius.lg),
             border: Border.all(color: Colors.white.withOpacityValue(0.3)),
           ),
           child: Column(
@@ -40,14 +40,14 @@ class OnboardingPage2 extends StatelessWidget {
               const SizedBox(height: TwSpacing.x3),
               Text(
                 'ETA',
-                style: TwText.textXs().copyWith(
+                style: TwText.textXs.copyWith(
                   color: Colors.white.withOpacityValue(0.8),
                   letterSpacing: 1,
                 ),
               ),
               Text(
                 '12 Minutes',
-                style: TwText.fontBoldSm().copyWith(color: Colors.white),
+                style: TwText.fontBoldSm.copyWith(color: Colors.white),
               ),
             ],
           ),

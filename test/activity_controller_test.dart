@@ -92,23 +92,38 @@ void main() {
     },
   );
 
-  test(
-    'ActivityItem.fromMap still throws for a genuinely unsupported service',
-    () {
-      expect(
-        () => ActivityItem.fromMap({
-          'id': 'unknown-1',
-          'service_id': 'not-a-real-service',
-          'title': 'Mystery order',
-          'status': 'completed',
-          'occurred_at': DateTime.utc(2026, 7, 27).toIso8601String(),
-          'amount': 10,
-          'details_route': '/unknown',
-        }),
-        throwsFormatException,
-      );
-    },
-  );
+  test('ActivityItem.fromMap falls back to ServiceId.unknown for a genuinely '
+      'unsupported service instead of throwing', () {
+    final item = ActivityItem.fromMap({
+      'id': 'unknown-1',
+      'service_id': 'not-a-real-service',
+      'title': 'Mystery order',
+      'status': 'completed',
+      'occurred_at': DateTime.utc(2026, 7, 27).toIso8601String(),
+      'amount': 10,
+      'details_route': '/unknown',
+    });
+
+    expect(item, isNotNull);
+    expect(item!.serviceId, ServiceId.unknown);
+    expect(item.title, 'Mystery order');
+  });
+
+  test('ActivityItem.fromMap still throws for other malformed fields (missing '
+      'title), which ActivityRepository catches per row', () {
+    expect(
+      () => ActivityItem.fromMap({
+        'id': 'bad-title-1',
+        'service_id': 'food',
+        'title': '',
+        'status': 'completed',
+        'occurred_at': DateTime.utc(2026, 7, 27).toIso8601String(),
+        'amount': 10,
+        'details_route': '/food',
+      }),
+      throwsFormatException,
+    );
+  });
 
   testWidgets('pulling to refresh reloads activity from the repository', (
     tester,

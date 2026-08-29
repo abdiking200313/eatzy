@@ -115,6 +115,40 @@ void main() {
     expect(activityController.items.single.amount, 5.25);
   });
 
+  test('placeDemoOrder surfaces an error, resets loading, and keeps the cart '
+      'when the order repository throws', () async {
+    final throwingActivityController = ActivityController();
+    final throwingController = PharmacyController(
+      repository: const SeededPharmacyRepository(),
+      orderRepository: const _ThrowingPharmacyOrderRepository(),
+      activityController: throwingActivityController,
+      now: () => DateTime.utc(2026, 7, 27, 12),
+    );
+    await throwingController.loadProducts();
+    throwingController.addProduct(throwingController.products.first);
+
+    const details = PharmacyCheckoutDetails(
+      customerName: 'Asha Ali',
+      phoneNumber: '+252 61 234 5678',
+      city: 'Mogadishu',
+      district: 'Hodan',
+      addressLine: 'Taleex Road, blue gate',
+      deliveryInstructions: 'Please call on arrival.',
+    );
+
+    final result = await throwingController.placeDemoOrder(details);
+
+    expect(result.isSuccess, isFalse);
+    expect(
+      result.validation.errorFor('order'),
+      contains('The pharmacy order could not be saved'),
+    );
+    expect(throwingController.isLoading, isFalse);
+    expect(throwingController.isCartEmpty, isFalse);
+    expect(throwingController.cartItems, hasLength(1));
+    expect(throwingActivityController.items, isEmpty);
+  });
+
   group('catalog staleness and pull-to-refresh', () {
     test(
       'loadProducts does not refetch an already-loaded, fresh catalog',
@@ -185,8 +219,26 @@ class _CountingPharmacyRepository implements PharmacyRepository {
   int fetchCount = 0;
 
   @override
-  Future<List<PharmacyProduct>> fetchProducts() async {
+  Future<List<PharmacyProduct>> fetchProducts({
+    int limit = pharmacyProductsPageSize,
+    int offset = 0,
+  }) async {
     fetchCount++;
-    return const SeededPharmacyRepository().fetchProducts();
+    return const SeededPharmacyRepository().fetchProducts(
+      limit: limit,
+      offset: offset,
+    );
+  }
+}
+
+/// A [PharmacyOrderRepository] fake that always fails, simulating a network
+/// error, Supabase exception, or RPC validation error surfaced during
+/// order placement.
+class _ThrowingPharmacyOrderRepository implements PharmacyOrderRepository {
+  const _ThrowingPharmacyOrderRepository();
+
+  @override
+  Future<String> placeOrder(PharmacyOrderRequest request) {
+    throw Exception('Simulated network failure while placing pharmacy order');
   }
 }

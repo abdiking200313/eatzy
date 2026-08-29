@@ -11,6 +11,7 @@ import '../../../features/home/models/restaurant.dart';
 import '../../../platform/activity/models/activity_item.dart';
 import '../../../platform/activity/presentation/activity_controller.dart';
 import '../../../platform/localization/app_money.dart';
+import '../../../widgets/app_misc.dart';
 import '../../../widgets/app_cards.dart';
 
 class SuperAppHomeScreen extends StatefulWidget {
@@ -63,11 +64,11 @@ class _SuperAppHomeScreenState extends State<SuperAppHomeScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Good morning', style: TwText.text2xl()),
+                    Text('Good morning', style: TwText.text2xl),
                     const SizedBox(height: TwSpacing.x1),
                     Text(
                       DateFormat('EEEE, MMMM d').format(DateTime.now()),
-                      style: TwText.textSm(),
+                      style: TwText.textSm,
                     ),
                     const SizedBox(height: TwSpacing.x6),
                     _PromoBanner(
@@ -165,7 +166,7 @@ class _HomeHeader extends StatelessWidget {
                 children: [
                   Text(
                     'zivo',
-                    style: TwText.textXl().copyWith(
+                    style: TwText.textXl.copyWith(
                       color: TwColors.white,
                       fontWeight: FontWeight.w800,
                       letterSpacing: -0.4,
@@ -249,7 +250,7 @@ class _PromoBanner extends StatelessWidget {
               children: [
                 Text(
                   'Everything nearby,\none tap away',
-                  style: TwText.textLg().copyWith(
+                  style: TwText.textLg.copyWith(
                     color: TwColors.white,
                     fontWeight: FontWeight.w700,
                   ),
@@ -312,12 +313,12 @@ class _ServiceTile extends StatelessWidget {
     final colors = ServiceThemes.forId(module.id);
     return Material(
       key: Key('service-${module.id.name}'),
-      color: colors.card,
+      color: TwColors.card,
       elevation: 0.6,
       shadowColor: TwColors.slate900.withOpacityValue(0.1),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(TwRadius.xl),
-        side: BorderSide(color: colors.border),
+        side: const BorderSide(color: TwColors.border),
       ),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
@@ -330,14 +331,11 @@ class _ServiceTile extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: colors.soft,
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(module.icon, color: colors.accent, size: 22),
+              ServiceIconChip(
+                icon: module.icon,
+                background: colors.soft,
+                foreground: colors.accent,
+                borderRadius: TwRadius.full,
               ),
               const SizedBox(height: TwSpacing.x1),
               Text(
@@ -345,7 +343,7 @@ class _ServiceTile extends StatelessWidget {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 textAlign: TextAlign.center,
-                style: TwText.fontBoldSm(),
+                style: TwText.fontBoldSm,
               ),
             ],
           ),
@@ -404,6 +402,13 @@ class _PopularRestaurantCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final logoUrl = restaurant.logoUrl.trim();
+    // Decode at roughly the rendered 140x88 box (the card's fixed width
+    // and image height) scaled for device pixel density. Capped at 3x
+    // since a wider cap buys no visible sharpness on a thumbnail this
+    // small while still inflating decode memory.
+    final cacheScale = MediaQuery.of(context).devicePixelRatio.clamp(1.0, 3.0);
+    final cacheWidth = (140 * cacheScale).round();
+    final cacheHeight = (88 * cacheScale).round();
     return SizedBox(
       width: 140,
       child: OutlinedCard(
@@ -432,6 +437,8 @@ class _PopularRestaurantCard extends StatelessWidget {
                     : CachedNetworkImage(
                         imageUrl: logoUrl,
                         fit: BoxFit.cover,
+                        memCacheWidth: cacheWidth,
+                        memCacheHeight: cacheHeight,
                         errorWidget: (_, _, _) => const ColoredBox(
                           color: TwColors.primarySoft,
                           child: Icon(
@@ -448,7 +455,7 @@ class _PopularRestaurantCard extends StatelessWidget {
                 restaurant.name,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: TwText.fontBoldSm(),
+                style: TwText.fontBoldSm,
               ),
             ),
           ],
@@ -473,7 +480,7 @@ class _SectionHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Expanded(child: Text(title, style: TwText.textXl())),
+        Expanded(child: Text(title, style: TwText.sectionLabel)),
         TextButton(onPressed: onPressed, child: Text(actionLabel)),
       ],
     );
@@ -490,10 +497,10 @@ class _RecentActivityCard extends StatelessWidget {
     final module = ServiceRegistry.byId(item.serviceId);
     final colors = ServiceThemes.forId(item.serviceId);
     return Material(
-      color: TwColors.white,
+      color: TwColors.card,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(TwRadius.xl),
-        side: BorderSide(color: colors.border),
+        side: const BorderSide(color: TwColors.border),
       ),
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(
@@ -503,22 +510,22 @@ class _RecentActivityCard extends StatelessWidget {
         onTap: item.detailsRoute.isEmpty
             ? null
             : () => context.push(item.detailsRoute),
+        // Recent-activity rows use the per-service accent only inside this
+        // small round icon avatar (the list-level equivalent of the 48px
+        // ServiceIconChip used elsewhere), never on the row's own card
+        // fill/border above.
         leading: CircleAvatar(
           backgroundColor: colors.soft,
           foregroundColor: colors.accent,
           child: Icon(module.icon, size: 20),
         ),
-        title: Text(item.title, style: TwText.fontBoldSm()),
-        subtitle: Text(
-          item.status,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: TwText.textXs(),
+        title: Text(item.title, style: TwText.fontBoldSm),
+        subtitle: Padding(
+          padding: const EdgeInsets.only(top: TwSpacing.rhythmTight),
+          child: StatusPill(label: item.status, fontSize: 11),
         ),
-        trailing: Text(
-          AppMoney.format(item.amount),
-          style: TwText.fontBoldSm().copyWith(color: colors.accent),
-        ),
+        isThreeLine: false,
+        trailing: Text(AppMoney.format(item.amount), style: TwText.fontBoldSm),
       ),
     );
   }

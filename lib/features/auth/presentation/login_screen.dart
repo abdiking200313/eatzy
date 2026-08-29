@@ -6,6 +6,7 @@ import '../../../config/theme.dart';
 import '../../../widgets/app_cards.dart';
 import '../../../widgets/app_widgets.dart';
 import '../../../widgets/zivo_logo.dart';
+import '../data/auth_error_message.dart';
 import '../data/auth_service.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -49,7 +50,9 @@ class _LoginScreenState extends State<LoginScreen> {
       context.go(AppRoutes.mainApp);
     } catch (error) {
       if (!mounted) return;
-      _showMessage('Login failed: $error');
+      _showMessage(
+        'Login failed: ${describeAuthError(error, context: 'Login')}',
+      );
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -96,11 +99,11 @@ class _LoginScreenState extends State<LoginScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('Welcome back', style: TwText.text3xl()),
+                            Text('Welcome back', style: TwText.text3xl),
                             const SizedBox(height: TwSpacing.rhythmTight),
                             Text(
                               'Sign in to continue your orders, favorites, and rewards.',
-                              style: TwText.textSm(),
+                              style: TwText.textSm,
                             ),
                             const SizedBox(height: TwSpacing.rhythmSection),
                             AppTextField(
@@ -133,7 +136,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                     context.push(AppRoutes.forgotPassword),
                                 child: Text(
                                   'Forgot password?',
-                                  style: TwText.link(),
+                                  style: TwText.link,
                                 ),
                               ),
                             ),
@@ -157,10 +160,10 @@ class _LoginScreenState extends State<LoginScreen> {
                         alignment: WrapAlignment.center,
                         crossAxisAlignment: WrapCrossAlignment.center,
                         children: [
-                          Text('New to Zivo?', style: TwText.textSm()),
+                          Text('New to Zivo?', style: TwText.textSm),
                           TextButton(
                             onPressed: () => context.go(AppRoutes.register),
-                            child: Text('Create account', style: TwText.link()),
+                            child: Text('Create account', style: TwText.link),
                           ),
                         ],
                       ),

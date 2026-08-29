@@ -23,7 +23,8 @@ upstream_concept: 00-Index
 ## Branching / PRs
 
 - Board worker branches: `agent/issue-<number>-<short-kebab-slug>`, off `master`.
-- **Never push directly to `master`, never self-merge.** Every automated change lands as a PR for human review. This applies to interactive sessions too, by extension — treat direct pushes to `master` as something to flag/confirm, not a default.
+- **Policy changed 2026-08-27 (11th run): the board worker now merges its own PRs.** The routine's own prompt explicitly says it "no longer waits for human review to land a change" — after DoD checks pass and the PR is cleanly mergeable, the routine squash-merges it itself. This supersedes the older "never self-merge" rule below, which held from setup (2026-08-13) through the 10th run (2026-08-27 morning). Still never push directly to `master` without a PR — the PR is still required, only the merge step changed. A merge conflict is still handled per the routine prompt (merge `master` into the branch, resolve, re-run DoD, then push before merging) — never force through a red or conflicted PR.
+- This does *not* change policy for interactive (non-routine) sessions — treat direct pushes/self-merges to `master` from an interactive session as something to flag/confirm, not a default, unless the user says otherwise for that session.
 - PR body should reference `Closes #<number>` and list any assumptions made (especially for async/unattended runs where no one was there to ask).
 
 ## Migrations / Supabase

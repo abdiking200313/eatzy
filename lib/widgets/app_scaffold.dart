@@ -36,7 +36,7 @@ class AppScaffold extends StatelessWidget {
         elevation: 0,
         scrolledUnderElevation: 0,
         centerTitle: false,
-        title: Text(title, style: TwText.textXl()),
+        title: Text(title, style: TwText.textXl),
         foregroundColor: theme.colorScheme.onSurface,
         leading: showBackButton
             ? IconButton(
@@ -72,7 +72,7 @@ class SectionTitle extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       title,
-      style: TwText.textXl().copyWith(
+      style: TwText.textXl.copyWith(
         color: color ?? Theme.of(context).colorScheme.onSurface,
         fontSize: fontSize,
       ),
