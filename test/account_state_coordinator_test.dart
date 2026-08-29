@@ -2,6 +2,7 @@ import 'package:chowflow/app/service_module.dart';
 import 'package:chowflow/platform/activity/models/activity_item.dart';
 import 'package:chowflow/platform/activity/presentation/activity_controller.dart';
 import 'package:chowflow/platform/session/account_state_coordinator.dart';
+import 'package:chowflow/platform/session/session_reset_registry.dart';
 import 'package:chowflow/services/grocery/data/grocery_repository.dart';
 import 'package:chowflow/services/grocery/presentation/grocery_controller.dart';
 import 'package:chowflow/services/pharmacy/data/pharmacy_repository.dart';
@@ -36,11 +37,18 @@ void main() {
       ),
     );
 
+    // A fresh registry per test, mirroring how each service module's
+    // controller singleton self-registers in the real app — the shared
+    // coordinator never imports GroceryController/PharmacyController
+    // directly.
+    final registry = SessionResetRegistry();
+    registry.register(grocery.resetSessionState);
+    registry.register(pharmacy.resetSessionState);
+
     final coordinator = AccountStateCoordinator(
       initialOwnerId: 'user-one',
       activityController: activity,
-      groceryController: grocery,
-      pharmacyController: pharmacy,
+      registry: registry,
     );
 
     expect(coordinator.handleOwnerChanged('user-one'), isFalse);

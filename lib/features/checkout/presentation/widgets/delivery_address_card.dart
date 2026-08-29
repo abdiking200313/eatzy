@@ -28,11 +28,8 @@ class DeliveryAddressCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final palette = context.serviceColors;
+    // White card only — the service accent is confined to the icon chip.
     return OutlinedCard(
-      backgroundColor: palette.card,
-      borderColor: palette.border,
-      borderRadius: 16,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

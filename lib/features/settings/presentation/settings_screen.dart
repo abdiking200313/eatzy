@@ -5,6 +5,7 @@ import '../../../app/app_routes.dart';
 import '../../../config/theme.dart';
 import '../../../widgets/app_cards.dart';
 import '../../../widgets/app_scaffold.dart';
+import '../../auth/data/auth_error_message.dart';
 import '../../auth/data/auth_service.dart';
 import 'widgets/setting_card.dart';
 import 'widgets/toggle_card.dart';
@@ -28,9 +29,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
       if (mounted) context.go(AppRoutes.login);
     } catch (error) {
       if (!mounted) return;
+      final message = describeAuthError(error, context: 'Logout');
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text('Could not log out: $error')));
+      ).showSnackBar(SnackBar(content: Text('Could not log out: $message')));
     }
   }
 

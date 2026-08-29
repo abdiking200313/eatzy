@@ -7,8 +7,11 @@ plugins {
 
 android {
     namespace = "com.example.chowflow"
-    compileSdk = flutter.compileSdkVersion
-    ndkVersion = flutter.ndkVersion
+    // Pinned to literal values instead of flutter.* so build output does not
+    // depend on whichever Flutter toolchain the builder has installed.
+    // These match the Flutter 3.41.9 template defaults (see .fvmrc).
+    compileSdk = 36
+    ndkVersion = "28.2.13676358"
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
@@ -24,8 +27,8 @@ android {
         applicationId = "com.example.chowflow"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
-        minSdk = flutter.minSdkVersion
-        targetSdk = flutter.targetSdkVersion
+        minSdk = 24
+        targetSdk = 36
         versionCode = flutter.versionCode
         versionName = flutter.versionName
     }

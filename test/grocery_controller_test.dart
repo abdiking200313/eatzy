@@ -115,4 +115,56 @@ void main() {
     expect(errors, contains('Choose a delivery slot.'));
     expect(errors, contains('Choose a substitution preference.'));
   });
+
+  test('confirmOrder surfaces an error, resets loading, and keeps the cart '
+      'when the order repository throws', () async {
+    final throwingController = GroceryController(
+      repository: const SeededGroceryRepository(),
+      orderRepository: const _ThrowingGroceryOrderRepository(),
+      activityController: activityController,
+    );
+    await throwingController.load();
+    final rice = throwingController.stores
+        .expand((store) => store.products)
+        .firstWhere((product) => product.id == 'bakaal-rice');
+    throwingController.addProduct(rice);
+
+    const address = GroceryDeliveryAddress(
+      recipientName: 'Amina',
+      phone: '+252 61 234 5678',
+      street: 'Near Taleex Road',
+      district: 'Hodan',
+      city: 'Mogadishu',
+    );
+
+    final result = await throwingController.confirmOrder(
+      address: address,
+      slot: GroceryController.deliverySlots.first,
+      substitutionPreference: GrocerySubstitutionPreference.contactMe,
+      now: DateTime.utc(2026, 7, 27, 12),
+    );
+
+    expect(result.isSuccess, isFalse);
+    expect(
+      result.errors,
+      contains('The grocery order could not be saved. Please try again.'),
+    );
+    expect(throwingController.isLoading, isFalse);
+    expect(throwingController.isEmpty, isFalse);
+    expect(throwingController.cart, hasLength(1));
+    expect(throwingController.lastConfirmation, isNull);
+    expect(activityController.items, isEmpty);
+  });
+}
+
+/// A [GroceryOrderRepository] fake that always fails, simulating a network
+/// error, Supabase exception, or RPC validation error surfaced during
+/// order placement.
+class _ThrowingGroceryOrderRepository implements GroceryOrderRepository {
+  const _ThrowingGroceryOrderRepository();
+
+  @override
+  Future<String> placeOrder(GroceryOrderRequest request) {
+    throw Exception('Simulated network failure while placing grocery order');
+  }
 }
