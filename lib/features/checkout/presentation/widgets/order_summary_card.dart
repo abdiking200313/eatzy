@@ -75,14 +75,14 @@ class _CheckoutItemRow extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(item.name, style: TwText.fontBoldSm()),
-              Text('x${item.quantity}', style: TwText.textSm()),
+              Text(item.name, style: TwText.fontBoldSm),
+              Text('x${item.quantity}', style: TwText.textSm),
             ],
           ),
         ),
         Text(
           _formatCurrency(item.total),
-          style: TwText.fontBoldSm().copyWith(color: TwColors.primary),
+          style: TwText.fontBoldSm.copyWith(color: TwColors.primary),
         ),
       ],
     );

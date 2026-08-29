@@ -80,7 +80,7 @@ class _FoodCategoriesScreenState extends State<FoodCategoriesScreen> {
                       textAlign: TextAlign.center,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: TwText.fontBoldSm(),
+                      style: TwText.fontBoldSm,
                     ),
                   ],
                 ),

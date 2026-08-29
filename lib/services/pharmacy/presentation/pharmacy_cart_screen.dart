@@ -78,7 +78,7 @@ class _OtcCartReminder extends StatelessWidget {
     return Text(
       'Your pharmacy cart is separate from food and grocery. '
       'All listed products are OTC.',
-      style: TwText.textSm(),
+      style: TwText.textSm,
     );
   }
 }
@@ -152,7 +152,7 @@ class _CartItemRow extends StatelessWidget {
                       item.product.name,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: TwText.fontBoldBase(),
+                      style: TwText.fontBoldBase,
                     ),
                   ),
                   SizedBox.square(
@@ -174,7 +174,7 @@ class _CartItemRow extends StatelessWidget {
               const SizedBox(height: TwSpacing.rhythmTight),
               Text(
                 AppMoney.format(item.total),
-                style: TwText.fontBoldSm().copyWith(color: TwColors.primary),
+                style: TwText.fontBoldSm.copyWith(color: TwColors.primary),
               ),
               const SizedBox(height: TwSpacing.rhythmDefault),
               // A `Wrap` rather than a `Row` so the "$X each" note drops to
@@ -199,7 +199,7 @@ class _CartItemRow extends StatelessWidget {
                         child: Text(
                           '${item.quantity}',
                           textAlign: TextAlign.center,
-                          style: TwText.fontBoldSm(),
+                          style: TwText.fontBoldSm,
                         ),
                       ),
                       _QuantityButton(
@@ -212,7 +212,7 @@ class _CartItemRow extends StatelessWidget {
                   ),
                   Text(
                     '${AppMoney.format(item.product.unitPrice)} each',
-                    style: TwText.textXs().copyWith(color: TwColors.textMuted),
+                    style: TwText.textXs.copyWith(color: TwColors.textMuted),
                   ),
                 ],
               ),
@@ -299,7 +299,7 @@ class _SummaryRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final style = isBold ? TwText.fontBoldBase() : TwText.textSm();
+    final style = isBold ? TwText.fontBoldBase : TwText.textSm;
     return Row(
       children: [
         Expanded(child: Text(label, style: style)),
@@ -326,12 +326,12 @@ class _EmptyPharmacyCart extends StatelessWidget {
               size: 52,
             ),
             const SizedBox(height: TwSpacing.x4),
-            Text('Your pharmacy cart is empty', style: TwText.textXl()),
+            Text('Your pharmacy cart is empty', style: TwText.textXl),
             const SizedBox(height: TwSpacing.x2),
             Text(
               'Browse OTC health essentials to get started.',
               textAlign: TextAlign.center,
-              style: TwText.textSm(),
+              style: TwText.textSm,
             ),
             const SizedBox(height: TwSpacing.x4),
             TextButton(

@@ -38,7 +38,7 @@ class ExploreScreen extends StatelessWidget {
                 serviceId: module.id,
                 child: ServiceIconChip(icon: module.icon),
               ),
-              title: Text(module.title, style: TwText.fontBoldBase()),
+              title: Text(module.title, style: TwText.fontBoldBase),
               subtitle: Text(module.description),
               trailing: const Icon(
                 Icons.chevron_right,

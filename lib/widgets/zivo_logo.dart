@@ -38,7 +38,7 @@ class ZivoLogo extends StatelessWidget {
             SizedBox(height: height * 0.06),
             Text(
               'zivo',
-              style: TwText.text2xl().copyWith(
+              style: TwText.text2xl.copyWith(
                 color: wordmarkColor,
                 fontSize: height * 0.42,
                 fontWeight: FontWeight.w700,

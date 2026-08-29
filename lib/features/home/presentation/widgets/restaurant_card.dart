@@ -41,7 +41,7 @@ class RestaurantCard extends StatelessWidget {
                         restaurant.name,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: TwText.textXl(),
+                        style: TwText.textXl,
                       ),
                     ),
                     // const SizedBox(width: TwSpacing.x2),
@@ -54,7 +54,7 @@ class RestaurantCard extends StatelessWidget {
                   restaurant.description,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: TwText.textSm().copyWith(color: TwColors.textMuted),
+                  style: TwText.textSm.copyWith(color: TwColors.textMuted),
                 ),
 
                 const SizedBox(height: TwSpacing.rhythmTight),
@@ -65,7 +65,7 @@ class RestaurantCard extends StatelessWidget {
                   children: [
                     Text(
                       'View menu',
-                      style: TwText.fontBoldSm().copyWith(
+                      style: TwText.fontBoldSm.copyWith(
                         color: TwColors.primary,
                       ),
                     ),

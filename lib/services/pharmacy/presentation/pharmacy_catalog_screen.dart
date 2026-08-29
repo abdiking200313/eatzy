@@ -136,11 +136,11 @@ class _PharmacyCatalogScreenState extends State<PharmacyCatalogScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Health essentials', style: TwText.textXl()),
+                Text('Health essentials', style: TwText.textXl),
                 const SizedBox(height: TwSpacing.x1),
                 Text(
                   'Seeded products for the interactive Zivo preview.',
-                  style: TwText.textSm(),
+                  style: TwText.textSm,
                 ),
               ],
             ),
@@ -219,13 +219,13 @@ class _OtcNotice extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Over-the-counter (OTC) only', style: TwText.fontBoldSm()),
+                Text('Over-the-counter (OTC) only', style: TwText.fontBoldSm),
                 const SizedBox(height: TwSpacing.rhythmTight),
                 Text(
                   'This preview does not accept prescriptions or include '
                   'regulated medicines. Ask a healthcare professional if you '
                   'are unsure which product is right for you.',
-                  style: TwText.textXs(),
+                  style: TwText.textXs,
                 ),
               ],
             ),
@@ -263,11 +263,11 @@ class _ProductCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(product.category, style: TwText.link()),
+                Text(product.category, style: TwText.link),
                 const SizedBox(height: TwSpacing.rhythmTight),
-                Text(product.name, style: TwText.fontBoldBase()),
+                Text(product.name, style: TwText.fontBoldBase),
                 const SizedBox(height: TwSpacing.rhythmTight),
-                Text(product.description, style: TwText.textSm()),
+                Text(product.description, style: TwText.textSm),
                 const SizedBox(height: TwSpacing.rhythmDefault),
                 Wrap(
                   spacing: TwSpacing.x3,
@@ -276,7 +276,7 @@ class _ProductCard extends StatelessWidget {
                   children: [
                     Text(
                       AppMoney.format(product.unitPrice),
-                      style: TwText.fontBoldBase().copyWith(
+                      style: TwText.fontBoldBase.copyWith(
                         color: TwColors.primary,
                       ),
                     ),

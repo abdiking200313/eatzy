@@ -114,7 +114,7 @@ class _CartContents extends StatelessWidget {
             Text(
               '${controller.itemCount} '
               '${controller.itemCount == 1 ? 'item' : 'items'}',
-              style: TwText.textSm(),
+              style: TwText.textSm,
             ),
           ],
         ),
@@ -122,7 +122,7 @@ class _CartContents extends StatelessWidget {
           const SizedBox(height: TwSpacing.x1),
           Text(
             controller.restaurantName!,
-            style: TwText.textSm().copyWith(color: TwColors.textMuted),
+            style: TwText.textSm.copyWith(color: TwColors.textMuted),
           ),
         ],
         const SizedBox(height: TwSpacing.x5),
@@ -218,7 +218,7 @@ class _CartItemRow extends StatelessWidget {
                       item.name,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: TwText.fontBoldBase(),
+                      style: TwText.fontBoldBase,
                     ),
                   ),
                   SizedBox.square(
@@ -240,7 +240,7 @@ class _CartItemRow extends StatelessWidget {
               const SizedBox(height: TwSpacing.rhythmTight),
               Text(
                 _formatCurrency(item.total),
-                style: TwText.fontBoldSm().copyWith(color: TwColors.primary),
+                style: TwText.fontBoldSm.copyWith(color: TwColors.primary),
               ),
               const SizedBox(height: TwSpacing.rhythmDefault),
               _QuantitySelector(
@@ -334,7 +334,7 @@ class _QuantitySelector extends StatelessWidget {
               child: Text(
                 '${item.quantity}',
                 textAlign: TextAlign.center,
-                style: TwText.fontBoldSm(),
+                style: TwText.fontBoldSm,
               ),
             ),
             _QuantityButton(
@@ -347,7 +347,7 @@ class _QuantitySelector extends StatelessWidget {
         ),
         Text(
           '${_formatCurrency(item.unitPrice)} each',
-          style: TwText.textXs().copyWith(color: TwColors.textMuted),
+          style: TwText.textXs.copyWith(color: TwColors.textMuted),
         ),
       ],
     );
@@ -434,12 +434,12 @@ class _EmptyCart extends StatelessWidget {
               color: TwColors.textMuted,
             ),
             const SizedBox(height: TwSpacing.x5),
-            Text('Your cart is empty', style: TwText.textXl()),
+            Text('Your cart is empty', style: TwText.textXl),
             const SizedBox(height: TwSpacing.x2),
             Text(
               'Choose something delicious from a restaurant menu.',
               textAlign: TextAlign.center,
-              style: TwText.textSm(),
+              style: TwText.textSm,
             ),
             const SizedBox(height: TwSpacing.x5),
             TextButton.icon(

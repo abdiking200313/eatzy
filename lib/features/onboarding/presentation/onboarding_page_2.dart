@@ -40,14 +40,14 @@ class OnboardingPage2 extends StatelessWidget {
               const SizedBox(height: TwSpacing.x3),
               Text(
                 'ETA',
-                style: TwText.textXs().copyWith(
+                style: TwText.textXs.copyWith(
                   color: Colors.white.withOpacityValue(0.8),
                   letterSpacing: 1,
                 ),
               ),
               Text(
                 '12 Minutes',
-                style: TwText.fontBoldSm().copyWith(color: Colors.white),
+                style: TwText.fontBoldSm.copyWith(color: Colors.white),
               ),
             ],
           ),

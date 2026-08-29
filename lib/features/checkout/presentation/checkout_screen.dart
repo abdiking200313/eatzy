@@ -89,7 +89,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   if (_foodController.submissionError case final error?) ...[
                     Text(
                       error,
-                      style: TwText.textSm().copyWith(color: TwColors.error),
+                      style: TwText.textSm.copyWith(color: TwColors.error),
                     ),
                     const SizedBox(height: TwSpacing.x3),
                   ],
@@ -144,7 +144,7 @@ class _EmptyCheckout extends StatelessWidget {
               color: TwColors.textMuted,
             ),
             const SizedBox(height: TwSpacing.x4),
-            Text('Your cart is empty', style: TwText.textXl()),
+            Text('Your cart is empty', style: TwText.textXl),
             const SizedBox(height: TwSpacing.x4),
             TextButton(
               onPressed: () => context.go(AppRoutes.mainApp),

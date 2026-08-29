@@ -37,7 +37,7 @@ class DeliveryAddressCard extends StatelessWidget {
           const SizedBox(height: TwSpacing.x2),
           Text(
             'Delivery is currently available in Somalia only.',
-            style: TwText.textSm(),
+            style: TwText.textSm,
           ),
           const SizedBox(height: TwSpacing.x4),
           TextField(
@@ -107,7 +107,7 @@ class DeliveryAddressCard extends StatelessWidget {
                     padding: const EdgeInsets.only(bottom: TwSpacing.x1),
                     child: Text(
                       '• $error',
-                      style: TwText.textSm().copyWith(color: TwColors.error),
+                      style: TwText.textSm.copyWith(color: TwColors.error),
                     ),
                   ),
               ],

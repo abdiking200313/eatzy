@@ -114,7 +114,7 @@ class StatusPill extends StatelessWidget {
               label,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: TwText.textXs().copyWith(color: fg, fontSize: fontSize),
+              style: TwText.textXs.copyWith(color: fg, fontSize: fontSize),
             ),
           ),
         ],
@@ -143,10 +143,10 @@ class SummaryRow extends StatelessWidget {
     // `ZivoServiceTheme` that scheme slot resolves to the per-service
     // accent, which would break the "accent confined to the 48px icon
     // chip" redesign rule for every cart/checkout summary using this row.
-    final labelStyle = isBold ? TwText.fontBoldBase() : TwText.textSm();
+    final labelStyle = isBold ? TwText.fontBoldBase : TwText.textSm;
     final valueStyle = isBold
-        ? TwText.fontBoldBase().copyWith(color: TwColors.primary)
-        : TwText.fontBoldSm();
+        ? TwText.fontBoldBase.copyWith(color: TwColors.primary)
+        : TwText.fontBoldSm;
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
