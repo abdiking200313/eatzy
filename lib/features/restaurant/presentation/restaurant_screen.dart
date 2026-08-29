@@ -434,11 +434,22 @@ class _RestaurantHero extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final trimmedUrl = imageUrl.trim();
+    // The hero fills the SliverAppBar's expandedHeight (230) at full
+    // screen width; there's no fixed logical width available here, so the
+    // screen width is used as the practical upper bound for the decoded
+    // width. Both dimensions are scaled for device pixel density and
+    // capped at 3x since a wider cap buys no visible sharpness while
+    // still inflating decode memory.
+    final cacheScale = MediaQuery.of(context).devicePixelRatio.clamp(1.0, 3.0);
+    final cacheWidth = (MediaQuery.of(context).size.width * cacheScale).round();
+    final cacheHeight = (230 * cacheScale).round();
     final image = trimmedUrl.isEmpty
         ? const _RestaurantHeroFallback()
         : CachedNetworkImage(
             imageUrl: trimmedUrl,
             fit: BoxFit.cover,
+            memCacheWidth: cacheWidth,
+            memCacheHeight: cacheHeight,
             placeholder: (_, _) =>
                 const _RestaurantHeroFallback(showLoader: true),
             errorWidget: (_, _, _) => const _RestaurantHeroFallback(),

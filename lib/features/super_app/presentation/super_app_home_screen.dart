@@ -402,6 +402,13 @@ class _PopularRestaurantCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final logoUrl = restaurant.logoUrl.trim();
+    // Decode at roughly the rendered 140x88 box (the card's fixed width
+    // and image height) scaled for device pixel density. Capped at 3x
+    // since a wider cap buys no visible sharpness on a thumbnail this
+    // small while still inflating decode memory.
+    final cacheScale = MediaQuery.of(context).devicePixelRatio.clamp(1.0, 3.0);
+    final cacheWidth = (140 * cacheScale).round();
+    final cacheHeight = (88 * cacheScale).round();
     return SizedBox(
       width: 140,
       child: OutlinedCard(
@@ -430,6 +437,8 @@ class _PopularRestaurantCard extends StatelessWidget {
                     : CachedNetworkImage(
                         imageUrl: logoUrl,
                         fit: BoxFit.cover,
+                        memCacheWidth: cacheWidth,
+                        memCacheHeight: cacheHeight,
                         errorWidget: (_, _, _) => const ColoredBox(
                           color: TwColors.primarySoft,
                           child: Icon(

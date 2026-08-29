@@ -70,9 +70,17 @@ class _CategoryImage extends StatelessWidget {
       return const _ImageFallback();
     }
 
+    // Decode at roughly the rendered 90x90 box scaled for device pixel
+    // density, not at the source image's native resolution. Capped at 3x
+    // since a wider cap buys no visible sharpness on a chip this small
+    // while still inflating decode memory.
+    final cacheScale = MediaQuery.of(context).devicePixelRatio.clamp(1.0, 3.0);
+    final cacheSize = (90 * cacheScale).round();
     return CachedNetworkImage(
       imageUrl: imageUrl,
       fit: BoxFit.fill,
+      memCacheWidth: cacheSize,
+      memCacheHeight: cacheSize,
       placeholder: (context, url) => const _ImageLoading(),
       errorWidget: (context, url, error) => const _ImageFallback(),
     );
