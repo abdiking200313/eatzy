@@ -189,5 +189,29 @@ Reverse-chronological. Each session/major chunk of work gets an entry.
 
 ---
 
+## 2026-08-13
+
+**User directly challenged whether the prior audits were actually thorough** ("did you take a good look at the project"). Honest answer given: no — never ran the app, never reconciled `.codex`/AGENTS.md, several areas never read at all (native configs, `lib/platform/`, several feature verticals), issue #8 left uninvestigated. User asked for a real pass, pre-authorizing investigation questions.
+
+**Ran a genuinely thorough pass**: 5 parallel read-only investigation agents (agent-system reconciliation, currency/schema deep-dive, native-platform/branding audit, remaining-verticals audit, full test-suite read) plus an actual live-app launch. See [[Audit Findings]] Pass 3 for the full writeup. Highlights:
+- **Release-blocking bug found and fixed same-session**: Android release manifest was missing the `INTERNET` permission entirely.
+- Currency/schema drift (issue #8) went from "documented claim, unverified" to a precise, evidence-backed finding — two conflicting SQL conventions in the repo, one live crossing point (`menu_items.price`), needs a live DB check to close.
+- 6 new "looks-done-but-isn't" feature gaps found (rewards, settings, addresses, payment methods, profile-edit, onboarding-gating) — filed as issues #9-15, not auto-built, matching the existing wallet/food-address precedent.
+- Plus: branding/bundle-ID drift (#16), no CI/CD (#17), test-suite gaps (#18), `ActivityController` architecture violation (#19).
+- **A misdiagnosis happened and was caught**: an investigation agent, not pointed at the vault, rediscovered and misapplied the `chowflow_flutter/`-path confusion, wrongly concluding AGENTS.md's repo-authority claim was stale. Corrected in [[Decisions Log]] — no fix to AGENTS.md was actually needed.
+- **Live-app check was honest about its limits**: launched the app for real (Flutter web + a scratch Playwright script, no project run-skill existed), got a real screenshot of the welcome screen rendering correctly — but could not reach the two specific refactored screens (restaurant detail, cleaning booking) because they're auth-gated and this sandbox can't reach Supabase's network. Reported that limitation plainly rather than claiming a visual check that didn't happen.
+
+**Fixed directly this session** (mechanical/low-risk, same pattern as before): the INTERNET permission bug, dead code in `app_widgets.dart`/`app_money.dart`/`app_cards.dart`, `ActivityController`'s error-swallowing, `test/widget_test.dart` renamed, `chowflow_flutter/README.md` rewritten to stop being stale, stale-warning banners added to all 6 outer `eatzy/*.md` docs, and three `.claude/skills/build/SKILL.md` process gaps closed (3-question cap, task-brief schema, explicit pubspec/native-platform non-ownership) — adopted from the AGENTS.md/`.codex` reconciliation findings. Verified with a full `dart format --set-exit-if-changed lib test` / `flutter analyze` / `flutter test` pass — all clean, 60/60 tests passing.
+
+**Also fixed two stale issue-number references** in [[Audit Findings]] Pass 2 (had #4/#6 where it should've said #5/#7) — a small internal-consistency bug in the vault itself, worth remembering the vault needs its own accuracy upkeep, not just the code's.
+
+**Not done this session, tracked in [[Open Tasks]]**: the interrupted dedup extraction from 2026-08-12 is still sitting uncommitted, untouched; the 6 new feature-gap issues (#9-15) and the currency verdict (#8) all still need either a live DB check or a product decision from the user before anyone can act further.
+
+---
+
+## 2026-08-15
+
+**Board worker built issue #33** (stock Flutter template app icons/splash screen on Android+iOS): made `ZivoMarkPainter` in `lib/widgets/zivo_logo.dart` public and added `tool/generate_brand_assets.dart` (a `flutter_test`-based rasterizer) so the app-icon/splash source PNGs under `assets/icon/` are generated from the exact same brand mark used in-app, not a separate hand-made asset. Wired via `flutter_launcher_icons` + `flutter_native_splash` (new dev deps, config in `pubspec.yaml`); ran both generators for Android (incl. adaptive icon)/iOS/macOS/Windows/web. `flutter_launcher_icons` has no Linux target — left Linux icon untouched, noted as an assumption in the PR. Also fixed the stale "A new Flutter project." description in `web/manifest.json` and `web/index.html` per the issue. Format/analyze/test all clean (60/60).
+- Issue #16 (native bundle identifiers) is still `waiting-on-you` — my clarifying question is up, no reply yet.
 Entries older than 2026-08-15 (the 2026-08-12/13 initial setup and first thorough audit pass) archived to `vault/archive/Status Log 2026-08.md`.
 
