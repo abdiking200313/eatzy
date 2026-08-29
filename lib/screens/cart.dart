@@ -126,32 +126,7 @@ class _CartContents extends StatelessWidget {
           ),
         ],
         const SizedBox(height: TwSpacing.x5),
-        for (var index = 0; index < controller.items.length; index++) ...[
-          _CartItemCard(
-            item: controller.items[index],
-            onDecrease: controller.items[index].quantity == 1
-                ? null
-                : () => onMutation(
-                    () => controller.decrement(
-                      controller.items[index].menuItemId,
-                    ),
-                  ),
-            onIncrease:
-                controller.items[index].quantity ==
-                    CartController.maximumQuantity
-                ? null
-                : () => onMutation(
-                    () => controller.increment(
-                      controller.items[index].menuItemId,
-                    ),
-                  ),
-            onRemove: () => onMutation(
-              () => controller.remove(controller.items[index].menuItemId),
-            ),
-          ),
-          if (index != controller.items.length - 1)
-            const SizedBox(height: TwSpacing.x4),
-        ],
+        _CartItemsCard(controller: controller, onMutation: onMutation),
         const SizedBox(height: TwSpacing.x8),
         _CartSummary(controller: controller),
         const SizedBox(height: TwSpacing.x8),
@@ -166,8 +141,53 @@ class _CartContents extends StatelessWidget {
   }
 }
 
-class _CartItemCard extends StatelessWidget {
-  const _CartItemCard({
+/// One card holding every cart line item with internal dividers between
+/// rows, per the redesign's "one card per list" rule — never a separate
+/// card per line item.
+class _CartItemsCard extends StatelessWidget {
+  const _CartItemsCard({required this.controller, required this.onMutation});
+
+  final CartController controller;
+  final void Function(Future<void> Function()) onMutation;
+
+  @override
+  Widget build(BuildContext context) {
+    final items = controller.items;
+    return OutlinedCard(
+      padding: const EdgeInsets.all(TwSpacing.x4),
+      child: Column(
+        children: [
+          for (var index = 0; index < items.length; index++) ...[
+            _CartItemRow(
+              item: items[index],
+              onDecrease: items[index].quantity == 1
+                  ? null
+                  : () => onMutation(
+                      () => controller.decrement(items[index].menuItemId),
+                    ),
+              onIncrease:
+                  items[index].quantity == CartController.maximumQuantity
+                  ? null
+                  : () => onMutation(
+                      () => controller.increment(items[index].menuItemId),
+                    ),
+              onRemove: () =>
+                  onMutation(() => controller.remove(items[index].menuItemId)),
+            ),
+            if (index != items.length - 1) ...[
+              const SizedBox(height: TwSpacing.rhythmDefault),
+              const Divider(),
+              const SizedBox(height: TwSpacing.rhythmDefault),
+            ],
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _CartItemRow extends StatelessWidget {
+  const _CartItemRow({
     required this.item,
     required this.onDecrease,
     required this.onIncrease,
@@ -181,64 +201,57 @@ class _CartItemCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final palette = context.serviceColors;
-    return OutlinedCard(
-      backgroundColor: palette.card,
-      borderRadius: 16,
-      borderColor: palette.border,
-      padding: const EdgeInsets.all(TwSpacing.x4),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _CartItemImage(imageUrl: item.imageUrl),
-          const SizedBox(width: TwSpacing.x4),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        item.name,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: TwText.fontBoldBase(),
-                      ),
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _CartItemImage(imageUrl: item.imageUrl),
+        const SizedBox(width: TwSpacing.x4),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Text(
+                      item.name,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: TwText.fontBoldBase(),
                     ),
-                    SizedBox.square(
-                      dimension: 32,
-                      child: IconButton(
-                        key: ValueKey('remove-cart-item-${item.menuItemId}'),
-                        tooltip: 'Remove ${item.name}',
-                        padding: EdgeInsets.zero,
-                        icon: const Icon(
-                          Icons.close_rounded,
-                          size: 20,
-                          color: TwColors.textMuted,
-                        ),
-                        onPressed: onRemove,
+                  ),
+                  SizedBox.square(
+                    dimension: 32,
+                    child: IconButton(
+                      key: ValueKey('remove-cart-item-${item.menuItemId}'),
+                      tooltip: 'Remove ${item.name}',
+                      padding: EdgeInsets.zero,
+                      icon: const Icon(
+                        Icons.close_rounded,
+                        size: 20,
+                        color: TwColors.textMuted,
                       ),
+                      onPressed: onRemove,
                     ),
-                  ],
-                ),
-                const SizedBox(height: TwSpacing.x1),
-                Text(
-                  _formatCurrency(item.total),
-                  style: TwText.fontBoldSm().copyWith(color: palette.accent),
-                ),
-                const SizedBox(height: TwSpacing.x3),
-                _QuantitySelector(
-                  item: item,
-                  onDecrease: onDecrease,
-                  onIncrease: onIncrease,
-                ),
-              ],
-            ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: TwSpacing.rhythmTight),
+              Text(
+                _formatCurrency(item.total),
+                style: TwText.fontBoldSm().copyWith(color: TwColors.primary),
+              ),
+              const SizedBox(height: TwSpacing.rhythmDefault),
+              _QuantitySelector(
+                item: item,
+                onDecrease: onDecrease,
+                onIncrease: onIncrease,
+              ),
+            ],
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
@@ -265,12 +278,20 @@ class _CartItemImage extends StatelessWidget {
       return fallback;
     }
 
+    // Decode at roughly the rendered 82x82 box scaled for device pixel
+    // density, not at the source image's native resolution. Capped at 3x
+    // since a wider cap buys no visible sharpness on a thumbnail this
+    // small while still inflating decode memory.
+    final cacheScale = MediaQuery.of(context).devicePixelRatio.clamp(1.0, 3.0);
+    final cacheSize = (82 * cacheScale).round();
     return ClipRRect(
       borderRadius: BorderRadius.circular(12),
       child: CachedNetworkImage(
         imageUrl: imageUrl,
         width: 82,
         height: 82,
+        memCacheWidth: cacheSize,
+        memCacheHeight: cacheSize,
         fit: BoxFit.cover,
         placeholder: (_, _) => fallback,
         errorWidget: (_, _, _) => fallback,
@@ -292,30 +313,38 @@ class _QuantitySelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
+    // A `Wrap` rather than a `Row` so the "$X each" note drops to its own
+    // line instead of overflowing on a narrow screen with enlarged text.
+    return Wrap(
+      crossAxisAlignment: WrapCrossAlignment.center,
+      spacing: TwSpacing.x3,
+      runSpacing: TwSpacing.x1,
       children: [
-        _QuantityButton(
-          key: ValueKey('decrease-cart-item-${item.menuItemId}'),
-          tooltip: 'Decrease ${item.name}',
-          icon: Icons.remove_rounded,
-          onPressed: onDecrease,
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _QuantityButton(
+              key: ValueKey('decrease-cart-item-${item.menuItemId}'),
+              tooltip: 'Decrease ${item.name}',
+              icon: Icons.remove_rounded,
+              onPressed: onDecrease,
+            ),
+            SizedBox(
+              width: 40,
+              child: Text(
+                '${item.quantity}',
+                textAlign: TextAlign.center,
+                style: TwText.fontBoldSm(),
+              ),
+            ),
+            _QuantityButton(
+              key: ValueKey('increase-cart-item-${item.menuItemId}'),
+              tooltip: 'Increase ${item.name}',
+              icon: Icons.add_rounded,
+              onPressed: onIncrease,
+            ),
+          ],
         ),
-        SizedBox(
-          width: 40,
-          child: Text(
-            '${item.quantity}',
-            textAlign: TextAlign.center,
-            style: TwText.fontBoldSm(),
-          ),
-        ),
-        _QuantityButton(
-          key: ValueKey('increase-cart-item-${item.menuItemId}'),
-          tooltip: 'Increase ${item.name}',
-          icon: Icons.add_rounded,
-          onPressed: onIncrease,
-        ),
-        const SizedBox(width: TwSpacing.x3),
         Text(
           '${_formatCurrency(item.unitPrice)} each',
           style: TwText.textXs().copyWith(color: TwColors.textMuted),
@@ -358,10 +387,9 @@ class _CartSummary extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // White card only — OutlinedCard's default fill/border are already the
+    // neutral tokens, so no service-tinted override here.
     return OutlinedCard(
-      backgroundColor: context.serviceColors.card,
-      borderColor: context.serviceColors.border,
-      borderRadius: 16,
       child: Column(
         children: [
           SummaryRow(
@@ -394,25 +422,16 @@ class _EmptyCart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final palette = context.serviceColors;
     return Center(
       child: SingleChildScrollView(
         padding: const EdgeInsets.all(TwSpacing.x8),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Container(
-              width: 96,
-              height: 96,
-              decoration: BoxDecoration(
-                color: palette.soft,
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                Icons.shopping_cart_outlined,
-                size: 48,
-                color: palette.accent,
-              ),
+            const Icon(
+              Icons.shopping_cart_outlined,
+              size: 56,
+              color: TwColors.textMuted,
             ),
             const SizedBox(height: TwSpacing.x5),
             Text('Your cart is empty', style: TwText.textXl()),

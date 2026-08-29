@@ -23,6 +23,13 @@ class AppRoutes {
 
   // Food service
   static const food = '/food';
+
+  // Not a navigable destination on its own — no screen renders a bare
+  // "/food/restaurants" list, `food` already serves that role. This exists
+  // only as a shared path-segment prefix for `foodRestaurant` (the
+  // registered per-restaurant route) and for `restaurantDetails`/
+  // `isRestaurantDetails` below. Intentionally has no matching GoRoute; see
+  // issue #69.
   static const foodRestaurants = '$food/restaurants';
   static const foodRestaurant = '$foodRestaurants/:restaurantId';
   static const foodCategories = '$food/categories';
@@ -48,7 +55,6 @@ class AppRoutes {
   static const cart = '/cart';
   static const checkout = '/checkout';
   static const profile = '/profile';
-  static const orders = '/orders';
   static const addresses = '/addresses';
   static const paymentMethods = '/payment-methods';
   static const settings = '/settings';

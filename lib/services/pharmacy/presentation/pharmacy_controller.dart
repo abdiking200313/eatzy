@@ -7,6 +7,8 @@ import '../../../app/service_module.dart';
 import '../../../platform/activity/models/activity_item.dart';
 import '../../../platform/activity/presentation/activity_controller.dart';
 import '../../../platform/session/session_reset_registry.dart';
+import '../../shared/presentation/confirm_order_flow.dart';
+import '../../shared/presentation/loadable_state_mixin.dart';
 import '../data/pharmacy_repository.dart';
 import '../models/pharmacy_cart_item.dart';
 import '../models/pharmacy_checkout.dart';
@@ -20,7 +22,7 @@ enum PharmacyCartAddResult {
   maximumStockReached,
 }
 
-class PharmacyController extends ChangeNotifier {
+class PharmacyController extends ChangeNotifier with LoadableState {
   PharmacyController({
     required PharmacyRepository repository,
     required ActivityController activityController,
@@ -51,15 +53,10 @@ class PharmacyController extends ChangeNotifier {
   final List<PharmacyProduct> _products = [];
   final List<PharmacyCartItem> _cartItems = [];
 
-  bool _isLoading = false;
-  String? _loadError;
-
   UnmodifiableListView<PharmacyProduct> get products =>
       UnmodifiableListView(_products);
   UnmodifiableListView<PharmacyCartItem> get cartItems =>
       UnmodifiableListView(_cartItems);
-  bool get isLoading => _isLoading;
-  String? get loadError => _loadError;
   bool get isCartEmpty => _cartItems.isEmpty;
   bool get isCartNotEmpty => _cartItems.isNotEmpty;
   int get itemCount =>
@@ -69,25 +66,20 @@ class PharmacyController extends ChangeNotifier {
   double get total => subtotal + (isCartEmpty ? 0 : deliveryFee);
 
   Future<void> loadProducts() async {
-    if (_products.isNotEmpty || _isLoading) {
+    if (_products.isNotEmpty || isLoading) {
       return;
     }
 
-    _isLoading = true;
-    _loadError = null;
-    notifyListeners();
-
-    try {
-      final products = await _repository.fetchProducts();
-      _products
-        ..clear()
-        ..addAll(products.where((product) => product.isOverTheCounter));
-    } on Object {
-      _loadError = 'The pharmacy catalog could not be loaded.';
-    } finally {
-      _isLoading = false;
-      notifyListeners();
-    }
+    await runLoad(
+      fetch: () async {
+        final products = await _repository.fetchProducts();
+        _products
+          ..clear()
+          ..addAll(products.where((product) => product.isOverTheCounter));
+      },
+      onError: (error, stackTrace) =>
+          'The pharmacy catalog could not be loaded.',
+    );
   }
 
   PharmacyCartAddResult addProduct(PharmacyProduct product) {
@@ -200,61 +192,59 @@ class PharmacyController extends ChangeNotifier {
 
   Future<PharmacyCheckoutResult> placeDemoOrder(
     PharmacyCheckoutDetails details,
-  ) async {
+  ) {
     final validation = validateCheckout(details);
-    if (!validation.isValid) {
-      return PharmacyCheckoutResult.invalid(validation);
-    }
-
     final confirmedAt = _now();
+    // Snapshot cart-derived values before the shared flow clears the cart.
     final confirmedTotal = total;
     final confirmedItemCount = itemCount;
-    String orderId;
-    try {
-      orderId =
-          await _orderRepository?.placeOrder(
-            PharmacyOrderRequest(
-              details: details,
-              items: _cartItems
-                  .map(
-                    (item) => PharmacyOrderLineInput(
-                      productId: item.product.id,
-                      quantity: item.quantity,
-                    ),
-                  )
-                  .toList(growable: false),
-            ),
+    final confirmedItems = _cartItems
+        .map(
+          (item) => PharmacyOrderLineInput(
+            productId: item.product.id,
+            quantity: item.quantity,
+          ),
+        )
+        .toList(growable: false);
+
+    return confirmDemoOrder<PharmacyCheckoutResult, PharmacyCheckoutValidation>(
+      validation: validation,
+      isValid: (validation) => validation.isValid,
+      onInvalid: (validation) => PharmacyCheckoutResult.invalid(validation),
+      placeOrder: () =>
+          _orderRepository?.placeOrder(
+            PharmacyOrderRequest(details: details, items: confirmedItems),
           ) ??
-          'pharmacy-${confirmedAt.microsecondsSinceEpoch}';
-    } on Object {
-      return PharmacyCheckoutResult.invalid(
+          Future.value(null),
+      fallbackOrderId: () => 'pharmacy-${confirmedAt.microsecondsSinceEpoch}',
+      onSaveFailed: () => PharmacyCheckoutResult.invalid(
         const PharmacyCheckoutValidation({
           'order': 'The pharmacy order could not be saved. Please try again.',
         }),
-      );
-    }
-
-    _activityController.record(
-      ActivityItem(
-        id: orderId,
-        serviceId: ServiceId.pharmacy,
-        title: 'Pharmacy order',
-        subtitle:
-            '$confirmedItemCount OTC '
-            '${confirmedItemCount == 1 ? 'item' : 'items'}',
-        status: 'Demo confirmed',
-        occurredAt: confirmedAt,
-        amount: confirmedTotal,
-        detailsRoute: '/pharmacy',
       ),
-    );
-    clearCart();
-
-    return PharmacyCheckoutResult.success(
-      orderId: orderId,
-      message:
-          'Demo order confirmed. No payment was processed and no order '
-          'was sent to a pharmacy.',
+      recordActivity: (orderId) {
+        _activityController.record(
+          ActivityItem(
+            id: orderId,
+            serviceId: ServiceId.pharmacy,
+            title: 'Pharmacy order',
+            subtitle:
+                '$confirmedItemCount OTC '
+                '${confirmedItemCount == 1 ? 'item' : 'items'}',
+            status: 'Demo confirmed',
+            occurredAt: confirmedAt,
+            amount: confirmedTotal,
+            detailsRoute: '/pharmacy',
+          ),
+        );
+      },
+      clearCart: clearCart,
+      onConfirmed: (orderId) => PharmacyCheckoutResult.success(
+        orderId: orderId,
+        message:
+            'Demo order confirmed. No payment was processed and no order '
+            'was sent to a pharmacy.',
+      ),
     );
   }
 

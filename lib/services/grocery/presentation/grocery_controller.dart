@@ -7,6 +7,8 @@ import '../../../app/service_module.dart';
 import '../../../platform/activity/models/activity_item.dart';
 import '../../../platform/activity/presentation/activity_controller.dart';
 import '../../../platform/session/session_reset_registry.dart';
+import '../../shared/presentation/confirm_order_flow.dart';
+import '../../shared/presentation/loadable_state_mixin.dart';
 import '../data/grocery_repository.dart';
 import '../models/grocery_models.dart';
 
@@ -18,7 +20,7 @@ enum GroceryAddResult {
   stockLimitReached,
 }
 
-class GroceryController extends ChangeNotifier {
+class GroceryController extends ChangeNotifier with LoadableState {
   GroceryController({
     required GroceryRepository repository,
     GroceryCatalogRepository? catalogRepository,
@@ -76,9 +78,7 @@ class GroceryController extends ChangeNotifier {
   final List<GroceryDeliverySlot> _deliverySlots = [];
   final Map<String, GroceryCartLine> _cart = {};
 
-  bool _isLoading = false;
   bool _hasLoaded = false;
-  String? _loadError;
   bool _slotsLoading = false;
   String? _slotLoadError;
   GroceryOrderConfirmation? _lastConfirmation;
@@ -87,9 +87,7 @@ class GroceryController extends ChangeNotifier {
       UnmodifiableListView(_stores);
   UnmodifiableListView<GroceryCartLine> get cart =>
       UnmodifiableListView(_cart.values.toList(growable: false));
-  bool get isLoading => _isLoading;
   bool get hasLoaded => _hasLoaded;
-  String? get loadError => _loadError;
   bool get slotsLoading => _slotsLoading;
   String? get slotLoadError => _slotLoadError;
   UnmodifiableListView<GroceryDeliverySlot> get availableDeliverySlots =>
@@ -122,25 +120,20 @@ class GroceryController extends ChangeNotifier {
   double get total => subtotal + deliveryFee;
 
   Future<void> load() async {
-    if (_isLoading) {
+    if (isLoading) {
       return;
     }
-    _isLoading = true;
-    _loadError = null;
-    notifyListeners();
-
-    try {
-      final stores = await _repository.fetchStores();
-      _stores
-        ..clear()
-        ..addAll(stores);
-      _hasLoaded = true;
-    } on Object {
-      _loadError = 'Groceries could not be loaded. Please try again.';
-    } finally {
-      _isLoading = false;
-      notifyListeners();
-    }
+    await runLoad(
+      fetch: () async {
+        final stores = await _repository.fetchStores();
+        _stores
+          ..clear()
+          ..addAll(stores);
+        _hasLoaded = true;
+      },
+      onError: (error, stackTrace) =>
+          'Groceries could not be loaded. Please try again.',
+    );
   }
 
   Future<void> loadDeliverySlots() async {
@@ -294,68 +287,75 @@ class GroceryController extends ChangeNotifier {
     required GroceryDeliverySlot? slot,
     required GrocerySubstitutionPreference? substitutionPreference,
     DateTime? now,
-  }) async {
+  }) {
     final errors = validateCheckout(
       address: address,
       slot: slot,
       substitutionPreference: substitutionPreference,
     );
-    if (errors.isNotEmpty) {
-      return GroceryCheckoutResult.invalid(errors);
-    }
-
     final createdAt = now ?? DateTime.now();
-    String orderId;
-    try {
-      orderId =
-          await _orderRepository?.placeOrder(
+    // Snapshot cart-derived values before the shared flow clears the cart.
+    final confirmedStoreId = storeId;
+    final confirmedStoreName = storeName;
+    final confirmedAmount = total;
+    final confirmedItems = _cart.values
+        .map(
+          (line) => GroceryOrderLineInput(
+            productId: line.product.id,
+            quantity: line.quantity,
+          ),
+        )
+        .toList(growable: false);
+    GroceryOrderConfirmation? confirmation;
+
+    return confirmDemoOrder<GroceryCheckoutResult, List<String>>(
+      validation: errors,
+      isValid: (validation) => validation.isEmpty,
+      onInvalid: (validation) => GroceryCheckoutResult.invalid(validation),
+      placeOrder: () =>
+          _orderRepository?.placeOrder(
             GroceryOrderRequest(
-              storeId: storeId!,
+              storeId: confirmedStoreId!,
               deliverySlotId: slot!.id,
               address: address,
               substitutionPreference: substitutionPreference!,
-              items: _cart.values
-                  .map(
-                    (line) => GroceryOrderLineInput(
-                      productId: line.product.id,
-                      quantity: line.quantity,
-                    ),
-                  )
-                  .toList(growable: false),
+              items: confirmedItems,
             ),
           ) ??
-          'grocery-${createdAt.microsecondsSinceEpoch}';
-    } on Object {
-      return GroceryCheckoutResult.invalid([
+          Future.value(null),
+      fallbackOrderId: () => 'grocery-${createdAt.microsecondsSinceEpoch}',
+      onSaveFailed: () => GroceryCheckoutResult.invalid([
         'The grocery order could not be saved. Please try again.',
-      ]);
-    }
-    final confirmedAmount = total;
-    final confirmation = GroceryOrderConfirmation(
-      orderId: orderId,
-      createdAt: createdAt,
-      amount: confirmedAmount,
-      slot: slot!,
-      address: address,
-      substitutionPreference: substitutionPreference!,
+      ]),
+      recordActivity: (orderId) {
+        confirmation = GroceryOrderConfirmation(
+          orderId: orderId,
+          createdAt: createdAt,
+          amount: confirmedAmount,
+          slot: slot!,
+          address: address,
+          substitutionPreference: substitutionPreference!,
+        );
+        _activityController.record(
+          ActivityItem(
+            id: orderId,
+            serviceId: ServiceId.grocery,
+            title: confirmedStoreName ?? 'Grocery order',
+            subtitle: '${slot.label}, ${slot.detail}',
+            status: 'Demo confirmed',
+            occurredAt: createdAt,
+            amount: confirmedAmount,
+            detailsRoute: '/grocery',
+          ),
+        );
+      },
+      clearCart: _cart.clear,
+      onConfirmed: (orderId) {
+        _lastConfirmation = confirmation;
+        notifyListeners();
+        return GroceryCheckoutResult.confirmed(confirmation!);
+      },
     );
-
-    _activityController.record(
-      ActivityItem(
-        id: orderId,
-        serviceId: ServiceId.grocery,
-        title: storeName ?? 'Grocery order',
-        subtitle: '${slot.label}, ${slot.detail}',
-        status: 'Demo confirmed',
-        occurredAt: createdAt,
-        amount: confirmedAmount,
-        detailsRoute: '/grocery',
-      ),
-    );
-    _cart.clear();
-    _lastConfirmation = confirmation;
-    notifyListeners();
-    return GroceryCheckoutResult.confirmed(confirmation);
   }
 
   @visibleForTesting
