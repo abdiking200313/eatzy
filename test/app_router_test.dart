@@ -126,6 +126,26 @@ void main() {
     });
   });
 
+  group('shell tab routes', () {
+    test('recognizes every bottom-nav tab as protected', () {
+      // These four paths are each their own StatefulShellBranch inside the
+      // persistent bottom-nav shell (see app_router.dart / issue #67) — they
+      // must stay gated the same way the old flat page map gated them.
+      for (final path in [
+        AppRoutes.mainApp,
+        AppRoutes.explore,
+        AppRoutes.activity,
+        AppRoutes.profile,
+      ]) {
+        expect(
+          AppRouter.isProtectedLocation(path),
+          isTrue,
+          reason: '$path should require a signed-in customer',
+        );
+      }
+    });
+  });
+
   group('password reset routes', () {
     test('reset password is a protected route', () {
       expect(AppRouter.isProtectedLocation(AppRoutes.resetPassword), isTrue);

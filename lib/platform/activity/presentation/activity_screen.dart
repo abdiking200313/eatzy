@@ -137,9 +137,12 @@ class _ActivityRow extends StatelessWidget {
     final module = ServiceRegistry.byId(item.serviceId);
     final colors = ServiceThemes.forId(item.serviceId);
     return InkWell(
+      // `go`, not `push` — detailsRoute is always a service vertical's shell
+      // branch root (see app_router.dart); switch to it within the shell
+      // instead of stacking a route over the nav bar (issue #67).
       onTap: item.detailsRoute.isEmpty
           ? null
-          : () => context.push(item.detailsRoute),
+          : () => context.go(item.detailsRoute),
       child: Padding(
         padding: const EdgeInsets.symmetric(
           horizontal: TwSpacing.x4,

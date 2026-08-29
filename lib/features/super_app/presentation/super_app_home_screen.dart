@@ -322,7 +322,11 @@ class _ServiceTile extends StatelessWidget {
       ),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
-        onTap: () => context.push(module.entryRoute),
+        // `go`, not `push`: module.entryRoute belongs to its own shell
+        // branch (see app_router.dart), so this switches branches within
+        // the persistent bottom-nav shell instead of stacking a full-screen
+        // route over it and hiding the nav bar (issue #67).
+        onTap: () => context.go(module.entryRoute),
         child: Padding(
           padding: const EdgeInsets.symmetric(
             vertical: TwSpacing.x2,
@@ -507,9 +511,12 @@ class _RecentActivityCard extends StatelessWidget {
           horizontal: TwSpacing.x3,
           vertical: TwSpacing.x1,
         ),
+        // `go`, not `push` — detailsRoute is always a service vertical's
+        // shell branch root (see app_router.dart); switch to it within the
+        // shell instead of stacking a route over the nav bar (issue #67).
         onTap: item.detailsRoute.isEmpty
             ? null
-            : () => context.push(item.detailsRoute),
+            : () => context.go(item.detailsRoute),
         // Recent-activity rows use the per-service accent only inside this
         // small round icon avatar (the list-level equivalent of the 48px
         // ServiceIconChip used elsewhere), never on the row's own card
