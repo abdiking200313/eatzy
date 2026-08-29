@@ -15,6 +15,10 @@ Reverse-chronological. Each session/major chunk of work gets an entry.
 
 ---
 
+## 2026-08-29
+
+- Board-worker run (15th overall), still nothing eligible — no change since the 14th run: `waiting-on-you` #8/#16/#40/#78/#79 re-checked live via `get_comments`, all five still have only the agent's own prior comment(s) (footer-confirmed, no genuine human reply — #16 unanswered ~14 days, #40 ~12 days, #8 ~3 days, #78/#79 ~2 days). `todo`-without-`agent-in-progress` issues are still only the 4 tracking/blocked umbrellas (#21/#28/#29/#52); confirmed #28 still genuinely blocked (PRs #89/#23 and #92/#26 both still open/unmerged). All 9 `agent-in-progress` issues (#23, #26, #33, #61-#67) confirmed still open with their existing PRs. Stopped early per step 3, no action taken, no notification (nothing changed since the last run).
+
 ## 2026-08-28
 
 - Board-worker run (14th overall), still nothing eligible — no change since the 13th run: `waiting-on-you` #8/#16/#40/#78/#79 re-checked live via `get_comments`, all five still have only the agent's own prior comment(s) (footer-confirmed, no genuine human reply). `todo`-without-`agent-in-progress` issues are still only the 4 tracking/blocked umbrellas (#21/#28/#29/#52). Stopped early per step 3, no action taken, no notification (nothing changed since the last run).
