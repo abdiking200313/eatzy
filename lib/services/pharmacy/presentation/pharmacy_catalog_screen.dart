@@ -120,65 +120,69 @@ class _PharmacyCatalogScreenState extends State<PharmacyCatalogScreen> {
     // an optional trailing "load more" row.
     final itemCount = 2 + _productCount + (_hasMore ? 1 : 0);
 
-    return ListView.builder(
-      padding: const EdgeInsets.all(TwSpacing.x5),
-      itemCount: itemCount,
-      itemBuilder: (context, index) {
-        if (index == 0) {
-          return const Padding(
-            padding: EdgeInsets.only(bottom: TwSpacing.rhythmDefault),
-            child: _OtcNotice(),
-          );
-        }
-        if (index == 1) {
+    return RefreshIndicator(
+      onRefresh: () => _controller.loadProducts(forceRefresh: true),
+      child: ListView.builder(
+        padding: const EdgeInsets.all(TwSpacing.x5),
+        physics: const AlwaysScrollableScrollPhysics(),
+        itemCount: itemCount,
+        itemBuilder: (context, index) {
+          if (index == 0) {
+            return const Padding(
+              padding: EdgeInsets.only(bottom: TwSpacing.rhythmDefault),
+              child: _OtcNotice(),
+            );
+          }
+          if (index == 1) {
+            return Padding(
+              padding: const EdgeInsets.only(bottom: TwSpacing.rhythmDefault),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Health essentials', style: TwText.textXl),
+                  const SizedBox(height: TwSpacing.x1),
+                  Text(
+                    'Seeded products for the interactive Zivo preview.',
+                    style: TwText.textSm,
+                  ),
+                ],
+              ),
+            );
+          }
+
+          final productIndex = index - 2;
+          if (productIndex >= _productCount) {
+            // Trailing load-more row: triggers the next page once it comes
+            // into view instead of eagerly fetching everything up front.
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted) {
+                _controller.loadMore();
+              }
+            });
+            return Padding(
+              padding: const EdgeInsets.only(top: TwSpacing.x4),
+              child: Center(
+                child: _isLoadingMore
+                    ? const CircularProgressIndicator()
+                    : const SizedBox(height: 32),
+              ),
+            );
+          }
+
+          final product = _controller.products[productIndex];
           return Padding(
-            padding: const EdgeInsets.only(bottom: TwSpacing.rhythmDefault),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Health essentials', style: TwText.textXl),
-                const SizedBox(height: TwSpacing.x1),
-                Text(
-                  'Seeded products for the interactive Zivo preview.',
-                  style: TwText.textSm,
-                ),
-              ],
+            padding: EdgeInsets.only(
+              bottom: productIndex == _productCount - 1 && !_hasMore
+                  ? TwSpacing.x8
+                  : TwSpacing.x3,
+            ),
+            child: _ProductCard(
+              product: product,
+              onAdd: () => _addProduct(product),
             ),
           );
-        }
-
-        final productIndex = index - 2;
-        if (productIndex >= _productCount) {
-          // Trailing load-more row: triggers the next page once it comes
-          // into view instead of eagerly fetching everything up front.
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (mounted) {
-              _controller.loadMore();
-            }
-          });
-          return Padding(
-            padding: const EdgeInsets.only(top: TwSpacing.x4),
-            child: Center(
-              child: _isLoadingMore
-                  ? const CircularProgressIndicator()
-                  : const SizedBox(height: 32),
-            ),
-          );
-        }
-
-        final product = _controller.products[productIndex];
-        return Padding(
-          padding: EdgeInsets.only(
-            bottom: productIndex == _productCount - 1 && !_hasMore
-                ? TwSpacing.x8
-                : TwSpacing.x3,
-          ),
-          child: _ProductCard(
-            product: product,
-            onAdd: () => _addProduct(product),
-          ),
-        );
-      },
+        },
+      ),
     );
   }
 

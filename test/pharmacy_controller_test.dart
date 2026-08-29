@@ -148,6 +148,87 @@ void main() {
     expect(throwingController.cartItems, hasLength(1));
     expect(throwingActivityController.items, isEmpty);
   });
+
+  group('catalog staleness and pull-to-refresh', () {
+    test(
+      'loadProducts does not refetch an already-loaded, fresh catalog',
+      () async {
+        final repository = _CountingPharmacyRepository();
+        final now = DateTime.utc(2026, 8, 27, 12);
+        final freshController = PharmacyController(
+          repository: repository,
+          activityController: ActivityController(),
+          now: () => now,
+        );
+
+        await freshController.loadProducts();
+        expect(repository.fetchCount, 1);
+
+        await freshController.loadProducts();
+        expect(
+          repository.fetchCount,
+          1,
+          reason: 'a fresh catalog should not be refetched',
+        );
+      },
+    );
+
+    test('loadProducts refetches once the catalog goes stale', () async {
+      final repository = _CountingPharmacyRepository();
+      var now = DateTime.utc(2026, 8, 27, 12);
+      final staleController = PharmacyController(
+        repository: repository,
+        activityController: ActivityController(),
+        now: () => now,
+      );
+
+      await staleController.loadProducts();
+      expect(repository.fetchCount, 1);
+      expect(staleController.isStale, isFalse);
+
+      now = now.add(PharmacyController.catalogStaleAfter);
+      expect(staleController.isStale, isTrue);
+
+      await staleController.loadProducts();
+      expect(repository.fetchCount, 2);
+      expect(staleController.isStale, isFalse);
+    });
+
+    test(
+      'loadProducts(forceRefresh: true) always refetches regardless of staleness',
+      () async {
+        final repository = _CountingPharmacyRepository();
+        final now = DateTime.utc(2026, 8, 27, 12);
+        final forcedController = PharmacyController(
+          repository: repository,
+          activityController: ActivityController(),
+          now: () => now,
+        );
+
+        await forcedController.loadProducts();
+        expect(repository.fetchCount, 1);
+
+        await forcedController.loadProducts(forceRefresh: true);
+        expect(repository.fetchCount, 2);
+      },
+    );
+  });
+}
+
+class _CountingPharmacyRepository implements PharmacyRepository {
+  int fetchCount = 0;
+
+  @override
+  Future<List<PharmacyProduct>> fetchProducts({
+    int limit = pharmacyProductsPageSize,
+    int offset = 0,
+  }) async {
+    fetchCount++;
+    return const SeededPharmacyRepository().fetchProducts(
+      limit: limit,
+      offset: offset,
+    );
+  }
 }
 
 /// A [PharmacyOrderRepository] fake that always fails, simulating a network

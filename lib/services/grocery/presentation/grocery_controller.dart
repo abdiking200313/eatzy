@@ -26,6 +26,7 @@ class GroceryController extends ChangeNotifier with LoadableState {
     GroceryCatalogRepository? catalogRepository,
     GroceryOrderRepository? orderRepository,
     ActivityController? activityController,
+    DateTime Function()? now,
   }) : _repository = repository,
        _catalogRepository =
            catalogRepository ??
@@ -33,7 +34,8 @@ class GroceryController extends ChangeNotifier with LoadableState {
                ? repository as GroceryCatalogRepository
                : null),
        _orderRepository = orderRepository,
-       _activityController = activityController ?? ActivityController.instance;
+       _activityController = activityController ?? ActivityController.instance,
+       _now = now ?? DateTime.now;
 
   // Deliberately does not call load() here: constructing this singleton
   // must not issue catalog queries for users who never open the grocery
@@ -51,6 +53,11 @@ class GroceryController extends ChangeNotifier with LoadableState {
   }();
 
   static const double standardDeliveryFee = 2.50;
+
+  /// How long a successful store/catalog load is considered fresh before
+  /// [load] will silently refetch it again. A manual pull-to-refresh (via
+  /// [load]'s `forceRefresh`) always bypasses this.
+  static const Duration catalogStaleAfter = Duration(minutes: 5);
 
   static const List<GroceryDeliverySlot> deliverySlots = [
     GroceryDeliverySlot(
@@ -74,11 +81,13 @@ class GroceryController extends ChangeNotifier with LoadableState {
   final GroceryCatalogRepository? _catalogRepository;
   final GroceryOrderRepository? _orderRepository;
   final ActivityController _activityController;
+  final DateTime Function() _now;
   final List<GroceryStore> _stores = [];
   final List<GroceryDeliverySlot> _deliverySlots = [];
   final Map<String, GroceryCartLine> _cart = {};
 
   bool _hasLoaded = false;
+  DateTime? _lastLoadedAt;
   bool _slotsLoading = false;
   String? _slotLoadError;
   GroceryOrderConfirmation? _lastConfirmation;
@@ -88,6 +97,18 @@ class GroceryController extends ChangeNotifier with LoadableState {
   UnmodifiableListView<GroceryCartLine> get cart =>
       UnmodifiableListView(_cart.values.toList(growable: false));
   bool get hasLoaded => _hasLoaded;
+
+  /// Whether the loaded stores/catalog are old enough that [load] should
+  /// treat them as needing a refetch: never loaded, or last loaded at least
+  /// [catalogStaleAfter] ago. Stock/price changes made server-side only
+  /// reach the client on the next refetch, so this keeps a session that
+  /// stays open a long time from trusting an indefinitely old snapshot.
+  bool get isStale {
+    final lastLoadedAt = _lastLoadedAt;
+    return lastLoadedAt == null ||
+        _now().difference(lastLoadedAt) >= catalogStaleAfter;
+  }
+
   bool get slotsLoading => _slotsLoading;
   String? get slotLoadError => _slotLoadError;
   UnmodifiableListView<GroceryDeliverySlot> get availableDeliverySlots =>
@@ -119,8 +140,19 @@ class GroceryController extends ChangeNotifier with LoadableState {
   double get deliveryFee => _cart.isEmpty ? 0 : standardDeliveryFee;
   double get total => subtotal + deliveryFee;
 
-  Future<void> load() async {
+  /// Loads the store/product catalog.
+  ///
+  /// By default this is a no-op once the catalog is already loaded and
+  /// still fresh (see [isStale]), so cheap repeat calls (e.g. from
+  /// `initState`) don't refetch pointlessly. Pass [forceRefresh] to always
+  /// refetch — this is what a pull-to-refresh gesture should use, since it
+  /// represents an explicit user request for the latest stock/prices
+  /// regardless of staleness.
+  Future<void> load({bool forceRefresh = false}) async {
     if (isLoading) {
+      return;
+    }
+    if (!forceRefresh && _hasLoaded && !isStale) {
       return;
     }
     await runLoad(
@@ -130,6 +162,7 @@ class GroceryController extends ChangeNotifier with LoadableState {
           ..clear()
           ..addAll(stores);
         _hasLoaded = true;
+        _lastLoadedAt = _now();
       },
       onError: (error, stackTrace) =>
           'Groceries could not be loaded. Please try again.',

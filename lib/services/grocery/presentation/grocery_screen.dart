@@ -62,7 +62,8 @@ class _GroceryScreenState extends State<GroceryScreen> {
     // that call — rather than listening first — means our own `setState`
     // only ever runs in response to a later, async notification, never
     // re-entrantly during this `initState()`/first-build pass.
-    if (!_controller.hasLoaded && !_controller.isLoading) {
+    if ((!_controller.hasLoaded || _controller.isStale) &&
+        !_controller.isLoading) {
       unawaited(_controller.load());
     }
     _syncLoadState();
@@ -137,45 +138,49 @@ class _GroceryScreenState extends State<GroceryScreen> {
 
     final rows = _buildRows();
 
-    return ListView.builder(
-      padding: const EdgeInsets.fromLTRB(
-        TwSpacing.x4,
-        TwSpacing.x2,
-        TwSpacing.x4,
-        TwSpacing.x8,
-      ),
-      itemCount: rows.length + 1,
-      itemBuilder: (context, index) {
-        if (index == 0) {
-          return Padding(
-            padding: const EdgeInsets.only(bottom: TwSpacing.x6),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Essentials from Somali stores', style: TwText.textXl),
-                const SizedBox(height: TwSpacing.x2),
-                Text(
-                  'Products marked per kg can be added in 0.5 kg steps.',
-                  style: TwText.textSm,
-                ),
-              ],
-            ),
-          );
-        }
+    return RefreshIndicator(
+      onRefresh: () => _controller.load(forceRefresh: true),
+      child: ListView.builder(
+        padding: const EdgeInsets.fromLTRB(
+          TwSpacing.x4,
+          TwSpacing.x2,
+          TwSpacing.x4,
+          TwSpacing.x8,
+        ),
+        physics: const AlwaysScrollableScrollPhysics(),
+        itemCount: rows.length + 1,
+        itemBuilder: (context, index) {
+          if (index == 0) {
+            return Padding(
+              padding: const EdgeInsets.only(bottom: TwSpacing.x6),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Essentials from Somali stores', style: TwText.textXl),
+                  const SizedBox(height: TwSpacing.x2),
+                  Text(
+                    'Products marked per kg can be added in 0.5 kg steps.',
+                    style: TwText.textSm,
+                  ),
+                ],
+              ),
+            );
+          }
 
-        final row = rows[index - 1];
-        return switch (row) {
-          _StoreHeaderRow(:final store) => Padding(
-            padding: const EdgeInsets.only(bottom: TwSpacing.x3),
-            child: _StoreHeader(store: store),
-          ),
-          _ProductRow(:final product) => Padding(
-            padding: const EdgeInsets.only(bottom: TwSpacing.x3),
-            child: _ProductCard(product: product, onAdd: () => _add(product)),
-          ),
-          _StoreSpacerRow() => const SizedBox(height: TwSpacing.x5),
-        };
-      },
+          final row = rows[index - 1];
+          return switch (row) {
+            _StoreHeaderRow(:final store) => Padding(
+              padding: const EdgeInsets.only(bottom: TwSpacing.x3),
+              child: _StoreHeader(store: store),
+            ),
+            _ProductRow(:final product) => Padding(
+              padding: const EdgeInsets.only(bottom: TwSpacing.x3),
+              child: _ProductCard(product: product, onAdd: () => _add(product)),
+            ),
+            _StoreSpacerRow() => const SizedBox(height: TwSpacing.x5),
+          };
+        },
+      ),
     );
   }
 

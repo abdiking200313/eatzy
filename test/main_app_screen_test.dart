@@ -52,6 +52,54 @@ void main() {
     expect(navigation.selectedIndex, 2);
     expect(find.text('Activity test tab'), findsOneWidget);
   });
+
+  testWidgets(
+    'switching to the Activity tab reloads it, but re-tapping it does not',
+    (tester) async {
+      var focusCount = 0;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: MainAppScreen(
+            onActivityTabFocused: () async {
+              focusCount++;
+            },
+            screens: const [
+              Center(child: Text('Home test tab')),
+              Center(child: Text('Explore test tab')),
+              Center(child: Text('Activity test tab')),
+              Center(child: Text('Profile test tab')),
+            ],
+          ),
+        ),
+      );
+      expect(focusCount, 0);
+
+      await tester.tap(find.text('Explore'));
+      await tester.pump();
+      expect(focusCount, 0, reason: 'switching to a non-Activity tab');
+
+      await tester.tap(find.text('Activity'));
+      await tester.pump();
+      expect(focusCount, 1);
+
+      await tester.tap(find.text('Activity'));
+      await tester.pump();
+      expect(
+        focusCount,
+        1,
+        reason:
+            're-tapping the already-active Activity tab should not '
+            'reload again',
+      );
+
+      await tester.tap(find.text('Home'));
+      await tester.pump();
+      await tester.tap(find.text('Activity'));
+      await tester.pump();
+      expect(focusCount, 2, reason: 'switching back to Activity reloads it');
+    },
+  );
 }
 
 class _CounterTab extends StatefulWidget {
