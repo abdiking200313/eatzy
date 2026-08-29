@@ -88,9 +88,9 @@ class _CartBody extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListView(
       padding: const EdgeInsets.fromLTRB(
-        TwSpacing.x4,
+        TwSpacing.x5,
         TwSpacing.x2,
-        TwSpacing.x4,
+        TwSpacing.x5,
         TwSpacing.x8,
       ),
       children: [

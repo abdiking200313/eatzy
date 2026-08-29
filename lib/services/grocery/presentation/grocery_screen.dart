@@ -142,9 +142,9 @@ class _GroceryScreenState extends State<GroceryScreen> {
       onRefresh: () => _controller.load(forceRefresh: true),
       child: ListView.builder(
         padding: const EdgeInsets.fromLTRB(
-          TwSpacing.x4,
+          TwSpacing.x5,
           TwSpacing.x2,
-          TwSpacing.x4,
+          TwSpacing.x5,
           TwSpacing.x8,
         ),
         physics: const AlwaysScrollableScrollPhysics(),

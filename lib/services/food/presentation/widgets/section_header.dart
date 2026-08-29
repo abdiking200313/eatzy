@@ -30,7 +30,7 @@ class SectionHeader extends StatelessWidget {
             title,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: TwText.textXl,
+            style: TwText.sectionLabel,
           ),
         ),
         if (actionLabel != null)

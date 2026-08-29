@@ -56,9 +56,9 @@ class _SuperAppHomeScreenState extends State<SuperAppHomeScreen> {
               ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(
-                  TwSpacing.x4,
                   TwSpacing.x5,
-                  TwSpacing.x4,
+                  TwSpacing.x5,
+                  TwSpacing.x5,
                   0,
                 ),
                 child: Column(
@@ -96,9 +96,9 @@ class _SuperAppHomeScreenState extends State<SuperAppHomeScreen> {
               if (recentItems.isNotEmpty) ...[
                 Padding(
                   padding: const EdgeInsets.fromLTRB(
-                    TwSpacing.x4,
+                    TwSpacing.x5,
                     TwSpacing.x8,
-                    TwSpacing.x4,
+                    TwSpacing.x5,
                     0,
                   ),
                   child: _SectionHeader(
@@ -109,20 +109,8 @@ class _SuperAppHomeScreenState extends State<SuperAppHomeScreen> {
                 ),
                 const SizedBox(height: TwSpacing.x3),
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: TwSpacing.x4),
-                  child: Column(
-                    children: [
-                      for (
-                        var index = 0;
-                        index < recentItems.length;
-                        index++
-                      ) ...[
-                        _RecentActivityCard(item: recentItems[index]),
-                        if (index != recentItems.length - 1)
-                          const SizedBox(height: TwSpacing.x2),
-                      ],
-                    ],
-                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: TwSpacing.x5),
+                  child: _RecentActivityListCard(items: recentItems),
                 ),
               ],
             ],
@@ -381,7 +369,7 @@ class _PopularRestaurants extends StatelessWidget {
           height: 172,
           child: SingleChildScrollView(
             scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: TwSpacing.x4),
+            padding: const EdgeInsets.symmetric(horizontal: TwSpacing.x5),
             child: Row(
               children: [
                 for (final restaurant in restaurants.take(6))
@@ -491,8 +479,36 @@ class _SectionHeader extends StatelessWidget {
   }
 }
 
-class _RecentActivityCard extends StatelessWidget {
-  const _RecentActivityCard({required this.item});
+/// The Recent Activity preview as a single white card containing every
+/// row, with internal dividers between rows ("one card per list, not one
+/// card per row" — see #21/#27) — mirrors
+/// `activity/presentation/activity_screen.dart`'s `_ActivityListCard` so
+/// the two activity-feed surfaces stay visually consistent. Per-service
+/// accent stays confined to each row's [ServiceIconChip]; the card itself
+/// always stays on [TwColors.card].
+class _RecentActivityListCard extends StatelessWidget {
+  const _RecentActivityListCard({required this.items});
+
+  final List<ActivityItem> items;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: EdgeInsets.zero,
+      child: Column(
+        children: [
+          for (final item in items) ...[
+            _RecentActivityRow(item: item),
+            if (item != items.last) const Divider(height: 1),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _RecentActivityRow extends StatelessWidget {
+  const _RecentActivityRow({required this.item});
 
   final ActivityItem item;
 
@@ -500,39 +516,47 @@ class _RecentActivityCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final module = ServiceRegistry.byId(item.serviceId);
     final colors = ServiceThemes.forId(item.serviceId);
-    return Material(
-      color: TwColors.card,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(TwRadius.xl),
-        side: const BorderSide(color: TwColors.border),
-      ),
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(
+    return InkWell(
+      // `go`, not `push` — detailsRoute is always a service vertical's
+      // shell branch root (see app_router.dart); switch to it within the
+      // shell instead of stacking a route over the nav bar (issue #67).
+      onTap: item.detailsRoute.isEmpty
+          ? null
+          : () => context.go(item.detailsRoute),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
           horizontal: TwSpacing.x3,
-          vertical: TwSpacing.x1,
+          vertical: TwSpacing.rhythmTight,
         ),
-        // `go`, not `push` — detailsRoute is always a service vertical's
-        // shell branch root (see app_router.dart); switch to it within the
-        // shell instead of stacking a route over the nav bar (issue #67).
-        onTap: item.detailsRoute.isEmpty
-            ? null
-            : () => context.go(item.detailsRoute),
-        // Recent-activity rows use the per-service accent only inside this
-        // small round icon avatar (the list-level equivalent of the 48px
-        // ServiceIconChip used elsewhere), never on the row's own card
-        // fill/border above.
-        leading: CircleAvatar(
-          backgroundColor: colors.soft,
-          foregroundColor: colors.accent,
-          child: Icon(module.icon, size: 20),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ServiceIconChip(
+              icon: module.icon,
+              background: colors.soft,
+              foreground: colors.accent,
+              iconSize: 20,
+            ),
+            const SizedBox(width: TwSpacing.x3),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(item.title, style: TwText.fontBoldSm),
+                  const SizedBox(height: TwSpacing.rhythmTight),
+                  StatusPill(
+                    label: item.status,
+                    backgroundColor: colors.soft,
+                    foregroundColor: colors.accent,
+                    fontSize: 11,
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: TwSpacing.x2),
+            Text(AppMoney.format(item.amount), style: TwText.fontBoldSm),
+          ],
         ),
-        title: Text(item.title, style: TwText.fontBoldSm),
-        subtitle: Padding(
-          padding: const EdgeInsets.only(top: TwSpacing.rhythmTight),
-          child: StatusPill(label: item.status, fontSize: 11),
-        ),
-        isThreeLine: false,
-        trailing: Text(AppMoney.format(item.amount), style: TwText.fontBoldSm),
       ),
     );
   }
