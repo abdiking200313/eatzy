@@ -2,7 +2,11 @@ import 'package:flutter/material.dart';
 
 import 'app_routes.dart';
 
-enum ServiceId { food, grocery, pharmacy }
+/// `unknown` is not a purchasable service module — it exists only as a
+/// fallback for activity/history rows whose `service_id` no longer matches
+/// a real module (e.g. a legacy or removed service, see issue #62). It is
+/// intentionally excluded from [ServiceRegistry.modules].
+enum ServiceId { food, grocery, pharmacy, unknown }
 
 class ServiceDescriptor {
   const ServiceDescriptor({
@@ -45,6 +49,18 @@ abstract final class ServiceRegistry {
     ),
   ];
 
-  static ServiceDescriptor byId(ServiceId id) =>
-      modules.firstWhere((module) => module.id == id);
+  /// Generic descriptor for [ServiceId.unknown] and any other id that has no
+  /// entry in [modules] (defensive fallback rather than a thrown error).
+  static const unknownModule = ServiceDescriptor(
+    id: ServiceId.unknown,
+    title: 'Other',
+    description: 'Activity from a service that is no longer available',
+    entryRoute: '',
+    icon: Icons.receipt_long_outlined,
+  );
+
+  static ServiceDescriptor byId(ServiceId id) => modules.firstWhere(
+    (module) => module.id == id,
+    orElse: () => unknownModule,
+  );
 }
