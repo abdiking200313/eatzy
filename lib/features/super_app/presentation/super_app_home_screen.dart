@@ -12,7 +12,6 @@ import '../../../platform/activity/models/activity_item.dart';
 import '../../../platform/activity/presentation/activity_controller.dart';
 import '../../../platform/localization/app_money.dart';
 import '../../../widgets/app_misc.dart';
-import '../../../widgets/zivo_logo.dart';
 import '../../../widgets/app_cards.dart';
 
 class SuperAppHomeScreen extends StatefulWidget {
@@ -314,7 +313,7 @@ class _ServiceTile extends StatelessWidget {
     final colors = ServiceThemes.forId(module.id);
     return Material(
       key: Key('service-${module.id.name}'),
-      color: colors.card,
+      color: TwColors.card,
       elevation: 0.6,
       shadowColor: TwColors.slate900.withOpacityValue(0.1),
       shape: RoundedRectangleBorder(
@@ -332,14 +331,11 @@ class _ServiceTile extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: colors.soft,
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(module.icon, color: colors.accent, size: 22),
+              ServiceIconChip(
+                icon: module.icon,
+                background: colors.soft,
+                foreground: colors.accent,
+                borderRadius: TwRadius.full,
               ),
               const SizedBox(height: TwSpacing.x1),
               Text(
