@@ -1,7 +1,7 @@
-import 'package:chowflow/features/home/models/category.dart';
-import 'package:chowflow/features/home/presentation/widgets/categories_section.dart';
-import 'package:chowflow/features/home/presentation/widgets/section_header.dart';
 import 'package:chowflow/screens/categories.dart';
+import 'package:chowflow/services/food/models/category.dart';
+import 'package:chowflow/services/food/presentation/widgets/categories_section.dart';
+import 'package:chowflow/services/food/presentation/widgets/section_header.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 

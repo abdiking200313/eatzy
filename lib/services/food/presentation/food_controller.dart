@@ -3,7 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../app/app_routes.dart';
 import '../../../app/service_module.dart';
-import '../../../features/cart/presentation/cart_controller.dart';
+import 'cart_controller.dart';
 import '../../../platform/activity/models/activity_item.dart';
 import '../../../platform/activity/presentation/activity_controller.dart';
 import '../../shared/presentation/confirm_order_flow.dart';

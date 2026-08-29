@@ -1,10 +1,10 @@
 import 'package:chowflow/app/service_module.dart';
 import 'package:chowflow/config/theme.dart';
-import 'package:chowflow/features/cart/models/cart_item.dart';
-import 'package:chowflow/features/cart/presentation/cart_controller.dart';
-import 'package:chowflow/features/checkout/presentation/checkout_screen.dart';
+import 'package:chowflow/services/food/models/cart_item.dart';
+import 'package:chowflow/services/food/presentation/cart_controller.dart';
+import 'package:chowflow/services/food/presentation/checkout_screen.dart';
 import 'package:chowflow/platform/activity/presentation/activity_controller.dart';
-import 'package:chowflow/screens/cart.dart';
+import 'package:chowflow/services/food/presentation/food_cart_screen.dart';
 import 'package:chowflow/services/grocery/data/grocery_repository.dart';
 import 'package:chowflow/services/grocery/models/grocery_models.dart';
 import 'package:chowflow/services/grocery/presentation/grocery_cart_screen.dart';

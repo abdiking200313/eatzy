@@ -1,4 +1,3 @@
-import 'package:chowflow/features/checkout/presentation/checkout_screen.dart';
 import 'package:chowflow/features/profile/presentation/profile_screen.dart';
 import 'package:chowflow/features/rewards/presentation/rewards_screen.dart';
 import 'package:chowflow/features/settings/presentation/settings_screen.dart';
@@ -7,6 +6,7 @@ import 'package:chowflow/features/wallet/data/wallet_repository.dart';
 import 'package:chowflow/features/wallet/models/wallet_payment_method_record.dart';
 import 'package:chowflow/features/wallet/models/wallet_transaction_record.dart';
 import 'package:chowflow/features/wallet/presentation/wallet_screen.dart';
+import 'package:chowflow/services/food/presentation/checkout_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 

@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../../home/models/restaurant.dart';
+import '../models/restaurant.dart';
 import '../models/restaurant_menu.dart';
 
 class RestaurantMenuRepository {

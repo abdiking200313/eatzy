@@ -5,7 +5,7 @@ import '../../../../platform/localization/app_money.dart';
 import '../../../../widgets/app_cards.dart';
 import '../../../../widgets/app_misc.dart';
 import '../../../../widgets/app_scaffold.dart';
-import '../../../cart/models/cart_item.dart';
+import '../../models/cart_item.dart';
 
 class OrderSummaryCard extends StatelessWidget {
   const OrderSummaryCard({

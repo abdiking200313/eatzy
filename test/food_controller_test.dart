@@ -1,5 +1,5 @@
-import 'package:chowflow/features/cart/models/cart_item.dart';
-import 'package:chowflow/features/cart/presentation/cart_controller.dart';
+import 'package:chowflow/services/food/models/cart_item.dart';
+import 'package:chowflow/services/food/presentation/cart_controller.dart';
 import 'package:chowflow/platform/activity/presentation/activity_controller.dart';
 import 'package:chowflow/services/food/data/food_repository.dart';
 import 'package:chowflow/services/food/models/food_models.dart';

@@ -3,11 +3,11 @@ import 'package:go_router/go_router.dart';
 
 import '../../../app/app_routes.dart';
 import '../../../config/theme.dart';
-import '../../../features/home/data/category_repository.dart';
-import '../../../features/home/models/category.dart';
 import '../../../widgets/app_cards.dart';
 import '../../../widgets/app_misc.dart';
 import '../../../widgets/app_scaffold.dart';
+import '../data/category_repository.dart';
+import '../models/category.dart';
 
 class FoodCategoriesScreen extends StatefulWidget {
   const FoodCategoriesScreen({super.key, this.repository, this.categories});

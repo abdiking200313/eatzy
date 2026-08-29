@@ -4,12 +4,12 @@ import 'package:go_router/go_router.dart';
 import '../../../app/app_routes.dart';
 import '../../../config/theme.dart';
 import '../../../platform/activity/presentation/activity_controller.dart';
-import '../../cart/presentation/cart_controller.dart';
-import '../../../services/food/data/food_repository.dart';
-import '../../../services/food/models/food_models.dart';
-import '../../../services/food/presentation/food_controller.dart';
 import '../../../widgets/app_cards.dart';
 import '../../../widgets/app_scaffold.dart';
+import '../data/food_repository.dart';
+import '../models/food_models.dart';
+import 'cart_controller.dart';
+import 'food_controller.dart';
 import 'widgets/delivery_address_card.dart';
 import 'widgets/order_summary_card.dart';
 
