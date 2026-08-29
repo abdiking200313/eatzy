@@ -106,7 +106,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                           horizontal: TwSpacing.x2,
                         ),
                         decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(4),
+                          borderRadius: BorderRadius.circular(TwRadius.full),
                           color: index == _currentPage
                               ? TwColors.primary
                               : TwColors.borderStrong,

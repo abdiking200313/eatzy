@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../config/theme.dart';
 import '../../../../widgets/app_cards.dart';
+import '../../../../widgets/app_misc.dart';
 import '../../../../widgets/app_scaffold.dart';
 
 class DeliveryAddressCard extends StatelessWidget {
@@ -11,11 +12,8 @@ class DeliveryAddressCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final palette = context.serviceColors;
+    // White card only — the service accent is confined to the icon chip.
     return OutlinedCard(
-      backgroundColor: palette.card,
-      borderColor: palette.border,
-      borderRadius: 16,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -25,18 +23,15 @@ class DeliveryAddressCard extends StatelessWidget {
               const SectionTitle('Delivery Address', fontSize: 18),
               TextButton(
                 onPressed: onChangePressed,
-                child: Text(
-                  'Change',
-                  style: TwText.link().copyWith(color: palette.accent),
-                ),
+                child: Text('Change', style: TwText.link()),
               ),
             ],
           ),
-          const SizedBox(height: TwSpacing.x4),
+          const SizedBox(height: TwSpacing.rhythmDefault),
           Row(
             children: [
-              Icon(Icons.location_on, color: palette.accent),
-              const SizedBox(width: TwSpacing.x4),
+              const ServiceIconChip(icon: Icons.location_on_outlined),
+              const SizedBox(width: TwSpacing.rhythmDefault),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,

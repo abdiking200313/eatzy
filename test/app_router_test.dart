@@ -1,5 +1,6 @@
 import 'package:chowflow/app/app_router.dart';
 import 'package:chowflow/app/app_routes.dart';
+import 'package:chowflow/app/service_module.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -28,7 +29,7 @@ void main() {
       final redirect = AppRouter.resolveRedirect(
         isLoggedIn: false,
         isProtected: true,
-        location: AppRoutes.orders,
+        location: AppRoutes.wallet,
       );
 
       expect(redirect, AppRoutes.login);
@@ -132,6 +133,60 @@ void main() {
 
     test('forgot password is not a protected route', () {
       expect(AppRouter.isProtectedLocation(AppRoutes.forgotPassword), isFalse);
+    });
+  });
+
+  group('route-string convention (issue #69)', () {
+    test(
+      'every ServiceDescriptor.entryRoute resolves to a registered route',
+      () {
+        for (final module in ServiceRegistry.modules) {
+          expect(
+            AppRouter.hasRegisteredRoute(module.entryRoute),
+            isTrue,
+            reason:
+                '${module.id} entryRoute "${module.entryRoute}" has no '
+                'matching GoRoute',
+          );
+        }
+      },
+    );
+
+    test('every details_route the customer_activity SQL view can produce '
+        'resolves to a registered route', () {
+      // Mirrors the literal `details_route` values selected by the
+      // `customer_activity` view as currently (re)defined in
+      // supabase/migrations/20260815153920_remove_cleaning_vertical.sql
+      // (food/grocery/pharmacy branches; the earlier cleaning branch from
+      // 20260727152319_connect_super_app_services.sql was dropped by
+      // issue #50 and no longer exists in the live view definition).
+      // There is no SQL execution available from a Dart unit test, so
+      // this list is a manually kept mirror of that view's `select`
+      // branches — if a future migration changes, adds, or removes a
+      // `details_route` literal in customer_activity, update this list to
+      // match, in the same change.
+      const sqlViewDetailsRoutes = [
+        AppRoutes.food,
+        AppRoutes.grocery,
+        AppRoutes.pharmacy,
+      ];
+
+      for (final route in sqlViewDetailsRoutes) {
+        expect(
+          AppRouter.hasRegisteredRoute(route),
+          isTrue,
+          reason:
+              'customer_activity details_route "$route" has no matching '
+              'GoRoute',
+        );
+      }
+    });
+
+    test('foodRestaurants is deliberately not a registered route (path-prefix '
+        'only, see app_routes.dart)', () {
+      expect(AppRouter.hasRegisteredRoute(AppRoutes.foodRestaurants), isFalse);
+      // The parameterized route it is a prefix of IS registered.
+      expect(AppRouter.hasRegisteredRoute(AppRoutes.foodRestaurant), isTrue);
     });
   });
 }

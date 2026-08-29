@@ -5,6 +5,7 @@ import '../../../app/app_routes.dart';
 import '../../../config/theme.dart';
 import '../../../platform/localization/app_money.dart';
 import '../../../widgets/app_cards.dart';
+import '../../../widgets/app_misc.dart';
 import '../../../widgets/app_scaffold.dart';
 import '../models/pharmacy_checkout.dart';
 import 'pharmacy_controller.dart';
@@ -239,15 +240,13 @@ class _DemoNotice extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final palette = context.serviceColors;
+    // White card only — the service accent is confined to the icon chip.
     return OutlinedCard(
-      backgroundColor: palette.card,
-      borderColor: palette.border,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(Icons.science_outlined, color: palette.accent),
-          const SizedBox(width: TwSpacing.x3),
+          const ServiceIconChip(icon: Icons.science_outlined),
+          const SizedBox(width: TwSpacing.rhythmDefault),
           Expanded(
             child: Text(
               'Interactive preview only. This confirms a demo OTC order; '
@@ -268,10 +267,9 @@ class _CheckoutSummary extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final palette = context.serviceColors;
+    // White card only — a plain OutlinedCard already uses the neutral
+    // fill/border tokens.
     return OutlinedCard(
-      backgroundColor: palette.card,
-      borderColor: palette.border,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -293,7 +291,7 @@ class _CheckoutSummary extends StatelessWidget {
               Expanded(child: Text('Total', style: TwText.fontBoldBase())),
               Text(
                 AppMoney.format(controller.total),
-                style: TwText.fontBoldBase().copyWith(color: palette.accent),
+                style: TwText.fontBoldBase().copyWith(color: TwColors.primary),
               ),
             ],
           ),
@@ -314,16 +312,16 @@ class _EmptyCheckout extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
+            const Icon(
               Icons.remove_shopping_cart_outlined,
-              color: context.serviceColors.accent,
+              color: TwColors.textMuted,
               size: 52,
             ),
             const SizedBox(height: TwSpacing.x4),
             Text('Your pharmacy cart is empty', style: TwText.textXl()),
             const SizedBox(height: TwSpacing.x4),
             TextButton(
-              onPressed: () => context.go('/pharmacy'),
+              onPressed: () => context.go(AppRoutes.pharmacy),
               child: const Text('Browse OTC products'),
             ),
           ],
