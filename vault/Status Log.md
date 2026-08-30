@@ -15,6 +15,11 @@ Reverse-chronological. Each session/major chunk of work gets an entry.
 
 ---
 
+## 2026-08-30 (3rd run)
+
+- Board-worker run, same finding as both earlier 2026-08-30 entries below — `waiting-on-you` #8/#16/#40/#78/#79 re-checked via `get_comments`, all comments on all five still bot-authored, no human reply on any. `todo`-without-`waiting-on-you` issues are now just the umbrella/tracking pair #29/#52 (#21 already closed in the prior run), no direct child work.
+- Nothing eligible, no issue work done, stopped early per step 3. No notification sent.
+
 ## 2026-08-30 (later run)
 
 - Board-worker run, same finding as the earlier 2026-08-30 entry below — `waiting-on-you` #8/#16/#40/#78/#79 re-checked via `get_comments`, all comments on all five are bot-authored (footer-marked), no human reply on any; `todo`-without-`waiting-on-you` issues still only the umbrella/tracking trio (#21/#29/#52), no direct child work.
