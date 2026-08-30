@@ -40,6 +40,10 @@ This is genuinely confusing because a nested `chowflow_flutter/chowflow_flutter/
 
 The outer `eatzy/` folder (one level up from the repo, containing README.md, FEATURES_TO_COMPLETE.md, etc.) is **not** part of the git repo at all — it's untracked local reference material only. Always check `git remote -v` if unsure which directory is "the repo."
 
+## Tool gotcha — commenting on an issue
+
+`mcp__github__issue_write` with `method: "create"` does **not** add a comment when given an `issue_number` — it silently creates a brand-new top-level issue instead (found 2026-08-30, 14th board-worker run, created and had to close a stray issue #155 after this exact mistake). Use `mcp__github__add_issue_comment` (`owner`/`repo`/`issue_number`/`body`) to post a comment. `issue_write` is only for creating a new issue or updating an existing issue's own fields (title/body/labels/state) — never for comments.
+
 ## Dependency versions
 
 38 packages have newer versions available as of the last check (including majors like `go_router` 13→17, `google_fonts` 6→8) — not urgent, deliberately deferred. Don't auto-upgrade without a reason; major bumps risk breaking changes.
