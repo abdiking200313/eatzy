@@ -11,6 +11,13 @@ import '../../../widgets/app_scaffold.dart';
 import '../models/grocery_models.dart';
 import 'grocery_controller.dart';
 
+/// Rounded outline border matching the app-wide input style (see
+/// `AppTextField` and the global `InputDecorationTheme` in
+/// `config/tailwind.dart`), instead of the sharp Material default corners.
+final _addressFieldBorder = OutlineInputBorder(
+  borderRadius: BorderRadius.circular(TwRadius.xl),
+);
+
 class GroceryCheckoutScreen extends StatefulWidget {
   const GroceryCheckoutScreen({super.key, this.controller});
 
@@ -101,27 +108,27 @@ class _GroceryCheckoutScreenState extends State<GroceryCheckoutScreen> {
         const SizedBox(height: TwSpacing.x3),
         TextField(
           controller: _recipientController,
-          decoration: const InputDecoration(
+          decoration: InputDecoration(
             labelText: 'Recipient name',
-            border: OutlineInputBorder(),
+            border: _addressFieldBorder,
           ),
         ),
         const SizedBox(height: TwSpacing.x3),
         TextField(
           controller: _phoneController,
           keyboardType: TextInputType.phone,
-          decoration: const InputDecoration(
+          decoration: InputDecoration(
             labelText: 'Phone number',
             hintText: '+252 …',
-            border: OutlineInputBorder(),
+            border: _addressFieldBorder,
           ),
         ),
         const SizedBox(height: TwSpacing.x3),
         TextField(
           controller: _streetController,
-          decoration: const InputDecoration(
+          decoration: InputDecoration(
             labelText: 'Street or landmark',
-            border: OutlineInputBorder(),
+            border: _addressFieldBorder,
           ),
         ),
         const SizedBox(height: TwSpacing.x3),
@@ -130,9 +137,9 @@ class _GroceryCheckoutScreenState extends State<GroceryCheckoutScreen> {
             Expanded(
               child: TextField(
                 controller: _districtController,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: 'District',
-                  border: OutlineInputBorder(),
+                  border: _addressFieldBorder,
                 ),
               ),
             ),
@@ -140,9 +147,9 @@ class _GroceryCheckoutScreenState extends State<GroceryCheckoutScreen> {
             Expanded(
               child: TextField(
                 controller: _cityController,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: 'City',
-                  border: OutlineInputBorder(),
+                  border: _addressFieldBorder,
                 ),
               ),
             ),

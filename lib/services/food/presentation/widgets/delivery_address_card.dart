@@ -4,6 +4,13 @@ import '../../../../config/theme.dart';
 import '../../../../widgets/app_cards.dart';
 import '../../../../widgets/app_scaffold.dart';
 
+/// Rounded outline border matching the app-wide input style (see
+/// `AppTextField` and the global `InputDecorationTheme` in
+/// `config/tailwind.dart`), instead of the sharp Material default corners.
+final _addressFieldBorder = OutlineInputBorder(
+  borderRadius: BorderRadius.circular(TwRadius.xl),
+);
+
 /// Collects a real delivery address for a food order, mirroring the inline
 /// address-collection pattern used by grocery and pharmacy checkout (see
 /// `GroceryCheckoutScreen` / `PharmacyCheckoutScreen`) instead of only
@@ -43,10 +50,10 @@ class DeliveryAddressCard extends StatelessWidget {
           TextField(
             key: const ValueKey('food-recipient-name'),
             controller: recipientController,
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               labelText: 'Recipient name',
-              prefixIcon: Icon(Icons.person_outline),
-              border: OutlineInputBorder(),
+              prefixIcon: const Icon(Icons.person_outline),
+              border: _addressFieldBorder,
             ),
           ),
           const SizedBox(height: TwSpacing.x3),
@@ -54,21 +61,21 @@ class DeliveryAddressCard extends StatelessWidget {
             key: const ValueKey('food-phone'),
             controller: phoneController,
             keyboardType: TextInputType.phone,
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               labelText: 'Phone number',
               hintText: '+252 …',
-              prefixIcon: Icon(Icons.phone_outlined),
-              border: OutlineInputBorder(),
+              prefixIcon: const Icon(Icons.phone_outlined),
+              border: _addressFieldBorder,
             ),
           ),
           const SizedBox(height: TwSpacing.x3),
           TextField(
             key: const ValueKey('food-street'),
             controller: streetController,
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               labelText: 'Street or landmark',
-              prefixIcon: Icon(Icons.home_outlined),
-              border: OutlineInputBorder(),
+              prefixIcon: const Icon(Icons.home_outlined),
+              border: _addressFieldBorder,
             ),
           ),
           const SizedBox(height: TwSpacing.x3),
@@ -78,9 +85,9 @@ class DeliveryAddressCard extends StatelessWidget {
                 child: TextField(
                   key: const ValueKey('food-district'),
                   controller: districtController,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     labelText: 'District',
-                    border: OutlineInputBorder(),
+                    border: _addressFieldBorder,
                   ),
                 ),
               ),
@@ -89,9 +96,9 @@ class DeliveryAddressCard extends StatelessWidget {
                 child: TextField(
                   key: const ValueKey('food-city'),
                   controller: cityController,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     labelText: 'City',
-                    border: OutlineInputBorder(),
+                    border: _addressFieldBorder,
                   ),
                 ),
               ),
