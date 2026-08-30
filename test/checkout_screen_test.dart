@@ -54,7 +54,7 @@ void main() {
       );
       await tester.pump();
 
-      expect(find.text('Place demo order'), findsOneWidget);
+      expect(find.text('Place order'), findsOneWidget);
 
       await tester.enterText(
         find.byKey(const ValueKey('food-recipient-name')),
@@ -73,7 +73,7 @@ void main() {
         'Hodan',
       );
 
-      await tester.tap(find.text('Place demo order'));
+      await tester.tap(find.text('Place order'));
       // Let the submission start (isSubmitting = true) and complete.
       await tester.pump();
       await tester.pump();
@@ -84,7 +84,7 @@ void main() {
       );
       // The submit button resets back to its idle label instead of being
       // stuck on "Saving order...".
-      expect(find.text('Place demo order'), findsOneWidget);
+      expect(find.text('Place order'), findsOneWidget);
       expect(find.text('Saving order...'), findsNothing);
 
       // The cart must not be cleared on a failed order placement.

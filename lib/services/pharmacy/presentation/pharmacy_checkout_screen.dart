@@ -184,7 +184,7 @@ class _PharmacyCheckoutScreenState extends State<PharmacyCheckoutScreen> {
       context: context,
       barrierDismissible: false,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Demo order confirmed'),
+        title: const Text('Order confirmed'),
         content: Text(result.message),
         actions: [
           FilledButton(

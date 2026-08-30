@@ -117,13 +117,13 @@ void main() {
     await tester.pumpAndSettle();
 
     await tester.scrollUntilVisible(
-      find.text('Place demo order'),
+      find.text('Place order'),
       300,
       scrollable: find.byType(Scrollable).first,
     );
-    expect(find.text('Place demo order'), findsOneWidget);
+    expect(find.text('Place order'), findsOneWidget);
 
-    await tester.tap(find.text('Place demo order'));
+    await tester.tap(find.text('Place order'));
     await tester.pumpAndSettle();
 
     expect(find.text('Activity destination'), findsOneWidget);

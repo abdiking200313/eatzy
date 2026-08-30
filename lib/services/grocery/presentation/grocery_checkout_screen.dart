@@ -268,7 +268,7 @@ class _GroceryCheckoutScreenState extends State<GroceryCheckoutScreen> {
           color: TwColors.tertiary,
           size: 44,
         ),
-        title: const Text('Demo order confirmed'),
+        title: const Text('Order confirmed'),
         content: Text(
           'Your grocery activity was saved in this prototype. '
           'No payment was taken and no order was sent.\n\n'
