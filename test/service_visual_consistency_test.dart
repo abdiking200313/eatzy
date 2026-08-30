@@ -5,6 +5,7 @@ import 'package:chowflow/services/grocery/data/grocery_repository.dart';
 import 'package:chowflow/services/grocery/models/grocery_models.dart';
 import 'package:chowflow/services/grocery/presentation/grocery_controller.dart';
 import 'package:chowflow/services/grocery/presentation/grocery_screen.dart';
+import 'package:chowflow/services/grocery/presentation/grocery_store_screen.dart';
 import 'package:chowflow/services/pharmacy/data/pharmacy_repository.dart';
 import 'package:chowflow/services/pharmacy/models/pharmacy_cart_item.dart';
 import 'package:chowflow/services/pharmacy/presentation/pharmacy_catalog_screen.dart';
@@ -17,7 +18,7 @@ import 'helpers/memory_cart_storage.dart';
 
 void main() {
   testWidgets(
-    'grocery catalog uses green service cards and shared cart action',
+    'grocery store catalog uses green service cards and shared cart action',
     (tester) async {
       final controller = GroceryController(
         repository: const SeededGroceryRepository(),
@@ -30,7 +31,10 @@ void main() {
           theme: buildAppTheme(),
           home: ZivoServiceTheme(
             serviceId: ServiceId.grocery,
-            child: GroceryScreen(controller: controller),
+            child: GroceryStoreScreen(
+              storeId: 'bakaal-fresh',
+              controller: controller,
+            ),
           ),
         ),
       );
@@ -138,7 +142,44 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('Essentials from Somali stores'), findsOneWidget);
+      expect(find.text('Somali stores near you'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets(
+    'grocery store catalog stays overflow-free on a narrow, large-text '
+    'screen',
+    (tester) async {
+      await tester.binding.setSurfaceSize(const Size(320, 640));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      final controller = GroceryController(
+        repository: const SeededGroceryRepository(),
+        activityController: ActivityController(),
+        storage: MemoryCartStorage<GroceryCartLine>(),
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: buildAppTheme(),
+          home: ZivoServiceTheme(
+            serviceId: ServiceId.grocery,
+            child: MediaQuery(
+              data: const MediaQueryData(
+                size: Size(320, 640),
+                textScaler: TextScaler.linear(1.4),
+              ),
+              child: GroceryStoreScreen(
+                storeId: 'bakaal-fresh',
+                controller: controller,
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Bananas'), findsOneWidget);
       expect(tester.takeException(), isNull);
     },
   );

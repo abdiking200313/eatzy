@@ -96,6 +96,7 @@ final List<({String name, String path})> _registeredRoutes = [
   (name: 'foodCart', path: AppRoutes.foodCart),
   (name: 'foodCheckout', path: AppRoutes.foodCheckout),
   (name: 'grocery', path: AppRoutes.grocery),
+  (name: 'groceryStore', path: AppRoutes.groceryStore),
   (name: 'groceryCart', path: AppRoutes.groceryCart),
   (name: 'groceryCheckout', path: AppRoutes.groceryCheckout),
   (name: 'pharmacy', path: AppRoutes.pharmacy),
@@ -154,6 +155,13 @@ void main() {
     // concrete path via AppRoutes.trackOrderDetailsPath(...).
     if (name == 'trackOrderDetails' &&
         combinedSource.contains('trackOrderDetailsPath(')) {
+      return true;
+    }
+    // Same pattern again: no call site pushes the raw `groceryStore`
+    // template path -- GroceryScreen builds a concrete path via
+    // AppRoutes.groceryStoreDetails(id) (issue #140).
+    if (name == 'groceryStore' &&
+        combinedSource.contains('groceryStoreDetails(')) {
       return true;
     }
     return false;
