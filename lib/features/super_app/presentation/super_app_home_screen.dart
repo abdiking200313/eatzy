@@ -107,7 +107,7 @@ class _SuperAppHomeScreenState extends State<SuperAppHomeScreen> {
                     onPressed: () => context.go(AppRoutes.activity),
                   ),
                 ),
-                const SizedBox(height: TwSpacing.x3),
+                const SizedBox(height: TwSpacing.x4),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: TwSpacing.x5),
                   child: _RecentActivityListCard(items: recentItems),
@@ -526,7 +526,7 @@ class _RecentActivityRow extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.symmetric(
           horizontal: TwSpacing.x3,
-          vertical: TwSpacing.rhythmTight,
+          vertical: TwSpacing.x4,
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
