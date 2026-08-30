@@ -4,7 +4,7 @@ import 'package:chowflow/app/service_module.dart';
 import 'package:chowflow/config/theme.dart';
 import 'package:chowflow/services/food/models/category.dart';
 import 'package:chowflow/services/food/models/restaurant.dart';
-import 'package:chowflow/services/food/presentation/home_screen.dart';
+import 'package:chowflow/services/food/presentation/food_home_screen.dart';
 import 'package:chowflow/services/food/presentation/widgets/category_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -19,7 +19,7 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         theme: buildAppTheme(),
-        home: HomeScreen(
+        home: FoodHomeScreen(
           categoryLoader: () => categories.future,
           restaurantLoader: () => restaurants.future,
         ),
@@ -67,7 +67,7 @@ void main() {
           ),
           child: ZivoServiceTheme(
             serviceId: ServiceId.food,
-            child: HomeScreen(
+            child: FoodHomeScreen(
               categoryLoader: () async => const [
                 Category(id: 'rice', name: 'Rice', iconUrl: ''),
               ],
@@ -98,7 +98,7 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         theme: buildAppTheme(),
-        home: HomeScreen(
+        home: FoodHomeScreen(
           categoryLoader: () async => const [
             Category(id: 'rice', name: 'Rice', iconUrl: ''),
             Category(id: 'grill', name: 'Grill', iconUrl: ''),
@@ -157,7 +157,7 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         theme: buildAppTheme(),
-        home: HomeScreen(
+        home: FoodHomeScreen(
           categoryLoader: () async => const [],
           restaurantLoader: () async => const [
             Restaurant(
@@ -207,7 +207,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           theme: buildAppTheme(),
-          home: HomeScreen(
+          home: FoodHomeScreen(
             categoryLoader: () async => const [
               Category(id: 'rice', name: 'Rice', iconUrl: ''),
             ],
