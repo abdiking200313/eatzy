@@ -5,6 +5,7 @@ import '../../../app/app_routes.dart';
 import '../../../config/theme.dart';
 import '../../../platform/localization/app_money.dart';
 import '../../../widgets/app_cards.dart';
+import '../../../widgets/app_misc.dart';
 import '../../../widgets/app_scaffold.dart';
 import '../models/grocery_models.dart';
 import 'grocery_controller.dart';
@@ -196,10 +197,9 @@ class _CartLineRow extends StatelessWidget {
           onPressed: () {
             final changed = controller.increment(line.product.id);
             if (!changed) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('No more ${line.product.name} is available.'),
-                ),
+              showCartSnackBar(
+                context,
+                'No more ${line.product.name} is available.',
               );
             }
           },

@@ -6,6 +6,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../app/app_routes.dart';
 import '../../../config/theme.dart';
 import '../../../widgets/app_cards.dart';
+import '../../../widgets/app_misc.dart';
 import '../data/food_repository.dart';
 import '../data/restaurant_menu_repository.dart';
 import '../models/cart_item.dart';
@@ -160,17 +161,14 @@ class _RestaurantScreenState extends State<RestaurantScreen> {
           '${menuItem.name} is already at the maximum quantity',
         _ => '${menuItem.name} added to cart',
       };
-      ScaffoldMessenger.of(context)
-        ..clearSnackBars()
-        ..showSnackBar(SnackBar(content: Text(message)));
+      showCartSnackBar(context, message);
     } on Object {
       if (!mounted) {
         return;
       }
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('The item was added, but the cart could not be saved.'),
-        ),
+      showCartSnackBar(
+        context,
+        'The item was added, but the cart could not be saved.',
       );
     }
   }

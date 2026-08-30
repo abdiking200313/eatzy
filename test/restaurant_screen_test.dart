@@ -131,10 +131,42 @@ void main() {
     expect(find.widgetWithText(ChoiceChip, 'Drinks'), findsOneWidget);
 
     await tester.tap(find.byKey(const ValueKey('add-to-cart-burger-1')));
-    await tester.pumpAndSettle();
+    await tester.pump(); // schedule the confirmation snackbar
+    await tester.pump(); // begin its entrance animation
+    await tester.pump(
+      const Duration(milliseconds: 250),
+    ); // entrance completes; its auto-dismiss timer starts here
 
     expect(cartController.itemCount, 1);
     expect(find.text('Classic Burger added to cart'), findsOneWidget);
+
+    // The confirmation must use the shared floating/short-lived shell (see
+    // `showCartSnackBar`) rather than a plain default SnackBar, so it never
+    // sits flush over bottom content like the "View cart" FAB.
+    final snackBar = tester.widget<SnackBar>(find.byType(SnackBar));
+    expect(snackBar.behavior, SnackBarBehavior.floating);
+    expect(snackBar.margin, isNotNull);
+    expect(snackBar.duration, lessThanOrEqualTo(const Duration(seconds: 2)));
+
+    // It should disappear on its own well before Flutter's 4-second
+    // default would have elapsed, rather than lingering over the page. Poll
+    // in small steps (instead of one big jump) so the timer firing and the
+    // exit animation each get their own frame, however many they need.
+    final confirmation = find.text('Classic Burger added to cart');
+    var waited = Duration.zero;
+    const pollStep = Duration(milliseconds: 100);
+    const pollTimeout = Duration(seconds: 3);
+    while (confirmation.evaluate().isNotEmpty && waited < pollTimeout) {
+      await tester.pump(pollStep);
+      waited += pollStep;
+    }
+    expect(
+      confirmation,
+      findsNothing,
+      reason:
+          'add-to-cart confirmation still visible after $pollTimeout, '
+          'well past its ${snackBar.duration} duration',
+    );
 
     await tester.tap(find.widgetWithText(ChoiceChip, 'Drinks'));
     await tester.pumpAndSettle();

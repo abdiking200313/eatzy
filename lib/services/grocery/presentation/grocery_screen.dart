@@ -237,9 +237,7 @@ class _GroceryScreenState extends State<GroceryScreen> {
         'No more ${product.name} is available.',
       GroceryAddResult.storeConflict => 'Your current grocery cart was kept.',
     };
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(content: Text(message)));
+    showCartSnackBar(context, message);
   }
 }
 
