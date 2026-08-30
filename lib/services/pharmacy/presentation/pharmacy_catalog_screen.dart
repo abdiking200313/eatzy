@@ -10,6 +10,7 @@ import '../../../widgets/add_to_cart_button.dart';
 import '../../../widgets/app_cards.dart';
 import '../../../widgets/app_misc.dart';
 import '../../../widgets/app_scaffold.dart';
+import '../../../widgets/cart_app_bar_action.dart';
 import '../models/pharmacy_product.dart';
 import 'pharmacy_controller.dart';
 
@@ -98,7 +99,6 @@ class _PharmacyCatalogScreenState extends State<PharmacyCatalogScreen> {
           controller: _controller,
           onPressed: () => context.push(AppRoutes.pharmacyCart),
         ),
-        const SizedBox(width: TwSpacing.x2),
       ],
       body: _buildBody(),
     );
@@ -325,15 +325,12 @@ class _CartAction extends StatelessWidget {
       animation: controller,
       builder: (context, _) {
         final itemCount = controller.itemCount;
-        return IconButton(
+        return CartAppBarAction(
           key: const ValueKey('pharmacy-cart-action'),
+          itemCount: itemCount,
           tooltip: 'Pharmacy cart',
           onPressed: onPressed,
-          icon: Badge(
-            isLabelVisible: itemCount > 0,
-            label: Text('$itemCount'),
-            child: const Icon(Icons.shopping_bag_outlined),
-          ),
+          icon: Icons.shopping_bag_rounded,
         );
       },
     );

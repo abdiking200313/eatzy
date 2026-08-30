@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../../app/app_routes.dart';
 import '../../../config/theme.dart';
 import '../../../widgets/app_cards.dart';
+import '../../../widgets/cart_app_bar_action.dart';
 import '../../../widgets/zivo_logo.dart';
 import '../data/category_repository.dart';
 import '../data/restaurant_repository.dart';
@@ -154,7 +155,18 @@ class _FoodHomeScreenState extends State<FoodHomeScreen> {
             onPressed: null,
             icon: Icon(Icons.notifications_none, color: palette.accent),
           ),
-          const SizedBox(width: TwSpacing.x2),
+          AnimatedBuilder(
+            animation: CartController.instance,
+            builder: (context, _) {
+              final count = CartController.instance.itemCount;
+              return CartAppBarAction(
+                itemCount: count,
+                tooltip: 'Food cart ($count)',
+                onPressed: () => context.push(AppRoutes.foodCart),
+                icon: Icons.shopping_cart_rounded,
+              );
+            },
+          ),
         ],
       ),
       body: FutureBuilder<_FoodHomeData>(
@@ -167,23 +179,6 @@ class _FoodHomeScreenState extends State<FoodHomeScreen> {
             return _FoodHomeError(onRetry: _retry);
           }
           return _buildHomeContent(snapshot.requireData);
-        },
-      ),
-      floatingActionButton: AnimatedBuilder(
-        animation: CartController.instance,
-        builder: (context, _) {
-          final count = CartController.instance.itemCount;
-          if (count == 0) {
-            return const SizedBox.shrink();
-          }
-          return FloatingActionButton.extended(
-            onPressed: () => context.push(AppRoutes.foodCart),
-            icon: Badge(
-              label: Text('$count'),
-              child: const Icon(Icons.shopping_cart_outlined),
-            ),
-            label: const Text('View cart'),
-          );
         },
       ),
     );

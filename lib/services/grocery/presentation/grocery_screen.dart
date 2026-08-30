@@ -10,6 +10,7 @@ import '../../../widgets/add_to_cart_button.dart';
 import '../../../widgets/app_cards.dart';
 import '../../../widgets/app_misc.dart';
 import '../../../widgets/app_scaffold.dart';
+import '../../../widgets/cart_app_bar_action.dart';
 import '../models/grocery_models.dart';
 import 'grocery_controller.dart';
 
@@ -255,14 +256,11 @@ class _CartBadgeAction extends StatelessWidget {
       animation: controller,
       builder: (context, _) {
         final itemCount = controller.itemCount;
-        return IconButton(
+        return CartAppBarAction(
+          itemCount: itemCount,
           tooltip: 'Grocery cart ($itemCount)',
           onPressed: () => context.push(AppRoutes.groceryCart),
-          icon: Badge(
-            isLabelVisible: itemCount > 0,
-            label: Text('$itemCount'),
-            child: const Icon(Icons.shopping_basket_outlined),
-          ),
+          icon: Icons.shopping_basket_rounded,
         );
       },
     );
