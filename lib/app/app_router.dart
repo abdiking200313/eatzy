@@ -39,6 +39,7 @@ import '../services/grocery/presentation/grocery_store_screen.dart';
 import '../services/pharmacy/presentation/pharmacy_cart_screen.dart';
 import '../services/pharmacy/presentation/pharmacy_catalog_screen.dart';
 import '../services/pharmacy/presentation/pharmacy_checkout_screen.dart';
+import '../services/pharmacy/presentation/pharmacy_store_list_screen.dart';
 import 'app_routes.dart';
 import 'main_app_screen.dart';
 import 'service_module.dart';
@@ -137,7 +138,7 @@ class AppRouter {
   static const Map<String, Widget> _pharmacyPages = {
     AppRoutes.pharmacy: ZivoServiceTheme(
       serviceId: ServiceId.pharmacy,
-      child: PharmacyCatalogScreen(),
+      child: PharmacyStoreListScreen(),
     ),
     AppRoutes.pharmacyCart: ZivoServiceTheme(
       serviceId: ServiceId.pharmacy,
@@ -257,9 +258,21 @@ class AppRouter {
         ],
       ),
       StatefulShellBranch(
-        routes: _pharmacyPages.entries
-            .map((entry) => _page(entry.key, entry.value))
-            .toList(growable: false),
+        routes: [
+          ..._pharmacyPages.entries.map(
+            (entry) => _page(entry.key, entry.value),
+          ),
+          GoRoute(
+            path: AppRoutes.pharmacyStore,
+            builder: (_, state) => ZivoServiceTheme(
+              serviceId: ServiceId.pharmacy,
+              child: PharmacyCatalogScreen(
+                storeId: state.pathParameters['storeId']!,
+                storeName: state.uri.queryParameters['name'],
+              ),
+            ),
+          ),
+        ],
       ),
     ],
   );

@@ -240,6 +240,35 @@ void main() {
       // The parameterized route it is a prefix of IS registered.
       expect(AppRouter.hasRegisteredRoute(AppRoutes.foodRestaurant), isTrue);
     });
+
+    test('pharmacyStores is deliberately not a registered route (path-prefix '
+        'only, mirrors foodRestaurants, see app_routes.dart)', () {
+      expect(AppRouter.hasRegisteredRoute(AppRoutes.pharmacyStores), isFalse);
+      // The parameterized route it is a prefix of IS registered.
+      expect(AppRouter.hasRegisteredRoute(AppRoutes.pharmacyStore), isTrue);
+    });
+  });
+
+  group('pharmacy store routes (issue #141)', () {
+    test('builds a pharmacy store details path', () {
+      expect(
+        AppRoutes.pharmacyStoreDetails('legacy-pharmacy'),
+        '/pharmacy/stores/legacy-pharmacy',
+      );
+    });
+
+    test('a pharmacy store details path requires a signed-in customer', () {
+      final path = AppRoutes.pharmacyStoreDetails('legacy-pharmacy');
+      expect(AppRouter.isProtectedLocation(path), isTrue);
+      expect(
+        AppRouter.resolveRedirect(
+          isLoggedIn: false,
+          isProtected: AppRouter.isProtectedLocation(path),
+          location: path,
+        ),
+        AppRoutes.login,
+      );
+    });
   });
 
   group('track order routes (issue #43)', () {

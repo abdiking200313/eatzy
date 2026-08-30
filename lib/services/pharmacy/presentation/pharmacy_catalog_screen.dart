@@ -1,21 +1,43 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 
-import '../../../app/app_routes.dart';
 import '../../../config/theme.dart';
 import '../../../platform/localization/app_money.dart';
 import '../../../widgets/add_to_cart_button.dart';
 import '../../../widgets/app_cards.dart';
 import '../../../widgets/app_misc.dart';
 import '../../../widgets/app_scaffold.dart';
-import '../../../widgets/cart_app_bar_action.dart';
 import '../models/pharmacy_product.dart';
 import 'pharmacy_controller.dart';
+import 'widgets/pharmacy_cart_badge_action.dart';
 
+/// How long to wait after the last keystroke before running a search query,
+/// so typing quickly doesn't fire a request per character. Mirrors
+/// `FoodHomeScreen`'s `_searchDebounce`.
+const Duration _searchDebounce = Duration(milliseconds: 400);
+
+/// A single pharmacy's OTC product catalog — reached by picking a pharmacy
+/// on [PharmacyStoreListScreen] first, so browsing (and the cart it feeds)
+/// is always scoped to one pharmacy at a time (issue #141). The pharmacy
+/// counterpart of `RestaurantScreen`.
 class PharmacyCatalogScreen extends StatefulWidget {
-  const PharmacyCatalogScreen({super.key, this.controller});
+  const PharmacyCatalogScreen({
+    super.key,
+    required this.storeId,
+    this.storeName,
+    this.controller,
+  });
+
+  /// The pharmacy (`PharmacyStore.id`) this catalog is scoped to.
+  final String storeId;
+
+  /// The pharmacy's display name, passed through from the store list (the
+  /// same "pass the name via the calling screen" shape as
+  /// `FoodExploreScreen`'s `categoryName`) so the app bar title doesn't need
+  /// its own fetch just to show it. Falls back to a generic title when
+  /// absent (e.g. a bare deep link to this route).
+  final String? storeName;
 
   final PharmacyController? controller;
 
@@ -26,6 +48,9 @@ class PharmacyCatalogScreen extends StatefulWidget {
 class _PharmacyCatalogScreenState extends State<PharmacyCatalogScreen> {
   PharmacyController get _controller =>
       widget.controller ?? PharmacyController.instance;
+
+  final _searchController = TextEditingController();
+  Timer? _debounce;
 
   // Mirrors only the catalog-load-relevant slice of the controller's state.
   // Cart mutations (add/increment/decrement/remove) also call
@@ -42,21 +67,62 @@ class _PharmacyCatalogScreenState extends State<PharmacyCatalogScreen> {
   @override
   void initState() {
     super.initState();
+    _loadStore();
+  }
+
+  @override
+  void didUpdateWidget(covariant PharmacyCatalogScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.storeId != widget.storeId ||
+        oldWidget.controller != widget.controller) {
+      _searchController.clear();
+      _loadStore();
+    }
+  }
+
+  @override
+  void dispose() {
+    _debounce?.cancel();
+    _searchController.dispose();
+    _controller.removeListener(_handleControllerChanged);
+    super.dispose();
+  }
+
+  void _loadStore() {
     // Kick off the load first: its synchronous prefix (setting `isLoading`
     // and calling `notifyListeners()`) runs immediately, before the first
     // `await`. Snapshotting state after that call — rather than listening
     // first — means our own `setState` only ever runs in response to a
     // later, async notification, never re-entrantly during this
     // `initState()`/first-build pass.
-    unawaited(_controller.loadProducts());
+    unawaited(_controller.loadProducts(storeId: widget.storeId));
     _syncLoadState();
     _controller.addListener(_handleControllerChanged);
   }
 
-  @override
-  void dispose() {
-    _controller.removeListener(_handleControllerChanged);
-    super.dispose();
+  void _onSearchChanged(String value) {
+    _debounce?.cancel();
+    _debounce = Timer(_searchDebounce, () {
+      if (!mounted) return;
+      unawaited(
+        _controller.loadProducts(
+          storeId: widget.storeId,
+          searchQuery: _searchController.text,
+          forceRefresh: true,
+        ),
+      );
+    });
+    // Show/hide the clear button immediately without waiting on the debounce.
+    setState(() {});
+  }
+
+  void _clearSearch() {
+    _debounce?.cancel();
+    _searchController.clear();
+    unawaited(
+      _controller.loadProducts(storeId: widget.storeId, forceRefresh: true),
+    );
+    setState(() {});
   }
 
   void _syncLoadState() {
@@ -92,14 +158,9 @@ class _PharmacyCatalogScreenState extends State<PharmacyCatalogScreen> {
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
-      title: 'Pharmacy',
+      title: widget.storeName ?? 'Pharmacy',
       showBackButton: true,
-      actions: [
-        _CartAction(
-          controller: _controller,
-          onPressed: () => context.push(AppRoutes.pharmacyCart),
-        ),
-      ],
+      actions: [PharmacyCartBadgeAction(controller: _controller)],
       body: _buildBody(),
     );
   }
@@ -110,30 +171,45 @@ class _PharmacyCatalogScreenState extends State<PharmacyCatalogScreen> {
     }
 
     if (_loadError != null && _productCount == 0) {
-      return _CatalogError(
-        message: _loadError!,
-        onRetry: _controller.loadProducts,
-      );
+      return _CatalogError(message: _loadError!, onRetry: _retry);
     }
 
-    // 2 fixed header rows (notice + heading block) + one row per product +
-    // an optional trailing "load more" row.
-    final itemCount = 2 + _productCount + (_hasMore ? 1 : 0);
+    // 3 fixed header rows (search field + notice + heading block) + one row
+    // per product + an optional trailing "load more" row, or (once loaded)
+    // one "no products" row in place of both when the store/search scope
+    // has nothing to show.
+    final showEmptyRow = !_isLoading && _productCount == 0;
+    final itemCount =
+        3 + _productCount + (_hasMore ? 1 : 0) + (showEmptyRow ? 1 : 0);
 
     return RefreshIndicator(
-      onRefresh: () => _controller.loadProducts(forceRefresh: true),
+      onRefresh: () => _controller.loadProducts(
+        storeId: widget.storeId,
+        searchQuery: _searchController.text,
+        forceRefresh: true,
+      ),
       child: ListView.builder(
         padding: const EdgeInsets.all(TwSpacing.x5),
         physics: const AlwaysScrollableScrollPhysics(),
         itemCount: itemCount,
         itemBuilder: (context, index) {
           if (index == 0) {
+            return Padding(
+              padding: const EdgeInsets.only(bottom: TwSpacing.rhythmDefault),
+              child: _StoreSearchField(
+                controller: _searchController,
+                onChanged: _onSearchChanged,
+                onClear: _clearSearch,
+              ),
+            );
+          }
+          if (index == 1) {
             return const Padding(
               padding: EdgeInsets.only(bottom: TwSpacing.rhythmDefault),
               child: _OtcNotice(),
             );
           }
-          if (index == 1) {
+          if (index == 2) {
             return Padding(
               padding: const EdgeInsets.only(bottom: TwSpacing.rhythmDefault),
               child: Column(
@@ -150,7 +226,13 @@ class _PharmacyCatalogScreenState extends State<PharmacyCatalogScreen> {
             );
           }
 
-          final productIndex = index - 2;
+          final productIndex = index - 3;
+          if (showEmptyRow && productIndex == 0) {
+            return Padding(
+              padding: const EdgeInsets.only(top: TwSpacing.x8),
+              child: Center(child: Text(_emptyMessage())),
+            );
+          }
           if (productIndex >= _productCount) {
             // Trailing load-more row: triggers the next page once it comes
             // into view instead of eagerly fetching everything up front.
@@ -186,8 +268,55 @@ class _PharmacyCatalogScreenState extends State<PharmacyCatalogScreen> {
     );
   }
 
-  void _addProduct(PharmacyProduct product) {
-    final result = _controller.addProduct(product);
+  void _retry() {
+    unawaited(_controller.loadProducts(storeId: widget.storeId));
+  }
+
+  String _emptyMessage() {
+    final searchQuery = _searchController.text.trim();
+    if (searchQuery.isNotEmpty) {
+      return 'No products match "$searchQuery" at this pharmacy.';
+    }
+    return 'This pharmacy has no OTC products yet.';
+  }
+
+  Future<void> _addProduct(PharmacyProduct product) async {
+    var result = _controller.addProduct(product);
+
+    if (result == PharmacyCartAddResult.storeConflict) {
+      final replaceCart = await showDialog<bool>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          title: const Text('Start a new pharmacy cart?'),
+          content: const Text(
+            'Your pharmacy cart contains items from another pharmacy. '
+            'Starting a cart here will remove them.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: const Text('Keep cart'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              child: const Text('Start new cart'),
+            ),
+          ],
+        ),
+      );
+
+      if (replaceCart != true) {
+        return;
+      }
+      if (!mounted) {
+        return;
+      }
+      result = _controller.addProduct(product, replaceStoreCart: true);
+    }
+
+    if (!mounted) {
+      return;
+    }
     final message = switch (result) {
       PharmacyCartAddResult.added => '${product.name} added to pharmacy cart.',
       PharmacyCartAddResult.quantityIncreased =>
@@ -198,9 +327,61 @@ class _PharmacyCatalogScreenState extends State<PharmacyCatalogScreen> {
         '${product.name} is currently out of stock.',
       PharmacyCartAddResult.maximumStockReached =>
         'You already have all available ${product.name} in your cart.',
+      PharmacyCartAddResult.storeConflict =>
+        'Your pharmacy cart was kept unchanged.',
     };
 
     showCartSnackBar(context, message);
+  }
+}
+
+/// A pill-shaped search field scoped to this pharmacy's catalog, styled to
+/// match `FoodHomeScreen`'s restaurant search box.
+class _StoreSearchField extends StatelessWidget {
+  const _StoreSearchField({
+    required this.controller,
+    required this.onChanged,
+    required this.onClear,
+  });
+
+  final TextEditingController controller;
+  final ValueChanged<String> onChanged;
+  final VoidCallback onClear;
+
+  @override
+  Widget build(BuildContext context) {
+    return OutlinedCard(
+      backgroundColor: TwColors.card,
+      borderColor: TwColors.border,
+      borderRadius: 50,
+      child: Row(
+        children: [
+          const Icon(Icons.search, color: TwColors.textMuted),
+          const SizedBox(width: TwSpacing.x4),
+          Expanded(
+            child: TextField(
+              controller: controller,
+              onChanged: onChanged,
+              textInputAction: TextInputAction.search,
+              decoration: const InputDecoration(
+                isCollapsed: true,
+                border: InputBorder.none,
+                hintText: 'Search this pharmacy...',
+                hintStyle: TextStyle(color: TwColors.textMuted),
+              ),
+            ),
+          ),
+          if (controller.text.isNotEmpty)
+            GestureDetector(
+              onTap: onClear,
+              child: const Padding(
+                padding: EdgeInsets.only(left: TwSpacing.x2),
+                child: Icon(Icons.clear, size: 20, color: TwColors.textMuted),
+              ),
+            ),
+        ],
+      ),
+    );
   }
 }
 
@@ -304,33 +485,6 @@ class _ProductCard extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
-}
-
-/// Isolated so a cart mutation (add/increment/decrement/remove) only
-/// rebuilds this small badge, not the (potentially long) product list
-/// above it.
-class _CartAction extends StatelessWidget {
-  const _CartAction({required this.controller, required this.onPressed});
-
-  final PharmacyController controller;
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: controller,
-      builder: (context, _) {
-        final itemCount = controller.itemCount;
-        return CartAppBarAction(
-          key: const ValueKey('pharmacy-cart-action'),
-          itemCount: itemCount,
-          tooltip: 'Pharmacy cart',
-          onPressed: onPressed,
-          icon: Icons.shopping_bag_rounded,
-        );
-      },
     );
   }
 }

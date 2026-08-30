@@ -3,6 +3,7 @@ enum PharmacySaleType { overTheCounter, prescriptionOnly, regulated }
 class PharmacyProduct {
   const PharmacyProduct({
     required this.id,
+    required this.storeId,
     required this.name,
     required this.description,
     required this.category,
@@ -12,6 +13,12 @@ class PharmacyProduct {
   });
 
   final String id;
+
+  /// The pharmacy (`public.pharmacy_stores.id`) that stocks this product —
+  /// added in issue #129/#141 so the customer-facing catalog and cart can be
+  /// scoped to a single pharmacy at a time, the pharmacy counterpart of
+  /// `GroceryProduct.storeId`.
+  final String storeId;
   final String name;
   final String description;
   final String category;
@@ -47,6 +54,7 @@ class PharmacyProduct {
 
     return PharmacyProduct(
       id: _requiredString(map, 'id'),
+      storeId: _requiredString(map, 'store_id'),
       name: _requiredString(map, 'name'),
       description: _optionalString(map, 'description'),
       category: categoryMap == null
@@ -64,6 +72,7 @@ class PharmacyProduct {
   Map<String, dynamic> toJson() {
     return {
       'id': id,
+      'store_id': storeId,
       'name': name,
       'description': description,
       'category': category,
@@ -76,6 +85,7 @@ class PharmacyProduct {
   factory PharmacyProduct.fromJson(Map<String, dynamic> json) {
     return PharmacyProduct(
       id: _requiredString(json, 'id'),
+      storeId: _requiredString(json, 'store_id'),
       name: _requiredString(json, 'name'),
       description: _optionalString(json, 'description'),
       category: _requiredString(json, 'category'),

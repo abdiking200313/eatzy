@@ -22,6 +22,12 @@ enum PharmacyCartAddResult {
   notOverTheCounter,
   unavailable,
   maximumStockReached,
+
+  /// The cart already holds items from a different pharmacy
+  /// (`PharmacyProduct.storeId`) and the caller did not pass
+  /// `replaceStoreCart: true` — mirrors `GroceryAddResult.storeConflict`.
+  /// Cart/checkout stay scoped to one pharmacy at a time (issue #141).
+  storeConflict,
 }
 
 class PharmacyController extends ChangeNotifier with LoadableState {
@@ -76,6 +82,14 @@ class PharmacyController extends ChangeNotifier with LoadableState {
   bool _isLoadingMore = false;
   bool _hasMore = true;
 
+  /// The pharmacy (`PharmacyStore.id`) [_products] was last loaded for, or
+  /// `null` before the first [loadProducts] call. Products are always
+  /// scoped to one pharmacy at a time (issue #141): switching stores (or
+  /// changing [_currentSearchQuery]) always refetches, regardless of
+  /// [isStale].
+  String? _currentStoreId;
+  String? _currentSearchQuery;
+
   Future<void> _pendingCartWrite = Future<void>.value();
   String? _cartOwnerId;
   int _cartLoadGeneration = 0;
@@ -97,6 +111,10 @@ class PharmacyController extends ChangeNotifier with LoadableState {
     return lastLoadedAt == null ||
         _now().difference(lastLoadedAt) >= catalogStaleAfter;
   }
+
+  /// The pharmacy currently loaded into [products], or `null` before the
+  /// first [loadProducts] call.
+  String? get currentStoreId => _currentStoreId;
 
   bool get isLoadingMore => _isLoadingMore;
 
@@ -151,25 +169,39 @@ class PharmacyController extends ChangeNotifier with LoadableState {
     notifyListeners();
   }
 
-  /// Loads the OTC catalog.
+  /// Loads the OTC catalog for [storeId], optionally narrowed by
+  /// [searchQuery] (a case-insensitive product-name substring match, run
+  /// server-side by the repository).
   ///
-  /// By default this is a no-op once a catalog is already loaded and still
-  /// fresh (see [isStale]), so cheap repeat calls (e.g. from `initState`)
-  /// don't refetch pointlessly. Pass [forceRefresh] to always refetch —
-  /// this is what a pull-to-refresh gesture should use, since it represents
-  /// an explicit user request for the latest stock/prices regardless of
-  /// staleness.
-  Future<void> loadProducts({bool forceRefresh = false}) async {
+  /// By default this is a no-op once the same store/search scope is already
+  /// loaded and still fresh (see [isStale]), so cheap repeat calls (e.g.
+  /// from `initState`) don't refetch pointlessly. Switching to a different
+  /// [storeId] or [searchQuery] always refetches regardless of staleness —
+  /// showing another pharmacy's stale products (or an unfiltered list once
+  /// a search is entered) would be wrong, not just slow. Pass [forceRefresh]
+  /// to always refetch even within the same scope — this is what a
+  /// pull-to-refresh gesture should use, since it represents an explicit
+  /// user request for the latest stock/prices.
+  Future<void> loadProducts({
+    required String storeId,
+    String? searchQuery,
+    bool forceRefresh = false,
+  }) async {
     if (isLoading) {
       return;
     }
-    if (!forceRefresh && _products.isNotEmpty && !isStale) {
+    final normalizedQuery = _normalizeSearchQuery(searchQuery);
+    final scopeChanged =
+        storeId != _currentStoreId || normalizedQuery != _currentSearchQuery;
+    if (!forceRefresh && !scopeChanged && _products.isNotEmpty && !isStale) {
       return;
     }
 
     await runLoad(
       fetch: () async {
         final products = await _repository.fetchProducts(
+          storeId: storeId,
+          searchQuery: normalizedQuery,
           limit: pharmacyProductsPageSize,
         );
         _products
@@ -177,16 +209,20 @@ class PharmacyController extends ChangeNotifier with LoadableState {
           ..addAll(products.where((product) => product.isOverTheCounter));
         _hasMore = products.length >= pharmacyProductsPageSize;
         _lastLoadedAt = _now();
+        _currentStoreId = storeId;
+        _currentSearchQuery = normalizedQuery;
       },
       onError: (error, stackTrace) =>
           'The pharmacy catalog could not be loaded.',
     );
   }
 
-  /// Fetches and appends the next page of products. No-ops while a load is
-  /// already in flight or once [hasMore] is `false`.
+  /// Fetches and appends the next page of products for the store/search
+  /// scope [loadProducts] last loaded. No-ops while a load is already in
+  /// flight, once [hasMore] is `false`, or before any [loadProducts] call.
   Future<void> loadMore() async {
-    if (isLoading || _isLoadingMore || !_hasMore) {
+    final storeId = _currentStoreId;
+    if (isLoading || _isLoadingMore || !_hasMore || storeId == null) {
       return;
     }
 
@@ -195,6 +231,8 @@ class PharmacyController extends ChangeNotifier with LoadableState {
 
     try {
       final nextPage = await _repository.fetchProducts(
+        storeId: storeId,
+        searchQuery: _currentSearchQuery,
         limit: pharmacyProductsPageSize,
         offset: _products.length,
       );
@@ -209,12 +247,38 @@ class PharmacyController extends ChangeNotifier with LoadableState {
     }
   }
 
-  PharmacyCartAddResult addProduct(PharmacyProduct product) {
+  String? _normalizeSearchQuery(String? searchQuery) {
+    final trimmed = searchQuery?.trim();
+    return trimmed == null || trimmed.isEmpty ? null : trimmed;
+  }
+
+  /// Adds [product] to the cart.
+  ///
+  /// Returns [PharmacyCartAddResult.storeConflict] when the cart already
+  /// holds items from a different pharmacy and [replaceStoreCart] is
+  /// `false` — mirrors `GroceryController.addProduct`'s `replaceStoreCart`.
+  /// Pass `replaceStoreCart: true` (after user confirmation) to clear the
+  /// existing cart and add [product] instead, keeping checkout scoped to a
+  /// single pharmacy at a time (issue #141).
+  PharmacyCartAddResult addProduct(
+    PharmacyProduct product, {
+    bool replaceStoreCart = false,
+  }) {
     if (!product.isOverTheCounter) {
       return PharmacyCartAddResult.notOverTheCounter;
     }
     if (!product.isAvailable) {
       return PharmacyCartAddResult.unavailable;
+    }
+
+    final hasStoreConflict =
+        _cartItems.isNotEmpty &&
+        _cartItems.first.product.storeId != product.storeId;
+    if (hasStoreConflict && !replaceStoreCart) {
+      return PharmacyCartAddResult.storeConflict;
+    }
+    if (hasStoreConflict) {
+      _cartItems.clear();
     }
 
     final index = _indexOf(product.id);

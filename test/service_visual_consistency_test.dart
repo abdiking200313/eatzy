@@ -68,13 +68,27 @@ void main() {
                 size: Size(320, 900),
                 textScaler: TextScaler.linear(1.3),
               ),
-              child: PharmacyCatalogScreen(controller: controller),
+              child: PharmacyCatalogScreen(
+                storeId: SeededPharmacyRepository.defaultStoreId,
+                controller: controller,
+              ),
             ),
           ),
         ),
       );
       await tester.pumpAndSettle();
 
+      // The store search field pushes the OTC notice/heading tall enough at
+      // this text scale that no product card is on screen without
+      // scrolling — mirrors `pharmacy_screens_test.dart`'s
+      // `scrollUntilVisible` fix, pinned to the catalog list since the
+      // search field's own `TextField` adds a second `Scrollable` to the
+      // default finder.
+      await tester.scrollUntilVisible(
+        find.byType(AddToCartButton),
+        300,
+        scrollable: find.byType(Scrollable).first,
+      );
       expect(find.byType(AddToCartButton), findsWidgets);
       expect(find.byIcon(Icons.add_shopping_cart_rounded), findsWidgets);
       expect(tester.takeException(), isNull);
@@ -102,7 +116,10 @@ void main() {
                 size: Size(320, 640),
                 textScaler: TextScaler.linear(1.4),
               ),
-              child: PharmacyCatalogScreen(controller: controller),
+              child: PharmacyCatalogScreen(
+                storeId: SeededPharmacyRepository.defaultStoreId,
+                controller: controller,
+              ),
             ),
           ),
         ),
