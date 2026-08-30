@@ -12,6 +12,7 @@ import '../../../widgets/app_scaffold.dart';
 import '../data/pharmacy_repository.dart';
 import '../models/pharmacy_store.dart';
 import 'pharmacy_controller.dart';
+import 'widgets/pharmacy_cart_badge_action.dart';
 
 typedef PharmacyStoreLoader = Future<List<PharmacyStore>> Function();
 
@@ -139,13 +140,7 @@ class _PharmacyStoreListScreenState extends State<PharmacyStoreListScreen> {
     return AppScaffold(
       title: 'Pharmacy',
       showBackButton: true,
-      actions: [
-        _CartAction(
-          controller: _controller,
-          onPressed: () => context.push(AppRoutes.pharmacyCart),
-        ),
-        const SizedBox(width: TwSpacing.x2),
-      ],
+      actions: [PharmacyCartBadgeAction(controller: _controller)],
       body: FutureBuilder<List<PharmacyStore>>(
         future: _storesFuture,
         builder: (context, snapshot) {
@@ -305,35 +300,6 @@ class _StoreCard extends StatelessWidget {
           const Icon(Icons.chevron_right_rounded, color: TwColors.textMuted),
         ],
       ),
-    );
-  }
-}
-
-/// Isolated so a cart mutation elsewhere doesn't rebuild the (potentially
-/// long) store list above it. Mirrors `PharmacyCatalogScreen`'s
-/// `_CartAction`.
-class _CartAction extends StatelessWidget {
-  const _CartAction({required this.controller, required this.onPressed});
-
-  final PharmacyController controller;
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: controller,
-      builder: (context, _) {
-        final itemCount = controller.itemCount;
-        return IconButton(
-          tooltip: 'Pharmacy cart',
-          onPressed: onPressed,
-          icon: Badge(
-            isLabelVisible: itemCount > 0,
-            label: Text('$itemCount'),
-            child: const Icon(Icons.shopping_bag_outlined),
-          ),
-        );
-      },
     );
   }
 }

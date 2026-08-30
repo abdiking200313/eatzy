@@ -1,18 +1,16 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 
-import '../../../app/app_routes.dart';
 import '../../../config/theme.dart';
 import '../../../platform/localization/app_money.dart';
 import '../../../widgets/add_to_cart_button.dart';
 import '../../../widgets/app_cards.dart';
 import '../../../widgets/app_misc.dart';
 import '../../../widgets/app_scaffold.dart';
-import '../../../widgets/cart_app_bar_action.dart';
 import '../models/pharmacy_product.dart';
 import 'pharmacy_controller.dart';
+import 'widgets/pharmacy_cart_badge_action.dart';
 
 /// How long to wait after the last keystroke before running a search query,
 /// so typing quickly doesn't fire a request per character. Mirrors
@@ -162,12 +160,7 @@ class _PharmacyCatalogScreenState extends State<PharmacyCatalogScreen> {
     return AppScaffold(
       title: widget.storeName ?? 'Pharmacy',
       showBackButton: true,
-      actions: [
-        _CartAction(
-          controller: _controller,
-          onPressed: () => context.push(AppRoutes.pharmacyCart),
-        ),
-      ],
+      actions: [PharmacyCartBadgeAction(controller: _controller)],
       body: _buildBody(),
     );
   }
@@ -492,33 +485,6 @@ class _ProductCard extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
-}
-
-/// Isolated so a cart mutation (add/increment/decrement/remove) only
-/// rebuilds this small badge, not the (potentially long) product list
-/// above it.
-class _CartAction extends StatelessWidget {
-  const _CartAction({required this.controller, required this.onPressed});
-
-  final PharmacyController controller;
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: controller,
-      builder: (context, _) {
-        final itemCount = controller.itemCount;
-        return CartAppBarAction(
-          key: const ValueKey('pharmacy-cart-action'),
-          itemCount: itemCount,
-          tooltip: 'Pharmacy cart',
-          onPressed: onPressed,
-          icon: Icons.shopping_bag_rounded,
-        );
-      },
     );
   }
 }
