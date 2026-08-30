@@ -1,3 +1,4 @@
+import 'package:chowflow/app/app_routes.dart';
 import 'package:chowflow/app/service_module.dart';
 import 'package:chowflow/platform/activity/data/activity_repository.dart';
 import 'package:chowflow/platform/activity/models/activity_item.dart';
@@ -5,6 +6,7 @@ import 'package:chowflow/platform/activity/presentation/activity_controller.dart
 import 'package:chowflow/platform/activity/presentation/activity_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 
 void main() {
   test('activity controller keeps newest records first and replaces IDs', () {
@@ -148,6 +150,84 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(repository.fetchCount, 2);
+  });
+
+  group('"Track order" row action (issue #43)', () {
+    testWidgets('a real-service row exposes a track action that navigates to '
+        'trackOrderDetails with that row\'s service/order id', (tester) async {
+      final controller = ActivityController()
+        ..record(
+          ActivityItem(
+            id: 'food-1',
+            serviceId: ServiceId.food,
+            title: 'Jollof Feast Order',
+            status: 'On the way',
+            occurredAt: DateTime.utc(2026, 8, 1),
+            amount: 18.5,
+            detailsRoute: '/food',
+          ),
+        );
+
+      String? capturedServiceId;
+      String? capturedOrderId;
+      final router = GoRouter(
+        initialLocation: '/',
+        routes: [
+          GoRoute(
+            path: '/',
+            builder: (_, _) => ActivityScreen(controller: controller),
+          ),
+          GoRoute(
+            path: AppRoutes.trackOrderDetails,
+            builder: (_, state) {
+              capturedServiceId = state.pathParameters['serviceId'];
+              capturedOrderId = state.pathParameters['orderId'];
+              return const Scaffold(body: Text('track order screen'));
+            },
+          ),
+        ],
+      );
+
+      await tester.pumpWidget(MaterialApp.router(routerConfig: router));
+      await tester.pumpAndSettle();
+
+      // The existing row tap (issue #67, navigates to the shell home)
+      // must remain intact -- this is an ADDITION, not a replacement.
+      expect(find.byIcon(Icons.local_shipping_outlined), findsOneWidget);
+
+      await tester.tap(find.byIcon(Icons.local_shipping_outlined));
+      await tester.pumpAndSettle();
+
+      expect(find.text('track order screen'), findsOneWidget);
+      expect(capturedServiceId, 'food');
+      expect(capturedOrderId, 'food-1');
+    });
+
+    testWidgets(
+      'a row with an unrecognized service has no track action (there is no '
+      'real service_id left to key a lookup on, see #62)',
+      (tester) async {
+        final controller = ActivityController()
+          ..record(
+            ActivityItem(
+              id: 'unknown-1',
+              serviceId: ServiceId.unknown,
+              title: 'Mystery order',
+              status: 'completed',
+              occurredAt: DateTime.utc(2026, 7, 27),
+              amount: 10,
+              detailsRoute: '',
+            ),
+          );
+
+        await tester.pumpWidget(
+          MaterialApp(home: ActivityScreen(controller: controller)),
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.byIcon(Icons.local_shipping_outlined), findsNothing);
+      },
+    );
   });
 }
 

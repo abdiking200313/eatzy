@@ -54,13 +54,14 @@ final Map<String, String> _deepLinkOnlyRoutes = {
   AppRoutes.profile:
       'reachable as the Profile bottom-nav tab, not a route push',
 
-  // No low-risk entry point identified: the natural hook (an activity item's
-  // detailsRoute) is owned by checkout/activity code paths that concurrent
-  // in-flight PRs (issues #62/#64/#95/#98/#103/#104) are actively reworking,
-  // and #43 tracks that this screen's data is fake regardless. Left
-  // deep-link-only pending a human decision once that work lands.
+  // The bare (no id/service) form is kept only for backward compatibility
+  // with an old deep link that has no order to point at -- TrackOrderScreen
+  // renders a "no order selected" empty state for it. The real, reachable
+  // form is the parameterized `trackOrderDetails` route below, linked from
+  // the "Track order" action on an ActivityScreen row (issue #43).
   AppRoutes.trackOrder:
-      'no low-risk entry point given concurrent activity/checkout rework (#43, #62, #64)',
+      'kept only for old deep links with no order id; see trackOrderDetails '
+      'for the real reachable route (#43)',
 };
 
 /// Every path AppRouter registers, as (constant name, path value) so
@@ -86,6 +87,7 @@ final List<({String name, String path})> _registeredRoutes = [
   (name: 'support', path: AppRoutes.support),
   (name: 'wallet', path: AppRoutes.wallet),
   (name: 'trackOrder', path: AppRoutes.trackOrder),
+  (name: 'trackOrderDetails', path: AppRoutes.trackOrderDetails),
   (name: 'rewards', path: AppRoutes.rewards),
   (name: 'rewardsProfile', path: AppRoutes.rewardsProfile),
   (name: 'food', path: AppRoutes.food),
@@ -145,6 +147,13 @@ void main() {
     // callers build a concrete path via AppRoutes.restaurantDetails(id).
     if (name == 'foodRestaurant' &&
         combinedSource.contains('restaurantDetails(')) {
+      return true;
+    }
+    // Same pattern as foodRestaurant/restaurantDetails above: no call site
+    // pushes the raw `trackOrderDetails` template path -- callers build a
+    // concrete path via AppRoutes.trackOrderDetailsPath(...).
+    if (name == 'trackOrderDetails' &&
+        combinedSource.contains('trackOrderDetailsPath(')) {
       return true;
     }
     return false;

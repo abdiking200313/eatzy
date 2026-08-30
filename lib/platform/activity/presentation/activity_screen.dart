@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../app/app_routes.dart';
 import '../../../app/service_module.dart';
 import '../../../config/theme.dart';
 import '../../../widgets/app_misc.dart';
@@ -8,6 +9,19 @@ import '../../../widgets/app_scaffold.dart';
 import '../../localization/app_money.dart';
 import '../models/activity_item.dart';
 import 'activity_controller.dart';
+
+/// Maps [ServiceId] back to the raw `service_id` path segment
+/// `trackOrderDetailsPath` expects. Returns `null` for [ServiceId.unknown]:
+/// [ActivityItem.fromMap] already discards the original raw string for any
+/// service it doesn't recognize (see #62), so there's nothing real to key a
+/// track-order lookup on — the row hides its "Track order" action instead
+/// of linking to an order that can never resolve.
+String? _trackableServiceId(ServiceId serviceId) => switch (serviceId) {
+  ServiceId.food => 'food',
+  ServiceId.grocery => 'grocery',
+  ServiceId.pharmacy => 'pharmacy',
+  ServiceId.unknown => null,
+};
 
 class ActivityScreen extends StatelessWidget {
   const ActivityScreen({super.key, this.controller, this.title = 'Activity'});
@@ -136,6 +150,7 @@ class _ActivityRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final module = ServiceRegistry.byId(item.serviceId);
     final colors = ServiceThemes.forId(item.serviceId);
+    final trackableServiceId = _trackableServiceId(item.serviceId);
     return InkWell(
       // `go`, not `push` — detailsRoute is always a service vertical's shell
       // branch root (see app_router.dart); switch to it within the shell
@@ -186,9 +201,40 @@ class _ActivityRow extends StatelessWidget {
               ),
             ),
             const SizedBox(width: TwSpacing.x2),
-            Text(
-              AppMoney.format(item.amount),
-              style: TwText.fontBoldSm.copyWith(color: colors.accent),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(
+                  AppMoney.format(item.amount),
+                  style: TwText.fontBoldSm.copyWith(color: colors.accent),
+                ),
+                // Additive next to the row's own tap-to-shell-home behavior
+                // above (issue #67) — this is the only way to reach a real,
+                // order-keyed TrackOrderScreen (issue #43).
+                if (trackableServiceId != null) ...[
+                  const SizedBox(height: TwSpacing.rhythmTight),
+                  Tooltip(
+                    message: 'Track order',
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(TwRadius.full),
+                      onTap: () => context.push(
+                        AppRoutes.trackOrderDetailsPath(
+                          serviceId: trackableServiceId,
+                          orderId: item.id,
+                        ),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(TwSpacing.x1),
+                        child: Icon(
+                          Icons.local_shipping_outlined,
+                          size: 18,
+                          color: colors.accent,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ],
             ),
           ],
         ),

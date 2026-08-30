@@ -209,4 +209,54 @@ void main() {
       expect(AppRouter.hasRegisteredRoute(AppRoutes.foodRestaurant), isTrue);
     });
   });
+
+  group('track order routes (issue #43)', () {
+    test('trackOrderDetails is a registered route', () {
+      expect(AppRouter.hasRegisteredRoute(AppRoutes.trackOrderDetails), isTrue);
+    });
+
+    test('trackOrderDetailsPath builds a URL-encoded id/service path', () {
+      expect(
+        AppRoutes.trackOrderDetailsPath(
+          serviceId: 'food',
+          orderId: 'order 1/2',
+        ),
+        '/track-order/food/order%201%2F2',
+      );
+    });
+
+    test('isTrackOrderDetails recognizes a built path but not the bare '
+        'track-order route', () {
+      expect(
+        AppRoutes.isTrackOrderDetails(
+          AppRoutes.trackOrderDetailsPath(
+            serviceId: 'food',
+            orderId: 'order-1',
+          ),
+        ),
+        isTrue,
+      );
+      expect(AppRoutes.isTrackOrderDetails(AppRoutes.trackOrder), isFalse);
+    });
+
+    test('a built trackOrderDetails path requires a signed-in customer', () {
+      final path = AppRoutes.trackOrderDetailsPath(
+        serviceId: 'grocery',
+        orderId: 'order-2',
+      );
+      expect(AppRouter.isProtectedLocation(path), isTrue);
+      expect(
+        AppRouter.resolveRedirect(
+          isLoggedIn: false,
+          isProtected: AppRouter.isProtectedLocation(path),
+          location: path,
+        ),
+        AppRoutes.login,
+      );
+    });
+
+    test('the bare track-order route also requires a signed-in customer', () {
+      expect(AppRouter.isProtectedLocation(AppRoutes.trackOrder), isTrue);
+    });
+  });
 }
