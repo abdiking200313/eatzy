@@ -15,6 +15,12 @@ Reverse-chronological. Each session/major chunk of work gets an entry.
 
 ---
 
+## 2026-08-30 (later run)
+
+- Board-worker run, same finding as the earlier 2026-08-30 entry below — `waiting-on-you` #8/#16/#40/#78/#79 re-checked via `get_comments`, all comments on all five are bot-authored (footer-marked), no human reply on any; `todo`-without-`waiting-on-you` issues still only the umbrella/tracking trio (#21/#29/#52), no direct child work.
+- One difference from the earlier run: verified directly (`list_issues` ordered by creation) that all 7 redesign phase issues (#22-#28) are closed, so #21 itself was stale — closed it with state_reason `completed` and an explanatory comment. #29/#52 are not stale the same way (their child findings are still open/`needs-approval`-gated), left as-is.
+- No issue implementation work done — nothing left eligible after that. No notification sent.
+
 ## 2026-08-30
 
 - Board-worker run, still nothing eligible — no change since the 2026-08-29 "12th run": `waiting-on-you` #8/#16/#40/#78/#79 re-checked live via a comment-history read, all five still carry only the bot's own footer-marked comment(s), no genuine human reply (#8's first comment is the bot's own pre-question investigation writeup, not an answer either). `todo`-without-`waiting-on-you` issues are still only the 3 umbrella/tracking issues (#21/#29/#52), all open, no direct child work of their own outside the `needs-approval`-gated batches. Stopped early per step 3, no action taken, no vault-facts changed beyond this entry, no notification (nothing new to report).
@@ -231,4 +237,5 @@ Reverse-chronological. Each session/major chunk of work gets an entry.
 ---
 
 Entries older than 2026-08-15 (the 2026-08-12/13 initial setup and first thorough audit pass) archived to `vault/archive/Status Log 2026-08.md`. **Fixed 2026-08-29**: a prior archive attempt had added this pointer without actually removing the archived content, leaving a duplicate `## 2026-08-13` section and a split `## 2026-08-15` header sitting below it for ~2 weeks — cleaned up (merged the two 08-15 entries, dropped the duplicate 08-13 content, which was already safe in the archive file).
+
 
