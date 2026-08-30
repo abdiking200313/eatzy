@@ -7,7 +7,9 @@ upstream_concept: 00-Index
 
 # Open Tasks
 
-Refreshed 2026-08-29 (board worker, 12th run). **Source of truth is always a live `list_issues`/`gh issue list --repo abdiking200313/eatzy --state open` call** — re-check before relying on this for anything that matters.
+Refreshed 2026-08-30 (board worker). **Source of truth is always a live `list_issues`/`gh issue list --repo abdiking200313/eatzy --state open` call** — re-check before relying on this for anything that matters.
+
+**2026-08-30 (board worker)**: still nothing eligible to implement — `waiting-on-you` #8/#16/#40/#78/#79 all re-checked via `get_comments`, no human reply on any (still only the bot's own footer-marked comment(s)); the only remaining `todo`-without-`waiting-on-you` issues are the umbrella/tracking pair #29/#52 (no direct work). Closed #21 directly (not via PR/`Closes`) after confirming via `list_issues` that all 7 phase issues (#22-#28) are closed — it had been left open as stale bookkeeping since the 12th run. See [[Status Log]] 2026-08-30 "(later run)".
 
 **12th run (2026-08-29, board worker)**: only one eligible issue existed — #28 (redesign phase 7/7 closeout sweep) — everything else in the `todo`/`waiting-on-you` queues was either still unanswered (`waiting-on-you` #8/#16/#40/#78/#79) or an umbrella/tracking issue with no direct work (#21/#29/#52). Implemented and merged as PR #121, closing #28 and, with it, all 7 phases of #21. Filed two small `needs-approval` follow-ups the sweep found but didn't fix: #122 (checkout address-form input styling) and #123 (`food_home_screen.dart` wrapper indirection). Full detail in [[Status Log]] 2026-08-29 "board worker, 12th run".
 
@@ -41,7 +43,6 @@ Refreshed 2026-08-29 (board worker, 12th run). **Source of truth is always a liv
 
 | # | Title | Why not picked up |
 |---|---|---|
-| 21 | Visual redesign: token refresh, card system, nav cleanup (tracking) | Umbrella/index issue, no direct implementation work — **all 7 phases now merged as of the 12th run (2026-08-29)**, nothing left under this umbrella |
 | 29 | Deploy-readiness audit (tracking) | Umbrella/index issue — findings already filed as the `needs-approval` #30-83 batch |
 | 52 | Architecture, performance & cross-layer review (tracking) | Umbrella/index issue, same pattern as #21/#29 — its 31 child issues (#53-83ish) are the real work |
 
