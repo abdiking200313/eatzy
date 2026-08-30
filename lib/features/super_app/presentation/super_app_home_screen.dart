@@ -1,7 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 
 import '../../../app/app_routes.dart';
 import '../../../app/service_module.dart';
@@ -64,13 +63,6 @@ class _SuperAppHomeScreenState extends State<SuperAppHomeScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Good morning', style: TwText.text2xl),
-                    const SizedBox(height: TwSpacing.x1),
-                    Text(
-                      DateFormat('EEEE, MMMM d').format(DateTime.now()),
-                      style: TwText.textSm,
-                    ),
-                    const SizedBox(height: TwSpacing.x6),
                     _PromoBanner(
                       onExplore: () => context.push(AppRoutes.foodExplore),
                     ),
@@ -189,7 +181,7 @@ class _HomeHeader extends StatelessWidget {
                   child: const Padding(
                     padding: EdgeInsets.symmetric(
                       horizontal: TwSpacing.x4,
-                      vertical: TwSpacing.x4,
+                      vertical: TwSpacing.x3,
                     ),
                     child: Row(
                       children: [
@@ -223,45 +215,73 @@ class _PromoBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(TwSpacing.x5),
-      decoration: BoxDecoration(
-        gradient: TwColors.primaryGradient,
-        borderRadius: BorderRadius.circular(TwRadius.xl),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Everything nearby,\none tap away',
-                  style: TwText.textLg.copyWith(
-                    color: TwColors.white,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const SizedBox(height: TwSpacing.x3),
-                OutlinedButton(
-                  onPressed: onExplore,
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: TwColors.white,
-                    side: const BorderSide(color: TwColors.white),
-                    minimumSize: const Size(0, 36),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: TwSpacing.x4,
+    return ConstrainedBox(
+      // A wide, shallow card (~132 tall at default text scale) rather than
+      // the previous content-hugging block, so the banner reads as a
+      // distinct promo/discount strip instead of another text section. A
+      // minimum rather than a fixed height so it can still grow to fit
+      // larger text scales instead of overflowing.
+      constraints: const BoxConstraints(minHeight: 132),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(
+          horizontal: TwSpacing.x5,
+          vertical: TwSpacing.x4,
+        ),
+        decoration: BoxDecoration(
+          gradient: TwColors.primaryGradient,
+          borderRadius: BorderRadius.circular(TwRadius.xl),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    'Everything nearby,\none tap away',
+                    style: TwText.textLg.copyWith(
+                      color: TwColors.white,
+                      fontWeight: FontWeight.w700,
+                      height: 1.2,
                     ),
                   ),
-                  child: const Text('Explore'),
-                ),
-              ],
+                  const SizedBox(height: TwSpacing.x3),
+                  OutlinedButton(
+                    onPressed: onExplore,
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: TwColors.white,
+                      side: const BorderSide(color: TwColors.white),
+                      minimumSize: const Size(0, 32),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: TwSpacing.x4,
+                      ),
+                    ),
+                    child: const Text('Explore'),
+                  ),
+                ],
+              ),
             ),
-          ),
-          const SizedBox(width: TwSpacing.x2),
-          const Icon(Icons.storefront_rounded, color: TwColors.white, size: 52),
-        ],
+            const SizedBox(width: TwSpacing.x3),
+            // Icon sits in a soft circular badge so it reads as a small
+            // illustration rather than a bare glyph floating in the card.
+            Container(
+              width: 64,
+              height: 64,
+              decoration: BoxDecoration(
+                color: TwColors.white.withOpacityValue(0.16),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.storefront_rounded,
+                color: TwColors.white,
+                size: 34,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

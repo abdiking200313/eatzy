@@ -34,7 +34,8 @@ void main() {
     await tester.pumpWidget(MaterialApp.router(routerConfig: router));
     await tester.pump();
 
-    expect(find.text('Good morning'), findsOneWidget);
+    // Issue #143: the header greeting was removed entirely.
+    expect(find.text('Good morning'), findsNothing);
     expect(find.text('What do you need today?'), findsNothing);
     expect(find.text('Somalia • USD'), findsNothing);
     for (final label in ['Food', 'Grocery', 'Pharmacy']) {
@@ -55,7 +56,7 @@ void main() {
       findsOneWidget,
     );
     expect(
-      tester.getTopLeft(find.text('Good morning')).dy,
+      tester.getTopLeft(find.text('Search restaurants, stores...')).dy,
       lessThan(tester.getTopLeft(find.text('Food')).dy),
     );
 
@@ -83,7 +84,7 @@ void main() {
     );
     await tester.pump();
 
-    expect(find.text('Good morning'), findsOneWidget);
+    expect(find.text('Good morning'), findsNothing);
     expect(tester.takeException(), isNull);
   });
 
