@@ -53,6 +53,14 @@ class AppRoutes {
 
   // Pharmacy service
   static const pharmacy = '/pharmacy';
+
+  // Not a navigable destination on its own — `pharmacy` already serves as
+  // the searchable pharmacy list (issue #141), mirroring `foodRestaurants`.
+  // This exists only as a shared path-segment prefix for `pharmacyStore`
+  // (the registered per-pharmacy route) and for `pharmacyStoreDetails`
+  // below.
+  static const pharmacyStores = '$pharmacy/stores';
+  static const pharmacyStore = '$pharmacyStores/:storeId';
   static const pharmacyCart = '$pharmacy/cart';
   static const pharmacyCheckout = '$pharmacy/checkout';
 
@@ -94,6 +102,9 @@ class AppRoutes {
 
   static bool isGroceryStoreDetails(String location) =>
       location.startsWith('$groceryStores/');
+
+  static String pharmacyStoreDetails(String storeId) =>
+      '$pharmacyStores/${Uri.encodeComponent(storeId)}';
 
   static String trackOrderDetailsPath({
     required String serviceId,

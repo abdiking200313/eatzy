@@ -173,7 +173,9 @@ void main() {
         activityController: ActivityController(),
         storage: MemoryCartStorage<PharmacyCartItem>(),
       );
-      await controller.loadProducts();
+      await controller.loadProducts(
+        storeId: SeededPharmacyRepository.defaultStoreId,
+      );
       for (final product in controller.products.take(2)) {
         controller.addProduct(product);
       }
@@ -198,7 +200,9 @@ void main() {
         activityController: ActivityController(),
         storage: MemoryCartStorage<PharmacyCartItem>(),
       );
-      await controller.loadProducts();
+      await controller.loadProducts(
+        storeId: SeededPharmacyRepository.defaultStoreId,
+      );
       controller.addProduct(controller.products.first);
 
       await pumpNarrow(

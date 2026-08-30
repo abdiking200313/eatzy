@@ -23,7 +23,9 @@ void main() {
       storage: storage,
       now: () => DateTime.utc(2026, 7, 27, 12),
     );
-    await controller.loadProducts();
+    await controller.loadProducts(
+      storeId: SeededPharmacyRepository.defaultStoreId,
+    );
   });
 
   test('pharmacy cart adds, adjusts, removes, and calculates USD totals', () {
@@ -63,6 +65,7 @@ void main() {
   test('a non-OTC product is rejected by the domain controller', () {
     const prescriptionProduct = PharmacyProduct(
       id: 'prescription-only',
+      storeId: SeededPharmacyRepository.defaultStoreId,
       name: 'Prescription medicine',
       description: 'Not eligible for the OTC launch.',
       category: 'Prescription',
@@ -136,7 +139,9 @@ void main() {
       storage: storage,
       now: () => DateTime.utc(2026, 7, 27, 12),
     );
-    await restarted.loadProducts();
+    await restarted.loadProducts(
+      storeId: SeededPharmacyRepository.defaultStoreId,
+    );
     await restarted.loadForOwner('user-1');
 
     expect(restarted.cartItems, hasLength(1));
@@ -174,7 +179,9 @@ void main() {
       now: () => DateTime.utc(2026, 7, 27, 12),
       storage: MemoryCartStorage<PharmacyCartItem>(),
     );
-    await throwingController.loadProducts();
+    await throwingController.loadProducts(
+      storeId: SeededPharmacyRepository.defaultStoreId,
+    );
     throwingController.addProduct(throwingController.products.first);
 
     const details = PharmacyCheckoutDetails(
@@ -212,10 +219,14 @@ void main() {
           storage: MemoryCartStorage<PharmacyCartItem>(),
         );
 
-        await freshController.loadProducts();
+        await freshController.loadProducts(
+          storeId: SeededPharmacyRepository.defaultStoreId,
+        );
         expect(repository.fetchCount, 1);
 
-        await freshController.loadProducts();
+        await freshController.loadProducts(
+          storeId: SeededPharmacyRepository.defaultStoreId,
+        );
         expect(
           repository.fetchCount,
           1,
@@ -234,14 +245,18 @@ void main() {
         storage: MemoryCartStorage<PharmacyCartItem>(),
       );
 
-      await staleController.loadProducts();
+      await staleController.loadProducts(
+        storeId: SeededPharmacyRepository.defaultStoreId,
+      );
       expect(repository.fetchCount, 1);
       expect(staleController.isStale, isFalse);
 
       now = now.add(PharmacyController.catalogStaleAfter);
       expect(staleController.isStale, isTrue);
 
-      await staleController.loadProducts();
+      await staleController.loadProducts(
+        storeId: SeededPharmacyRepository.defaultStoreId,
+      );
       expect(repository.fetchCount, 2);
       expect(staleController.isStale, isFalse);
     });
@@ -258,14 +273,166 @@ void main() {
           storage: MemoryCartStorage<PharmacyCartItem>(),
         );
 
-        await forcedController.loadProducts();
+        await forcedController.loadProducts(
+          storeId: SeededPharmacyRepository.defaultStoreId,
+        );
         expect(repository.fetchCount, 1);
 
-        await forcedController.loadProducts(forceRefresh: true);
+        await forcedController.loadProducts(
+          storeId: SeededPharmacyRepository.defaultStoreId,
+          forceRefresh: true,
+        );
         expect(repository.fetchCount, 2);
       },
     );
   });
+
+  group('store-scoped catalog (issue #141)', () {
+    test('loadProducts scopes the catalog to one pharmacy at a time', () async {
+      final repository = _MultiStorePharmacyRepository();
+      final multiStoreController = PharmacyController(
+        repository: repository,
+        activityController: ActivityController(),
+        storage: MemoryCartStorage<PharmacyCartItem>(),
+      );
+
+      await multiStoreController.loadProducts(storeId: 'store-a');
+      expect(multiStoreController.currentStoreId, 'store-a');
+      expect(
+        multiStoreController.products.map((product) => product.storeId),
+        everyElement('store-a'),
+      );
+
+      // Switching to a different pharmacy always refetches — even though
+      // the previous load is still fresh — and replaces the product list
+      // rather than appending to it.
+      await multiStoreController.loadProducts(storeId: 'store-b');
+      expect(multiStoreController.currentStoreId, 'store-b');
+      expect(
+        multiStoreController.products.map((product) => product.storeId),
+        everyElement('store-b'),
+      );
+      expect(repository.fetchCount, 2);
+    });
+
+    test('loadProducts narrows results with a search query', () async {
+      final multiStoreController = PharmacyController(
+        repository: _MultiStorePharmacyRepository(),
+        activityController: ActivityController(),
+        storage: MemoryCartStorage<PharmacyCartItem>(),
+      );
+
+      await multiStoreController.loadProducts(
+        storeId: 'store-a',
+        searchQuery: 'Vitamin',
+      );
+
+      expect(multiStoreController.products, hasLength(1));
+      expect(multiStoreController.products.single.name, 'Vitamin A (Store A)');
+    });
+
+    test('adding a product from a different pharmacy is rejected without '
+        'replaceStoreCart', () async {
+      final storeA = PharmacyProduct(
+        id: 'a-1',
+        storeId: 'store-a',
+        name: 'Store A item',
+        description: '',
+        category: 'General',
+        unitPrice: 3,
+        stockQuantity: 5,
+        saleType: PharmacySaleType.overTheCounter,
+      );
+      final storeB = PharmacyProduct(
+        id: 'b-1',
+        storeId: 'store-b',
+        name: 'Store B item',
+        description: '',
+        category: 'General',
+        unitPrice: 4,
+        stockQuantity: 5,
+        saleType: PharmacySaleType.overTheCounter,
+      );
+
+      expect(controller.addProduct(storeA), PharmacyCartAddResult.added);
+      expect(
+        controller.addProduct(storeB),
+        PharmacyCartAddResult.storeConflict,
+      );
+      expect(controller.cartItems, hasLength(1));
+      expect(controller.cartItems.single.product.id, 'a-1');
+
+      expect(
+        controller.addProduct(storeB, replaceStoreCart: true),
+        PharmacyCartAddResult.added,
+      );
+      expect(controller.cartItems, hasLength(1));
+      expect(controller.cartItems.single.product.id, 'b-1');
+    });
+  });
+}
+
+/// A [PharmacyRepository] fake backing two distinct pharmacies, so
+/// store-scoping (and per-store search) can be exercised without a live
+/// Supabase client.
+class _MultiStorePharmacyRepository implements PharmacyRepository {
+  int fetchCount = 0;
+
+  static const _products = <PharmacyProduct>[
+    PharmacyProduct(
+      id: 'store-a-vitamin',
+      storeId: 'store-a',
+      name: 'Vitamin A (Store A)',
+      description: 'Store A vitamin.',
+      category: 'Vitamins',
+      unitPrice: 3,
+      stockQuantity: 10,
+      saleType: PharmacySaleType.overTheCounter,
+    ),
+    PharmacyProduct(
+      id: 'store-a-bandages',
+      storeId: 'store-a',
+      name: 'Bandages (Store A)',
+      description: 'Store A first aid.',
+      category: 'First aid',
+      unitPrice: 2,
+      stockQuantity: 10,
+      saleType: PharmacySaleType.overTheCounter,
+    ),
+    PharmacyProduct(
+      id: 'store-b-cough-syrup',
+      storeId: 'store-b',
+      name: 'Cough Syrup (Store B)',
+      description: 'Store B cold & flu.',
+      category: 'Cold & flu',
+      unitPrice: 5,
+      stockQuantity: 10,
+      saleType: PharmacySaleType.overTheCounter,
+    ),
+  ];
+
+  @override
+  Future<List<PharmacyProduct>> fetchProducts({
+    required String storeId,
+    String? searchQuery,
+    int limit = pharmacyProductsPageSize,
+    int offset = 0,
+  }) async {
+    fetchCount++;
+    final query = searchQuery?.trim().toLowerCase();
+    final hasSearch = query != null && query.isNotEmpty;
+    final matches = _products
+        .where((product) => product.storeId == storeId)
+        .where(
+          (product) => !hasSearch || product.name.toLowerCase().contains(query),
+        )
+        .toList(growable: false);
+    if (offset >= matches.length) {
+      return const [];
+    }
+    final end = (offset + limit).clamp(0, matches.length);
+    return List<PharmacyProduct>.unmodifiable(matches.sublist(offset, end));
+  }
 }
 
 class _CountingPharmacyRepository implements PharmacyRepository {
@@ -273,11 +440,15 @@ class _CountingPharmacyRepository implements PharmacyRepository {
 
   @override
   Future<List<PharmacyProduct>> fetchProducts({
+    required String storeId,
+    String? searchQuery,
     int limit = pharmacyProductsPageSize,
     int offset = 0,
   }) async {
     fetchCount++;
     return const SeededPharmacyRepository().fetchProducts(
+      storeId: storeId,
+      searchQuery: searchQuery,
       limit: limit,
       offset: offset,
     );

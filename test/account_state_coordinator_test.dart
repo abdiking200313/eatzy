@@ -29,7 +29,9 @@ void main() {
       storage: pharmacyStorage,
     );
     await grocery.load();
-    await pharmacy.loadProducts();
+    await pharmacy.loadProducts(
+      storeId: SeededPharmacyRepository.defaultStoreId,
+    );
     await grocery.loadForOwner('user-one');
     await pharmacy.loadForOwner('user-one');
 
