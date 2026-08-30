@@ -10,6 +10,13 @@ import '../../../widgets/app_scaffold.dart';
 import '../models/pharmacy_checkout.dart';
 import 'pharmacy_controller.dart';
 
+/// Rounded outline border matching the app-wide input style (see
+/// `AppTextField` and the global `InputDecorationTheme` in
+/// `config/tailwind.dart`), instead of the sharp Material default corners.
+final _addressFieldBorder = OutlineInputBorder(
+  borderRadius: BorderRadius.circular(TwRadius.xl),
+);
+
 class PharmacyCheckoutScreen extends StatefulWidget {
   const PharmacyCheckoutScreen({super.key, this.controller});
 
@@ -74,10 +81,10 @@ class _PharmacyCheckoutScreenState extends State<PharmacyCheckoutScreen> {
                     TextFormField(
                       initialValue: PharmacyCheckoutDetails.country,
                       readOnly: true,
-                      decoration: const InputDecoration(
+                      decoration: InputDecoration(
                         labelText: 'Country',
-                        prefixIcon: Icon(Icons.public),
-                        border: OutlineInputBorder(),
+                        prefixIcon: const Icon(Icons.public),
+                        border: _addressFieldBorder,
                       ),
                     ),
                     const SizedBox(height: TwSpacing.x3),
@@ -228,7 +235,7 @@ class _CheckoutField extends StatelessWidget {
         labelText: label,
         prefixIcon: Icon(icon),
         errorText: errorText,
-        border: const OutlineInputBorder(),
+        border: _addressFieldBorder,
         alignLabelWithHint: maxLines > 1,
       ),
     );
