@@ -149,7 +149,7 @@ class SupabasePharmacyOrderRepository implements PharmacyOrderRepository {
 
   @override
   Future<String> placeOrder(PharmacyOrderRequest request) async {
-    final response = await _client.rpc(
+    final response = await _client.rpc<Object?>(
       'place_pharmacy_order',
       params: request.toRpcParams(),
     );

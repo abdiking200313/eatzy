@@ -206,7 +206,7 @@ class SupabaseGroceryOrderRepository implements GroceryOrderRepository {
 
   @override
   Future<String> placeOrder(GroceryOrderRequest request) async {
-    final response = await _client.rpc(
+    final response = await _client.rpc<Object?>(
       'place_grocery_order',
       params: request.toRpcParams(),
     );
