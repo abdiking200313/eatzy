@@ -2,6 +2,42 @@ import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../config/theme.dart';
 
+/// Shows a brief, floating confirmation snackbar for cart/quantity updates
+/// (e.g. "added to cart", "quantity increased", "maximum reached") with a
+/// consistent look, position, and duration across food, grocery, and
+/// pharmacy. Kept short-lived and non-blocking so it reads as a quick
+/// acknowledgement rather than a banner sitting over other bottom content
+/// (a cart FAB, bottom nav, etc.) — Scaffold already lifts a floating
+/// SnackBar above a visible FAB/bottom nav automatically, independent of
+/// this margin, which only controls its inset within that slot.
+///
+/// Clears any snackbar already in flight first so rapid taps don't queue up
+/// a backlog of stale confirmations.
+void showCartSnackBar(BuildContext context, String message) {
+  ScaffoldMessenger.of(context)
+    ..clearSnackBars()
+    ..showSnackBar(
+      SnackBar(
+        content: Text(
+          message,
+          style: TwText.textSm.copyWith(color: TwColors.white),
+        ),
+        backgroundColor: TwColors.slate900,
+        duration: const Duration(milliseconds: 1800),
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.fromLTRB(
+          TwSpacing.x4,
+          0,
+          TwSpacing.x4,
+          TwSpacing.x4,
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(TwRadius.md),
+        ),
+      ),
+    );
+}
+
 /// A circular avatar that loads an image from the network with a graceful
 /// fallback while loading / on error.
 class NetworkAvatar extends StatelessWidget {

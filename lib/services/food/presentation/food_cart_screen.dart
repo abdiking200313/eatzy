@@ -86,12 +86,9 @@ class CartScreen extends StatelessWidget {
       if (!context.mounted) {
         return;
       }
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'The cart changed, but it could not be saved for next time.',
-          ),
-        ),
+      showCartSnackBar(
+        context,
+        'The cart changed, but it could not be saved for next time.',
       );
     }
   }

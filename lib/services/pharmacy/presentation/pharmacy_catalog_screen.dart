@@ -200,9 +200,7 @@ class _PharmacyCatalogScreenState extends State<PharmacyCatalogScreen> {
         'You already have all available ${product.name} in your cart.',
     };
 
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(content: Text(message)));
+    showCartSnackBar(context, message);
   }
 }
 
