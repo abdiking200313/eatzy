@@ -78,7 +78,7 @@ class _CategoryImage extends StatelessWidget {
     final cacheSize = (90 * cacheScale).round();
     return CachedNetworkImage(
       imageUrl: imageUrl,
-      fit: BoxFit.fill,
+      fit: BoxFit.cover,
       memCacheWidth: cacheSize,
       memCacheHeight: cacheSize,
       placeholder: (context, url) => const _ImageLoading(),
