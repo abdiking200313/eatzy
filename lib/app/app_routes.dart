@@ -60,7 +60,16 @@ class AppRoutes {
   static const settings = '/settings';
   static const support = '/support';
   static const wallet = '/wallet';
+
+  // Bare `/track-order` is kept for backward compatibility with any old
+  // deep link that has no order to point at — `TrackOrderScreen` renders a
+  // "no order selected" empty state for it rather than crashing (see
+  // issue #43). `trackOrderDetails` is the real, navigable form: reached
+  // from a "Track order" action on an `ActivityScreen` row via
+  // `trackOrderDetailsPath`, which keys the lookup by both the order's
+  // `service_id` and its `customer_activity` row id.
   static const trackOrder = '/track-order';
+  static const trackOrderDetails = '$trackOrder/:serviceId/:orderId';
   static const rewards = '/rewards';
   static const rewardsProfile = '/rewards-profile';
 
@@ -70,6 +79,16 @@ class AppRoutes {
   static bool isRestaurantDetails(String location) =>
       location.startsWith('$foodRestaurants/') ||
       location.startsWith('$restaurants/');
+
+  static String trackOrderDetailsPath({
+    required String serviceId,
+    required String orderId,
+  }) =>
+      '$trackOrder/${Uri.encodeComponent(serviceId)}/'
+      '${Uri.encodeComponent(orderId)}';
+
+  static bool isTrackOrderDetails(String location) =>
+      location.startsWith('$trackOrder/');
 
   static bool isServicePath(String location) => const [
     food,

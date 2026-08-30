@@ -42,6 +42,19 @@ import 'app_routes.dart';
 import 'main_app_screen.dart';
 import 'service_module.dart';
 
+/// Maps a `customer_activity.service_id` path segment (`food`, `grocery`,
+/// or `pharmacy`) back to a [ServiceId] for [ZivoServiceTheme]ing the
+/// `trackOrderDetails` route. An unrecognized or missing segment falls back
+/// to [ServiceId.unknown] (neutral platform colors) rather than guessing a
+/// vertical — `TrackOrderScreen` itself independently treats a mismatched
+/// order lookup as "not found".
+ServiceId _serviceIdFromPathSegment(String? raw) => switch (raw) {
+  'food' => ServiceId.food,
+  'grocery' => ServiceId.grocery,
+  'pharmacy' => ServiceId.pharmacy,
+  _ => ServiceId.unknown,
+};
+
 class AppRouter {
   AppRouter._();
 
@@ -175,6 +188,17 @@ class AppRouter {
       redirect: (_, state) =>
           AppRoutes.restaurantDetails(state.pathParameters['restaurantId']!),
     ),
+    GoRoute(
+      path: AppRoutes.trackOrderDetails,
+      builder: (_, state) {
+        final serviceId = state.pathParameters['serviceId'];
+        final orderId = state.pathParameters['orderId'];
+        return ZivoServiceTheme(
+          serviceId: _serviceIdFromPathSegment(serviceId),
+          child: TrackOrderScreen(orderId: orderId, serviceId: serviceId),
+        );
+      },
+    ),
   ];
 
   // The persistent bottom-nav shell: Home/Explore/Activity/Profile plus the
@@ -270,6 +294,7 @@ class AppRouter {
         _shellTabPages.containsKey(location) ||
         AppRoutes.isServicePath(location) ||
         AppRoutes.isRestaurantDetails(location) ||
+        AppRoutes.isTrackOrderDetails(location) ||
         const {
           AppRoutes.home,
           AppRoutes.categories,

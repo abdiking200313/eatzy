@@ -153,4 +153,89 @@ void main() {
 
     expect(items, isEmpty);
   });
+
+  group('fetchOrderById (issue #43)', () {
+    test(
+      'returns the matching order when the view has exactly one row',
+      () async {
+        final row = {
+          'id': 'order-1',
+          'profile_id': 'user-1',
+          'service_id': 'food',
+          'title': 'Jollof Feast Order',
+          'subtitle': null,
+          'status': 'On the way',
+          'occurred_at': DateTime.utc(2026, 8, 1).toIso8601String(),
+          'amount': 18.5,
+          'details_route': '/food',
+        };
+
+        final httpClient = MockClient((request) async {
+          return http.Response(
+            jsonEncode([row]),
+            200,
+            headers: {'content-type': 'application/json'},
+            request: request,
+          );
+        });
+        final client = await _signedInClient(
+          userId: 'user-1',
+          httpClient: httpClient,
+        );
+        final repository = SupabaseActivityRepository(client: client);
+
+        final order = await repository.fetchOrderById(
+          orderId: 'order-1',
+          serviceId: 'food',
+        );
+
+        expect(order, isNotNull);
+        expect(order!.id, 'order-1');
+        expect(order.title, 'Jollof Feast Order');
+        expect(order.status, 'On the way');
+      },
+    );
+
+    test('returns null when no row matches (not found, or RLS scoped it '
+        "away — both look the same from here)", () async {
+      final httpClient = MockClient((request) async {
+        return http.Response(
+          jsonEncode(<Map<String, dynamic>>[]),
+          200,
+          headers: {'content-type': 'application/json'},
+          request: request,
+        );
+      });
+      final client = await _signedInClient(
+        userId: 'user-1',
+        httpClient: httpClient,
+      );
+      final repository = SupabaseActivityRepository(client: client);
+
+      final order = await repository.fetchOrderById(
+        orderId: 'missing-order',
+        serviceId: 'food',
+      );
+
+      expect(order, isNull);
+    });
+
+    test('throws when no one is signed in', () async {
+      final httpClient = MockClient((request) async {
+        throw StateError('No request should be made without a session.');
+      });
+      final client = SupabaseClient(
+        'https://example.supabase.co',
+        'test-publishable-key',
+        authOptions: _testAuthOptions,
+        httpClient: httpClient,
+      );
+      final repository = SupabaseActivityRepository(client: client);
+
+      expect(
+        () => repository.fetchOrderById(orderId: 'order-1', serviceId: 'food'),
+        throwsStateError,
+      );
+    });
+  });
 }
