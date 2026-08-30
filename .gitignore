@@ -46,3 +46,6 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Per-agent isolated worktree checkouts from parallel board-worker dispatch
+.claude/worktrees/
