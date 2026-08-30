@@ -379,7 +379,7 @@ class PharmacyController extends ChangeNotifier with LoadableState {
       onConfirmed: (orderId) => PharmacyCheckoutResult.success(
         orderId: orderId,
         message:
-            'Demo order confirmed. No payment was processed and no order '
+            'Order confirmed. No payment was processed and no order '
             'was sent to a pharmacy.',
       ),
     );

@@ -96,7 +96,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   GradientActionButton(
                     label: _foodController.isSubmitting
                         ? 'Saving order...'
-                        : 'Place demo order',
+                        : 'Place order',
                     icon: const Icon(
                       Icons.arrow_forward_rounded,
                       color: Colors.white,

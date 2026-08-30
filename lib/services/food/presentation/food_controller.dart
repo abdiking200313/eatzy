@@ -123,7 +123,9 @@ class FoodController extends ChangeNotifier {
           id: orderId,
           serviceId: ServiceId.food,
           title: _cartController.restaurantName ?? 'Food order',
-          subtitle: 'Demo order • Somalia',
+          subtitle:
+              '${items.length} ${items.length == 1 ? 'item' : 'items'} • '
+              '${address.city}',
           status: 'Confirmed',
           occurredAt: DateTime.now(),
           amount: _cartController.total,
