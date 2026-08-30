@@ -35,6 +35,7 @@ import '../services/food/presentation/restaurant_screen.dart';
 import '../services/grocery/presentation/grocery_cart_screen.dart';
 import '../services/grocery/presentation/grocery_checkout_screen.dart';
 import '../services/grocery/presentation/grocery_screen.dart';
+import '../services/grocery/presentation/grocery_store_screen.dart';
 import '../services/pharmacy/presentation/pharmacy_cart_screen.dart';
 import '../services/pharmacy/presentation/pharmacy_catalog_screen.dart';
 import '../services/pharmacy/presentation/pharmacy_checkout_screen.dart';
@@ -240,9 +241,20 @@ class AppRouter {
         ],
       ),
       StatefulShellBranch(
-        routes: _groceryPages.entries
-            .map((entry) => _page(entry.key, entry.value))
-            .toList(growable: false),
+        routes: [
+          ..._groceryPages.entries.map(
+            (entry) => _page(entry.key, entry.value),
+          ),
+          GoRoute(
+            path: AppRoutes.groceryStore,
+            builder: (_, state) => ZivoServiceTheme(
+              serviceId: ServiceId.grocery,
+              child: GroceryStoreScreen(
+                storeId: state.pathParameters['storeId']!,
+              ),
+            ),
+          ),
+        ],
       ),
       StatefulShellBranch(
         routes: _pharmacyPages.entries

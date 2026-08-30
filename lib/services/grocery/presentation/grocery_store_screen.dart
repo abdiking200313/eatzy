@@ -1,54 +1,45 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 
-import '../../../app/app_routes.dart';
 import '../../../config/theme.dart';
 import '../../../widgets/app_cards.dart';
+import '../../../widgets/app_misc.dart';
 import '../../../widgets/app_scaffold.dart';
 import '../models/grocery_models.dart';
 import 'grocery_controller.dart';
 import 'widgets/grocery_cart_badge_action.dart';
-import 'widgets/grocery_store_card.dart';
+import 'widgets/grocery_product_card.dart';
 
-/// The grocery store list: pick a store first, then browse just that
-/// store's products — mirroring food's "restaurant list -> restaurant
-/// menu" flow instead of the old flattened, every-store-at-once feed.
-class GroceryScreen extends StatefulWidget {
-  const GroceryScreen({super.key, this.controller});
+/// A single store's product catalog — reached by tapping a store on
+/// [GroceryScreen] (the store list). Mirrors food's
+/// "restaurant list -> `RestaurantScreen`" flow: only this store's products
+/// are shown, and search here filters by product name rather than by store.
+class GroceryStoreScreen extends StatefulWidget {
+  const GroceryStoreScreen({super.key, required this.storeId, this.controller});
 
+  final String storeId;
   final GroceryController? controller;
 
   @override
-  State<GroceryScreen> createState() => _GroceryScreenState();
+  State<GroceryStoreScreen> createState() => _GroceryStoreScreenState();
 }
 
-class _GroceryScreenState extends State<GroceryScreen> {
+class _GroceryStoreScreenState extends State<GroceryStoreScreen> {
   GroceryController get _controller =>
       widget.controller ?? GroceryController.instance;
 
   final _searchController = TextEditingController();
 
-  // Mirrors only the load-relevant slice of the controller's state. Cart
-  // mutations (`addProduct`) also call `notifyListeners()` on the same
-  // controller, but never change any of these fields, so
-  // `_handleControllerChanged` skips `setState` for them — only the cart
-  // badge below listens for those directly.
   late bool _isLoading;
   late bool _hasLoaded;
   late String? _loadError;
-  late int _storeCount;
 
   @override
   void initState() {
     super.initState();
-    // Kick off the load first: if it actually starts, its synchronous
-    // prefix (setting `isLoading` and calling `notifyListeners()`) runs
-    // immediately, before the first `await`. Snapshotting state after
-    // that call — rather than listening first — means our own `setState`
-    // only ever runs in response to a later, async notification, never
-    // re-entrantly during this `initState()`/first-build pass.
+    // See GroceryScreen.initState for why the load is kicked off before
+    // the first state snapshot is taken.
     if ((!_controller.hasLoaded || _controller.isStale) &&
         !_controller.isLoading) {
       unawaited(_controller.load());
@@ -70,25 +61,21 @@ class _GroceryScreenState extends State<GroceryScreen> {
     _isLoading = _controller.isLoading;
     _hasLoaded = _controller.hasLoaded;
     _loadError = _controller.loadError;
-    _storeCount = _controller.stores.length;
   }
 
   void _handleControllerChanged() {
     final isLoading = _controller.isLoading;
     final hasLoaded = _controller.hasLoaded;
     final loadError = _controller.loadError;
-    final storeCount = _controller.stores.length;
     if (isLoading == _isLoading &&
         hasLoaded == _hasLoaded &&
-        loadError == _loadError &&
-        storeCount == _storeCount) {
+        loadError == _loadError) {
       return;
     }
     setState(() {
       _isLoading = isLoading;
       _hasLoaded = hasLoaded;
       _loadError = loadError;
-      _storeCount = storeCount;
     });
   }
 
@@ -96,30 +83,37 @@ class _GroceryScreenState extends State<GroceryScreen> {
 
   void _clearSearch() => _searchController.clear();
 
-  List<GroceryStore> _visibleStores() {
+  GroceryStore? _findStore() {
+    for (final store in _controller.stores) {
+      if (store.id == widget.storeId) {
+        return store;
+      }
+    }
+    return null;
+  }
+
+  List<GroceryProduct> _visibleProducts(GroceryStore store) {
     final query = _searchController.text.trim().toLowerCase();
     if (query.isEmpty) {
-      return _controller.stores;
+      return store.products;
     }
-    return _controller.stores
-        .where((store) => store.name.toLowerCase().contains(query))
+    return store.products
+        .where((product) => product.name.toLowerCase().contains(query))
         .toList(growable: false);
   }
 
-  void _openStore(GroceryStore store) =>
-      context.push(AppRoutes.groceryStoreDetails(store.id));
-
   @override
   Widget build(BuildContext context) {
+    final store = _hasLoaded ? _findStore() : null;
     return AppScaffold(
-      title: 'Groceries',
+      title: store?.name ?? 'Store',
       showBackButton: true,
       actions: [GroceryCartBadgeAction(controller: _controller)],
-      body: _body(),
+      body: _body(store),
     );
   }
 
-  Widget _body() {
+  Widget _body(GroceryStore? store) {
     if (_isLoading && !_hasLoaded) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -143,7 +137,19 @@ class _GroceryScreenState extends State<GroceryScreen> {
       );
     }
 
-    final stores = _visibleStores();
+    if (store == null) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.all(TwSpacing.x6),
+          child: Text(
+            'This store could not be found.',
+            textAlign: TextAlign.center,
+          ),
+        ),
+      );
+    }
+
+    final products = _visibleProducts(store);
 
     return RefreshIndicator(
       onRefresh: () => _controller.load(forceRefresh: true),
@@ -156,21 +162,24 @@ class _GroceryScreenState extends State<GroceryScreen> {
         ),
         physics: const AlwaysScrollableScrollPhysics(),
         children: [
-          Text('Somali stores near you', style: TwText.textXl),
+          Text(store.area, style: TwText.textSm),
           const SizedBox(height: TwSpacing.x2),
-          Text('Pick a store to browse its products.', style: TwText.textSm),
+          Text(
+            'Products marked per kg can be added in 0.5 kg steps.',
+            style: TwText.textSm,
+          ),
           const SizedBox(height: TwSpacing.x5),
           _searchField(),
           const SizedBox(height: TwSpacing.x5),
-          if (stores.isEmpty)
-            _EmptyStores(searchQuery: _searchController.text.trim())
+          if (products.isEmpty)
+            _EmptyProducts(searchQuery: _searchController.text.trim())
           else
-            for (final store in stores)
+            for (final product in products)
               Padding(
                 padding: const EdgeInsets.only(bottom: TwSpacing.x3),
-                child: GroceryStoreCard(
-                  store: store,
-                  onPressed: () => _openStore(store),
+                child: GroceryProductCard(
+                  product: product,
+                  onAdd: () => _add(product),
                 ),
               ),
         ],
@@ -194,7 +203,7 @@ class _GroceryScreenState extends State<GroceryScreen> {
               decoration: const InputDecoration(
                 isCollapsed: true,
                 border: InputBorder.none,
-                hintText: 'Search stores...',
+                hintText: 'Search products...',
                 hintStyle: TextStyle(color: TwColors.textMuted),
               ),
             ),
@@ -211,10 +220,53 @@ class _GroceryScreenState extends State<GroceryScreen> {
       ),
     );
   }
+
+  Future<void> _add(GroceryProduct product) async {
+    var result = _controller.addProduct(product);
+    if (result == GroceryAddResult.storeConflict) {
+      final replace = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Start a new store cart?'),
+          content: const Text(
+            'The grocery MVP keeps one store per checkout. Your current '
+            'grocery cart will be replaced.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Keep current cart'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Replace cart'),
+            ),
+          ],
+        ),
+      );
+      if (replace == true) {
+        result = _controller.addProduct(product, replaceStoreCart: true);
+      }
+    }
+
+    if (!mounted) {
+      return;
+    }
+    final message = switch (result) {
+      GroceryAddResult.added => '${product.name} added to your grocery cart.',
+      GroceryAddResult.quantityIncreased =>
+        '${product.name} quantity increased.',
+      GroceryAddResult.unavailable => '${product.name} is out of stock.',
+      GroceryAddResult.stockLimitReached =>
+        'No more ${product.name} is available.',
+      GroceryAddResult.storeConflict => 'Your current grocery cart was kept.',
+    };
+    showCartSnackBar(context, message);
+  }
 }
 
-class _EmptyStores extends StatelessWidget {
-  const _EmptyStores({required this.searchQuery});
+class _EmptyProducts extends StatelessWidget {
+  const _EmptyProducts({required this.searchQuery});
 
   final String searchQuery;
 
@@ -225,8 +277,8 @@ class _EmptyStores extends StatelessWidget {
       child: Center(
         child: Text(
           searchQuery.isEmpty
-              ? 'No grocery stores found.'
-              : 'No stores match "$searchQuery".',
+              ? 'This store has no products yet.'
+              : 'No products match "$searchQuery".',
           textAlign: TextAlign.center,
           style: TwText.textSm,
         ),

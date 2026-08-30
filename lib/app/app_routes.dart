@@ -39,6 +39,15 @@ class AppRoutes {
 
   // Grocery service
   static const grocery = '/grocery';
+
+  // Not a navigable destination on its own — no screen renders a bare
+  // "/grocery/stores" list, `grocery` already serves that role (the store
+  // list screen). This exists only as a shared path-segment prefix for
+  // `groceryStore` (the registered per-store route) and for
+  // `groceryStoreDetails`/`isGroceryStoreDetails` below. Mirrors
+  // `foodRestaurants` in shape.
+  static const groceryStores = '$grocery/stores';
+  static const groceryStore = '$groceryStores/:storeId';
   static const groceryCart = '$grocery/cart';
   static const groceryCheckout = '$grocery/checkout';
 
@@ -79,6 +88,12 @@ class AppRoutes {
   static bool isRestaurantDetails(String location) =>
       location.startsWith('$foodRestaurants/') ||
       location.startsWith('$restaurants/');
+
+  static String groceryStoreDetails(String storeId) =>
+      '$groceryStores/${Uri.encodeComponent(storeId)}';
+
+  static bool isGroceryStoreDetails(String location) =>
+      location.startsWith('$groceryStores/');
 
   static String trackOrderDetailsPath({
     required String serviceId,

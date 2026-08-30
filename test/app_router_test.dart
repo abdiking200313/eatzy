@@ -110,6 +110,38 @@ void main() {
     });
   });
 
+  group('grocery store routes (issue #140)', () {
+    test('builds a grocery store details path', () {
+      expect(
+        AppRoutes.groceryStoreDetails('bakaal-fresh'),
+        '/grocery/stores/bakaal-fresh',
+      );
+    });
+
+    test('recognizes grocery store details by path prefix', () {
+      expect(
+        AppRoutes.isGroceryStoreDetails('/grocery/stores/bakaal-fresh'),
+        isTrue,
+      );
+      expect(AppRoutes.isGroceryStoreDetails('/grocery/cart'), isFalse);
+      expect(AppRoutes.isGroceryStoreDetails('/grocery'), isFalse);
+    });
+
+    test('groceryStores is deliberately not a registered route (path-prefix '
+        'only, see app_routes.dart)', () {
+      expect(AppRouter.hasRegisteredRoute(AppRoutes.groceryStores), isFalse);
+      // The parameterized route it is a prefix of IS registered.
+      expect(AppRouter.hasRegisteredRoute(AppRoutes.groceryStore), isTrue);
+    });
+
+    test('a grocery store details path is a protected route', () {
+      expect(
+        AppRouter.isProtectedLocation('/grocery/stores/bakaal-fresh'),
+        isTrue,
+      );
+    });
+  });
+
   group('super-app routes', () {
     test('recognizes every service subtree as protected', () {
       for (final path in [
