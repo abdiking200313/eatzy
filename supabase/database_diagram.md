@@ -12,6 +12,13 @@ that unions them for the activity feed. Those are written only by the
 `place_food_order` / `place_grocery_order` / `place_pharmacy_order`
 `SECURITY DEFINER` RPCs, which recompute every price server-side.
 
+Order *status* is likewise never written directly: the store owner moves an
+order forward with `advance_food_order_status` /
+`advance_grocery_order_status` / `advance_pharmacy_order_status`, a customer
+cancels their own still-`confirmed` order with `cancel_food_order` /
+`cancel_grocery_order` / `cancel_pharmacy_order`, and every transition appends
+a row to the shared `order_status_events` audit table (issue #131).
+
 A generic `carts` / `cart_items` / `orders` / `order_items` / `order_events`
 model used to be drawn here as well. It was never queried by any Dart code and
 its insert policies trusted client-supplied prices, so it was removed in issue
