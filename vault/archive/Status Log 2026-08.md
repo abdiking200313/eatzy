@@ -1,13 +1,13 @@
 ---
 tags: [history, log, archive]
-summary: Archived Status Log entries for 2026-08-12 and 2026-08-13 (setup + first thorough audit pass), moved out of the live log once it passed the ~150-line archive threshold.
+summary: Archived Status Log entries for 2026-08-12 through 2026-08-15 (setup, first thorough audit pass, routine recreation/cleaning removal/app-icons run), moved out of the live log once it passed the ~150-line archive threshold.
 status: append-only
 upstream_concept: 00-Index
 ---
 
 # Status Log archive — 2026-08 (early)
 
-Moved out of `vault/Status Log.md` on 2026-08-23 per that file's own archive rule. These entries predate the "terse means terse" rule (added 2026-08-13) and are longer than current entries — left as-is rather than retroactively edited.
+Moved out of `vault/Status Log.md` on 2026-08-23 (2026-08-12/13 entries) and 2026-08-30 (2026-08-15 entry, 15th board-worker run) per that file's own archive rule. The 2026-08-12/13 entries predate the "terse means terse" rule (added 2026-08-13) and are longer than current entries — left as-is rather than retroactively edited.
 
 ---
 
@@ -62,3 +62,15 @@ Added `dart format --output=none --set-exit-if-changed` to all `.claude/agents/*
 **Also fixed two stale issue-number references** in [[Audit Findings]] Pass 2 (had #4/#6 where it should've said #5/#7) — a small internal-consistency bug in the vault itself, worth remembering the vault needs its own accuracy upkeep, not just the code's.
 
 **Not done this session, tracked in [[Open Tasks]]**: the interrupted dedup extraction from 2026-08-12 is still sitting uncommitted, untouched; the 6 new feature-gap issues (#9-15) and the currency verdict (#8) all still need either a live DB check or a product decision from the user before anyone can act further.
+
+---
+
+## 2026-08-15
+
+- Board-worker run at ~20:34 UTC found nothing eligible: 0 `todo` issues, `waiting-on-you` issue #16 still has no human reply since the agent's clarifying question, and all 3 `agent-in-progress` issues (#7, #33, #50) already have open PRs (#20, #51, #84) awaiting review. Stopped early per the loop's step 3, no action taken.
+- Noting for whoever next touches [[Open Tasks]]: it's now significantly behind reality — repo has issues up to #84, almost all `needs-approval` from a large audit batch (#29-83ish, deploy-readiness + architecture/perf review tracking issues), not reflected in that cache at all. Didn't rebuild it this run (out of scope for a no-op cycle); worth a refresh next time someone's doing vault upkeep.
+- Board-worker routine had vanished entirely (404 + absent from `list`) — recreated as `trig_017jPchk8L4LVskUZMGwiDDG`, now every 5h (was 2h, changed at user request), rebuilt from [[Multi-Agent Setup]]'s spec since the original prompt wasn't recoverable. See [[Decisions Log]] for full detail.
+- Added: routine now processes up to 6 issues per run (was 1), each dispatched via a fresh `Task` per issue to keep the top-level session's context from compounding.
+- **Issue #50 executed**: cleaning/cleaner vertical deleted entirely — `lib/services/cleaning/`, its 2 dedicated test files, all `ServiceId.cleaning`/route/theme/session references removed; `ActivityItem.fromMap` now drops legacy `'cleaning'`-typed activity rows instead of throwing. New unapplied migration `supabase/migrations/20260815153920_remove_cleaning_vertical.sql` drops the cleaning tables/RPCs/view branch — **not run against the live DB**, manual follow-up. `dart format`/`flutter analyze`/`flutter test` (53/53) all clean. See PR for #50.
+- **Board worker built issue #33** (stock Flutter template app icons/splash screen on Android+iOS): made `ZivoMarkPainter` in `lib/widgets/zivo_logo.dart` public and added `tool/generate_brand_assets.dart` (a `flutter_test`-based rasterizer) so the app-icon/splash source PNGs under `assets/icon/` are generated from the exact same brand mark used in-app, not a separate hand-made asset. Wired via `flutter_launcher_icons` + `flutter_native_splash` (new dev deps, config in `pubspec.yaml`); ran both generators for Android (incl. adaptive icon)/iOS/macOS/Windows/web. `flutter_launcher_icons` has no Linux target — left Linux icon untouched, noted as an assumption in the PR. Also fixed the stale "A new Flutter project." description in `web/manifest.json` and `web/index.html` per the issue. Format/analyze/test all clean (60/60).
+- Issue #16 (native bundle identifiers) is still `waiting-on-you` — my clarifying question is up, no reply yet.
