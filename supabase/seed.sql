@@ -255,9 +255,23 @@ on conflict (id) do update
 set name = excluded.name,
     is_active = true;
 
+-- Demo pharmacy store. `pharmacy_products.store_id` is `not null` since
+-- issue #129, so the demo catalog needs a store of its own rather than the
+-- `legacy-pharmacy` placeholder that migration created for pre-existing
+-- production rows. `owner_id` stays null (unowned/admin-managed) -- merchant
+-- accounts arrive with the merchant app (#128).
+insert into public.pharmacy_stores (id, name, address)
+values ('shifo-pharmacy', 'Shifo Pharmacy', 'Hodan, Mogadishu')
+on conflict (id) do update
+set name = excluded.name,
+    address = excluded.address,
+    is_active = true,
+    updated_at = now();
+
 insert into public.pharmacy_products (
   id,
   category_id,
+  store_id,
   name,
   description,
   unit_price,
@@ -268,6 +282,7 @@ values
   (
     'pain-paracetamol',
     'pain-relief',
+    'shifo-pharmacy',
     'Paracetamol',
     'Everyday relief for mild pain and fever.',
     2.75,
@@ -277,6 +292,7 @@ values
   (
     'cold-cough-syrup',
     'cold-flu',
+    'shifo-pharmacy',
     'Cough Syrup',
     'Soothing syrup for common cough symptoms.',
     5.50,
@@ -286,6 +302,7 @@ values
   (
     'first-aid-bandages',
     'first-aid',
+    'shifo-pharmacy',
     'Adhesive Bandages',
     'A pack of 30 sterile everyday bandages.',
     3.25,
@@ -295,6 +312,7 @@ values
   (
     'wellness-vitamin-c',
     'vitamins',
+    'shifo-pharmacy',
     'Vitamin C',
     'Thirty 500 mg vitamin C tablets.',
     6.00,
@@ -304,6 +322,7 @@ values
   (
     'allergy-antihistamine',
     'allergy',
+    'shifo-pharmacy',
     'Allergy Relief',
     'Non-drowsy tablets for common allergy symptoms.',
     4.80,
@@ -312,6 +331,7 @@ values
   )
 on conflict (id) do update
 set category_id = excluded.category_id,
+    store_id = excluded.store_id,
     name = excluded.name,
     description = excluded.description,
     unit_price = excluded.unit_price,
