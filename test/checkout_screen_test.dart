@@ -96,4 +96,62 @@ void main() {
       expect(activityController.items, isEmpty);
     },
   );
+
+  testWidgets(
+    'submitting an incomplete food checkout shows errors inline below each '
+    'invalid field, not just a generic list',
+    (tester) async {
+      await tester.binding.setSurfaceSize(const Size(800, 1400));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final cartController = CartController(storage: MemoryCartStorage());
+      await cartController.loadForOwner('user-1');
+      await cartController.addItem(burger);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: CheckoutScreen(
+            cartController: cartController,
+            orderRepository: const _ThrowingFoodOrderRepository(),
+            activityController: ActivityController(),
+          ),
+        ),
+      );
+      await tester.pump();
+
+      // Leave every address field blank and submit.
+      await tester.tap(find.text('Place order'));
+      await tester.pump();
+
+      TextField fieldByKey(String key) =>
+          tester.widget<TextField>(find.byKey(ValueKey(key)));
+
+      expect(
+        fieldByKey('food-recipient-name').decoration?.errorText,
+        'Enter the recipient name.',
+      );
+      expect(
+        fieldByKey('food-phone').decoration?.errorText,
+        'Enter a valid phone number.',
+      );
+      expect(
+        fieldByKey('food-street').decoration?.errorText,
+        'Enter a street or landmark.',
+      );
+      expect(
+        fieldByKey('food-district').decoration?.errorText,
+        'Enter a district.',
+      );
+
+      // The old generic bullet-list rendering is gone.
+      expect(find.textContaining('• Enter'), findsNothing);
+
+      // Submission never reached the (failing) repository, since the form
+      // is still invalid — the order-save failure banner never appears.
+      expect(
+        find.text('The food order could not be saved. Please try again.'),
+        findsNothing,
+      );
+    },
+  );
 }

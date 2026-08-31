@@ -29,6 +29,25 @@ class CheckoutScreen extends StatefulWidget {
   State<CheckoutScreen> createState() => _CheckoutScreenState();
 }
 
+/// Maps [FoodController.addressErrors]' generic validation messages onto
+/// the field key each message is about, so each can be shown inline below
+/// its own field via `errorText` (matching the pharmacy checkout pattern)
+/// without changing the underlying validation rules in [FoodController].
+const Map<String, String> _addressFieldErrorMessages = {
+  'recipientName': 'Enter the recipient name.',
+  'phone': 'Enter a valid phone number.',
+  'street': 'Enter a street or landmark.',
+  'district': 'Enter a district.',
+  'city': 'Enter a city.',
+};
+
+Map<String, String> _addressFieldErrors(List<String> errors) {
+  return {
+    for (final entry in _addressFieldErrorMessages.entries)
+      if (errors.contains(entry.value)) entry.key: entry.value,
+  };
+}
+
 class _CheckoutScreenState extends State<CheckoutScreen> {
   final _recipientController = TextEditingController();
   final _phoneController = TextEditingController();
@@ -83,7 +102,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     streetController: _streetController,
                     districtController: _districtController,
                     cityController: _cityController,
-                    errors: _foodController.addressErrors,
+                    fieldErrors: _addressFieldErrors(
+                      _foodController.addressErrors,
+                    ),
                   ),
                   const SizedBox(height: TwSpacing.x8),
                   if (_foodController.submissionError case final error?) ...[

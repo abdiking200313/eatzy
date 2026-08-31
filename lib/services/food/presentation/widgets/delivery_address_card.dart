@@ -23,7 +23,7 @@ class DeliveryAddressCard extends StatelessWidget {
     required this.streetController,
     required this.districtController,
     required this.cityController,
-    this.errors = const [],
+    this.fieldErrors = const {},
   });
 
   final TextEditingController recipientController;
@@ -31,7 +31,12 @@ class DeliveryAddressCard extends StatelessWidget {
   final TextEditingController streetController;
   final TextEditingController districtController;
   final TextEditingController cityController;
-  final List<String> errors;
+
+  /// Per-field validation errors keyed by field name (`recipientName`,
+  /// `phone`, `street`, `district`, `city`), shown inline below the field
+  /// they belong to via `errorText` — matching the pharmacy checkout
+  /// pattern — instead of as one generic list under the whole card.
+  final Map<String, String> fieldErrors;
 
   @override
   Widget build(BuildContext context) {
@@ -54,6 +59,7 @@ class DeliveryAddressCard extends StatelessWidget {
               labelText: 'Recipient name',
               prefixIcon: const Icon(Icons.person_outline),
               border: _addressFieldBorder,
+              errorText: fieldErrors['recipientName'],
             ),
           ),
           const SizedBox(height: TwSpacing.x3),
@@ -66,6 +72,7 @@ class DeliveryAddressCard extends StatelessWidget {
               hintText: '+252 …',
               prefixIcon: const Icon(Icons.phone_outlined),
               border: _addressFieldBorder,
+              errorText: fieldErrors['phone'],
             ),
           ),
           const SizedBox(height: TwSpacing.x3),
@@ -76,10 +83,12 @@ class DeliveryAddressCard extends StatelessWidget {
               labelText: 'Street or landmark',
               prefixIcon: const Icon(Icons.home_outlined),
               border: _addressFieldBorder,
+              errorText: fieldErrors['street'],
             ),
           ),
           const SizedBox(height: TwSpacing.x3),
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
                 child: TextField(
@@ -88,6 +97,7 @@ class DeliveryAddressCard extends StatelessWidget {
                   decoration: InputDecoration(
                     labelText: 'District',
                     border: _addressFieldBorder,
+                    errorText: fieldErrors['district'],
                   ),
                 ),
               ),
@@ -99,27 +109,12 @@ class DeliveryAddressCard extends StatelessWidget {
                   decoration: InputDecoration(
                     labelText: 'City',
                     border: _addressFieldBorder,
+                    errorText: fieldErrors['city'],
                   ),
                 ),
               ),
             ],
           ),
-          if (errors.isNotEmpty) ...[
-            const SizedBox(height: TwSpacing.x3),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                for (final error in errors)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: TwSpacing.x1),
-                    child: Text(
-                      '• $error',
-                      style: TwText.textSm.copyWith(color: TwColors.error),
-                    ),
-                  ),
-              ],
-            ),
-          ],
         ],
       ),
     );
