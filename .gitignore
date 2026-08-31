@@ -15,6 +15,9 @@ vault/.obsidian/
 .swiftpm/
 migrate_working_dir/
 
+# Local git worktrees used for isolated background-agent runs
+.claude/worktrees/
+
 # IntelliJ related
 *.iml
 *.ipr
