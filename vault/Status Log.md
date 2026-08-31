@@ -1,4 +1,4 @@
-[Resource from github at repo://abdiking200313/eatzy/sha/4b2abeec36df3179ec411ade3bee801706ebad53/contents/vault/Status%20Log.md] ---
+---
 tags: [history, log]
 summary: Reverse-chronological session log for cross-session and cross-agent continuity; archived monthly once large.
 status: append-only
