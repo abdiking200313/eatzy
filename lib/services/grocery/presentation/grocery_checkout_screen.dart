@@ -36,7 +36,40 @@ class _GroceryCheckoutScreenState extends State<GroceryCheckoutScreen> {
 
   GroceryDeliverySlot? _slot;
   GrocerySubstitutionPreference? _substitutionPreference;
-  List<String> _errors = const [];
+  Map<String, String> _errors = const {};
+
+  // Maps the controller's field-specific validation messages onto the
+  // field key each message is about, so each can be shown inline below
+  // its own field (matching the pharmacy checkout pattern) without
+  // changing the underlying validation rules in [GroceryController].
+  // Errors with no matching field (cart-empty, non-Somalia country, or a
+  // save failure) fall back to the 'general' key and stay shown as a
+  // banner, since there is no single field to attach them to.
+  static const Map<String, String> _fieldErrorMessages = {
+    'recipientName': 'Enter the recipient name.',
+    'phone': 'Enter a valid phone number.',
+    'street': 'Enter a street or landmark.',
+    'district': 'Enter a district.',
+    'city': 'Enter a city.',
+    'slot': 'Choose a delivery slot.',
+    'substitutionPreference': 'Choose a substitution preference.',
+  };
+
+  Map<String, String> _fieldErrorsFrom(List<String> errors) {
+    final result = <String, String>{};
+    for (final entry in _fieldErrorMessages.entries) {
+      if (errors.contains(entry.value)) {
+        result[entry.key] = entry.value;
+      }
+    }
+    final generalErrors = errors
+        .where((error) => !_fieldErrorMessages.values.contains(error))
+        .toList();
+    if (generalErrors.isNotEmpty) {
+      result['general'] = generalErrors.first;
+    }
+    return result;
+  }
 
   GroceryController get _controller =>
       widget.controller ?? GroceryController.instance;
@@ -111,6 +144,7 @@ class _GroceryCheckoutScreenState extends State<GroceryCheckoutScreen> {
           decoration: InputDecoration(
             labelText: 'Recipient name',
             border: _addressFieldBorder,
+            errorText: _errors['recipientName'],
           ),
         ),
         const SizedBox(height: TwSpacing.x3),
@@ -121,6 +155,7 @@ class _GroceryCheckoutScreenState extends State<GroceryCheckoutScreen> {
             labelText: 'Phone number',
             hintText: '+252 …',
             border: _addressFieldBorder,
+            errorText: _errors['phone'],
           ),
         ),
         const SizedBox(height: TwSpacing.x3),
@@ -129,10 +164,12 @@ class _GroceryCheckoutScreenState extends State<GroceryCheckoutScreen> {
           decoration: InputDecoration(
             labelText: 'Street or landmark',
             border: _addressFieldBorder,
+            errorText: _errors['street'],
           ),
         ),
         const SizedBox(height: TwSpacing.x3),
         Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(
               child: TextField(
@@ -140,6 +177,7 @@ class _GroceryCheckoutScreenState extends State<GroceryCheckoutScreen> {
                 decoration: InputDecoration(
                   labelText: 'District',
                   border: _addressFieldBorder,
+                  errorText: _errors['district'],
                 ),
               ),
             ),
@@ -150,6 +188,7 @@ class _GroceryCheckoutScreenState extends State<GroceryCheckoutScreen> {
                 decoration: InputDecoration(
                   labelText: 'City',
                   border: _addressFieldBorder,
+                  errorText: _errors['city'],
                 ),
               ),
             ),
@@ -180,6 +219,8 @@ class _GroceryCheckoutScreenState extends State<GroceryCheckoutScreen> {
             ],
           ),
         ),
+        if (_errors['slot'] case final error?)
+          Text(error, style: TwText.textSm.copyWith(color: TwColors.error)),
         const SizedBox(height: TwSpacing.x6),
         const SectionTitle('If an item becomes unavailable'),
         const SizedBox(height: TwSpacing.x2),
@@ -201,27 +242,11 @@ class _GroceryCheckoutScreenState extends State<GroceryCheckoutScreen> {
             ],
           ),
         ),
-        if (_errors.isNotEmpty) ...[
-          const SizedBox(height: TwSpacing.x4),
-          OutlinedCard(
-            backgroundColor: TwColors.errorSoft,
-            borderColor: TwColors.error,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Please complete the following:',
-                  style: TwText.fontBoldSm.copyWith(color: TwColors.error),
-                ),
-                const SizedBox(height: TwSpacing.x2),
-                for (final error in _errors)
-                  Text(
-                    '• $error',
-                    style: TwText.textSm.copyWith(color: TwColors.error),
-                  ),
-              ],
-            ),
-          ),
+        if (_errors['substitutionPreference'] case final error?)
+          Text(error, style: TwText.textSm.copyWith(color: TwColors.error)),
+        if (_errors['general'] case final error?) ...[
+          const SizedBox(height: TwSpacing.x3),
+          Text(error, style: TwText.textSm.copyWith(color: TwColors.error)),
         ],
         const SizedBox(height: TwSpacing.x6),
         // White card only — a plain OutlinedCard already uses the neutral
@@ -258,11 +283,11 @@ class _GroceryCheckoutScreenState extends State<GroceryCheckoutScreen> {
       substitutionPreference: _substitutionPreference,
     );
     if (!result.isSuccess) {
-      setState(() => _errors = result.errors);
+      setState(() => _errors = _fieldErrorsFrom(result.errors));
       return;
     }
 
-    setState(() => _errors = const []);
+    setState(() => _errors = const {});
     if (!mounted) {
       return;
     }
