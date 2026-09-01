@@ -15,6 +15,12 @@ Reverse-chronological. Each session/major chunk of work gets an entry.
 
 ---
 
+## 2026-09-01 (20th run — nothing eligible, queue unchanged)
+
+- `waiting-on-you` re-checked (#8/#16/#40/#74/#78/#79/#132): none show an `updated_at` past 2026-08-31 — no new activity (comment or otherwise) since the 19th run's check, so still no genuine human reply on any.
+- #133/#134/#135 still blocked on #132 (unanswered); #128/#52/#29 still tracking-only, no direct work. No `todo`-and-not-blocked issue exists.
+- Nothing implemented this run — stopped early, no eligible work.
+
 ## 2026-09-01 (19th run — nothing eligible, queue unchanged)
 
 - `waiting-on-you` re-checked (#8/#16/#40/#74/#78/#79/#132): still no genuine human reply on any — all comments are bot-authored (posted under the owner's own account or as `claude[bot]`, each carrying the Claude Code footer) except #74's third-party promotional comment from `cekuu35` (not the repo owner, doesn't unblock anything).
