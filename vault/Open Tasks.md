@@ -7,7 +7,9 @@ upstream_concept: 00-Index
 
 # Open Tasks
 
-Refreshed 2026-08-31 (board worker, 16th run). **Source of truth is always a live `list_issues`/`gh issue list --repo abdiking200313/eatzy --state open` call** — re-check before relying on this for anything that matters.
+Refreshed 2026-09-01 (board worker, 22nd run). **Source of truth is always a live `list_issues`/`gh issue list --repo abdiking200313/eatzy --state open` call** — re-check before relying on this for anything that matters.
+
+**2026-09-01 (board worker, 22nd run — nothing eligible, queue unchanged)**: same `todo`/`waiting-on-you` set as the last several runs, `updated_at` unchanged on every `waiting-on-you` issue (#8/#16/#40/#74/#78/#79/#132) — no new human reply. #133/#134/#135 still blocked on #132; #128/#52/#29 still tracking-only. Nothing to pick up. Full detail in [[Status Log]] 2026-09-01 "22nd run".
 
 **2026-08-31 (board worker, 16th run — one issue, queue otherwise still blocked)**: `waiting-on-you` re-checked first (#8/#16/#40/#74/#78/#79/#132) — all still only bot-authored comments (posted under the owner's own account or as `claude[bot]`, each carrying the Claude Code footer), no genuine human reply on any. Only **#144** was actionable (checkout field errors should show inline everywhere, like pharmacy) — implemented and merged as **PR #166**: `DeliveryAddressCard` and the food/grocery checkout screens now set `errorText` per field instead of a generic bullet-list/banner (pharmacy's existing pattern), new widget tests added in `test/checkout_screen_test.dart`/`test/grocery_checkout_screen_test.dart`, 187/187 tests passing, `dart format`/`flutter analyze` clean. Note: the issue's file paths were stale (food checkout moved to `lib/services/food/presentation/checkout_screen.dart` after a module consolidation) — the dispatched agent caught this via a merge conflict against a stale worktree cache, re-fetched, and rebuilt against current `master`. #133/#134/#135 still blocked on #132 (unanswered); #128/#52/#29 still tracking-only, no direct work. Nothing else eligible this run. Full detail in [[Status Log]] 2026-08-31 "16th run".
 
