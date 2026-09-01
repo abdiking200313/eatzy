@@ -15,6 +15,12 @@ Reverse-chronological. Each session/major chunk of work gets an entry.
 
 ---
 
+## 2026-09-01 (18th run — nothing eligible, queue unchanged)
+
+- `waiting-on-you` re-checked (#8/#16/#40/#74/#78/#79/#132): still no genuine human reply on any. #40's comment shows an `updated_at` of 2026-08-31 (a day after its `created_at`) but the content is unchanged and reads as the bot's own original clarifying question with just the attribution footer stripped — verified directly via `get_comments`, not a human edit.
+- #133/#134/#135 still blocked on #132 (unanswered); #128/#52/#29 still tracking-only, no direct work. No `todo`-and-not-blocked issue exists.
+- Nothing implemented this run — stopped early, no eligible work.
+
 ## 2026-08-31 (17th run — nothing eligible, queue unchanged)
 
 - `waiting-on-you` re-checked (#8/#16/#40/#74/#78/#79/#132): still no genuine human reply on any. #74 carries a promotional third-party comment (user `cekuu35`, `author_association: NONE`, not the repo owner, pitching a paid audit-kit product) — not an owner reply, doesn't unblock anything.
