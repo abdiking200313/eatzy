@@ -15,6 +15,12 @@ Reverse-chronological. Each session/major chunk of work gets an entry.
 
 ---
 
+## 2026-09-02 (25th run — nothing eligible, queue unchanged)
+
+- `waiting-on-you` re-checked via the label-filtered `list_issues` query (#8/#16/#40/#74/#78/#79/#132): all `updated_at` values still land on or before 2026-08-31 — no new activity since the 24th run's check earlier today, so still no genuine human reply on any.
+- #133/#134/#135 still blocked on #132 (unanswered); #128/#52/#29 still tracking-only, no direct work. No `todo`-and-not-blocked issue exists.
+- Nothing implemented this run — stopped early, no eligible work.
+
 ## 2026-09-02 (24th run — nothing eligible, queue unchanged)
 
 - `waiting-on-you` re-checked (#8/#16/#40/#74/#78/#79/#132): none show an `updated_at` past 2026-08-31 — identical state to the 23rd run's check earlier today. No genuine human reply on any (#74 still only carries the third-party promotional comment from `cekuu35`, not the owner; #79's most recent comment is still this bot's own informational follow-up from the 14th run).
