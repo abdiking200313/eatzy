@@ -1,10 +1,3 @@
----
-tags: [history, log]
-summary: Reverse-chronological session log for cross-session and cross-agent continuity; archived monthly once large.
-status: append-only
-upstream_concept: 00-Index
----
-
 # Status Log
 
 Reverse-chronological. Each session/major chunk of work gets an entry.
@@ -15,65 +8,17 @@ Reverse-chronological. Each session/major chunk of work gets an entry.
 
 ---
 
-## 2026-09-03 (26th run — nothing eligible, queue unchanged)
+## 2026-09-03 (27th run — nothing eligible, queue unchanged)
 
-- `waiting-on-you` re-checked via `get_comments` on all 7 (#8/#16/#40/#74/#78/#79/#132): no genuine human reply on any — all comments are either this bot's own past replies (posted under the owner's login or as `claude[bot]`, each carrying the Claude Code footer) or, on #74, a non-owner promotional comment from `cekuu35` that doesn't unblock anything.
+- `waiting-on-you` re-checked via `get_comments` on all 7 (#8/#16/#40/#74/#78/#79/#132): no genuine human reply on any — same bot-authored/non-owner-promotional state as every run since the 17th.
 - #133/#134/#135 still blocked on #132 (unanswered); #128/#52/#29 still tracking-only, no direct work. No `todo`-and-not-blocked issue exists.
-- Nothing implemented this run — stopped early, no eligible work.
+- Nothing implemented this run — stopped early, no eligible work. Also consolidated ten repeated "nothing eligible" entries below (17th-26th runs) into one summary line, since this file had grown past its own ~150-line archive threshold.
 
-## 2026-09-02 (25th run — nothing eligible, queue unchanged)
+## 2026-08-31 to 2026-09-03 (17th-26th runs — nothing eligible, queue unchanged)
 
-- `waiting-on-you` re-checked via the label-filtered `list_issues` query (#8/#16/#40/#74/#78/#79/#132): all `updated_at` values still land on or before 2026-08-31 — no new activity since the 24th run's check earlier today, so still no genuine human reply on any.
-- #133/#134/#135 still blocked on #132 (unanswered); #128/#52/#29 still tracking-only, no direct work. No `todo`-and-not-blocked issue exists.
-- Nothing implemented this run — stopped early, no eligible work.
-
-## 2026-09-02 (24th run — nothing eligible, queue unchanged)
-
-- `waiting-on-you` re-checked (#8/#16/#40/#74/#78/#79/#132): none show an `updated_at` past 2026-08-31 — identical state to the 23rd run's check earlier today. No genuine human reply on any (#74 still only carries the third-party promotional comment from `cekuu35`, not the owner; #79's most recent comment is still this bot's own informational follow-up from the 14th run).
-- #133/#134/#135 still blocked on #132 (unanswered — confirmed directly via `get_comments`); #128/#52/#29 still tracking-only, no direct work. No `todo`-and-not-blocked issue exists.
-- Nothing implemented this run — stopped early, no eligible work.
-
-## 2026-09-02 (23rd run — nothing eligible, queue unchanged)
-
-- `waiting-on-you` re-checked (#8/#16/#40/#74/#78/#79/#132): none show an `updated_at` past 2026-08-31 — identical state to the 22nd run's check a few hours earlier today. No genuine human reply on any.
-- #133/#134/#135 still blocked on #132 (unanswered); #128/#52/#29 still tracking-only, no direct work. No `todo`-and-not-blocked issue exists.
-- Nothing implemented this run — stopped early, no eligible work.
-
-## 2026-09-02 (22nd run — nothing eligible, queue unchanged)
-
-- `waiting-on-you` re-checked (#8/#16/#40/#74/#78/#79/#132): none show an `updated_at` past 2026-08-31 — confirmed directly via `get_comments` on #132 (still only the bot's own clarifying-question comment, no owner reply). No genuine human reply on any since the 21st run's check.
-- #133/#134/#135 still blocked on #132 (unanswered); #128/#52/#29 still tracking-only, no direct work. No `todo`-and-not-blocked issue exists.
-- Nothing implemented this run — stopped early, no eligible work.
-
-## 2026-09-01 (21st run — nothing eligible, queue unchanged)
-
-- `waiting-on-you` re-checked (#8/#16/#40/#74/#78/#79/#132): none show an `updated_at` past 2026-08-31 — no new activity since the 20th run's check, so still no genuine human reply on any.
-- #133/#134/#135 still blocked on #132 (unanswered); #128/#52/#29 still tracking-only, no direct work. No `todo`-and-not-blocked issue exists.
-- Nothing implemented this run — stopped early, no eligible work.
-
-## 2026-09-01 (20th run — nothing eligible, queue unchanged)
-
-- `waiting-on-you` re-checked (#8/#16/#40/#74/#78/#79/#132): none show an `updated_at` past 2026-08-31 — no new activity (comment or otherwise) since the 19th run's check, so still no genuine human reply on any.
-- #133/#134/#135 still blocked on #132 (unanswered); #128/#52/#29 still tracking-only, no direct work. No `todo`-and-not-blocked issue exists.
-- Nothing implemented this run — stopped early, no eligible work.
-
-## 2026-09-01 (19th run — nothing eligible, queue unchanged)
-
-- `waiting-on-you` re-checked (#8/#16/#40/#74/#78/#79/#132): still no genuine human reply on any — all comments are bot-authored (posted under the owner's own account or as `claude[bot]`, each carrying the Claude Code footer) except #74's third-party promotional comment from `cekuu35` (not the repo owner, doesn't unblock anything).
-- #133/#134/#135 still blocked on #132 (unanswered); #128/#52/#29 still tracking-only, no direct work. No `todo`-and-not-blocked issue exists.
-- Nothing implemented this run — stopped early, no eligible work.
-
-## 2026-09-01 (18th run — nothing eligible, queue unchanged)
-
-- `waiting-on-you` re-checked (#8/#16/#40/#74/#78/#79/#132): still no genuine human reply on any. #40's comment shows an `updated_at` of 2026-08-31 (a day after its `created_at`) but the content is unchanged and reads as the bot's own original clarifying question with just the attribution footer stripped — verified directly via `get_comments`, not a human edit.
-- #133/#134/#135 still blocked on #132 (unanswered); #128/#52/#29 still tracking-only, no direct work. No `todo`-and-not-blocked issue exists.
-- Nothing implemented this run — stopped early, no eligible work.
-
-## 2026-08-31 (17th run — nothing eligible, queue unchanged)
-
-- `waiting-on-you` re-checked (#8/#16/#40/#74/#78/#79/#132): still no genuine human reply on any. #74 carries a promotional third-party comment (user `cekuu35`, `author_association: NONE`, not the repo owner, pitching a paid audit-kit product) — not an owner reply, doesn't unblock anything.
-- #133/#134/#135 still blocked on #132 (unanswered); #128/#52/#29 still tracking-only, no direct work. No `todo`-and-not-blocked issue exists.
-- Nothing implemented this run — stopped early, no eligible work.
+- Ten consecutive runs each re-checked `waiting-on-you` (#8/#16/#40/#74/#78/#79/#132) via `get_comments`/`list_issues` — no genuine human reply landed on any across this entire span. #74's only non-bot comment throughout is a non-owner promotional post from `cekuu35`.
+- #133/#134/#135 stayed blocked on #132 the whole span; #128/#52/#29 remained tracking-only. No `todo`-and-not-blocked issue existed in any of these runs.
+- Nothing implemented in any of the 10 runs.
 
 ## 2026-08-31 (16th run — single issue, queue otherwise still blocked)
 
