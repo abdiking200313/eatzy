@@ -8,17 +8,11 @@ Reverse-chronological. Each session/major chunk of work gets an entry.
 
 ---
 
-## 2026-09-03 (27th run — nothing eligible, queue unchanged)
+## 2026-08-31 to 2026-09-03 (17th-27th runs — nothing eligible, queue unchanged)
 
-- `waiting-on-you` re-checked via `get_comments` on all 7 (#8/#16/#40/#74/#78/#79/#132): no genuine human reply on any — same bot-authored/non-owner-promotional state as every run since the 17th.
-- #133/#134/#135 still blocked on #132 (unanswered); #128/#52/#29 still tracking-only, no direct work. No `todo`-and-not-blocked issue exists.
-- Nothing implemented this run — stopped early, no eligible work. Also consolidated ten repeated "nothing eligible" entries below (17th-26th runs) into one summary line, since this file had grown past its own ~150-line archive threshold.
-
-## 2026-08-31 to 2026-09-03 (17th-26th runs — nothing eligible, queue unchanged)
-
-- Ten consecutive runs each re-checked `waiting-on-you` (#8/#16/#40/#74/#78/#79/#132) via `get_comments`/`list_issues` — no genuine human reply landed on any across this entire span. #74's only non-bot comment throughout is a non-owner promotional post from `cekuu35`.
-- #133/#134/#135 stayed blocked on #132 the whole span; #128/#52/#29 remained tracking-only. No `todo`-and-not-blocked issue existed in any of these runs.
-- Nothing implemented in any of the 10 runs.
+- Eleven consecutive runs each re-checked `waiting-on-you` (#8/#16/#40/#74/#78/#79/#132) via `get_comments`/`list_issues` — no genuine human reply landed on any across this entire span. #74's only non-bot comment throughout is a non-owner promotional post from `cekuu35`.
+- #133/#134/#135 stayed blocked on #132 the whole span (re-verified against #133's own body text on the 27th run); #128/#52/#29 remained tracking-only. No `todo`-and-not-blocked issue existed in any of these runs.
+- Nothing implemented in any of the 11 runs.
 
 ## 2026-08-31 (16th run — single issue, queue otherwise still blocked)
 
