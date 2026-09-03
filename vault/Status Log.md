@@ -8,6 +8,12 @@ Reverse-chronological. Each session/major chunk of work gets an entry.
 
 ---
 
+## 2026-09-03 (28th run — nothing eligible, queue unchanged)
+
+- `waiting-on-you` re-checked via `get_comments` on all 7 (#8/#16/#40/#74/#78/#79/#132): every comment on all 7 is still agent-authored (the owner-account-posted questions/informational follow-ups, or `claude[bot]`'s own #79 comment) — no genuine human reply on any.
+- #133/#134/#135 still blocked on #132 (unanswered, confirmed no `merchant_app/`-style scaffold exists in the repo yet); #128/#52/#29 still tracking-only, no direct work. No `todo`-and-not-blocked issue exists.
+- Nothing implemented this run — stopped early, no eligible work.
+
 ## 2026-09-03 (27th run — nothing eligible, queue unchanged)
 
 - `waiting-on-you` re-checked via `get_comments` on all 7 (#8/#16/#40/#74/#78/#79/#132): no genuine human reply on any — same bot-authored/non-owner-promotional state as every run since the 17th.
