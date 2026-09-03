@@ -15,6 +15,13 @@ Reverse-chronological. Each session/major chunk of work gets an entry.
 
 ---
 
+## 2026-09-03 (26th run — nothing eligible, queue unchanged)
+
+- `waiting-on-you` re-checked (#8/#16/#40/#74/#78/#79/#132): none show an `updated_at` past 2026-08-31 — identical state to the 25th run's check the day before. #40's sole comment carries an `updated_at` of 2026-08-31T11:38:01Z (differs from its `created_at`) but the comment body is unchanged — still just the original SDK-choice question, no answer added. No genuine human reply on any.
+- Also re-confirmed #34 (blocks #74) is still unlabeled `todo`/`waiting-on-you` — only `agent:supabase`/`severity:blocking`.
+- #133/#134/#135 still blocked on #132 (unanswered); #128/#52/#29 still tracking-only, no direct work. No `todo`-and-not-blocked issue exists.
+- Nothing implemented this run — stopped early, no eligible work.
+
 ## 2026-09-02 (25th run — nothing eligible, queue unchanged)
 
 - `waiting-on-you` re-checked via the label-filtered `list_issues` query (#8/#16/#40/#74/#78/#79/#132): all `updated_at` values still land on or before 2026-08-31 — no new activity since the 24th run's check earlier today, so still no genuine human reply on any.
