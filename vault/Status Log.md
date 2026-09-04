@@ -8,29 +8,17 @@ Reverse-chronological. Each session/major chunk of work gets an entry.
 
 ---
 
-## 2026-09-04 (30th run — nothing eligible, queue unchanged)
+## 2026-09-04 (31st run — nothing eligible, queue unchanged)
 
 - `waiting-on-you` re-checked via `get_comments` on all 7 (#8/#16/#40/#74/#78/#79/#132): every comment on all 7 is still agent-authored (owner-account-posted questions/informational follow-ups, `claude[bot]`'s own #79 comment, or `cekuu35`'s non-owner promotional comment on #74) — no genuine human reply on any.
-- #133/#134/#135 still blocked on #132 (unanswered); #128/#52/#29 still tracking-only, no direct work. No `todo`-and-not-blocked issue exists.
+- #133/#134/#135 still blocked on #132 (unanswered); #128/#52/#29 still tracking-only, no direct work. No `todo`-and-not-blocked issue exists. `list_issues` for `todo`/`waiting-on-you` returned the exact same 13 issues as the prior three runs.
 - Nothing implemented this run — stopped early, no eligible work.
 
-## 2026-09-04 (29th run — nothing eligible, queue unchanged)
+## 2026-09-03 to 2026-09-04 (27th-30th runs — nothing eligible, queue unchanged)
 
-- `waiting-on-you` re-checked via `get_comments` on all 7 (#8/#16/#40/#74/#78/#79/#132): every comment on all 7 is still agent-authored (owner-account-posted questions/informational follow-ups, `claude[bot]`'s own #79 comment, or `cekuu35`'s non-owner promotional comment on #74) — no genuine human reply on any.
-- #133/#134/#135 still blocked on #132 (unanswered); #128/#52/#29 still tracking-only, no direct work. No `todo`-and-not-blocked issue exists.
-- Nothing implemented this run — stopped early, no eligible work.
-
-## 2026-09-03 (28th run — nothing eligible, queue unchanged)
-
-- `waiting-on-you` re-checked via `get_comments` on all 7 (#8/#16/#40/#74/#78/#79/#132): every comment on all 7 is still agent-authored (the owner-account-posted questions/informational follow-ups, or `claude[bot]`'s own #79 comment) — no genuine human reply on any.
-- #133/#134/#135 still blocked on #132 (unanswered, confirmed no `merchant_app/`-style scaffold exists in the repo yet); #128/#52/#29 still tracking-only, no direct work. No `todo`-and-not-blocked issue exists.
-- Nothing implemented this run — stopped early, no eligible work.
-
-## 2026-09-03 (27th run — nothing eligible, queue unchanged)
-
-- `waiting-on-you` re-checked via `get_comments` on all 7 (#8/#16/#40/#74/#78/#79/#132): no genuine human reply on any — same bot-authored/non-owner-promotional state as every run since the 17th.
-- #133/#134/#135 still blocked on #132 (unanswered); #128/#52/#29 still tracking-only, no direct work. No `todo`-and-not-blocked issue exists.
-- Nothing implemented this run — stopped early, no eligible work. Also consolidated ten repeated "nothing eligible" entries below (17th-26th runs) into one summary line, since this file had grown past its own ~150-line archive threshold.
+- Four consecutive runs each re-checked `waiting-on-you` (#8/#16/#40/#74/#78/#79/#132) via `get_comments` — no genuine human reply landed on any across this span. #74's only non-bot comment throughout is a non-owner promotional post from `cekuu35`.
+- #133/#134/#135 stayed blocked on #132 the whole span; #128/#52/#29 remained tracking-only. No `todo`-and-not-blocked issue existed in any of these runs.
+- Nothing implemented in any of the 4 runs.
 
 ## 2026-08-31 to 2026-09-03 (17th-26th runs — nothing eligible, queue unchanged)
 
