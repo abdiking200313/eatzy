@@ -8,12 +8,12 @@ Reverse-chronological. Each session/major chunk of work gets an entry.
 
 ---
 
-## 2026-09-07 (43rd run — nothing eligible, queue unchanged; fixed a file-corruption bug in this note)
+## 2026-09-07 (43rd-44th runs — nothing eligible, queue unchanged; fixed a file-corruption bug in this note)
 
-- Re-checked `waiting-on-you` via `get_comments` on all 7 (#8/#16/#40/#74/#78/#79/#132): every comment on all 7 is still agent-authored (owner-account-posted questions/informational follow-ups, `claude[bot]`'s own #79 comment, or `cekuu35`'s non-owner promotional comment on #74) — no genuine human reply on any.
+- Both runs re-checked `waiting-on-you` via `get_comments` on all 7 (#8/#16/#40/#74/#78/#79/#132): every comment on all 7 is still agent-authored (owner-account-posted questions/informational follow-ups, `claude[bot]`'s own #79 comment, or `cekuu35`'s non-owner promotional comment on #74) — no genuine human reply on any.
 - #133/#134/#135 still blocked on #132 (unanswered); #128/#52/#29 still tracking-only, no direct work. `list_issues` for `todo`/`waiting-on-you` returned the same 13 issues as prior runs.
-- **Process fix**: found this file (`vault/Status Log.md`) had been stored on disk as a single line of base64 text (no line terminators, ~16KB) instead of plain markdown — some prior run's write path base64-encoded the content instead of writing it directly. Decoded it, verified the decoded content matched the expected reverse-chronological history (matches what earlier `list_issues`/vault-read summaries described), and rewrote the file as plain text. If a future run finds a vault note unreadable/garbled again, try `base64 -d` on it before assuming data loss — check `file <path>` for "ASCII text, with very long lines, with no line terminators" as the tell.
-- Nothing implemented this run.
+- **Process fix (43rd run)**: found this file (`vault/Status Log.md`) had been stored on disk as a single line of base64 text (no line terminators, ~16KB) instead of plain markdown — some prior run's write path base64-encoded the content instead of writing it directly. Decoded it, verified the decoded content matched the expected reverse-chronological history (matches what earlier `list_issues`/vault-read summaries described), and rewrote the file as plain text. If a future run finds a vault note unreadable/garbled again, try `base64 -d` on it before assuming data loss — check `file <path>` for "ASCII text, with very long lines, with no line terminators" as the tell.
+- Nothing implemented in either run.
 
 ## 2026-09-06 (37th-41st runs — nothing eligible, queue unchanged)
 
