@@ -9,6 +9,12 @@ Reverse-chronological. Each session/major chunk of work gets an entry.
 
 ---
 
+## 2026-09-08 (50th run — nothing eligible, queue unchanged)
+
+- `list_issues` for `todo`/`waiting-on-you` returned the same 13 issues as prior runs; `updated_at` on all 7 `waiting-on-you` issues (#8/#16/#40/#74/#78/#79/#132) unchanged since the 49th run's `get_comments` check, so no new comment (human or otherwise) landed on any — skipped re-fetching comment bodies since the timestamp alone rules out a reply.
+- #133/#134/#135 still blocked on #132 (unanswered); #128/#52/#29 still tracking-only, no direct work.
+- Nothing implemented this run.
+
 ## 2026-09-08 (49th run — nothing eligible, queue unchanged)
 
 - Re-checked `waiting-on-you` via `get_comments` on all 7 (#8/#16/#40/#74/#78/#79/#132): every comment on all 7 is still agent-authored (owner-account-posted questions/informational follow-ups, `claude[bot]`'s own #79 comment, or `cekuu35`'s non-owner promotional comment on #74) — no genuine human reply on any.
