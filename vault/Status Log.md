@@ -4,7 +4,7 @@ Reverse-chronological. Each session/major chunk of work gets an entry.
 
 **Terse means terse, enforced literally (added 2026-08-13 after this file's own entries broke the rule)**: 1-4 short bullet points per task, not paragraphs. Point at where full detail already lives (an issue number, `Audit Findings.md`, `Decisions Log.md`, git history) rather than re-explaining it here. This file is an index, not a second copy of the record.
 
-**Archive when this file passes ~150 lines or ~2 weeks of entries**: move everything older than the most recent ~2 weeks into `vault/archive/Status Log <YYYY-MM>.md`, leave a one-line pointer at the bottom. Whoever's finishing a task and notices the file has grown past that point should just do it, not wait to be asked.
+**Archive when this file passes ~150 lines or ~2 weeks of entries**: move everything older than the most recent ~2 weeks into `vault/archive/Status Log <YYYY-MM>.md`, leave a one-line pointer at the bottom. Whoever's finishing a task and notices the file has grown past that point should just do it, not wait to be asked. **Consolidate long runs of identical "nothing eligible" entries into one merged block even within the 2-week window** (done 2026-09-10, folding the 43rd-56th runs together) — the per-run detail isn't worth the line count once a dozen runs in a row say the exact same thing.
 
 ---
 
@@ -12,74 +12,15 @@ Reverse-chronological. Each session/major chunk of work gets an entry.
 
 - `list_issues` for `todo`/`waiting-on-you` returned the same 13 issues as prior runs; `updated_at` on all 7 `waiting-on-you` issues (#8/#16/#40/#74/#78/#79/#132) unchanged since the 56th run's check, so no new comment (human or otherwise) landed on any — skipped re-fetching comment bodies since the timestamp alone rules out a reply.
 - #133/#134/#135 still blocked on #132 (unanswered); #128/#52/#29 still tracking-only, no direct work.
+- Also consolidated this file's own 43rd-56th run entries (14 near-identical "nothing eligible" entries) into one merged block below, per this file's own archive-threshold rule — line count had grown past the point where per-run detail was still worth carrying.
 - Nothing implemented this run.
 
-## 2026-09-09 (56th run — nothing eligible, queue unchanged)
+## 2026-09-07 to 2026-09-09 (43rd-56th runs — nothing eligible, queue unchanged)
 
-- `list_issues` for `todo`/`waiting-on-you` returned the same 13 issues as prior runs; `updated_at` on all 7 `waiting-on-you` issues (#8/#16/#40/#74/#78/#79/#132) unchanged since the 55th run's `get_comments` check, so no new comment (human or otherwise) landed on any — skipped re-fetching comment bodies since the timestamp alone rules out a reply.
-- #133/#134/#135 still blocked on #132 (unanswered); #128/#52/#29 still tracking-only, no direct work.
-- Nothing implemented this run.
-
-## 2026-09-09 (55th run — nothing eligible, queue unchanged)
-
-- `list_issues` for `todo`/`waiting-on-you` returned the same 13 issues as prior runs; re-checked all 7 `waiting-on-you` issues (#8/#16/#40/#74/#78/#79/#132) via `get_comments` — every comment on all 7 is still agent-authored (owner-account-posted questions/informational follow-ups, `claude[bot]`'s own #79 comment, or `cekuu35`'s non-owner promotional comment on #74), no genuine human reply on any.
-- #133/#134/#135 still blocked on #132 (unanswered); #128/#52/#29 still tracking-only, no direct work.
-- Nothing implemented this run.
-
-## 2026-09-09 (54th run — nothing eligible, queue unchanged)
-
-- `list_issues` for `todo`/`waiting-on-you` returned the same 13 issues as prior runs; `updated_at` on all 7 `waiting-on-you` issues (#8/#16/#40/#74/#78/#79/#132) unchanged since the 53rd run's check, so no new comment (human or otherwise) landed on any — skipped re-fetching comment bodies since the timestamp alone rules out a reply.
-- #133/#134/#135 still blocked on #132 (unanswered); #128/#52/#29 still tracking-only, no direct work.
-- Nothing implemented this run.
-
-## 2026-09-09 (53rd run — nothing eligible, queue unchanged)
-
-- `list_issues` for `todo`/`waiting-on-you` returned the same 13 issues as prior runs; `updated_at` on all 7 `waiting-on-you` issues (#8/#16/#40/#74/#78/#79/#132) unchanged since the 52nd run's check, so no new comment (human or otherwise) landed on any — skipped re-fetching comment bodies since the timestamp alone rules out a reply.
-- #133/#134/#135 still blocked on #132 (unanswered); #128/#52/#29 still tracking-only, no direct work.
-- Nothing implemented this run.
-
-## 2026-09-09 (52nd run — nothing eligible, queue unchanged)
-
-- `list_issues` for `todo`/`waiting-on-you` returned the same 13 issues as prior runs; `updated_at` on all 7 `waiting-on-you` issues (#8/#16/#40/#74/#78/#79/#132) unchanged since the 51st run's check, so no new comment (human or otherwise) landed on any — skipped re-fetching comment bodies since the timestamp alone rules out a reply.
-- #133/#134/#135 still blocked on #132 (unanswered); #128/#52/#29 still tracking-only, no direct work.
-- Nothing implemented this run.
-
-## 2026-09-08 (51st run — nothing eligible, queue unchanged)
-
-- `list_issues` for `todo`/`waiting-on-you` returned the same 13 issues as prior runs; re-checked all 7 `waiting-on-you` issues (#8/#16/#40/#74/#78/#79/#132) via `get_comments` — every comment on all 7 is still agent-authored (owner-account-posted questions/informational follow-ups, `claude[bot]`'s own #79 comment, or `cekuu35`'s non-owner promotional comment on #74), no genuine human reply on any.
-- #133/#134/#135 still blocked on #132 (unanswered); #128/#52/#29 still tracking-only, no direct work.
-- Nothing implemented this run.
-
-## 2026-09-08 (50th run — nothing eligible, queue unchanged)
-
-- `list_issues` for `todo`/`waiting-on-you` returned the same 13 issues as prior runs; `updated_at` on all 7 `waiting-on-you` issues (#8/#16/#40/#74/#78/#79/#132) unchanged since the 49th run's `get_comments` check, so no new comment (human or otherwise) landed on any — skipped re-fetching comment bodies since the timestamp alone rules out a reply.
-- #133/#134/#135 still blocked on #132 (unanswered); #128/#52/#29 still tracking-only, no direct work.
-- Nothing implemented this run.
-
-## 2026-09-08 (49th run — nothing eligible, queue unchanged)
-
-- Re-checked `waiting-on-you` via `get_comments` on all 7 (#8/#16/#40/#74/#78/#79/#132): every comment on all 7 is still agent-authored (owner-account-posted questions/informational follow-ups, `claude[bot]`'s own #79 comment, or `cekuu35`'s non-owner promotional comment on #74) — no genuine human reply on any.
-- #133/#134/#135 still blocked on #132 (unanswered); #128/#52/#29 still tracking-only, no direct work. `list_issues` for `todo`/`waiting-on-you` returned the same 13 issues as prior runs.
-- Nothing implemented this run.
-
-## 2026-09-08 (48th run — nothing eligible, queue unchanged)
-
-- Re-checked `waiting-on-you` via `get_comments` on all 7 (#8/#16/#40/#74/#78/#79/#132): every comment on all 7 is still agent-authored (owner-account-posted questions/informational follow-ups, `claude[bot]`'s own #79 comment, or `cekuu35`'s non-owner promotional comment on #74) — no genuine human reply on any.
-- #133/#134/#135 still blocked on #132 (unanswered); #128/#52/#29 still tracking-only, no direct work. `list_issues` for `todo`/`waiting-on-you` returned the same 13 issues as prior runs.
-- Nothing implemented this run.
-
-## 2026-09-08 (47th run — nothing eligible, queue unchanged)
-
-- Re-checked `waiting-on-you` via `get_comments` on all 7 (#8/#16/#40/#74/#78/#79/#132): every comment on all 7 is still agent-authored (owner-account-posted questions/informational follow-ups, `claude[bot]`'s own #79 comment, or `cekuu35`'s non-owner promotional comment on #74) — no genuine human reply on any.
-- #133/#134/#135 still blocked on #132 (unanswered); #128/#52/#29 still tracking-only, no direct work. `list_issues` for `todo`/`waiting-on-you` returned the same 13 issues as prior runs.
-- Nothing implemented this run.
-
-## 2026-09-07 (43rd-46th runs — nothing eligible, queue unchanged; fixed a file-corruption bug in this note)
-
-- All four runs re-checked `waiting-on-you` via `get_comments` on all 7 (#8/#16/#40/#74/#78/#79/#132): every comment on all 7 is still agent-authored (owner-account-posted questions/informational follow-ups, `claude[bot]`'s own #79 comment, or `cekuu35`'s non-owner promotional comment on #74) — no genuine human reply on any.
-- #133/#134/#135 still blocked on #132 (unanswered; re-confirmed 46th run by re-reading #133's body, which itself states the #132 dependency); #128/#52/#29 still tracking-only, no direct work. `list_issues` for `todo`/`waiting-on-you` returned the same 13 issues as prior runs.
-- **Process fix (43rd run)**: found this file (`vault/Status Log.md`) had been stored on disk as a single line of base64 text (no line terminators, ~16KB) instead of plain markdown — some prior run's write path base64-encoded the content instead of writing it directly. Decoded it, verified the decoded content matched the expected reverse-chronological history (matches what earlier `list_issues`/vault-read summaries described), and rewrote the file as plain text. If a future run finds a vault note unreadable/garbled again, try `base64 -d` on it before assuming data loss — check `file <path>` for "ASCII text, with very long lines, with no line terminators" as the tell.
-- Nothing implemented in any of the 4 runs.
+- Fourteen consecutive runs (43rd through 56th) each re-checked the `waiting-on-you` set (#8/#16/#40/#74/#78/#79/#132) — most via `get_comments`, some via an `updated_at` timestamp check against the prior run's already-confirmed state (sufficient on its own: an unchanged timestamp rules out a new comment without re-fetching bodies). Every comment on all 7 across the whole span remained agent-authored (owner-account-posted questions/informational follow-ups, `claude[bot]`'s own #79 comment, or `cekuu35`'s non-owner promotional comment on #74) — no genuine human reply landed on any of them.
+- #133/#134/#135 stayed blocked on #132 the whole span; #128/#52/#29 remained tracking-only, no direct work. `list_issues` for `todo`/`waiting-on-you` returned the same 13 issues in every run.
+- **Process fix (43rd run)**: found this file (`vault/Status Log.md`) had been stored on disk as a single line of base64 text (no line terminators, ~16KB) instead of plain markdown — some prior run's write path base64-encoded the content instead of writing it directly. Decoded it, verified the decoded content matched the expected reverse-chronological history, and rewrote the file as plain text. If a future run finds a vault note unreadable/garbled again, try `base64 -d` on it before assuming data loss — check `file <path>` for "ASCII text, with very long lines, with no line terminators" as the tell.
+- Nothing implemented in any of the 14 runs.
 
 ## 2026-09-06 (37th-41st runs — nothing eligible, queue unchanged)
 
