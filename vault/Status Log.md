@@ -8,12 +8,12 @@ Reverse-chronological. Each session/major chunk of work gets an entry.
 
 ---
 
-## 2026-09-10 (57th run — nothing eligible, queue unchanged)
+## 2026-09-10 (57th-58th runs — nothing eligible, queue unchanged)
 
-- `list_issues` for `todo`/`waiting-on-you` returned the same 13 issues as prior runs; `updated_at` on all 7 `waiting-on-you` issues (#8/#16/#40/#74/#78/#79/#132) unchanged since the 56th run's check, so no new comment (human or otherwise) landed on any — skipped re-fetching comment bodies since the timestamp alone rules out a reply.
+- `list_issues` for `todo`/`waiting-on-you` returned the same 13 issues as prior runs in both runs; `updated_at` on all 7 `waiting-on-you` issues (#8/#16/#40/#74/#78/#79/#132) unchanged since the 56th run's check, so no new comment (human or otherwise) landed on any across either run — skipped re-fetching comment bodies since the timestamp alone rules out a reply.
 - #133/#134/#135 still blocked on #132 (unanswered); #128/#52/#29 still tracking-only, no direct work.
 - Also consolidated this file's own 43rd-56th run entries (14 near-identical "nothing eligible" entries) into one merged block below, per this file's own archive-threshold rule — line count had grown past the point where per-run detail was still worth carrying.
-- Nothing implemented this run.
+- Nothing implemented in either run.
 
 ## 2026-09-07 to 2026-09-09 (43rd-56th runs — nothing eligible, queue unchanged)
 
