@@ -7,7 +7,7 @@ upstream_concept: 00-Index
 
 # Open Tasks
 
-Refreshed 2026-08-31 (board worker, 16th run); re-verified unchanged through run 60 (2026-09-10) — see [[Status Log]] for the run-by-run "nothing eligible" record since. **Source of truth is always a live `list_issues`/`gh issue list --repo abdiking200313/eatzy --state open` call** — re-check before relying on this for anything that matters.
+Refreshed 2026-08-31 (board worker, 16th run); re-verified unchanged through run 61 (2026-09-10) — see [[Status Log]] for the run-by-run "nothing eligible" record since. **Source of truth is always a live `list_issues`/`gh issue list --repo abdiking200313/eatzy --state open` call** — re-check before relying on this for anything that matters.
 
 **2026-08-31 (board worker, 16th run — one issue, queue otherwise still blocked)**: `waiting-on-you` re-checked first (#8/#16/#40/#74/#78/#79/#132) — all still only bot-authored comments (posted under the owner's own account or as `claude[bot]`, each carrying the Claude Code footer), no genuine human reply on any. Only **#144** was actionable (checkout field errors should show inline everywhere, like pharmacy) — implemented and merged as **PR #166**: `DeliveryAddressCard` and the food/grocery checkout screens now set `errorText` per field instead of a generic bullet-list/banner (pharmacy's existing pattern), new widget tests added in `test/checkout_screen_test.dart`/`test/grocery_checkout_screen_test.dart`, 187/187 tests passing, `dart format`/`flutter analyze` clean. Note: the issue's file paths were stale (food checkout moved to `lib/services/food/presentation/checkout_screen.dart` after a module consolidation) — the dispatched agent caught this via a merge conflict against a stale worktree cache, re-fetched, and rebuilt against current `master`. #133/#134/#135 still blocked on #132 (unanswered); #128/#52/#29 still tracking-only, no direct work. Nothing else eligible this run. Full detail in [[Status Log]] 2026-08-31 "16th run".
 
@@ -41,7 +41,7 @@ Refreshed 2026-08-31 (board worker, 16th run); re-verified unchanged through run
 | 74 | RLS unverifiable for six client-queried food tables | 2026-08-30 (13th run) | Blocked on issue #34 (missing table DDL), which isn't itself `todo`-approved — can't write a working RLS-enable migration for tables no migration creates. Asked whether to approve #34 first or let this issue absorb that scope too |
 | 132 | Merchant self-service (4/6): scaffold a separate merchant Flutter app | 2026-08-30 (14th run) | Issue's own text says this needs human scoping, not a direct board-worker pickup — asked same-repo-vs-separate-repo (issue recommends same-repo but says to flag, not silently pick), package identifier, and whether to hold #133/#134/#135 as a block on this answer |
 
-#16/#40 still have only the agent's own clarifying-question comment as of 2026-09-10 (run 60) — no human reply on either yet (going on ~26 and ~24 days respectively). #78 still no human reply. #79/#74/#132 also unchanged.
+#16/#40 still have only the agent's own clarifying-question comment as of 2026-09-10 (run 61) — no human reply on either yet (going on ~26 and ~24 days respectively). #78 still no human reply. #79/#74/#132 also unchanged.
 
 ## `agent-in-progress` — open PR awaiting review
 
