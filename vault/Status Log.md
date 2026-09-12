@@ -8,11 +8,11 @@ Reverse-chronological. Each session/major chunk of work gets an entry.
 
 ---
 
-## 2026-09-12 (64th run — nothing eligible, queue unchanged)
+## 2026-09-12 (64th-65th runs — nothing eligible, queue unchanged)
 
-- `list_issues` for `todo`/`waiting-on-you` returned the same 13 issues as prior runs; `updated_at` on all 7 `waiting-on-you` issues (#8/#16/#40/#74/#78/#79/#132) unchanged since the 63rd run's check — re-verified #132's comments directly (still only this bot's own footer-marked comment, no human reply) and skipped re-fetching the other 6 since their timestamps alone rule out a new comment.
+- `list_issues` for `todo`/`waiting-on-you` returned the same 13 issues as prior runs in both runs; `updated_at` on all 7 `waiting-on-you` issues (#8/#16/#40/#74/#78/#79/#132) unchanged since the 63rd run's check across both runs — re-verified by timestamp comparison only (no new comment landed, so no need to re-fetch comment bodies).
 - #133/#134/#135 still blocked on #132 (unanswered); #128/#52/#29 still tracking-only, no direct work.
-- Nothing implemented this run.
+- Nothing implemented in either run.
 
 ## 2026-09-11 (61st-63rd runs — nothing eligible, queue unchanged)
 
