@@ -8,11 +8,13 @@ Reverse-chronological. Each session/major chunk of work gets an entry.
 
 ---
 
-## 2026-09-12 (64th-65th runs — nothing eligible, queue unchanged)
+## 2026-09-12 (64th-66th runs — nothing eligible, queue unchanged; new tracking issue #176 filed)
 
-- `list_issues` for `todo`/`waiting-on-you` returned the same 13 issues as prior runs in both runs; `updated_at` on all 7 `waiting-on-you` issues (#8/#16/#40/#74/#78/#79/#132) unchanged since the 63rd run's check across both runs — re-verified by timestamp comparison only (no new comment landed, so no need to re-fetch comment bodies).
+- `list_issues` for `todo`/`waiting-on-you` returned the same 13 issues as prior runs in the 64th/65th runs; `updated_at` on all 7 `waiting-on-you` issues (#8/#16/#40/#74/#78/#79/#132) unchanged since the 63rd run's check — re-verified by timestamp comparison only (no new comment landed, so no need to re-fetch comment bodies).
+- **66th run: a new tracking issue appeared, #176** ("Flutter code-quality audit: state, performance, leaks, resilience"), same umbrella pattern as #21/#29/#52/#128 — a 4th full-spectrum audit pass, this one scoped to state/architecture, performance/rendering, resource leaks, error handling/resilience, security/data safety, and code-quality idioms. Its own comment files five child findings — **#177** (Medium, #61's grocery-catalog virtualization fix was silently reverted by PR #163/#140's store-selection refactor — regression, no test pins it), **#178** (High, order-placement exceptions discarded unrecoverably in all three verticals), **#179** (High, the pre-#7 plaintext session is never migrated or deleted — regression against #7), **#180** (Medium, cart persistence fails silently in all three verticals), **#181** (Low, the super-app home screen rebuilds fully on every `ActivityController` notification) — all filed `needs-approval` per the approval gate, none picked up. #176 itself stays tracking-only like #29/#52/#128 until a human approves one of its children.
+- Also worth a human decision later (audit's own suggestion, not acted on): #177/#179 are regressions against *closed* issues #61/#7 — may be worth reopening those instead of tracking as fresh issues, if that better matches how this board tracks regressions.
 - #133/#134/#135 still blocked on #132 (unanswered); #128/#52/#29 still tracking-only, no direct work.
-- Nothing implemented in either run.
+- Nothing implemented in any of the three runs.
 
 ## 2026-09-11 (61st-63rd runs — nothing eligible, queue unchanged)
 
