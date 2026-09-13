@@ -40,7 +40,8 @@ create type public.wallet_transaction_type as enum (
 
 create table public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,
-  full_name text not null,
+  firstname text not null,
+  lastname text not null,
   phone text,
   avatar_url text,
   membership_tier text not null default 'standard',
