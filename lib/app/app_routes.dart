@@ -87,8 +87,6 @@ class AppRoutes {
   // `service_id` and its `customer_activity` row id.
   static const trackOrder = '/track-order';
   static const trackOrderDetails = '$trackOrder/:serviceId/:orderId';
-  static const rewards = '/rewards';
-  static const rewardsProfile = '/rewards-profile';
 
   static String restaurantDetails(String restaurantId) =>
       '$foodRestaurants/${Uri.encodeComponent(restaurantId)}';

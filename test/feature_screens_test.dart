@@ -1,5 +1,4 @@
 import 'package:chowflow/features/profile/presentation/profile_screen.dart';
-import 'package:chowflow/features/rewards/presentation/rewards_screen.dart';
 import 'package:chowflow/features/settings/presentation/settings_screen.dart';
 import 'package:chowflow/features/support/presentation/support_screen.dart';
 import 'package:chowflow/features/wallet/data/wallet_repository.dart';
@@ -15,7 +14,6 @@ void main() {
     final cases = <({Widget screen, String title})>[
       (screen: const CheckoutScreen(), title: 'Checkout'),
       (screen: const ProfileScreen(), title: 'Profile'),
-      (screen: const RewardsScreen(), title: 'Rewards & Achievements'),
       (screen: const SettingsScreen(), title: 'Settings'),
       (screen: const SupportScreen(), title: 'Help & Support'),
       (
