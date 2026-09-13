@@ -7,8 +7,6 @@ import 'package:chowflow/features/orders/presentation/track_order_screen.dart';
 import 'package:chowflow/features/profile/data/profile_repository.dart';
 import 'package:chowflow/features/profile/models/customer_profile.dart';
 import 'package:chowflow/features/profile/presentation/profile_screen.dart';
-import 'package:chowflow/features/rewards/presentation/rewards_profile_screen.dart';
-import 'package:chowflow/features/rewards/presentation/rewards_screen.dart';
 import 'package:chowflow/features/settings/presentation/settings_screen.dart';
 import 'package:chowflow/features/support/presentation/support_screen.dart';
 import 'package:chowflow/features/wallet/data/wallet_repository.dart';
@@ -151,19 +149,6 @@ void main() {
 
       expect(tester.takeException(), isNull);
       expect(find.byType(StatusPill), findsWidgets);
-    });
-
-    testWidgets('Rewards', (tester) async {
-      await pumpNarrow(tester, const RewardsScreen());
-
-      expect(tester.takeException(), isNull);
-      expect(find.byType(StatusPill), findsWidgets);
-    });
-
-    testWidgets('Rewards profile', (tester) async {
-      await pumpNarrow(tester, const RewardsProfileScreen());
-
-      expect(tester.takeException(), isNull);
     });
 
     testWidgets('Support', (tester) async {

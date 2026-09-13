@@ -88,8 +88,6 @@ final List<({String name, String path})> _registeredRoutes = [
   (name: 'wallet', path: AppRoutes.wallet),
   (name: 'trackOrder', path: AppRoutes.trackOrder),
   (name: 'trackOrderDetails', path: AppRoutes.trackOrderDetails),
-  (name: 'rewards', path: AppRoutes.rewards),
-  (name: 'rewardsProfile', path: AppRoutes.rewardsProfile),
   (name: 'food', path: AppRoutes.food),
   (name: 'foodCategories', path: AppRoutes.foodCategories),
   (name: 'foodExplore', path: AppRoutes.foodExplore),

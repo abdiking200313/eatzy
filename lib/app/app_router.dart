@@ -15,8 +15,6 @@ import '../features/onboarding/presentation/onboarding_page_3.dart';
 import '../features/onboarding/presentation/welcome_screen.dart';
 import '../features/orders/presentation/track_order_screen.dart';
 import '../features/profile/presentation/profile_screen.dart';
-import '../features/rewards/presentation/rewards_profile_screen.dart';
-import '../features/rewards/presentation/rewards_screen.dart';
 import '../features/settings/presentation/settings_screen.dart';
 import '../features/super_app/presentation/super_app_home_screen.dart';
 import '../features/support/presentation/support_screen.dart';
@@ -169,8 +167,6 @@ class AppRouter {
       serviceId: ServiceId.food,
       child: TrackOrderScreen(),
     ),
-    AppRoutes.rewards: RewardsScreen(),
-    AppRoutes.rewardsProfile: RewardsProfileScreen(),
   };
 
   static final List<RouteBase> _standaloneProtectedRoutes = [
