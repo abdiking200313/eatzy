@@ -95,6 +95,9 @@ void main() {
       );
 
       expect(find.text('Order Summary'), findsOneWidget);
+      // Cash-on-delivery is the only payment method at launch (issue #30);
+      // it must be visible in the summary, not silently implicit.
+      expect(find.text('Cash on delivery'), findsOneWidget);
       expect(tester.takeException(), isNull);
     },
   );
@@ -161,6 +164,13 @@ void main() {
         400,
         scrollable: find.byType(Scrollable).first,
       );
+      // Cash-on-delivery is the only payment method at launch (issue #30);
+      // it must be visible in the summary, not silently implicit.
+      await tester.scrollUntilVisible(
+        find.text('Cash on delivery'),
+        400,
+        scrollable: find.byType(Scrollable).first,
+      );
       expect(tester.takeException(), isNull);
     },
   );
@@ -215,6 +225,13 @@ void main() {
 
       await tester.scrollUntilVisible(
         find.text('Order summary'),
+        400,
+        scrollable: find.byType(Scrollable).first,
+      );
+      // Cash-on-delivery is the only payment method at launch (issue #30);
+      // it must be visible in the summary, not silently implicit.
+      await tester.scrollUntilVisible(
+        find.text('Cash on delivery'),
         400,
         scrollable: find.byType(Scrollable).first,
       );

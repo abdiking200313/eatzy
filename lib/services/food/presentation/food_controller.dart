@@ -130,6 +130,8 @@ class FoodController extends ChangeNotifier {
           occurredAt: DateTime.now(),
           amount: _cartController.total,
           detailsRoute: AppRoutes.food,
+          paymentMethod: 'cash_on_delivery',
+          paymentStatus: 'pending_collection',
         ),
       ),
       clearCart: _cartController.clear,

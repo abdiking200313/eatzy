@@ -55,6 +55,27 @@ class OrderSummaryCard extends StatelessWidget {
             value: _formatCurrency(total),
             isBold: true,
           ),
+          const SizedBox(height: TwSpacing.x4),
+          // Cash-on-delivery is the only payment method at launch (issue
+          // #30) — a plain summary line, not a picker, since there is
+          // nothing to choose yet. Unlike [SummaryRow]'s fixed-width value
+          // (fine for a short currency amount), both sides here are
+          // `Flexible` so a long label/value pair can never overflow a
+          // narrow, large-text screen — it ellipsizes instead.
+          Row(
+            children: [
+              Expanded(child: Text('Payment Method', style: TwText.textSm)),
+              const SizedBox(width: TwSpacing.x3),
+              Flexible(
+                child: Text(
+                  'Cash on delivery',
+                  style: TwText.fontBoldSm,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.right,
+                ),
+              ),
+            ],
+          ),
         ],
       ),
     );

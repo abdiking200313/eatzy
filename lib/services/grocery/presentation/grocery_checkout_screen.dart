@@ -264,6 +264,26 @@ class _GroceryCheckoutScreenState extends State<GroceryCheckoutScreen> {
                 amount: _controller.total,
                 emphasized: true,
               ),
+              const Divider(height: TwSpacing.x6),
+              // Cash-on-delivery is the only payment method at launch (issue
+              // #30) — a plain summary line, not a picker, since there is
+              // nothing to choose yet. Both sides are `Flexible` (rather
+              // than a fixed-width value) so this can never overflow a
+              // narrow, large-text screen — it ellipsizes instead.
+              Row(
+                children: [
+                  Expanded(child: Text('Payment method', style: TwText.textSm)),
+                  const SizedBox(width: TwSpacing.x3),
+                  Flexible(
+                    child: Text(
+                      'Cash on delivery',
+                      style: TwText.textSm,
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.right,
+                    ),
+                  ),
+                ],
+              ),
             ],
           ),
         ),

@@ -40,7 +40,44 @@ void main() {
       // No fabricated courier or ETA anywhere on screen (see issue #43).
       expect(find.textContaining('minutes'), findsNothing);
       expect(find.byIcon(Icons.call), findsNothing);
+
+      // No payment card when the order has no payment fields (e.g. a row
+      // read before issue #30's payment columns existed).
+      expect(find.text('Payment'), findsNothing);
     });
+
+    testWidgets(
+      'shows the order\'s real payment method and status (issue #30)',
+      (tester) async {
+        await tester.pumpWidget(
+          MaterialApp(
+            theme: buildAppTheme(),
+            home: TrackOrderScreen(
+              orderId: 'order-1',
+              serviceId: 'food',
+              repository: _FakeOrderDetailsRepository(
+                ActivityItem(
+                  id: 'order-1',
+                  serviceId: ServiceId.food,
+                  title: 'Jollof Feast Order',
+                  status: 'Confirmed',
+                  occurredAt: DateTime.utc(2026, 8, 1),
+                  amount: 1850,
+                  detailsRoute: '/food',
+                  paymentMethod: 'cash_on_delivery',
+                  paymentStatus: 'pending_collection',
+                ),
+              ),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.text('Payment'), findsOneWidget);
+        expect(find.text('Cash on delivery'), findsOneWidget);
+        expect(find.text('Pending collection'), findsOneWidget);
+      },
+    );
 
     testWidgets(
       'shows a "no order selected" empty state for the bare route, without '
