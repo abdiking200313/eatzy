@@ -17,7 +17,6 @@ import 'package:chowflow/platform/activity/models/activity_item.dart';
 import 'package:chowflow/platform/activity/presentation/activity_controller.dart';
 import 'package:chowflow/platform/activity/presentation/activity_screen.dart';
 import 'package:chowflow/screens/addresses.dart';
-import 'package:chowflow/screens/payment_methods.dart';
 import 'package:chowflow/widgets/app_misc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -103,13 +102,6 @@ void main() {
 
     testWidgets('Addresses', (tester) async {
       await pumpNarrow(tester, const AddressesScreen());
-
-      expect(tester.takeException(), isNull);
-      expect(find.byType(StatusPill), findsWidgets);
-    });
-
-    testWidgets('Payment methods', (tester) async {
-      await pumpNarrow(tester, const PaymentMethodsScreen());
 
       expect(tester.takeException(), isNull);
       expect(find.byType(StatusPill), findsWidgets);

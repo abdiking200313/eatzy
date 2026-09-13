@@ -81,7 +81,6 @@ final List<({String name, String path})> _registeredRoutes = [
   (name: 'activity', path: AppRoutes.activity),
   (name: 'profile', path: AppRoutes.profile),
   (name: 'addresses', path: AppRoutes.addresses),
-  (name: 'paymentMethods', path: AppRoutes.paymentMethods),
   (name: 'settings', path: AppRoutes.settings),
   (name: 'resetPassword', path: AppRoutes.resetPassword),
   (name: 'support', path: AppRoutes.support),
