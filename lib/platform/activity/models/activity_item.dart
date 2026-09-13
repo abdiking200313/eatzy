@@ -18,7 +18,10 @@ class ActivityItem {
   final String? subtitle;
   final String status;
   final DateTime occurredAt;
-  final double amount;
+
+  /// In integer cents — see issue #8. Convert to decimal dollars only at
+  /// display time, via `AppMoney.formatCents(amount)`.
+  final int amount;
   final String detailsRoute;
 
   /// Returns `null` for a row whose `service_id` is a legacy, no-longer
@@ -51,9 +54,9 @@ class ActivityItem {
     }
     final rawAmount = map['amount'];
     final amount = rawAmount is num
-        ? rawAmount.toDouble()
-        : double.tryParse(rawAmount?.toString() ?? '');
-    if (amount == null || !amount.isFinite || amount < 0) {
+        ? rawAmount.round()
+        : int.tryParse(rawAmount?.toString() ?? '');
+    if (amount == null || amount < 0) {
       throw const FormatException('Invalid activity amount.');
     }
 

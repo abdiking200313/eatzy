@@ -28,7 +28,7 @@ void main() {
             id: 'burger-1',
             name: 'Classic Burger',
             description: 'Beef, cheese, and house sauce',
-            price: 5.5,
+            price: 550,
             imageUrl: '',
             categoryId: 'burgers',
           ),
@@ -42,7 +42,7 @@ void main() {
             id: 'drink-1',
             name: 'Fresh Lemonade',
             description: 'Lemon and mint',
-            price: 1,
+            price: 100,
             imageUrl: '',
             categoryId: 'drinks',
           ),
@@ -56,12 +56,12 @@ void main() {
       'id': 'item-1',
       'name': 'Chicken Wrap',
       'description': null,
-      'price': '4.50',
+      'price': '450',
       'image_url': null,
       'categorie_id': 'wraps',
     });
 
-    expect(item.price, 4.5);
+    expect(item.price, 450);
     expect(item.description, isEmpty);
     expect(item.categoryId, 'wraps');
   });
@@ -202,7 +202,7 @@ void main() {
       name: 'A generously filled traditional Somali family platter',
       description:
           'Slow-cooked ingredients with fresh vegetables and house spices.',
-      price: 12.5,
+      price: 1250,
       imageUrl: '',
       categoryId: 'mains',
     );

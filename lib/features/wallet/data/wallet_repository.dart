@@ -4,8 +4,10 @@ import '../models/wallet_payment_method_record.dart';
 import '../models/wallet_transaction_record.dart';
 
 abstract interface class WalletRepository {
-  /// Sum of every wallet transaction's signed amount, in decimal dollars.
-  Future<double> fetchBalance();
+  /// Sum of every wallet transaction's signed amount, in integer cents — see
+  /// issue #8. Convert to decimal dollars only at display time, via
+  /// `AppMoney.formatCents`.
+  Future<int> fetchBalance();
 
   /// Most recent transactions, newest first.
   Future<List<WalletTransactionRecord>> fetchTransactions({int limit = 20});
@@ -29,7 +31,7 @@ class SupabaseWalletRepository implements WalletRepository {
   }
 
   @override
-  Future<double> fetchBalance() async {
+  Future<int> fetchBalance() async {
     final profileId = _requireProfileId();
     // There is no aggregate view/RPC for the wallet balance yet, so it is
     // derived client-side from every transaction's signed amount. Capped at
@@ -44,14 +46,13 @@ class SupabaseWalletRepository implements WalletRepository {
         .eq('profile_id', profileId)
         .limit(1000);
 
-    final totalCents = rows.fold<int>(0, (sum, row) {
+    return rows.fold<int>(0, (sum, row) {
       final raw = row['amount'];
       final cents = raw is num
           ? raw.round()
           : int.tryParse(raw?.toString() ?? '') ?? 0;
       return sum + cents;
     });
-    return totalCents / 100;
   }
 
   @override

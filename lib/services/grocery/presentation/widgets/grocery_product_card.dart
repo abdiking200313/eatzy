@@ -68,7 +68,8 @@ class GroceryProductCard extends StatelessWidget {
                 Text(product.description, style: TwText.textSm),
                 const SizedBox(height: TwSpacing.rhythmTight),
                 Text(
-                  '${AppMoney.format(product.unitPrice)} ${product.unitLabel}',
+                  '${AppMoney.formatCents(product.unitPrice)} '
+                  '${product.unitLabel}',
                   style: TwText.fontBoldSm,
                 ),
                 const SizedBox(height: TwSpacing.rhythmTight),

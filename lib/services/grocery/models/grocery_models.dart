@@ -64,7 +64,10 @@ class GroceryProduct {
   final String storeId;
   final String name;
   final String description;
-  final double unitPrice;
+
+  /// Price in integer cents, per [pricingUnit] (each item, or per kilogram)
+  /// — see issue #8.
+  final int unitPrice;
   final GroceryPricingUnit pricingUnit;
   final GroceryStockState stockState;
   final double availableQuantity;
@@ -103,7 +106,7 @@ class GroceryProduct {
       storeId: _requiredString(map, 'store_id'),
       name: _requiredString(map, 'name'),
       description: _optionalString(map, 'description'),
-      unitPrice: _requiredNonNegativeDouble(map, 'unit_price'),
+      unitPrice: _requiredNonNegativeInt(map, 'unit_price'),
       pricingUnit: pricingUnit,
       stockState: availableQuantity <= 0
           ? GroceryStockState.outOfStock
@@ -138,7 +141,7 @@ class GroceryProduct {
       storeId: _requiredString(json, 'store_id'),
       name: _requiredString(json, 'name'),
       description: _optionalString(json, 'description'),
-      unitPrice: _requiredNonNegativeDouble(json, 'unit_price'),
+      unitPrice: _requiredNonNegativeInt(json, 'unit_price'),
       pricingUnit: GroceryPricingUnit.values.byName(
         _requiredString(json, 'pricing_unit'),
       ),
@@ -157,7 +160,9 @@ class GroceryCartLine {
   final GroceryProduct product;
   final double quantity;
 
-  double get total => product.unitPrice * quantity;
+  /// In integer cents — rounded, since `unitPrice` (cents) times a
+  /// fractional-kilogram `quantity` can land on a fractional cent.
+  int get total => (product.unitPrice * quantity).round();
 
   GroceryCartLine copyWith({double? quantity}) {
     return GroceryCartLine(
@@ -241,7 +246,9 @@ class GroceryOrderConfirmation {
 
   final String orderId;
   final DateTime createdAt;
-  final double amount;
+
+  /// In integer cents — see issue #8.
+  final int amount;
   final GroceryDeliverySlot slot;
   final GroceryDeliveryAddress address;
   final GrocerySubstitutionPreference substitutionPreference;
@@ -360,10 +367,13 @@ double _requiredDouble(Map<String, dynamic> map, String key) {
   return parsed;
 }
 
-double _requiredNonNegativeDouble(Map<String, dynamic> map, String key) {
-  final value = _requiredDouble(map, key);
-  if (value < 0) {
-    throw FormatException('Grocery $key cannot be negative.');
+int _requiredNonNegativeInt(Map<String, dynamic> map, String key) {
+  final value = map[key];
+  final parsed = value is num
+      ? value.round()
+      : int.tryParse(value?.toString() ?? '');
+  if (parsed == null || parsed < 0) {
+    throw FormatException('Invalid non-negative grocery integer: $key');
   }
-  return value;
+  return parsed;
 }

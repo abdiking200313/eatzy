@@ -19,7 +19,7 @@ class _WalletSnapshot {
     required this.paymentMethods,
   });
 
-  final double balance;
+  final int balance;
   final List<WalletTransactionRecord> transactions;
   final List<WalletPaymentMethodRecord> paymentMethods;
 }
@@ -121,7 +121,7 @@ class _WalletScreenState extends State<WalletScreen> {
             padding: const EdgeInsets.all(TwSpacing.x5),
             children: [
               WalletBalanceCard(
-                balance: AppMoney.format(snapshotData.balance),
+                balance: AppMoney.formatCents(snapshotData.balance),
                 actions: actions,
               ),
               const SizedBox(height: TwSpacing.rhythmSection),

@@ -35,7 +35,11 @@ class MenuItem {
   final String id;
   final String name;
   final String description;
-  final double price;
+
+  /// Price in integer cents (smallest currency unit) — see issue #8. Convert
+  /// to decimal dollars only at display time, via
+  /// `AppMoney.formatCents(price)`.
+  final int price;
   final String imageUrl;
   final String categoryId;
 
@@ -49,9 +53,9 @@ class MenuItem {
   factory MenuItem.fromMap(Map<String, dynamic> map) {
     final rawPrice = map['price'];
     final price = rawPrice is num
-        ? rawPrice.toDouble()
-        : double.tryParse(rawPrice?.toString() ?? '');
-    if (price == null || !price.isFinite || price < 0) {
+        ? rawPrice.round()
+        : int.tryParse(rawPrice?.toString() ?? '');
+    if (price == null || price < 0) {
       throw FormatException(
         'Invalid menu item price for ${map['id']}: $rawPrice',
       );

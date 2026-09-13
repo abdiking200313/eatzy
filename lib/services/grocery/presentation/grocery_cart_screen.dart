@@ -33,7 +33,9 @@ class GroceryCartScreen extends StatelessWidget {
               : SafeArea(
                   minimum: const EdgeInsets.all(TwSpacing.x4),
                   child: GradientActionButton(
-                    label: 'Continue • ${AppMoney.format(_controller.total)}',
+                    label:
+                        'Continue • '
+                        '${AppMoney.formatCents(_controller.total)}',
                     onPressed: () => context.push(AppRoutes.groceryCheckout),
                     icon: const Icon(
                       Icons.arrow_forward,
@@ -167,7 +169,7 @@ class _CartLineRow extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(line.product.name, style: TwText.fontBoldBase),
-              Text(AppMoney.format(line.total), style: TwText.textSm),
+              Text(AppMoney.formatCents(line.total), style: TwText.textSm),
               TextButton(
                 onPressed: () => controller.remove(line.product.id),
                 style: TextButton.styleFrom(
@@ -225,7 +227,7 @@ class _TotalRow extends StatelessWidget {
   });
 
   final String label;
-  final double amount;
+  final int amount;
   final bool emphasized;
 
   @override
@@ -234,7 +236,7 @@ class _TotalRow extends StatelessWidget {
     return Row(
       children: [
         Expanded(child: Text(label, style: style)),
-        Text(AppMoney.format(amount), style: style),
+        Text(AppMoney.formatCents(amount), style: style),
       ],
     );
   }

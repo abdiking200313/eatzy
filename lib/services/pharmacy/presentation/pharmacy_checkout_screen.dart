@@ -152,7 +152,7 @@ class _PharmacyCheckoutScreenState extends State<PharmacyCheckoutScreen> {
                     GradientActionButton(
                       label:
                           'Confirm demo order · '
-                          '${AppMoney.format(_controller.total)}',
+                          '${AppMoney.formatCents(_controller.total)}',
                       icon: const Icon(Icons.check, color: Colors.white),
                       onPressed: _submit,
                     ),
@@ -289,7 +289,7 @@ class _CheckoutSummary extends StatelessWidget {
           ),
           const SizedBox(height: TwSpacing.x2),
           Text(
-            'Delivery: ${AppMoney.format(PharmacyController.deliveryFee)}',
+            'Delivery: ${AppMoney.formatCents(PharmacyController.deliveryFee)}',
             style: TwText.textSm,
           ),
           const Divider(height: TwSpacing.x6),
@@ -297,7 +297,7 @@ class _CheckoutSummary extends StatelessWidget {
             children: [
               Expanded(child: Text('Total', style: TwText.fontBoldBase)),
               Text(
-                AppMoney.format(controller.total),
+                AppMoney.formatCents(controller.total),
                 style: TwText.fontBoldBase.copyWith(color: TwColors.primary),
               ),
             ],

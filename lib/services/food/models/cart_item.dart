@@ -13,11 +13,13 @@ class CartItem {
   final String restaurantId;
   final String restaurantName;
   final String name;
-  final double unitPrice;
+
+  /// Price in integer cents — see issue #8.
+  final int unitPrice;
   final String imageUrl;
   final int quantity;
 
-  double get total => unitPrice * quantity;
+  int get total => unitPrice * quantity;
 
   CartItem copyWith({int? quantity}) {
     return CartItem(
@@ -47,8 +49,8 @@ class CartItem {
     final rawPrice = json['unit_price'];
     final rawQuantity = json['quantity'];
     final unitPrice = rawPrice is num
-        ? rawPrice.toDouble()
-        : double.parse(rawPrice.toString());
+        ? rawPrice.round()
+        : int.parse(rawPrice.toString());
     final quantity = rawQuantity is num
         ? rawQuantity.toInt()
         : int.parse(rawQuantity.toString());

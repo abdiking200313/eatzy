@@ -52,7 +52,7 @@ void main() {
           subtitle: 'Order #45782',
           status: 'On the way',
           occurredAt: DateTime.utc(2026, 8, 1),
-          amount: 18.5,
+          amount: 1850,
           detailsRoute: '',
         ),
       )
@@ -170,7 +170,7 @@ class _FakeProfileRepository implements ProfileRepository {
 
 class _FakeWalletRepository implements WalletRepository {
   @override
-  Future<double> fetchBalance() async => 120.5;
+  Future<int> fetchBalance() async => 12050;
 
   @override
   Future<List<WalletTransactionRecord>> fetchTransactions({
@@ -179,7 +179,7 @@ class _FakeWalletRepository implements WalletRepository {
     WalletTransactionRecord(
       id: 'txn-1',
       type: WalletTransactionType.orderPayment,
-      amount: -18.5,
+      amount: -1850,
       description: 'Jollof Feast Order',
       createdAt: DateTime.utc(2026, 8, 1),
       orderId: '45782',

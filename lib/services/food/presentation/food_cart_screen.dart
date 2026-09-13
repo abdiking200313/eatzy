@@ -451,6 +451,6 @@ class _EmptyCart extends StatelessWidget {
   }
 }
 
-String _formatCurrency(num amount) {
-  return AppMoney.format(amount);
+String _formatCurrency(num amountCents) {
+  return AppMoney.formatCents(amountCents);
 }

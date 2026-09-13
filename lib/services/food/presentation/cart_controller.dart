@@ -24,7 +24,9 @@ class CartController extends ChangeNotifier {
 
   static const int maximumQuantity = 99;
   static const double taxRate = 0.10;
-  static const double standardDeliveryFee = 4.99;
+
+  /// In integer cents — see issue #8.
+  static const int standardDeliveryFee = 499;
   static const String _guestOwner = 'guest';
 
   final CartStorage<CartItem> _storage;
@@ -44,10 +46,10 @@ class CartController extends ChangeNotifier {
   String? get restaurantName =>
       _items.isEmpty ? null : _items.first.restaurantName;
   int get itemCount => _items.fold(0, (count, item) => count + item.quantity);
-  double get subtotal => _items.fold(0, (total, item) => total + item.total);
-  double get tax => subtotal * taxRate;
-  double get deliveryFee => _items.isEmpty ? 0 : standardDeliveryFee;
-  double get total => subtotal + tax + deliveryFee;
+  int get subtotal => _items.fold(0, (total, item) => total + item.total);
+  int get tax => (subtotal * taxRate).round();
+  int get deliveryFee => _items.isEmpty ? 0 : standardDeliveryFee;
+  int get total => subtotal + tax + deliveryFee;
 
   String get _storageOwner => _ownerId ?? _guestOwner;
 

@@ -6,7 +6,8 @@ class PharmacyCartItem {
   final PharmacyProduct product;
   final int quantity;
 
-  double get total => product.unitPrice * quantity;
+  /// In integer cents — see issue #8.
+  int get total => product.unitPrice * quantity;
 
   PharmacyCartItem copyWith({int? quantity}) {
     return PharmacyCartItem(

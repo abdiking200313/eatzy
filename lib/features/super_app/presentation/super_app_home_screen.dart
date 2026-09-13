@@ -574,7 +574,7 @@ class _RecentActivityRow extends StatelessWidget {
               ),
             ),
             const SizedBox(width: TwSpacing.x2),
-            Text(AppMoney.format(item.amount), style: TwText.fontBoldSm),
+            Text(AppMoney.formatCents(item.amount), style: TwText.fontBoldSm),
           ],
         ),
       ),

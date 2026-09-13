@@ -37,7 +37,7 @@ void main() {
 
 class _FakeWalletRepository implements WalletRepository {
   @override
-  Future<double> fetchBalance() async => 120.5;
+  Future<int> fetchBalance() async => 12050;
 
   @override
   Future<List<WalletTransactionRecord>> fetchTransactions({

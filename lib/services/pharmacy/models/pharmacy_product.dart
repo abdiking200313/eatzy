@@ -22,7 +22,9 @@ class PharmacyProduct {
   final String name;
   final String description;
   final String category;
-  final double unitPrice;
+
+  /// Price in integer cents — see issue #8.
+  final int unitPrice;
   final int stockQuantity;
   final PharmacySaleType saleType;
 
@@ -40,7 +42,7 @@ class PharmacyProduct {
       ),
     };
     final stockQuantity = _requiredInt(map, 'stock_quantity');
-    final unitPrice = _requiredDouble(map, 'unit_price');
+    final unitPrice = _requiredInt(map, 'unit_price');
     if (stockQuantity < 0 || unitPrice < 0) {
       throw const FormatException(
         'Pharmacy stock and price cannot be negative.',
@@ -89,7 +91,7 @@ class PharmacyProduct {
       name: _requiredString(json, 'name'),
       description: _optionalString(json, 'description'),
       category: _requiredString(json, 'category'),
-      unitPrice: _requiredDouble(json, 'unit_price'),
+      unitPrice: _requiredInt(json, 'unit_price'),
       stockQuantity: _requiredInt(json, 'stock_quantity'),
       saleType: PharmacySaleType.values.byName(
         _requiredString(json, 'sale_type'),
@@ -129,17 +131,6 @@ int _requiredInt(Map<String, dynamic> map, String key) {
   final parsed = value is int ? value : int.tryParse(value?.toString() ?? '');
   if (parsed == null) {
     throw FormatException('Invalid pharmacy integer: $key');
-  }
-  return parsed;
-}
-
-double _requiredDouble(Map<String, dynamic> map, String key) {
-  final value = map[key];
-  final parsed = value is num
-      ? value.toDouble()
-      : double.tryParse(value?.toString() ?? '');
-  if (parsed == null || !parsed.isFinite) {
-    throw FormatException('Invalid pharmacy number: $key');
   }
   return parsed;
 }

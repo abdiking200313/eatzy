@@ -10,7 +10,7 @@ void main() {
     restaurantId: 'restaurant-1',
     restaurantName: 'Test Kitchen',
     name: 'Classic Burger',
-    unitPrice: 10,
+    unitPrice: 1000,
     imageUrl: '',
   );
 
@@ -24,10 +24,10 @@ void main() {
     expect(controller.items, hasLength(1));
     expect(controller.items.single.quantity, 2);
     expect(controller.itemCount, 2);
-    expect(controller.subtotal, 20);
-    expect(controller.tax, 2);
-    expect(controller.deliveryFee, 4.99);
-    expect(controller.total, closeTo(26.99, 0.001));
+    expect(controller.subtotal, 2000);
+    expect(controller.tax, 200);
+    expect(controller.deliveryFee, 499);
+    expect(controller.total, 2699);
   });
 
   test('cart restores from storage for the same signed-in account', () async {
@@ -56,7 +56,7 @@ void main() {
         restaurantId: 'restaurant-2',
         restaurantName: 'Pizza Place',
         name: 'Margherita',
-        unitPrice: 12,
+        unitPrice: 1200,
         imageUrl: '',
       );
       final controller = CartController(storage: MemoryCartStorage<CartItem>());

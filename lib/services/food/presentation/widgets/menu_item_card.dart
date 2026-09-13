@@ -51,7 +51,7 @@ class MenuItemCard extends StatelessWidget {
                     children: [
                       Expanded(
                         child: Text(
-                          AppMoney.format(item.price),
+                          AppMoney.formatCents(item.price),
                           style: TwText.fontBoldBase.copyWith(
                             color: TwColors.primary,
                           ),

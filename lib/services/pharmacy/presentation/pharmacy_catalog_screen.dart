@@ -458,7 +458,7 @@ class _ProductCard extends StatelessWidget {
                   crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
                     Text(
-                      AppMoney.format(product.unitPrice),
+                      AppMoney.formatCents(product.unitPrice),
                       style: TwText.fontBoldBase.copyWith(
                         color: TwColors.primary,
                       ),

@@ -68,7 +68,8 @@ class WalletTransactionRow extends StatelessWidget {
     final palette = context.serviceColors;
     final isCredit = transaction.isCredit;
     final formattedAmount =
-        '${isCredit ? '+' : '-'}${AppMoney.format(transaction.amount.abs())}';
+        '${isCredit ? '+' : '-'}'
+        '${AppMoney.formatCents(transaction.amount.abs())}';
     return Padding(
       padding: const EdgeInsets.symmetric(
         horizontal: TwSpacing.x4,

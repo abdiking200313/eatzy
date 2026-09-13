@@ -173,7 +173,7 @@ class _CartItemRow extends StatelessWidget {
               ),
               const SizedBox(height: TwSpacing.rhythmTight),
               Text(
-                AppMoney.format(item.total),
+                AppMoney.formatCents(item.total),
                 style: TwText.fontBoldSm.copyWith(color: TwColors.primary),
               ),
               const SizedBox(height: TwSpacing.rhythmDefault),
@@ -211,7 +211,7 @@ class _CartItemRow extends StatelessWidget {
                     ],
                   ),
                   Text(
-                    '${AppMoney.format(item.product.unitPrice)} each',
+                    '${AppMoney.formatCents(item.product.unitPrice)} each',
                     style: TwText.textXs.copyWith(color: TwColors.textMuted),
                   ),
                 ],
@@ -264,12 +264,12 @@ class _PharmacySummary extends StatelessWidget {
         children: [
           _SummaryRow(
             label: 'Subtotal',
-            value: AppMoney.format(controller.subtotal),
+            value: AppMoney.formatCents(controller.subtotal),
           ),
           const SizedBox(height: TwSpacing.x3),
           _SummaryRow(
             label: 'Delivery in Somalia',
-            value: AppMoney.format(PharmacyController.deliveryFee),
+            value: AppMoney.formatCents(PharmacyController.deliveryFee),
           ),
           const Padding(
             padding: EdgeInsets.symmetric(vertical: TwSpacing.x3),
@@ -277,7 +277,7 @@ class _PharmacySummary extends StatelessWidget {
           ),
           _SummaryRow(
             label: 'Total',
-            value: AppMoney.format(controller.total),
+            value: AppMoney.formatCents(controller.total),
             isBold: true,
           ),
         ],
