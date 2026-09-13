@@ -62,11 +62,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
       route: AppRoutes.addresses,
     ),
     ProfileOption(
-      title: 'Payment Methods',
-      icon: Icons.payment,
-      route: AppRoutes.paymentMethods,
-    ),
-    ProfileOption(
       title: 'Wallet',
       icon: Icons.account_balance_wallet_outlined,
       route: AppRoutes.wallet,

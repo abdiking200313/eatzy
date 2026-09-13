@@ -23,7 +23,6 @@ import '../platform/activity/presentation/activity_screen.dart';
 import '../screens/addresses.dart';
 import '../screens/categories.dart';
 import '../screens/explore.dart';
-import '../screens/payment_methods.dart';
 import '../services/food/presentation/checkout_screen.dart';
 import '../services/food/presentation/food_cart_screen.dart';
 import '../services/food/presentation/food_categories_screen.dart';
@@ -155,7 +154,6 @@ class AppRouter {
   static const Map<String, Widget> _standaloneProtectedPages = {
     AppRoutes.services: CategoriesScreen(),
     AppRoutes.addresses: AddressesScreen(),
-    AppRoutes.paymentMethods: PaymentMethodsScreen(),
     AppRoutes.settings: SettingsScreen(),
     // Reachable both from Settings (normal session) and by tapping a
     // password-recovery email link (temporary recovery session) — both

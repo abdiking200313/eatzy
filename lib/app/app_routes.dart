@@ -73,7 +73,6 @@ class AppRoutes {
   static const checkout = '/checkout';
   static const profile = '/profile';
   static const addresses = '/addresses';
-  static const paymentMethods = '/payment-methods';
   static const settings = '/settings';
   static const support = '/support';
   static const wallet = '/wallet';
