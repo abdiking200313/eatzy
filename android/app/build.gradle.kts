@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.chowflow"
+    namespace = "com.zivo.app"
     // Pinned to literal values instead of flutter.* so build output does not
     // depend on whichever Flutter toolchain the builder has installed.
     // These match the Flutter 3.41.9 template defaults (see .fvmrc).
@@ -24,7 +24,7 @@ android {
 
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.example.chowflow"
+        applicationId = "com.zivo.app"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = 24
