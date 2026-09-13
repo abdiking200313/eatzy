@@ -436,6 +436,8 @@ class PharmacyController extends ChangeNotifier with LoadableState {
             occurredAt: confirmedAt,
             amount: confirmedTotal,
             detailsRoute: '/pharmacy',
+            paymentMethod: 'cash_on_delivery',
+            paymentStatus: 'pending_collection',
           ),
         );
       },

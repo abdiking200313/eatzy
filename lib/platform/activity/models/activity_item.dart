@@ -10,6 +10,8 @@ class ActivityItem {
     required this.amount,
     required this.detailsRoute,
     this.subtitle,
+    this.paymentMethod,
+    this.paymentStatus,
   });
 
   final String id;
@@ -23,6 +25,18 @@ class ActivityItem {
   /// display time, via `AppMoney.formatCents(amount)`.
   final int amount;
   final String detailsRoute;
+
+  /// Raw `payment_method` / `payment_status` values from the order row (see
+  /// issue #30 — cash-on-delivery-only launch scaffolding on
+  /// `food_orders`/`grocery_orders`/`pharmacy_orders`). Null for an
+  /// [ActivityItem] built locally right after placing an order rather than
+  /// read back from `customer_activity`, or for a row from before this
+  /// column existed. Today's only real values are `cash_on_delivery` and
+  /// `pending_collection`; [TrackOrderScreen] renders them with
+  /// [paymentMethodLabel]/[paymentStatusLabel] rather than the raw snake_case
+  /// value.
+  final String? paymentMethod;
+  final String? paymentStatus;
 
   /// Returns `null` for a row whose `service_id` is a legacy, no-longer
   /// supported service (currently just `'cleaning'`, removed in #50) so it
@@ -69,8 +83,29 @@ class ActivityItem {
       occurredAt: occurredAt.toUtc(),
       amount: amount,
       detailsRoute: _requiredString(map, 'details_route'),
+      paymentMethod: _optionalString(map, 'payment_method'),
+      paymentStatus: _optionalString(map, 'payment_status'),
     );
   }
+
+  /// A human-readable label for [paymentMethod], falling back to `null` when
+  /// it hasn't been loaded (see the field doc). Only `cash_on_delivery` is a
+  /// real value today (issue #30); any other raw value still renders as
+  /// something readable instead of disappearing.
+  String? get paymentMethodLabel => switch (paymentMethod) {
+    null => null,
+    'cash_on_delivery' => 'Cash on delivery',
+    final other => other,
+  };
+
+  /// A human-readable label for [paymentStatus]. See [paymentMethodLabel].
+  String? get paymentStatusLabel => switch (paymentStatus) {
+    null => null,
+    'pending_collection' => 'Pending collection',
+    'collected' => 'Collected',
+    'refunded' => 'Refunded',
+    final other => other,
+  };
 }
 
 String _requiredString(Map<String, dynamic> map, String key) {

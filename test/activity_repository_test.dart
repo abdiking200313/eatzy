@@ -168,6 +168,9 @@ void main() {
           'occurred_at': DateTime.utc(2026, 8, 1).toIso8601String(),
           'amount': 18.5,
           'details_route': '/food',
+          // Issue #30: cash-on-delivery-only payment scaffolding.
+          'payment_method': 'cash_on_delivery',
+          'payment_status': 'pending_collection',
         };
 
         final httpClient = MockClient((request) async {
@@ -193,8 +196,54 @@ void main() {
         expect(order!.id, 'order-1');
         expect(order.title, 'Jollof Feast Order');
         expect(order.status, 'On the way');
+        // Issue #30: cash-on-delivery-only payment scaffolding, read back
+        // from the customer_activity view.
+        expect(order.paymentMethod, 'cash_on_delivery');
+        expect(order.paymentStatus, 'pending_collection');
+        expect(order.paymentMethodLabel, 'Cash on delivery');
+        expect(order.paymentStatusLabel, 'Pending collection');
       },
     );
+
+    test('leaves payment fields null for a row from before the payment '
+        'columns existed, instead of throwing (issue #30)', () async {
+      final row = {
+        'id': 'order-1',
+        'profile_id': 'user-1',
+        'service_id': 'food',
+        'title': 'Jollof Feast Order',
+        'subtitle': null,
+        'status': 'On the way',
+        'occurred_at': DateTime.utc(2026, 8, 1).toIso8601String(),
+        'amount': 18.5,
+        'details_route': '/food',
+      };
+
+      final httpClient = MockClient((request) async {
+        return http.Response(
+          jsonEncode([row]),
+          200,
+          headers: {'content-type': 'application/json'},
+          request: request,
+        );
+      });
+      final client = await _signedInClient(
+        userId: 'user-1',
+        httpClient: httpClient,
+      );
+      final repository = SupabaseActivityRepository(client: client);
+
+      final order = await repository.fetchOrderById(
+        orderId: 'order-1',
+        serviceId: 'food',
+      );
+
+      expect(order, isNotNull);
+      expect(order!.paymentMethod, isNull);
+      expect(order.paymentStatus, isNull);
+      expect(order.paymentMethodLabel, isNull);
+      expect(order.paymentStatusLabel, isNull);
+    });
 
     test('returns null when no row matches (not found, or RLS scoped it '
         "away — both look the same from here)", () async {

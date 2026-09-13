@@ -442,6 +442,8 @@ class GroceryController extends ChangeNotifier with LoadableState {
             occurredAt: createdAt,
             amount: confirmedAmount,
             detailsRoute: '/grocery',
+            paymentMethod: 'cash_on_delivery',
+            paymentStatus: 'pending_collection',
           ),
         );
       },

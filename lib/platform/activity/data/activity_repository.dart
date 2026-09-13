@@ -48,7 +48,7 @@ class SupabaseActivityRepository
         .from('customer_activity')
         .select(
           'id, profile_id, service_id, title, subtitle, status, occurred_at, '
-          'amount, details_route',
+          'amount, details_route, payment_method, payment_status',
         )
         .eq('profile_id', profileId)
         .order('occurred_at', ascending: false)
@@ -93,7 +93,7 @@ class SupabaseActivityRepository
         .from('customer_activity')
         .select(
           'id, profile_id, service_id, title, subtitle, status, occurred_at, '
-          'amount, details_route',
+          'amount, details_route, payment_method, payment_status',
         )
         .eq('profile_id', profileId)
         .eq('id', orderId)

@@ -194,6 +194,32 @@ class _TrackOrderContent extends StatelessWidget {
             ],
           ),
         ),
+        if (order.paymentMethodLabel case final methodLabel?) ...[
+          const SizedBox(height: TwSpacing.rhythmSection),
+          OutlinedCard(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Payment', style: TwText.fontBoldSm),
+                      const SizedBox(height: TwSpacing.rhythmTight),
+                      Text(methodLabel, style: TwText.textSm),
+                    ],
+                  ),
+                ),
+                if (order.paymentStatusLabel case final statusLabel?)
+                  StatusPill(
+                    label: statusLabel,
+                    backgroundColor: palette.soft,
+                    foregroundColor: palette.accent,
+                  ),
+              ],
+            ),
+          ),
+        ],
         const SizedBox(height: TwSpacing.rhythmSection),
         OutlinedCard(
           child: Column(
