@@ -55,8 +55,9 @@ void main() {
       ),
       findsOneWidget,
     );
+    expect(find.text('Mogadishu, Somalia'), findsOneWidget);
     expect(
-      tester.getTopLeft(find.text('Search restaurants, stores...')).dy,
+      tester.getTopLeft(find.text('Search products, stores...')).dy,
       lessThan(tester.getTopLeft(find.text('Food')).dy),
     );
 

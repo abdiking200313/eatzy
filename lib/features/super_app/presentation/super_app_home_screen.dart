@@ -49,9 +49,10 @@ class _SuperAppHomeScreenState extends State<SuperAppHomeScreen> {
             padding: const EdgeInsets.only(bottom: TwSpacing.x8),
             children: [
               _HomeHeader(
+                notificationCount: controller.items.length,
                 onSearch: () => context.push(AppRoutes.foodExplore),
-                onNotifications: () {},
-                onSettings: () => context.push(AppRoutes.settings),
+                onNotifications: () => context.go(AppRoutes.activity),
+                onMenu: () => context.push(AppRoutes.settings),
               ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(
@@ -64,8 +65,10 @@ class _SuperAppHomeScreenState extends State<SuperAppHomeScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _PromoBanner(
-                      onExplore: () => context.push(AppRoutes.foodExplore),
+                      onOrderNow: () => context.push(AppRoutes.foodExplore),
                     ),
+                    const SizedBox(height: TwSpacing.x3),
+                    const Center(child: _PromoPageDots()),
                     const SizedBox(height: TwSpacing.x8),
                     _SectionHeader(
                       title: 'Categories',
@@ -115,14 +118,16 @@ class _SuperAppHomeScreenState extends State<SuperAppHomeScreen> {
 
 class _HomeHeader extends StatelessWidget {
   const _HomeHeader({
+    required this.notificationCount,
     required this.onSearch,
     required this.onNotifications,
-    required this.onSettings,
+    required this.onMenu,
   });
 
+  final int notificationCount;
   final VoidCallback onSearch;
   final VoidCallback onNotifications;
-  final VoidCallback onSettings;
+  final VoidCallback onMenu;
 
   @override
   Widget build(BuildContext context) {
@@ -135,43 +140,77 @@ class _HomeHeader extends StatelessWidget {
         bottom: false,
         child: Padding(
           padding: const EdgeInsets.fromLTRB(
-            TwSpacing.x5,
-            TwSpacing.x3,
-            TwSpacing.x3,
+            TwSpacing.x4,
+            TwSpacing.x2,
+            TwSpacing.x4,
             TwSpacing.x6,
           ),
           child: Column(
             children: [
+              // Menu / wordmark / notifications on one line. A Stack (rather
+              // than a Row) keeps the wordmark optically centered regardless
+              // of the differing widths of the two side actions.
+              SizedBox(
+                height: 44,
+                child: Stack(
+                  children: [
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: IconButton(
+                        tooltip: 'Menu',
+                        onPressed: onMenu,
+                        icon: const Icon(
+                          Icons.menu_rounded,
+                          color: TwColors.white,
+                        ),
+                      ),
+                    ),
+                    Center(
+                      child: Text(
+                        'zivo',
+                        style: TwText.textXl.copyWith(
+                          color: TwColors.white,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: -0.4,
+                        ),
+                      ),
+                    ),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: _NotificationBell(
+                        count: notificationCount,
+                        onPressed: onNotifications,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: TwSpacing.x1),
               Row(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(
-                    'zivo',
-                    style: TwText.textXl.copyWith(
-                      color: TwColors.white,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: -0.4,
-                    ),
+                  const Icon(
+                    Icons.location_on_rounded,
+                    color: TwColors.white,
+                    size: 16,
                   ),
-                  const Spacer(),
-                  IconButton(
-                    tooltip: 'Notifications',
-                    onPressed: onNotifications,
-                    icon: const Icon(
-                      Icons.notifications_none_rounded,
-                      color: TwColors.white,
-                    ),
-                  ),
-                  IconButton(
-                    tooltip: 'Settings',
-                    onPressed: onSettings,
-                    icon: const Icon(
-                      Icons.settings_outlined,
-                      color: TwColors.white,
+                  const SizedBox(width: TwSpacing.x1),
+                  // TODO(location): wire to the user's selected delivery
+                  // address instead of this hard-coded placeholder.
+                  Flexible(
+                    child: Text(
+                      'Mogadishu, Somalia',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TwText.textSm.copyWith(
+                        color: TwColors.white,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: TwSpacing.x2),
+              const SizedBox(height: TwSpacing.x4),
               Material(
                 color: TwColors.white,
                 borderRadius: BorderRadius.circular(TwRadius.full),
@@ -180,21 +219,21 @@ class _HomeHeader extends StatelessWidget {
                   onTap: onSearch,
                   child: const Padding(
                     padding: EdgeInsets.symmetric(
-                      horizontal: TwSpacing.x4,
-                      vertical: TwSpacing.x3,
+                      horizontal: TwSpacing.x5,
+                      vertical: TwSpacing.x4,
                     ),
                     child: Row(
                       children: [
-                        Icon(Icons.search, color: TwColors.textMuted),
-                        SizedBox(width: TwSpacing.x3),
                         Expanded(
                           child: Text(
-                            'Search restaurants, stores...',
+                            'Search products, stores...',
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(color: TwColors.textMuted),
                           ),
                         ),
+                        SizedBox(width: TwSpacing.x3),
+                        Icon(Icons.search_rounded, color: TwColors.primary),
                       ],
                     ),
                   ),
@@ -208,81 +247,225 @@ class _HomeHeader extends StatelessWidget {
   }
 }
 
-class _PromoBanner extends StatelessWidget {
-  const _PromoBanner({required this.onExplore});
+/// The header's notification bell with a count badge overlaid on its
+/// top-right. The badge is hidden entirely when [count] is zero so the
+/// bell never shows an empty pip.
+class _NotificationBell extends StatelessWidget {
+  const _NotificationBell({required this.count, required this.onPressed});
 
-  final VoidCallback onExplore;
+  final int count;
+  final VoidCallback onPressed;
 
   @override
   Widget build(BuildContext context) {
-    return ConstrainedBox(
-      // A wide, shallow card (~132 tall at default text scale) rather than
-      // the previous content-hugging block, so the banner reads as a
-      // distinct promo/discount strip instead of another text section. A
-      // minimum rather than a fixed height so it can still grow to fit
-      // larger text scales instead of overflowing.
-      constraints: const BoxConstraints(minHeight: 132),
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(
-          horizontal: TwSpacing.x5,
-          vertical: TwSpacing.x4,
+    return Stack(
+      clipBehavior: Clip.none,
+      alignment: Alignment.center,
+      children: [
+        IconButton(
+          tooltip: 'Notifications',
+          onPressed: onPressed,
+          icon: const Icon(
+            Icons.notifications_none_rounded,
+            color: TwColors.white,
+          ),
         ),
-        decoration: BoxDecoration(
-          gradient: TwColors.primaryGradient,
-          borderRadius: BorderRadius.circular(TwRadius.xl),
-        ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    'Everything nearby,\none tap away',
-                    style: TwText.textLg.copyWith(
-                      color: TwColors.white,
-                      fontWeight: FontWeight.w700,
-                      height: 1.2,
-                    ),
-                  ),
-                  const SizedBox(height: TwSpacing.x3),
-                  OutlinedButton(
-                    onPressed: onExplore,
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: TwColors.white,
-                      side: const BorderSide(color: TwColors.white),
-                      minimumSize: const Size(0, 32),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: TwSpacing.x4,
-                      ),
-                    ),
-                    child: const Text('Explore'),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: TwSpacing.x3),
-            // Icon sits in a soft circular badge so it reads as a small
-            // illustration rather than a bare glyph floating in the card.
-            Container(
-              width: 64,
-              height: 64,
+        if (count > 0)
+          Positioned(
+            top: 4,
+            right: 4,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+              constraints: const BoxConstraints(minWidth: 18),
               decoration: BoxDecoration(
-                color: TwColors.white.withOpacityValue(0.16),
-                shape: BoxShape.circle,
+                color: TwColors.error,
+                borderRadius: BorderRadius.circular(TwRadius.full),
+                border: Border.all(color: TwColors.white, width: 1.5),
               ),
-              child: const Icon(
-                Icons.storefront_rounded,
-                color: TwColors.white,
-                size: 34,
+              child: Text(
+                count > 9 ? '9+' : '$count',
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: TwColors.white,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  height: 1.25,
+                ),
               ),
             ),
-          ],
+          ),
+      ],
+    );
+  }
+}
+
+class _PromoBanner extends StatelessWidget {
+  const _PromoBanner({required this.onOrderNow});
+
+  final VoidCallback onOrderNow;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(TwSpacing.x5),
+      decoration: BoxDecoration(
+        gradient: TwColors.primaryGradient,
+        borderRadius: BorderRadius.circular(TwRadius.xl),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Big Savings',
+                  style: TwText.text2xl.copyWith(
+                    color: TwColors.white,
+                    fontWeight: FontWeight.w800,
+                    height: 1.1,
+                  ),
+                ),
+                const SizedBox(height: TwSpacing.x2),
+                Text(
+                  'On Your First Order',
+                  style: TwText.textBase.copyWith(
+                    color: TwColors.white,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: TwSpacing.rhythmTight),
+                Text(
+                  'Up to 30% OFF',
+                  style: TwText.textSm.copyWith(
+                    color: TwColors.white.withOpacityValue(0.85),
+                  ),
+                ),
+                const SizedBox(height: TwSpacing.x4),
+                _OrderNowButton(onPressed: onOrderNow),
+              ],
+            ),
+          ),
+          const SizedBox(width: TwSpacing.x4),
+          const _PromoArtwork(),
+        ],
+      ),
+    );
+  }
+}
+
+class _OrderNowButton extends StatelessWidget {
+  const _OrderNowButton({required this.onPressed});
+
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: TwColors.white,
+      borderRadius: BorderRadius.circular(TwRadius.full),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(TwRadius.full),
+        onTap: onPressed,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: TwSpacing.x5,
+            vertical: TwSpacing.x3,
+          ),
+          child: Text(
+            'Order Now',
+            style: TwText.button.copyWith(
+              color: TwColors.primary,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
         ),
       ),
+    );
+  }
+}
+
+/// Placeholder for the promo's product photo: a translucent rounded panel
+/// with a faint diagonal hatch, standing in until real artwork is supplied.
+class _PromoArtwork extends StatelessWidget {
+  const _PromoArtwork();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 96,
+      height: 116,
+      clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(
+        color: TwColors.white.withOpacityValue(0.14),
+        borderRadius: BorderRadius.circular(TwRadius.lg),
+        border: Border.all(color: TwColors.white.withOpacityValue(0.25)),
+      ),
+      child: CustomPaint(
+        painter: const _DiagonalHatchPainter(),
+        child: const Center(
+          child: Icon(
+            Icons.shopping_basket_rounded,
+            color: TwColors.white,
+            size: 34,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _DiagonalHatchPainter extends CustomPainter {
+  const _DiagonalHatchPainter();
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = TwColors.white.withOpacityValue(0.12)
+      ..strokeWidth = 1;
+    const gap = 10.0;
+    for (var x = -size.height; x < size.width; x += gap) {
+      canvas.drawLine(
+        Offset(x, size.height),
+        Offset(x + size.height, 0),
+        paint,
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+/// Static page indicator for the promo strip — the promo carousel itself is
+/// not built yet, so this just shows the first of three dots as active.
+class _PromoPageDots extends StatelessWidget {
+  const _PromoPageDots();
+
+  static const int _count = 3;
+  static const int _activeIndex = 0;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        for (var i = 0; i < _count; i++)
+          Container(
+            margin: const EdgeInsets.symmetric(horizontal: 3),
+            height: 6,
+            width: i == _activeIndex ? 18 : 6,
+            decoration: BoxDecoration(
+              color: i == _activeIndex
+                  ? TwColors.primary
+                  : TwColors.borderStrong,
+              borderRadius: BorderRadius.circular(TwRadius.full),
+            ),
+          ),
+      ],
     );
   }
 }
@@ -297,6 +480,10 @@ class _ServiceGrid extends StatelessWidget {
     final textScale = MediaQuery.textScalerOf(context).scale(1);
     final tileHeight = 92.0 + ((textScale - 1).clamp(0.0, 1.0) * 30.0);
     return GridView.builder(
+      // Nested in the page ListView: without an explicit zero padding the
+      // grid picks up the viewport's top safe-area inset as dead space
+      // above the first row.
+      padding: EdgeInsets.zero,
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       itemCount: modules.length,
