@@ -11,6 +11,9 @@
 
 # Obsidian local device config (vault/ content itself is tracked)
 vault/.obsidian/
+
+# Local git worktrees created by isolated agent dispatches
+.claude/worktrees/
 .svn/
 .swiftpm/
 migrate_working_dir/
