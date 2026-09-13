@@ -1,4 +1,4 @@
-package com.example.chowflow
+package com.zivo.app
 
 import android.os.Build
 import android.os.Bundle
