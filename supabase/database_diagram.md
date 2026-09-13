@@ -43,7 +43,8 @@ erDiagram
 
     profiles {
       uuid id PK, FK
-      text full_name
+      text firstname
+      text lastname
       text phone
       text avatar_url
       text membership_tier
