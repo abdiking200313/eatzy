@@ -205,7 +205,7 @@ class _ActivityRow extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Text(
-                  AppMoney.format(item.amount),
+                  AppMoney.formatCents(item.amount),
                   style: TwText.fontBoldSm.copyWith(color: colors.accent),
                 ),
                 // Additive next to the row's own tap-to-shell-home behavior

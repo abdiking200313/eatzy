@@ -129,9 +129,12 @@ to.
   auth table.
 - Prices in these base tables are stored as integers in the smallest currency
   unit, for example `350000` for NGN 3,500.00, which avoids floating point
-  money bugs. Note the per-vertical order tables in `supabase/migrations/` use
-  `numeric(12, 2)` instead — that inconsistency is tracked separately in issue
-  #8, not resolved here.
+  money bugs. The per-vertical order tables in `supabase/migrations/` (and
+  `grocery_products.unit_price` / `pharmacy_products.unit_price`) used to
+  store `numeric(12, 2)` decimal dollars instead — issue #8 converted them to
+  the same integer-cents convention
+  (`20260903000000_convert_money_columns_to_cents.sql`), so there is no
+  longer a split representation to track here.
 - Cards are not stored directly. `payment_methods` keeps only display metadata
   plus the payment provider's token/id, and the token column is not readable
   by the client at all (column-level grants in `supabase/schema.sql`).

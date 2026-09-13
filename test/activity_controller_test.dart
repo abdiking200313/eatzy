@@ -63,7 +63,7 @@ void main() {
           title: 'Pharmacy order',
           status: 'MVP confirmed',
           occurredAt: DateTime.utc(2026, 7, 27),
-          amount: 54,
+          amount: 5400,
           detailsRoute: '',
         ),
       );
@@ -163,7 +163,7 @@ void main() {
             title: 'Jollof Feast Order',
             status: 'On the way',
             occurredAt: DateTime.utc(2026, 8, 1),
-            amount: 18.5,
+            amount: 1850,
             detailsRoute: '/food',
           ),
         );

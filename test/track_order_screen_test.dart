@@ -24,7 +24,7 @@ void main() {
                 title: 'Jollof Feast Order',
                 status: 'On the way',
                 occurredAt: DateTime.utc(2026, 8, 1),
-                amount: 18.5,
+                amount: 1850,
                 detailsRoute: '/food',
               ),
             ),

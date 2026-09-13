@@ -61,7 +61,8 @@ class PharmacyController extends ChangeNotifier with LoadableState {
     return controller;
   }();
 
-  static const double deliveryFee = 2.50;
+  /// In integer cents — see issue #8.
+  static const int deliveryFee = 250;
 
   /// How long a successful catalog load is considered fresh before
   /// [loadProducts] will silently refetch it again. A manual pull-to-refresh
@@ -126,9 +127,8 @@ class PharmacyController extends ChangeNotifier with LoadableState {
   bool get isCartNotEmpty => _cartItems.isNotEmpty;
   int get itemCount =>
       _cartItems.fold(0, (count, item) => count + item.quantity);
-  double get subtotal =>
-      _cartItems.fold(0, (total, item) => total + item.total);
-  double get total => subtotal + (isCartEmpty ? 0 : deliveryFee);
+  int get subtotal => _cartItems.fold(0, (total, item) => total + item.total);
+  int get total => subtotal + (isCartEmpty ? 0 : deliveryFee);
   String? get cartOwnerId => _cartOwnerId;
   bool get isCartLoading => _isCartLoading;
   String get _cartStorageOwner => _cartOwnerId ?? _guestCartOwner;

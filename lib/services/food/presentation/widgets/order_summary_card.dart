@@ -18,10 +18,10 @@ class OrderSummaryCard extends StatelessWidget {
   });
 
   final List<CartItem> items;
-  final double subtotal;
-  final double tax;
-  final double deliveryFee;
-  final double total;
+  final int subtotal;
+  final int tax;
+  final int deliveryFee;
+  final int total;
 
   @override
   Widget build(BuildContext context) {
@@ -89,6 +89,6 @@ class _CheckoutItemRow extends StatelessWidget {
   }
 }
 
-String _formatCurrency(num amount) {
-  return AppMoney.format(amount);
+String _formatCurrency(num amountCents) {
+  return AppMoney.formatCents(amountCents);
 }

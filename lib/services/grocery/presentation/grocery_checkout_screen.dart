@@ -106,7 +106,8 @@ class _GroceryCheckoutScreenState extends State<GroceryCheckoutScreen> {
                 minimum: const EdgeInsets.all(TwSpacing.x4),
                 child: GradientActionButton(
                   label:
-                      'Confirm demo order • ${AppMoney.format(_controller.total)}',
+                      'Confirm demo order • '
+                      '${AppMoney.formatCents(_controller.total)}',
                   onPressed: _confirm,
                   icon: const Icon(
                     Icons.check_circle_outline,
@@ -355,7 +356,7 @@ class _SummaryRow extends StatelessWidget {
   });
 
   final String label;
-  final double amount;
+  final int amount;
   final bool emphasized;
 
   @override
@@ -364,7 +365,7 @@ class _SummaryRow extends StatelessWidget {
     return Row(
       children: [
         Expanded(child: Text(label, style: style)),
-        Text(AppMoney.format(amount), style: style),
+        Text(AppMoney.formatCents(amount), style: style),
       ],
     );
   }

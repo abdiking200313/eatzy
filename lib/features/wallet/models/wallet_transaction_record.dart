@@ -15,13 +15,14 @@ class WalletTransactionRecord {
   final String id;
   final WalletTransactionType type;
 
-  /// Decimal dollar amount. Positive is a credit to the wallet (top-up,
-  /// refund); negative is a debit (order payment). The sign comes straight
-  /// from `wallet_transactions.amount`, which the current schema declares
-  /// as a plain `integer` (smallest-currency-unit/cents convention, not
-  /// decimal dollars — see issue #8 for the broader currency-representation
-  /// drift this repo has). There is no separate "is credit" column.
-  final double amount;
+  /// Integer cents (smallest currency unit), straight from
+  /// `wallet_transactions.amount`. Positive is a credit to the wallet
+  /// (top-up, refund); negative is a debit (order payment). There is no
+  /// separate "is credit" column. Convert to decimal dollars only at display
+  /// time, via `AppMoney.formatCents(amount)` — see issue #8, which
+  /// standardized every other money value in this app onto the same
+  /// convention this column already used.
+  final int amount;
   final String description;
   final DateTime createdAt;
   final String? orderId;
@@ -44,7 +45,7 @@ class WalletTransactionRecord {
     return WalletTransactionRecord(
       id: _requiredString(map, 'id'),
       type: _parseType(_requiredString(map, 'type')),
-      amount: amountCents / 100,
+      amount: amountCents,
       description: _requiredString(map, 'description'),
       createdAt: createdAt.toUtc(),
       orderId: _optionalString(map, 'order_id'),

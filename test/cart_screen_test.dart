@@ -24,7 +24,7 @@ void main() {
         restaurantId: 'restaurant-1',
         restaurantName: 'Test Kitchen',
         name: 'Classic Burger',
-        unitPrice: 10,
+        unitPrice: 1000,
         imageUrl: '',
       ),
     );
@@ -65,7 +65,7 @@ void main() {
         restaurantId: 'restaurant-1',
         restaurantName: 'Test Kitchen',
         name: 'Classic Burger',
-        unitPrice: 10,
+        unitPrice: 1000,
         imageUrl: '',
       ),
     );

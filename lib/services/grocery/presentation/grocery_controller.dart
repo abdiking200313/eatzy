@@ -64,7 +64,8 @@ class GroceryController extends ChangeNotifier with LoadableState {
     return controller;
   }();
 
-  static const double standardDeliveryFee = 2.50;
+  /// In integer cents — see issue #8.
+  static const int standardDeliveryFee = 250;
 
   /// How long a successful store/catalog load is considered fresh before
   /// [load] will silently refetch it again. A manual pull-to-refresh (via
@@ -166,10 +167,9 @@ class GroceryController extends ChangeNotifier with LoadableState {
     return null;
   }
 
-  double get subtotal =>
-      _cart.values.fold(0, (total, line) => total + line.total);
-  double get deliveryFee => _cart.isEmpty ? 0 : standardDeliveryFee;
-  double get total => subtotal + deliveryFee;
+  int get subtotal => _cart.values.fold(0, (total, line) => total + line.total);
+  int get deliveryFee => _cart.isEmpty ? 0 : standardDeliveryFee;
+  int get total => subtotal + deliveryFee;
 
   /// Loads the persisted grocery cart for [ownerId] (or the guest cart when
   /// `null`), replacing whatever cart is currently in memory. Mirrors

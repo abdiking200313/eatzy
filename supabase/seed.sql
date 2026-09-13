@@ -67,7 +67,7 @@ values
     'bakaal-fresh',
     'Bananas',
     'Fresh bananas, sold by weight',
-    1.80,
+    180,
     'kilogram',
     0.5,
     12,
@@ -79,7 +79,7 @@ values
     'bakaal-fresh',
     'Basmati rice',
     'One 5 kg bag',
-    8.50,
+    850,
     'each',
     1,
     24,
@@ -91,7 +91,7 @@ values
     'bakaal-fresh',
     'Long-life milk',
     'One litre carton',
-    1.25,
+    125,
     'each',
     1,
     3,
@@ -103,7 +103,7 @@ values
     'bakaal-fresh',
     'Tomatoes',
     'Local tomatoes, sold by weight',
-    2.20,
+    220,
     'kilogram',
     0.5,
     0,
@@ -115,7 +115,7 @@ values
     'suuqa-hamar',
     'Eggs',
     'Tray of 12 eggs',
-    3.40,
+    340,
     'each',
     1,
     4,
@@ -127,7 +127,7 @@ values
     'suuqa-hamar',
     'Potatoes',
     'Washed potatoes, sold by weight',
-    1.60,
+    160,
     'kilogram',
     0.5,
     18,
@@ -139,7 +139,7 @@ values
     'suuqa-hamar',
     'Laundry detergent',
     'One 1 kg pack',
-    4.75,
+    475,
     'each',
     1,
     10,
@@ -285,7 +285,7 @@ values
     'shifo-pharmacy',
     'Paracetamol',
     'Everyday relief for mild pain and fever.',
-    2.75,
+    275,
     24,
     'otc'
   ),
@@ -295,7 +295,7 @@ values
     'shifo-pharmacy',
     'Cough Syrup',
     'Soothing syrup for common cough symptoms.',
-    5.50,
+    550,
     4,
     'otc'
   ),
@@ -305,7 +305,7 @@ values
     'shifo-pharmacy',
     'Adhesive Bandages',
     'A pack of 30 sterile everyday bandages.',
-    3.25,
+    325,
     18,
     'otc'
   ),
@@ -315,7 +315,7 @@ values
     'shifo-pharmacy',
     'Vitamin C',
     'Thirty 500 mg vitamin C tablets.',
-    6.00,
+    600,
     10,
     'otc'
   ),
@@ -325,7 +325,7 @@ values
     'shifo-pharmacy',
     'Allergy Relief',
     'Non-drowsy tablets for common allergy symptoms.',
-    4.80,
+    480,
     0,
     'otc'
   )
@@ -414,20 +414,20 @@ declare
   v_restaurant_name text;
   v_menu_item_id uuid;
   v_menu_item_name text;
-  v_menu_item_price numeric(12, 2);
-  v_food_subtotal numeric(12, 2);
-  v_food_tax numeric(12, 2);
+  v_menu_item_price integer;
+  v_food_subtotal integer;
+  v_food_tax integer;
 
   v_grocery_order_id uuid;
   v_store_name text;
   v_grocery_product_name text;
   v_grocery_pricing_unit text;
-  v_grocery_price numeric(12, 2);
+  v_grocery_price integer;
   v_grocery_slot_label text;
 
   v_pharmacy_order_id uuid;
   v_pharmacy_product_name text;
-  v_pharmacy_price numeric(12, 2);
+  v_pharmacy_price integer;
 begin
   if not exists (
     select 1 from public.food_orders where profile_id = v_profile_id
@@ -451,7 +451,7 @@ begin
 
     if v_menu_item_id is not null then
       v_food_subtotal := v_menu_item_price * 2;
-      v_food_tax := round(v_food_subtotal * 0.10, 2);
+      v_food_tax := round(v_food_subtotal * 0.10)::integer;
 
       insert into public.food_orders (
         profile_id,
@@ -471,9 +471,9 @@ begin
         v_restaurant_name,
         'delivered',
         v_food_subtotal,
-        4.99,
+        499,
         v_food_tax,
-        v_food_subtotal + 4.99 + v_food_tax,
+        v_food_subtotal + 499 + v_food_tax,
         now() - interval '4 days',
         now() - interval '4 days'
       )
@@ -558,8 +558,8 @@ begin
         'best_match',
         'delivered',
         v_grocery_price,
-        2.50,
-        v_grocery_price + 2.50,
+        250,
+        v_grocery_price + 250,
         now() - interval '4 days',
         now() - interval '3 days'
       )
@@ -621,8 +621,8 @@ begin
         'Demo order only',
         'delivered',
         v_pharmacy_price,
-        2.50,
-        v_pharmacy_price + 2.50,
+        250,
+        v_pharmacy_price + 250,
         now() - interval '3 days',
         now() - interval '2 days'
       )

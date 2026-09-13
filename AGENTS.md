@@ -139,8 +139,13 @@ reason and user agreement.
   `menu_items.categorie_id`. The local SQL instead defines
   `categories.icon_name` and `restaurants.image_url`, uses
   `restaurants.category_id`, and defines no menu-item category foreign key.
-  Dart also uses decimal display values for prices while the SQL describes
-  integer smallest-currency units.
+  Money columns and Dart money values are integer smallest-currency units
+  (cents) everywhere, converted to decimal dollars only at display time (see
+  `lib/platform/localization/app_money.dart`'s `formatCents`) — issue #8
+  standardized this after finding both a live `numeric` column
+  (`menu_items.price`) masquerading as `schema.sql`'s declared `integer`, and
+  every per-vertical order table using `numeric(12, 2)` outright. A new money
+  column added anywhere in this app must be integer cents from the start.
 - Before changing a database or data model, identify the intended source of
   truth and reconcile drift deliberately. Do not silently make the Dart client
   fit an unverified schema.

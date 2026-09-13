@@ -97,7 +97,7 @@ void main() {
           title: 'Bakaara groceries',
           status: 'Confirmed',
           occurredAt: DateTime(2026, 7, 27),
-          amount: 24,
+          amount: 2400,
           detailsRoute: '/grocery',
         ),
       );

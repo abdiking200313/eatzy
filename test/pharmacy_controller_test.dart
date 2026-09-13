@@ -39,8 +39,8 @@ void main() {
 
     expect(controller.cartItems, hasLength(1));
     expect(controller.itemCount, 2);
-    expect(controller.subtotal, 5.50);
-    expect(controller.total, 8.00);
+    expect(controller.subtotal, 550);
+    expect(controller.total, 800);
 
     controller.decrement(paracetamol.id);
     expect(controller.cartItems.single.quantity, 1);
@@ -121,7 +121,7 @@ void main() {
     expect(activityController.items, hasLength(1));
     expect(activityController.items.single.serviceId, ServiceId.pharmacy);
     expect(activityController.items.single.status, 'Demo confirmed');
-    expect(activityController.items.single.amount, 5.25);
+    expect(activityController.items.single.amount, 525);
   });
 
   test('pharmacy cart survives a simulated app reload', () async {

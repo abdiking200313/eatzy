@@ -88,7 +88,10 @@ class FoodDealItem {
   final String menuItemId;
   final String name;
   final int quantity;
-  final double unitPrice;
+
+  /// Price in integer cents, straight from `menu_items.price` — see
+  /// issue #8.
+  final int unitPrice;
   final String? imageUrl;
 
   factory FoodDealItem.fromMap(Map<String, dynamic> map) {
@@ -101,7 +104,7 @@ class FoodDealItem {
       menuItemId: _requiredString(menu, 'id'),
       name: _requiredString(menu, 'name'),
       quantity: _requiredPositiveInt(map, 'quantity'),
-      unitPrice: _requiredNonNegativeDouble(menu, 'price'),
+      unitPrice: _requiredNonNegativeInt(menu, 'price'),
       imageUrl: _optionalString(menu, 'image_url'),
     );
   }
@@ -126,6 +129,15 @@ class FoodDeal {
   final String restaurantName;
   final String name;
   final String description;
+
+  /// Decimal dollars, deliberately NOT converted to cents by issue #8:
+  /// `deals`/`deal_items` are not created by any migration in
+  /// `supabase/migrations/` (nor `supabase/schema.sql`) — `fetchDeals` has no
+  /// callers in `lib/` today (see `food_repository.dart`) and this repo has
+  /// no way to inspect that live table's real column type without touching
+  /// production, which is out of scope here. `FoodDealItem.unitPrice` below
+  /// is converted, since it reads straight from `menu_items.price`, a column
+  /// this issue's migration does touch.
   final double dealPrice;
   final String? imageUrl;
   final DateTime? startsAt;
@@ -226,6 +238,15 @@ int _requiredPositiveInt(Map<String, dynamic> map, String key) {
   final parsed = value is int ? value : int.tryParse(value?.toString() ?? '');
   if (parsed == null || parsed <= 0) {
     throw FormatException('Invalid positive food integer: $key');
+  }
+  return parsed;
+}
+
+int _requiredNonNegativeInt(Map<String, dynamic> map, String key) {
+  final value = map[key];
+  final parsed = value is num ? value.round() : int.tryParse(value.toString());
+  if (parsed == null || parsed < 0) {
+    throw FormatException('Invalid non-negative food integer: $key');
   }
   return parsed;
 }

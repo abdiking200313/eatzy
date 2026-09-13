@@ -37,9 +37,9 @@ void main() {
     expect(controller.addProduct(bananas), GroceryAddResult.added);
     expect(controller.setQuantity(bananas.id, 1.5), isTrue);
 
-    expect(controller.subtotal, closeTo(11.20, 0.001));
-    expect(controller.deliveryFee, 2.50);
-    expect(controller.total, closeTo(13.70, 0.001));
+    expect(controller.subtotal, 1120);
+    expect(controller.deliveryFee, 250);
+    expect(controller.total, 1370);
   });
 
   test('does not add unavailable products or exceed available stock', () {

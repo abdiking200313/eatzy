@@ -17,7 +17,7 @@ void main() {
         'description': 'Wallet Top-up',
         'created_at': DateTime.utc(2026, 8, 1).toIso8601String(),
       });
-      expect(credit.amount, 50.0);
+      expect(credit.amount, 5000);
       expect(credit.isCredit, isTrue);
 
       final debit = WalletTransactionRecord.fromMap({
@@ -28,7 +28,7 @@ void main() {
         'description': 'Jollof Feast Order',
         'created_at': DateTime.utc(2026, 8, 2).toIso8601String(),
       });
-      expect(debit.amount, -18.5);
+      expect(debit.amount, -1850);
       expect(debit.isCredit, isFalse);
       expect(debit.orderId, '45782');
     });
@@ -105,7 +105,7 @@ void main() {
 
 class _FakeWalletRepository implements WalletRepository {
   @override
-  Future<double> fetchBalance() async => 120.5;
+  Future<int> fetchBalance() async => 12050;
 
   @override
   Future<List<WalletTransactionRecord>> fetchTransactions({
@@ -114,7 +114,7 @@ class _FakeWalletRepository implements WalletRepository {
     WalletTransactionRecord(
       id: 'txn-1',
       type: WalletTransactionType.orderPayment,
-      amount: -18.5,
+      amount: -1850,
       description: 'Jollof Feast Order',
       createdAt: DateTime.utc(2026, 8, 2),
       orderId: '45782',
@@ -122,7 +122,7 @@ class _FakeWalletRepository implements WalletRepository {
     WalletTransactionRecord(
       id: 'txn-2',
       type: WalletTransactionType.topUp,
-      amount: 50,
+      amount: 5000,
       description: 'Wallet Top-up',
       createdAt: DateTime.utc(2026, 8, 1),
     ),
@@ -141,7 +141,7 @@ class _FakeWalletRepository implements WalletRepository {
 
 class _EmptyWalletRepository implements WalletRepository {
   @override
-  Future<double> fetchBalance() async => 0;
+  Future<int> fetchBalance() async => 0;
 
   @override
   Future<List<WalletTransactionRecord>> fetchTransactions({
@@ -155,7 +155,7 @@ class _EmptyWalletRepository implements WalletRepository {
 
 class _FailingWalletRepository implements WalletRepository {
   @override
-  Future<double> fetchBalance() async =>
+  Future<int> fetchBalance() async =>
       throw StateError('boom: balance query failed');
 
   @override
