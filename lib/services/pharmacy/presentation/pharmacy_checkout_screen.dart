@@ -7,6 +7,7 @@ import '../../../platform/localization/app_money.dart';
 import '../../../widgets/app_cards.dart';
 import '../../../widgets/app_misc.dart';
 import '../../../widgets/app_scaffold.dart';
+import '../../shared/data/idempotency_key.dart';
 import '../models/pharmacy_checkout.dart';
 import 'pharmacy_controller.dart';
 
@@ -35,6 +36,13 @@ class _PharmacyCheckoutScreenState extends State<PharmacyCheckoutScreen> {
   late final TextEditingController _instructionsController;
 
   Map<String, String> _errors = const {};
+
+  /// Identifies this checkout attempt (issue #59): generated once when this
+  /// screen is first built and reused for every retry on this same visit,
+  /// so a lost response followed by a retry collapses into the original
+  /// order server-side instead of creating a duplicate. A fresh visit to
+  /// checkout (a new instance of this screen) gets a fresh key.
+  final String _idempotencyKey = generateIdempotencyKey();
 
   PharmacyController get _controller =>
       widget.controller ?? PharmacyController.instance;
@@ -150,11 +158,12 @@ class _PharmacyCheckoutScreenState extends State<PharmacyCheckoutScreen> {
                     _CheckoutSummary(controller: _controller),
                     const SizedBox(height: TwSpacing.x5),
                     GradientActionButton(
-                      label:
-                          'Confirm demo order · '
-                          '${AppMoney.formatCents(_controller.total)}',
+                      label: _controller.isSubmitting
+                          ? 'Saving order...'
+                          : 'Confirm demo order · '
+                                '${AppMoney.formatCents(_controller.total)}',
                       icon: const Icon(Icons.check, color: Colors.white),
-                      onPressed: _submit,
+                      onPressed: _controller.isSubmitting ? null : _submit,
                     ),
                     const SizedBox(height: TwSpacing.x8),
                   ],
@@ -176,7 +185,10 @@ class _PharmacyCheckoutScreenState extends State<PharmacyCheckoutScreen> {
   }
 
   Future<void> _submit() async {
-    final result = await _controller.placeDemoOrder(_details());
+    final result = await _controller.placeDemoOrder(
+      _details(),
+      idempotencyKey: _idempotencyKey,
+    );
     if (!result.isSuccess) {
       setState(() => _errors = result.validation.errors);
       return;

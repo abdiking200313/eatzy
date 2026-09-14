@@ -9,6 +9,7 @@ import '../../../platform/activity/models/activity_item.dart';
 import '../../../platform/activity/presentation/activity_controller.dart';
 import '../../../platform/session/session_reset_registry.dart';
 import '../../shared/data/cart_storage.dart';
+import '../../shared/data/idempotency_key.dart';
 import '../../shared/presentation/confirm_order_flow.dart';
 import '../../shared/presentation/loadable_state_mixin.dart';
 import '../data/pharmacy_repository.dart';
@@ -82,6 +83,7 @@ class PharmacyController extends ChangeNotifier with LoadableState {
   DateTime? _lastLoadedAt;
   bool _isLoadingMore = false;
   bool _hasMore = true;
+  bool _isSubmitting = false;
 
   /// The pharmacy (`PharmacyStore.id`) [_products] was last loaded for, or
   /// `null` before the first [loadProducts] call. Products are always
@@ -125,6 +127,13 @@ class PharmacyController extends ChangeNotifier with LoadableState {
   bool get hasMore => _hasMore;
   bool get isCartEmpty => _cartItems.isEmpty;
   bool get isCartNotEmpty => _cartItems.isNotEmpty;
+
+  /// Whether a [placeDemoOrder] call is currently in flight. The checkout
+  /// screen disables its submit button while this is true — see issue #59 —
+  /// and [placeDemoOrder] itself also refuses to start a second submission
+  /// while this is true, as a belt-and-braces guard against a double-tap or
+  /// a second programmatic call racing the first one.
+  bool get isSubmitting => _isSubmitting;
   int get itemCount =>
       _cartItems.fold(0, (count, item) => count + item.quantity);
   int get subtotal => _cartItems.fold(0, (total, item) => total + item.total);
@@ -391,10 +400,39 @@ class PharmacyController extends ChangeNotifier with LoadableState {
     return PharmacyCheckoutValidation(Map.unmodifiable(errors));
   }
 
+  /// Validates the cart/delivery details and, once valid, places the order
+  /// through the shared [confirmDemoOrder] flow, records activity, and
+  /// clears the cart.
+  ///
+  /// A no-op — without touching submission state — while a previous call is
+  /// still in flight (see [isSubmitting]): this is a belt-and-braces guard
+  /// against a double-tap or a second programmatic call racing the first
+  /// one, on top of the checkout screen already disabling its submit button
+  /// while [isSubmitting] is true (issue #59).
+  ///
+  /// [idempotencyKey] identifies this checkout *attempt* and is forwarded
+  /// to `place_pharmacy_order` so a retried submission (the same key)
+  /// returns the existing order instead of creating a duplicate and
+  /// decrementing stock again. Callers should generate one per attempt
+  /// (e.g. once per checkout screen visit) and keep passing the same value
+  /// across retries of that attempt; when omitted, a fresh key is generated
+  /// for this call only, which gives no protection against a retry that
+  /// calls this method again.
   Future<PharmacyCheckoutResult> placeDemoOrder(
-    PharmacyCheckoutDetails details,
-  ) {
+    PharmacyCheckoutDetails details, {
+    String? idempotencyKey,
+  }) {
+    if (_isSubmitting) {
+      return Future.value(
+        PharmacyCheckoutResult.invalid(const PharmacyCheckoutValidation({})),
+      );
+    }
+
     final validation = validateCheckout(details);
+    if (!validation.isValid) {
+      return Future.value(PharmacyCheckoutResult.invalid(validation));
+    }
+
     final confirmedAt = _now();
     // Snapshot cart-derived values before the shared flow clears the cart.
     final confirmedTotal = total;
@@ -407,6 +445,10 @@ class PharmacyController extends ChangeNotifier with LoadableState {
           ),
         )
         .toList(growable: false);
+    final resolvedIdempotencyKey = idempotencyKey ?? generateIdempotencyKey();
+
+    _isSubmitting = true;
+    notifyListeners();
 
     return confirmDemoOrder<PharmacyCheckoutResult, PharmacyCheckoutValidation>(
       validation: validation,
@@ -414,7 +456,11 @@ class PharmacyController extends ChangeNotifier with LoadableState {
       onInvalid: (validation) => PharmacyCheckoutResult.invalid(validation),
       placeOrder: () =>
           _orderRepository?.placeOrder(
-            PharmacyOrderRequest(details: details, items: confirmedItems),
+            PharmacyOrderRequest(
+              details: details,
+              items: confirmedItems,
+              idempotencyKey: resolvedIdempotencyKey,
+            ),
           ) ??
           Future.value(null),
       fallbackOrderId: () => 'pharmacy-${confirmedAt.microsecondsSinceEpoch}',
@@ -448,7 +494,10 @@ class PharmacyController extends ChangeNotifier with LoadableState {
             'Order confirmed. No payment was processed and no order '
             'was sent to a pharmacy.',
       ),
-    );
+    ).whenComplete(() {
+      _isSubmitting = false;
+      notifyListeners();
+    });
   }
 
   int _indexOf(String productId) {
