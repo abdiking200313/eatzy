@@ -7,19 +7,18 @@ upstream_concept: 00-Index
 
 # Open Tasks
 
-**Refreshed 2026-09-14 (board worker, 70th run), see [[Status Log]] 2026-09-14 (70th run) for full detail.** **Source of truth is always a live `list_issues`/`gh issue list --repo abdiking200313/eatzy --state open` call** — re-check before relying on this for anything that matters.
+**Refreshed 2026-09-14 (board worker, 71st run), see [[Status Log]] 2026-09-14 (71st run) for full detail.** **Source of truth is always a live `list_issues`/`gh issue list --repo abdiking200313/eatzy --state open` call** — re-check before relying on this for anything that matters.
 
-## Current state as of the 70th run (2026-09-14)
+## Current state as of the 71st run (2026-09-14)
 
-- **Human approved a large batch of long-dormant `needs-approval` issues to `todo` at ~11:27 UTC this run** — the original 2026-08-12/2026-08-14 audit batches: #10, #13, #14, #15, #17, #18, #19, #31, #36, #37, #41, #42, #44, #45, #46, #47, #48, #49.
-- **`waiting-on-you` holds only #34** (core tables missing migration — still genuinely blocked, no live Supabase DB access exists in any board-worker sandbox, no human reply yet to the schema-dump request from the 67th run).
-- **6 issues processed and merged this run, all from the newly-unlocked 2026-08-12 batch**: #10 (PR #205, settings dead tap targets + persisted notification toggles), #13 (PR #204, profile-edit screen + `ProfileRepository.updateProfile`), #14 (PR #207, wallet-balance dedup + dead profile rows — dispatched only after #13 merged, same file), #15 (PR #203, onboarding first-launch gating + removed dead `/onboarding/*` routes), #17 (PR #202, GitHub Actions CI running the AGENTS.md DoD sequence on every PR), #18 (PR #206, grocery/pharmacy cart-screen widget tests + shared test helper).
-- **No Supabase/migration changes this run** — all six were pure Dart/Flutter + one CI workflow.
-- **CI now exists (issue #17/PR #202)** — a human still needs to mark the `verify` check as a required branch-protection status check on `master`; the board worker cannot configure that itself.
-- **Remaining `todo`, oldest-first, next run's pickup order**: #19 (ActivityController vs. Riverpod/AsyncNotifier convention), then #31/#36/#37/#41/#42/#44/#45/#46/#47/#48/#49 (2026-08-14 audit batch, not yet triaged for ambiguity) — #37 is itself blocking (no privacy policy/ToS) and #36 is blocking (no account deletion), both may warrant extra care rather than a quick mechanical fix. #74 (RLS enable) still blocked on #34 actually landing.
+- **`waiting-on-you` holds only #34** (core tables missing migration — still genuinely blocked, no live Supabase DB access exists in any board-worker sandbox, no human reply yet to the schema-dump request from the 67th run). #74 still blocked on #34.
+- **6 issues processed and merged this run, the 2026-08-14 audit-batch tail**: #19 (PR #209, documented `ActivityController` singleton as a deliberate exception, added a regression test), #41 (PR #210, new `StartupGate` bootstrap widget — startup runs behind timeouts + retry UI instead of blocking `runApp`), #31 (PR #211, dropped the `is_demo`-forces-true CHECK, RPCs now write real orders as `is_demo=false`, currency/country checks deliberately untouched), #42 (PR #212, new `lib/config/env.dart` env abstraction via `--dart-define`/`String.fromEnvironment`), #36 (PR #213, account deletion via anonymize-not-hard-delete + new `delete_own_account` RPC), #37 (PR #214, real drafted Privacy Policy/ToS shipped as in-app screens + `docs/legal/*.md`, external hosting still needed for app-store submission).
+- **One migration landed this run** (#31's `is_demo` fix) — **not applied to production**, `supabase db push` still pending, per standing convention.
+- **CI (`verify` check, issue #17) still not marked as a required branch-protection status** — unchanged from the 70th run, still needs a human to flip that GitHub setting.
+- **Remaining `todo`, oldest-first, next run's pickup order**: #44, #45, #46, #47, #48, #49 — the rest of the 2026-08-14 audit batch, not yet triaged for ambiguity.
 - **Still not board-worker-pickable despite `todo`**: #132 (merchant app scaffold — needs a human to kick off); #133/#134/#135 stay blocked on #132.
 - **Tracking-only, no direct work**: #29, #52, #128, #176.
-- **Process note**: #34 and #40 both carried a stale `agent-in-progress` label at this run's start with no branch/PR/vault trace of real work — treated as a labeling artifact, see [[Multi-Agent Setup]].
+- **New finding this run, belongs with #34's eventual fix**: `supabase/seed.sql` inserts `profiles(full_name, ...)` but `schema.sql` defines `firstname`/`lastname`, no `full_name` — same drift class AGENTS.md already warns about, not fixed.
 
 ---
 
@@ -69,7 +68,7 @@ All other rows previously in this table (#8, #16, #40, #74's original block, #78
 
 ## Remaining `todo`, not yet picked up
 
-**As of the 70th run (2026-09-14)**: #19, #31, #36, #37, #41, #42, #44, #45, #46, #47, #48, #49 — the 2026-08-14 audit-batch tail of the same mass-approval that unlocked #10/#13/#14/#15/#17/#18 this run (see [[Status Log]] 2026-09-14 "70th run"). Not yet triaged individually for ambiguity; #37 (no privacy policy/ToS) and #36 (no account deletion) are both marked `[Blocking]` in their own titles and may warrant more product judgment than a quick mechanical fix — check their issue bodies carefully before assuming they're as mechanical as the others. #133/#134/#135 (merchant screens/QA) still **blocked on #132** (`waiting-on-you`). Re-check via `list_issues` before assuming this list is complete — a further human approval pass or reply could change it any time.
+**As of the 71st run (2026-09-14)**: #44, #45, #46, #47, #48, #49 — the last of the 2026-08-14 audit batch (#19/#31/#36/#37/#41/#42, the rest of that batch, all merged this run — see [[Status Log]] 2026-09-14 "71st run"). Not yet triaged individually for ambiguity. #133/#134/#135 (merchant screens/QA) still **blocked on #132** (`waiting-on-you`). Re-check via `list_issues` before assuming this list is complete — a further human approval pass or reply could change it any time.
 
 **Empty as of the 16th run (2026-08-31) through the 69th run (2026-09-14)** — historical note, superseded by the above: #144 (the last actionable `todo` from the prior batch) merged via PR #166, and the queue then sat genuinely empty (aside from blocked/tracking issues) for 54 runs until this run's mass approval.
 
