@@ -7,6 +7,7 @@ import 'package:chowflow/services/grocery/models/grocery_models.dart';
 import 'package:chowflow/services/grocery/presentation/grocery_controller.dart';
 import 'package:chowflow/services/shared/data/rpc_helpers.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'helpers/memory_cart_storage.dart';
 
@@ -202,6 +203,61 @@ void main() {
     expect(throwingController.isEmpty, isFalse);
     expect(throwingController.cart, hasLength(1));
     expect(throwingController.lastConfirmation, isNull);
+    expect(activityController.items, isEmpty);
+  });
+
+  test('confirmOrder surfaces a generic error, resets loading, and keeps '
+      'the cart when place_grocery_order rejects an elapsed delivery slot '
+      '(issue #82)', () async {
+    // `place_grocery_order` raises a plain Postgres exception -- surfaced to
+    // supabase_flutter as a `PostgrestException` -- when the selected slot's
+    // computed delivery window has already elapsed. There is no per-message
+    // mapping for `place_grocery_order` failures in the grocery checkout
+    // flow (unlike e.g. `describeAuthError` for auth): every raised
+    // exception from this RPC, including this new one, already funnels
+    // through `confirmDemoOrder`'s generic `catch` into the same
+    // "could not be saved" message, so a real Postgres error message is
+    // never shown to the user and the flow does not crash.
+    final elapsedSlotController = GroceryController(
+      repository: const SeededGroceryRepository(),
+      orderRepository: const _ElapsedSlotGroceryOrderRepository(),
+      activityController: activityController,
+      storage: MemoryCartStorage<GroceryCartLine>(),
+    );
+    await elapsedSlotController.load();
+    final rice = elapsedSlotController.stores
+        .expand((store) => store.products)
+        .firstWhere((product) => product.id == 'bakaal-rice');
+    elapsedSlotController.addProduct(rice);
+
+    const address = GroceryDeliveryAddress(
+      recipientName: 'Amina',
+      phone: '+252 61 234 5678',
+      street: 'Near Taleex Road',
+      district: 'Hodan',
+      city: 'Mogadishu',
+    );
+
+    final result = await elapsedSlotController.confirmOrder(
+      address: address,
+      slot: GroceryController.deliverySlots.first,
+      substitutionPreference: GrocerySubstitutionPreference.contactMe,
+      now: DateTime.utc(2026, 7, 27, 20),
+    );
+
+    expect(result.isSuccess, isFalse);
+    expect(
+      result.errors,
+      contains('The grocery order could not be saved. Please try again.'),
+    );
+    expect(
+      result.errors.join(),
+      isNot(contains('delivery window has already passed')),
+    );
+    expect(elapsedSlotController.isLoading, isFalse);
+    expect(elapsedSlotController.isEmpty, isFalse);
+    expect(elapsedSlotController.cart, hasLength(1));
+    expect(elapsedSlotController.lastConfirmation, isNull);
     expect(activityController.items, isEmpty);
   });
 
@@ -435,6 +491,23 @@ class _ThrowingGroceryOrderRepository implements GroceryOrderRepository {
   @override
   Future<PlacedOrder> placeOrder(GroceryOrderRequest request) {
     throw Exception('Simulated network failure while placing grocery order');
+  }
+}
+
+/// A [GroceryOrderRepository] fake that throws the same
+/// [PostgrestException] shape `place_grocery_order` raises (issue #82) when
+/// the selected delivery slot's computed window has already elapsed.
+class _ElapsedSlotGroceryOrderRepository implements GroceryOrderRepository {
+  const _ElapsedSlotGroceryOrderRepository();
+
+  @override
+  Future<PlacedOrder> placeOrder(GroceryOrderRequest request) {
+    throw const PostgrestException(
+      message:
+          'The selected delivery window has already passed. Please choose '
+          'another delivery slot.',
+      code: 'P0001',
+    );
   }
 }
 
