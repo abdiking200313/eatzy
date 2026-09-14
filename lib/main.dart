@@ -7,16 +7,12 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'app/app_router.dart';
 import 'config/theme.dart';
-import 'features/onboarding/data/onboarding_preferences.dart';
-import 'platform/activity/data/activity_repository.dart';
 import 'platform/activity/presentation/activity_controller.dart';
 import 'platform/error_reporting/error_reporter.dart';
 import 'platform/session/account_state_coordinator.dart';
-import 'platform/session/secure_session_storage.dart';
+import 'platform/startup/startup_gate.dart';
 import 'platform/system_ui/android_navigation_bar_controller.dart';
 import 'services/food/presentation/cart_controller.dart';
-import 'services/grocery/presentation/grocery_controller.dart';
-import 'services/pharmacy/presentation/pharmacy_controller.dart';
 import 'widgets/error_fallback.dart';
 import 'widgets/zivo_logo.dart';
 
@@ -70,35 +66,21 @@ void main() {
         DeviceOrientation.portraitDown,
       ]);
 
-      const supabaseUrl = 'https://jzubookmbrtslocuzepe.supabase.co';
-      await Supabase.initialize(
-        url: supabaseUrl,
-        publishableKey: 'sb_publishable_yLgLRnh00I5zjImD-Q7R6A_uOO-l0sT',
-        authOptions: FlutterAuthClientOptions(
-          localStorage: SecureSessionStorage(supabaseUrl: supabaseUrl),
+      // `Supabase.initialize`, the onboarding flag, and the cart/activity
+      // loads all used to run here, blocking `runApp` on unbounded network
+      // I/O with no timeout and no failure handling (issue #41): a slow or
+      // captive-portal connection hung the native splash screen forever,
+      // and a thrown `Supabase.initialize` meant `runApp` was never reached
+      // at all. `runApp` now starts immediately with `StartupGate`, which
+      // runs that same sequence itself (see
+      // `platform/startup/startup_gate.dart`) behind a loading state, each
+      // step individually timed out, and shows a retry screen instead of a
+      // permanently black/frozen one if it fails.
+      runApp(
+        StartupGate(
+          onReady: (cartController) => ZivoApp(cartController: cartController),
         ),
       );
-
-      // Loaded once, up front, so AppRouter's synchronous redirect can gate
-      // a returning signed-out user past onboarding on this very first
-      // frame -- see OnboardingLaunchGate and issue #15.
-      OnboardingLaunchGate.hasSeenOnboarding =
-          await const SharedPreferencesOnboardingPreferences()
-              .hasSeenOnboarding();
-
-      final cartController = CartController.instance;
-      final currentUserId = Supabase.instance.client.auth.currentUser?.id;
-      await cartController.loadForOwner(currentUserId);
-      await GroceryController.instance.loadForOwner(currentUserId);
-      await PharmacyController.instance.loadForOwner(currentUserId);
-      ActivityController.instance.configureRepository(
-        SupabaseActivityRepository(client: Supabase.instance.client),
-      );
-      if (currentUserId != null) {
-        await ActivityController.instance.load();
-      }
-
-      runApp(ZivoApp(cartController: cartController));
     },
     (error, stack) {
       ErrorReporting.instance.reportError(
