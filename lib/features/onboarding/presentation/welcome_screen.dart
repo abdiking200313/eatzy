@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -5,6 +7,7 @@ import '../../../app/app_routes.dart';
 import '../../../config/theme.dart';
 import '../../../widgets/app_cards.dart';
 import '../../../widgets/zivo_logo.dart';
+import '../data/onboarding_preferences.dart';
 import 'onboarding_page_1.dart';
 import 'onboarding_page_2.dart';
 import 'onboarding_page_3.dart';
@@ -23,18 +26,35 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     OnboardingPage3(),
   ];
 
+  static const OnboardingPreferences _onboardingPreferences =
+      SharedPreferencesOnboardingPreferences();
+
   late PageController _pageController;
   int _currentPage = 0;
 
+  // Any way out of this screen -- skipping, starting registration, or
+  // logging in -- counts as "seen onboarding": a returning signed-out user
+  // should never be shown this sequence again (issue #15). Flips the
+  // in-memory gate immediately (so an OS back gesture within this session
+  // doesn't re-show it) and persists it in the background for future
+  // launches.
+  void _markOnboardingSeen() {
+    OnboardingLaunchGate.hasSeenOnboarding = true;
+    unawaited(_onboardingPreferences.markOnboardingSeen());
+  }
+
   void _openMainApp() {
+    _markOnboardingSeen();
     context.go(AppRoutes.mainApp);
   }
 
   void _openRegister() {
+    _markOnboardingSeen();
     context.push(AppRoutes.register);
   }
 
   void _openLogin() {
+    _markOnboardingSeen();
     context.push(AppRoutes.login);
   }
 

@@ -11,9 +11,12 @@ class AppRoutes {
   // Requires an active Supabase session (a normal login, or the temporary
   // session created by tapping a password-recovery email link).
   static const resetPassword = '/reset-password';
-  static const onboardingOne = '/onboarding/one';
-  static const onboardingTwo = '/onboarding/two';
-  static const onboardingThree = '/onboarding/three';
+
+  // There is deliberately no standalone `/onboarding/*` route. The
+  // onboarding slides (`OnboardingPage1/2/3`) only ever render as `PageView`
+  // children embedded inside `WelcomeScreen` -- a bare, direct route to one
+  // slide had no AppBar, skip button, or pagination and was a dead end for
+  // anyone who reached it (issue #15). Reach the real flow via [welcome].
 
   // Login-required routes
   static const mainApp = '/app';
@@ -72,6 +75,7 @@ class AppRoutes {
   static const cart = '/cart';
   static const checkout = '/checkout';
   static const profile = '/profile';
+  static const editProfile = '/profile/edit';
   static const addresses = '/addresses';
   static const settings = '/settings';
   static const support = '/support';

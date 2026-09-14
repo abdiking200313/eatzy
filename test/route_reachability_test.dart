@@ -24,15 +24,6 @@ final Map<String, String> _deepLinkOnlyRoutes = {
   AppRoutes.welcome:
       'reached only via AppRouter.initialLocation / the root redirect',
 
-  // The onboarding slides are rendered as PageView children embedded
-  // directly inside WelcomeScreen (see welcome_screen.dart) rather than
-  // being pushed through the router. Found incidentally while building this
-  // exhaustive check for #71 -- left as-is rather than expanding #71's scope
-  // into the onboarding flow.
-  AppRoutes.onboardingOne: 'shown as a PageView child inside WelcomeScreen',
-  AppRoutes.onboardingTwo: 'shown as a PageView child inside WelcomeScreen',
-  AppRoutes.onboardingThree: 'shown as a PageView child inside WelcomeScreen',
-
   // Legacy redirect aliases, kept for backward-compat / old deep links.
   // Issue #71 decision: keep these; a route existing only for old links is a
   // normal reason for it to have no in-app link.
@@ -72,14 +63,12 @@ final List<({String name, String path})> _registeredRoutes = [
   (name: 'login', path: AppRoutes.login),
   (name: 'register', path: AppRoutes.register),
   (name: 'forgotPassword', path: AppRoutes.forgotPassword),
-  (name: 'onboardingOne', path: AppRoutes.onboardingOne),
-  (name: 'onboardingTwo', path: AppRoutes.onboardingTwo),
-  (name: 'onboardingThree', path: AppRoutes.onboardingThree),
   (name: 'mainApp', path: AppRoutes.mainApp),
   (name: 'services', path: AppRoutes.services),
   (name: 'explore', path: AppRoutes.explore),
   (name: 'activity', path: AppRoutes.activity),
   (name: 'profile', path: AppRoutes.profile),
+  (name: 'editProfile', path: AppRoutes.editProfile),
   (name: 'addresses', path: AppRoutes.addresses),
   (name: 'settings', path: AppRoutes.settings),
   (name: 'resetPassword', path: AppRoutes.resetPassword),
