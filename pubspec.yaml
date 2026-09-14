@@ -70,6 +70,12 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   http: ^1.2.0
+  # Only for test/cart_storage_test.dart's InMemorySharedPreferencesAsync
+  # fake, used to exercise SharedPreferencesCartStorage.read without a real
+  # platform channel (issue #180). Already a transitive dependency of
+  # shared_preferences; declared directly per the analyzer's
+  # depend_on_referenced_packages lint.
+  shared_preferences_platform_interface: ^2.4.2
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is

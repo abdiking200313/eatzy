@@ -94,7 +94,9 @@ class PharmacyController extends ChangeNotifier with LoadableState {
   String? _currentStoreId;
   String? _currentSearchQuery;
 
-  Future<void> _pendingCartWrite = Future<void>.value();
+  final CartWriteQueue _cartWriteQueue = CartWriteQueue(
+    label: 'PharmacyController',
+  );
   String? _cartOwnerId;
   int _cartLoadGeneration = 0;
   bool _isCartLoading = false;
@@ -149,7 +151,7 @@ class PharmacyController extends ChangeNotifier with LoadableState {
   /// (e.g. before loading a second controller from the same storage) should
   /// await this first.
   @visibleForTesting
-  Future<void> get pendingCartWrite => _pendingCartWrite;
+  Future<void> get pendingCartWrite => _cartWriteQueue.pending;
 
   /// Loads the persisted pharmacy cart for [ownerId] (or the guest cart
   /// when `null`), replacing whatever cart is currently in memory. Mirrors
@@ -162,12 +164,11 @@ class PharmacyController extends ChangeNotifier with LoadableState {
     _isCartLoading = true;
     notifyListeners();
 
-    List<PharmacyCartItem> loadedItems;
-    try {
-      loadedItems = await _storage.read(_cartStorageOwner);
-    } on Object {
-      loadedItems = const [];
-    }
+    final loadedItems = await readCartLogged(
+      _storage,
+      _cartStorageOwner,
+      label: 'PharmacyController',
+    );
     if (generation != _cartLoadGeneration) {
       return;
     }
@@ -538,16 +539,6 @@ class PharmacyController extends ChangeNotifier with LoadableState {
   }
 
   Future<void> _queueCartWrite(Future<void> Function() write) {
-    final previousWrite = _pendingCartWrite;
-    final operation = () async {
-      try {
-        await previousWrite;
-      } on Object {
-        // A later cart change should still get a chance to persist.
-      }
-      await write();
-    }();
-    _pendingCartWrite = operation;
-    return operation;
+    return _cartWriteQueue.enqueue(write);
   }
 }

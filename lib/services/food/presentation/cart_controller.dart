@@ -32,7 +32,7 @@ class CartController extends ChangeNotifier {
   final CartStorage<CartItem> _storage;
   final List<CartItem> _items = [];
 
-  Future<void> _pendingWrite = Future<void>.value();
+  final CartWriteQueue _writeQueue = CartWriteQueue(label: 'CartController');
   String? _ownerId;
   int _loadGeneration = 0;
   bool _isLoading = false;
@@ -60,12 +60,11 @@ class CartController extends ChangeNotifier {
     _isLoading = true;
     notifyListeners();
 
-    List<CartItem> loadedItems;
-    try {
-      loadedItems = await _storage.read(_storageOwner);
-    } on Object {
-      loadedItems = const [];
-    }
+    final loadedItems = await readCartLogged(
+      _storage,
+      _storageOwner,
+      label: 'CartController',
+    );
     if (generation != _loadGeneration) {
       return;
     }
@@ -160,7 +159,7 @@ class CartController extends ChangeNotifier {
     _items.clear();
     notifyListeners();
     final owner = _storageOwner;
-    await _queueWrite(() => _storage.clear(owner));
+    await _writeQueue.enqueue(() => _storage.clear(owner));
   }
 
   int _indexOf(String menuItemId) {
@@ -170,20 +169,6 @@ class CartController extends ChangeNotifier {
   Future<void> _persist() {
     final owner = _storageOwner;
     final snapshot = List<CartItem>.from(_items);
-    return _queueWrite(() => _storage.write(owner, snapshot));
-  }
-
-  Future<void> _queueWrite(Future<void> Function() write) {
-    final previousWrite = _pendingWrite;
-    final operation = () async {
-      try {
-        await previousWrite;
-      } on Object {
-        // A later cart change should still get a chance to persist.
-      }
-      await write();
-    }();
-    _pendingWrite = operation;
-    return operation;
+    return _writeQueue.enqueue(() => _storage.write(owner, snapshot));
   }
 }
