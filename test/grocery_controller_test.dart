@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:chowflow/app/service_module.dart';
 import 'package:chowflow/platform/activity/presentation/activity_controller.dart';
 import 'package:chowflow/services/grocery/data/grocery_repository.dart';
@@ -202,6 +204,105 @@ void main() {
     expect(activityController.items, isEmpty);
   });
 
+  test('confirmOrder ignores a second call while a submission is in flight '
+      '(issue #59)', () async {
+    final repository = _ControllableGroceryOrderRepository();
+    final submittingController = GroceryController(
+      repository: const SeededGroceryRepository(),
+      orderRepository: repository,
+      activityController: activityController,
+      storage: MemoryCartStorage<GroceryCartLine>(),
+    );
+    await submittingController.load();
+    final rice = submittingController.stores
+        .expand((store) => store.products)
+        .firstWhere((product) => product.id == 'bakaal-rice');
+    submittingController.addProduct(rice);
+
+    const address = GroceryDeliveryAddress(
+      recipientName: 'Amina',
+      phone: '+252 61 234 5678',
+      street: 'Near Taleex Road',
+      district: 'Hodan',
+      city: 'Mogadishu',
+    );
+
+    final first = submittingController.confirmOrder(
+      address: address,
+      slot: GroceryController.deliverySlots.first,
+      substitutionPreference: GrocerySubstitutionPreference.contactMe,
+    );
+    expect(submittingController.isSubmitting, isTrue);
+
+    // A second call while the first is still in flight must be a no-op:
+    // it must not reach the repository and must not disturb the cart or
+    // submission state the first call owns.
+    final second = await submittingController.confirmOrder(
+      address: address,
+      slot: GroceryController.deliverySlots.first,
+      substitutionPreference: GrocerySubstitutionPreference.contactMe,
+    );
+    expect(second.isSuccess, isFalse);
+    expect(repository.callCount, 1);
+
+    repository.complete('grocery-order-1');
+    final result = await first;
+
+    expect(result.isSuccess, isTrue);
+    expect(repository.callCount, 1);
+    expect(submittingController.isSubmitting, isFalse);
+  });
+
+  test(
+    'confirmOrder forwards a caller-supplied idempotency key to the '
+    'repository, and synthesizes one when none is given (issue #59)',
+    () async {
+      final repository = _RecordingGroceryOrderRepository();
+      final recordingController = GroceryController(
+        repository: const SeededGroceryRepository(),
+        orderRepository: repository,
+        activityController: activityController,
+        storage: MemoryCartStorage<GroceryCartLine>(),
+      );
+      await recordingController.load();
+      final rice = recordingController.stores
+          .expand((store) => store.products)
+          .firstWhere((product) => product.id == 'bakaal-rice');
+
+      const address = GroceryDeliveryAddress(
+        recipientName: 'Amina',
+        phone: '+252 61 234 5678',
+        street: 'Near Taleex Road',
+        district: 'Hodan',
+        city: 'Mogadishu',
+      );
+
+      recordingController.addProduct(rice);
+      await recordingController.confirmOrder(
+        address: address,
+        slot: GroceryController.deliverySlots.first,
+        substitutionPreference: GrocerySubstitutionPreference.contactMe,
+        idempotencyKey: 'attempt-key-1',
+      );
+
+      expect(repository.lastRequest!.idempotencyKey, 'attempt-key-1');
+
+      // A second, independent attempt (cart repopulated after the first
+      // order cleared it) with no key supplied still gets a non-empty key
+      // generated for it, so the RPC always has one to key its own
+      // de-duplication on.
+      recordingController.addProduct(rice);
+      await recordingController.confirmOrder(
+        address: address,
+        slot: GroceryController.deliverySlots.first,
+        substitutionPreference: GrocerySubstitutionPreference.contactMe,
+      );
+
+      expect(repository.lastRequest!.idempotencyKey, isNotNull);
+      expect(repository.lastRequest!.idempotencyKey, isNotEmpty);
+    },
+  );
+
   group('catalog staleness and pull-to-refresh', () {
     test('load does not refetch an already-loaded, fresh catalog', () async {
       final repository = _CountingGroceryRepository();
@@ -284,5 +385,35 @@ class _ThrowingGroceryOrderRepository implements GroceryOrderRepository {
   @override
   Future<String> placeOrder(GroceryOrderRequest request) {
     throw Exception('Simulated network failure while placing grocery order');
+  }
+}
+
+/// A [GroceryOrderRepository] fake that records every request it receives
+/// and resolves immediately with an incrementing order id.
+class _RecordingGroceryOrderRepository implements GroceryOrderRepository {
+  int callCount = 0;
+  GroceryOrderRequest? lastRequest;
+
+  @override
+  Future<String> placeOrder(GroceryOrderRequest request) async {
+    callCount++;
+    lastRequest = request;
+    return 'grocery-order-$callCount';
+  }
+}
+
+/// A [GroceryOrderRepository] fake whose [placeOrder] only resolves once the
+/// test calls [complete], so a test can observe controller state (e.g.
+/// [GroceryController.isSubmitting]) while a submission is still in flight.
+class _ControllableGroceryOrderRepository implements GroceryOrderRepository {
+  int callCount = 0;
+  final _pending = Completer<String>();
+
+  void complete(String orderId) => _pending.complete(orderId);
+
+  @override
+  Future<String> placeOrder(GroceryOrderRequest request) {
+    callCount++;
+    return _pending.future;
   }
 }

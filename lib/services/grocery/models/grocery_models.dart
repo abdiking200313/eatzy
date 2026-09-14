@@ -303,6 +303,7 @@ class GroceryOrderRequest {
     required this.address,
     required this.substitutionPreference,
     required this.items,
+    this.idempotencyKey,
   });
 
   final String storeId;
@@ -310,6 +311,13 @@ class GroceryOrderRequest {
   final GroceryDeliveryAddress address;
   final GrocerySubstitutionPreference substitutionPreference;
   final List<GroceryOrderLineInput> items;
+
+  /// A client-generated token identifying this checkout attempt (issue
+  /// #59). `place_grocery_order` uses it, together with the caller's
+  /// profile, to return the existing order instead of inserting a duplicate
+  /// row and decrementing stock again when the same attempt is submitted
+  /// more than once. `null` disables that protection for this call.
+  final String? idempotencyKey;
 
   Map<String, dynamic> toRpcParams() {
     if (storeId.trim().isEmpty || deliverySlotId.trim().isEmpty) {
@@ -335,6 +343,7 @@ class GroceryOrderRequest {
         GrocerySubstitutionPreference.noSubstitutions => 'no_substitutions',
       },
       'p_items': items.map((item) => item.toRpcMap()).toList(growable: false),
+      'p_idempotency_key': idempotencyKey,
     };
   }
 }

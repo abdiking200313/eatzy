@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:chowflow/services/food/models/cart_item.dart';
 import 'package:chowflow/services/food/presentation/cart_controller.dart';
 import 'package:chowflow/services/food/presentation/checkout_screen.dart';
@@ -18,6 +20,24 @@ class _ThrowingFoodOrderRepository implements FoodOrderRepository {
   @override
   Future<String> placeOrder(FoodOrderRequest request) {
     throw Exception('Simulated network failure while placing food order');
+  }
+}
+
+/// A [FoodOrderRepository] fake that records every request it receives and
+/// only resolves once the test calls [complete], so a widget test can
+/// exercise a second tap while the first submission is still in flight.
+class _ControllableFoodOrderRepository implements FoodOrderRepository {
+  int callCount = 0;
+  final List<FoodOrderRequest> requests = [];
+  final _pending = Completer<String>();
+
+  void complete(String orderId) => _pending.complete(orderId);
+
+  @override
+  Future<String> placeOrder(FoodOrderRequest request) {
+    callCount++;
+    requests.add(request);
+    return _pending.future;
   }
 }
 
@@ -152,6 +172,64 @@ void main() {
         find.text('The food order could not be saved. Please try again.'),
         findsNothing,
       );
+    },
+  );
+
+  testWidgets(
+    'a double-tap on the submit button places only one order (issue #59)',
+    (tester) async {
+      await tester.binding.setSurfaceSize(const Size(800, 1400));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final cartController = CartController(storage: MemoryCartStorage());
+      await cartController.loadForOwner('user-1');
+      await cartController.addItem(burger);
+      final repository = _ControllableFoodOrderRepository();
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: CheckoutScreen(
+            cartController: cartController,
+            orderRepository: repository,
+            activityController: ActivityController(),
+          ),
+        ),
+      );
+      await tester.pump();
+
+      await tester.enterText(
+        find.byKey(const ValueKey('food-recipient-name')),
+        'Amina Yusuf',
+      );
+      await tester.enterText(
+        find.byKey(const ValueKey('food-phone')),
+        '+252 61 234 5678',
+      );
+      await tester.enterText(
+        find.byKey(const ValueKey('food-street')),
+        'Maka Al-Mukarama Road',
+      );
+      await tester.enterText(
+        find.byKey(const ValueKey('food-district')),
+        'Hodan',
+      );
+
+      // Tap twice in a row before the first submission's RPC has resolved.
+      await tester.tap(find.text('Place order'));
+      await tester.pump();
+      expect(find.text('Saving order...'), findsOneWidget);
+
+      await tester.tap(find.text('Saving order...'));
+      await tester.pump();
+
+      // Only one request ever reached the repository — the button was
+      // disabled for the second tap, and FoodController's own
+      // `isSubmitting` guard is a second line of defense either way. The
+      // first submission is left in flight (never completed) so this test
+      // doesn't also have to stand up a GoRouter for the post-success
+      // navigation, which is outside what this test is about.
+      expect(repository.callCount, 1);
+      expect(repository.requests, hasLength(1));
     },
   );
 }

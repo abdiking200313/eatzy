@@ -6,6 +6,7 @@ import '../../../app/service_module.dart';
 import 'cart_controller.dart';
 import '../../../platform/activity/models/activity_item.dart';
 import '../../../platform/activity/presentation/activity_controller.dart';
+import '../../shared/data/idempotency_key.dart';
 import '../../shared/presentation/confirm_order_flow.dart';
 import '../data/food_repository.dart';
 import '../models/food_models.dart';
@@ -74,8 +75,27 @@ class FoodController extends ChangeNotifier {
   ///
   /// When the cart has no restaurant selected or no items, this is a no-op
   /// (matching the previous inline guard clause) and no submission state is
-  /// touched.
-  Future<FoodCheckoutResult> confirmOrder(FoodDeliveryAddress address) async {
+  /// touched. Likewise a no-op — without touching submission state — while a
+  /// previous call is still in flight (see [isSubmitting]): this is a
+  /// belt-and-braces guard against a double-tap or a second programmatic
+  /// call racing the first one, on top of the checkout screen already
+  /// disabling its submit button while [isSubmitting] is true.
+  ///
+  /// [idempotencyKey] identifies this checkout *attempt* (issue #59) and is
+  /// forwarded to `place_food_order` so a retried submission (the same key)
+  /// returns the existing order instead of creating a duplicate. Callers
+  /// should generate one per attempt (e.g. once per checkout screen visit)
+  /// and keep passing the same value across retries of that attempt; when
+  /// omitted, a fresh key is generated for this call only, which gives no
+  /// protection against a retry that calls this method again.
+  Future<FoodCheckoutResult> confirmOrder(
+    FoodDeliveryAddress address, {
+    String? idempotencyKey,
+  }) async {
+    if (_isSubmitting) {
+      return FoodCheckoutResult.invalid(const []);
+    }
+
     final restaurantId = _cartController.restaurantId;
     final items = _cartController.items;
     final hasOrder = restaurantId != null && items.isNotEmpty;
@@ -112,6 +132,7 @@ class FoodController extends ChangeNotifier {
                 quantity: item.quantity,
               ),
           ],
+          idempotencyKey: idempotencyKey ?? generateIdempotencyKey(),
         ),
       ),
       fallbackOrderId: () => 'food-${DateTime.now().microsecondsSinceEpoch}',

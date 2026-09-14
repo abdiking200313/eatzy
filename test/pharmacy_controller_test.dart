@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:chowflow/app/service_module.dart';
 import 'package:chowflow/platform/activity/presentation/activity_controller.dart';
 import 'package:chowflow/services/pharmacy/data/pharmacy_repository.dart';
@@ -205,6 +207,91 @@ void main() {
     expect(throwingController.cartItems, hasLength(1));
     expect(throwingActivityController.items, isEmpty);
   });
+
+  test('placeDemoOrder ignores a second call while a submission is in flight '
+      '(issue #59)', () async {
+    final repository = _ControllablePharmacyOrderRepository();
+    final submittingController = PharmacyController(
+      repository: const SeededPharmacyRepository(),
+      orderRepository: repository,
+      activityController: activityController,
+      storage: MemoryCartStorage<PharmacyCartItem>(),
+      now: () => DateTime.utc(2026, 7, 27, 12),
+    );
+    await submittingController.loadProducts(
+      storeId: SeededPharmacyRepository.defaultStoreId,
+    );
+    submittingController.addProduct(submittingController.products.first);
+
+    const details = PharmacyCheckoutDetails(
+      customerName: 'Asha Ali',
+      phoneNumber: '+252 61 234 5678',
+      city: 'Mogadishu',
+      district: 'Hodan',
+      addressLine: 'Taleex Road, blue gate',
+    );
+
+    final first = submittingController.placeDemoOrder(details);
+    expect(submittingController.isSubmitting, isTrue);
+
+    // A second call while the first is still in flight must be a no-op:
+    // it must not reach the repository and must not disturb the cart or
+    // submission state the first call owns.
+    final second = await submittingController.placeDemoOrder(details);
+    expect(second.isSuccess, isFalse);
+    expect(repository.callCount, 1);
+
+    repository.complete('pharmacy-order-1');
+    final result = await first;
+
+    expect(result.isSuccess, isTrue);
+    expect(repository.callCount, 1);
+    expect(submittingController.isSubmitting, isFalse);
+  });
+
+  test(
+    'placeDemoOrder forwards a caller-supplied idempotency key to the '
+    'repository, and synthesizes one when none is given (issue #59)',
+    () async {
+      final repository = _RecordingPharmacyOrderRepository();
+      final recordingController = PharmacyController(
+        repository: const SeededPharmacyRepository(),
+        orderRepository: repository,
+        activityController: activityController,
+        storage: MemoryCartStorage<PharmacyCartItem>(),
+        now: () => DateTime.utc(2026, 7, 27, 12),
+      );
+      await recordingController.loadProducts(
+        storeId: SeededPharmacyRepository.defaultStoreId,
+      );
+
+      const details = PharmacyCheckoutDetails(
+        customerName: 'Asha Ali',
+        phoneNumber: '+252 61 234 5678',
+        city: 'Mogadishu',
+        district: 'Hodan',
+        addressLine: 'Taleex Road, blue gate',
+      );
+
+      recordingController.addProduct(recordingController.products.first);
+      await recordingController.placeDemoOrder(
+        details,
+        idempotencyKey: 'attempt-key-1',
+      );
+
+      expect(repository.lastRequest!.idempotencyKey, 'attempt-key-1');
+
+      // A second, independent attempt (cart repopulated after the first
+      // order cleared it) with no key supplied still gets a non-empty key
+      // generated for it, so the RPC always has one to key its own
+      // de-duplication on.
+      recordingController.addProduct(recordingController.products.first);
+      await recordingController.placeDemoOrder(details);
+
+      expect(repository.lastRequest!.idempotencyKey, isNotNull);
+      expect(repository.lastRequest!.idempotencyKey, isNotEmpty);
+    },
+  );
 
   group('catalog staleness and pull-to-refresh', () {
     test(
@@ -464,5 +551,36 @@ class _ThrowingPharmacyOrderRepository implements PharmacyOrderRepository {
   @override
   Future<String> placeOrder(PharmacyOrderRequest request) {
     throw Exception('Simulated network failure while placing pharmacy order');
+  }
+}
+
+/// A [PharmacyOrderRepository] fake that records every request it receives
+/// and resolves immediately with an incrementing order id.
+class _RecordingPharmacyOrderRepository implements PharmacyOrderRepository {
+  int callCount = 0;
+  PharmacyOrderRequest? lastRequest;
+
+  @override
+  Future<String> placeOrder(PharmacyOrderRequest request) async {
+    callCount++;
+    lastRequest = request;
+    return 'pharmacy-order-$callCount';
+  }
+}
+
+/// A [PharmacyOrderRepository] fake whose [placeOrder] only resolves once
+/// the test calls [complete], so a test can observe controller state (e.g.
+/// [PharmacyController.isSubmitting]) while a submission is still in
+/// flight.
+class _ControllablePharmacyOrderRepository implements PharmacyOrderRepository {
+  int callCount = 0;
+  final _pending = Completer<String>();
+
+  void complete(String orderId) => _pending.complete(orderId);
+
+  @override
+  Future<String> placeOrder(PharmacyOrderRequest request) {
+    callCount++;
+    return _pending.future;
   }
 }

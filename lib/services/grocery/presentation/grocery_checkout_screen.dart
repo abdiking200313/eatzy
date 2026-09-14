@@ -8,6 +8,7 @@ import '../../../config/theme.dart';
 import '../../../platform/localization/app_money.dart';
 import '../../../widgets/app_cards.dart';
 import '../../../widgets/app_scaffold.dart';
+import '../../shared/data/idempotency_key.dart';
 import '../models/grocery_models.dart';
 import 'grocery_controller.dart';
 
@@ -37,6 +38,13 @@ class _GroceryCheckoutScreenState extends State<GroceryCheckoutScreen> {
   GroceryDeliverySlot? _slot;
   GrocerySubstitutionPreference? _substitutionPreference;
   Map<String, String> _errors = const {};
+
+  /// Identifies this checkout attempt (issue #59): generated once when this
+  /// screen is first built and reused for every retry on this same visit,
+  /// so a lost response followed by a retry collapses into the original
+  /// order server-side instead of creating a duplicate. A fresh visit to
+  /// checkout (a new instance of this screen) gets a fresh key.
+  final String _idempotencyKey = generateIdempotencyKey();
 
   // Maps the controller's field-specific validation messages onto the
   // field key each message is about, so each can be shown inline below
@@ -105,10 +113,11 @@ class _GroceryCheckoutScreenState extends State<GroceryCheckoutScreen> {
             : SafeArea(
                 minimum: const EdgeInsets.all(TwSpacing.x4),
                 child: GradientActionButton(
-                  label:
-                      'Confirm demo order • '
-                      '${AppMoney.formatCents(_controller.total)}',
-                  onPressed: _confirm,
+                  label: _controller.isSubmitting
+                      ? 'Saving order...'
+                      : 'Confirm demo order • '
+                            '${AppMoney.formatCents(_controller.total)}',
+                  onPressed: _controller.isSubmitting ? null : _confirm,
                   icon: const Icon(
                     Icons.check_circle_outline,
                     color: TwColors.onPrimary,
@@ -302,6 +311,7 @@ class _GroceryCheckoutScreenState extends State<GroceryCheckoutScreen> {
       ),
       slot: _slot,
       substitutionPreference: _substitutionPreference,
+      idempotencyKey: _idempotencyKey,
     );
     if (!result.isSuccess) {
       setState(() => _errors = _fieldErrorsFrom(result.errors));

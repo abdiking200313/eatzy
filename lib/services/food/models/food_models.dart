@@ -42,11 +42,19 @@ class FoodOrderRequest {
     required this.restaurantId,
     required this.address,
     required this.items,
+    this.idempotencyKey,
   });
 
   final String restaurantId;
   final FoodDeliveryAddress address;
   final List<FoodOrderLineInput> items;
+
+  /// A client-generated token identifying this checkout attempt (issue
+  /// #59). `place_food_order` uses it, together with the caller's profile,
+  /// to return the existing order instead of inserting a duplicate when the
+  /// same attempt is submitted more than once (a double-tap or a retry
+  /// after a lost response). `null` disables that protection for this call.
+  final String? idempotencyKey;
 
   Map<String, dynamic> toRpcParams() {
     if (restaurantId.trim().isEmpty) {
@@ -72,6 +80,7 @@ class FoodOrderRequest {
       'p_district': address.district.trim(),
       'p_city': address.city.trim(),
       'p_items': items.map((item) => item.toRpcMap()).toList(growable: false),
+      'p_idempotency_key': idempotencyKey,
     };
   }
 }

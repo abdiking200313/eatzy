@@ -6,6 +6,7 @@ import '../../../config/theme.dart';
 import '../../../platform/activity/presentation/activity_controller.dart';
 import '../../../widgets/app_cards.dart';
 import '../../../widgets/app_scaffold.dart';
+import '../../shared/data/idempotency_key.dart';
 import '../data/food_repository.dart';
 import '../models/food_models.dart';
 import 'cart_controller.dart';
@@ -62,6 +63,13 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     orderRepository: widget.orderRepository,
     activityController: widget.activityController,
   );
+
+  /// Identifies this checkout attempt (issue #59): generated once when this
+  /// screen is first built and reused for every retry on this same visit,
+  /// so a lost response followed by a retry collapses into the original
+  /// order server-side instead of creating a duplicate. A fresh visit to
+  /// checkout (a new instance of this screen) gets a fresh key.
+  final String _idempotencyKey = generateIdempotencyKey();
 
   @override
   void dispose() {
@@ -141,7 +149,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       district: _districtController.text,
       city: _cityController.text,
     );
-    final result = await _foodController.confirmOrder(address);
+    final result = await _foodController.confirmOrder(
+      address,
+      idempotencyKey: _idempotencyKey,
+    );
     if (result.isSuccess && mounted) {
       context.go(AppRoutes.activity);
     }

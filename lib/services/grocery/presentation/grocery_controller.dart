@@ -9,6 +9,7 @@ import '../../../platform/activity/models/activity_item.dart';
 import '../../../platform/activity/presentation/activity_controller.dart';
 import '../../../platform/session/session_reset_registry.dart';
 import '../../shared/data/cart_storage.dart';
+import '../../shared/data/idempotency_key.dart';
 import '../../shared/presentation/confirm_order_flow.dart';
 import '../../shared/presentation/loadable_state_mixin.dart';
 import '../data/grocery_repository.dart';
@@ -107,6 +108,7 @@ class GroceryController extends ChangeNotifier with LoadableState {
   bool _slotsLoading = false;
   String? _slotLoadError;
   GroceryOrderConfirmation? _lastConfirmation;
+  bool _isSubmitting = false;
 
   Future<void> _pendingCartWrite = Future<void>.value();
   String? _cartOwnerId;
@@ -140,6 +142,13 @@ class GroceryController extends ChangeNotifier with LoadableState {
   bool get isNotEmpty => _cart.isNotEmpty;
   int get itemCount => _cart.length;
   GroceryOrderConfirmation? get lastConfirmation => _lastConfirmation;
+
+  /// Whether a [confirmOrder] call is currently in flight. The checkout
+  /// screen disables its submit button while this is true — see issue #59 —
+  /// and [confirmOrder] itself also refuses to start a second submission
+  /// while this is true, as a belt-and-braces guard against a double-tap or
+  /// a second programmatic call racing the first one.
+  bool get isSubmitting => _isSubmitting;
   String? get cartOwnerId => _cartOwnerId;
   bool get isCartLoading => _isCartLoading;
   String get _cartStorageOwner => _cartOwnerId ?? _guestCartOwner;
@@ -378,12 +387,35 @@ class GroceryController extends ChangeNotifier with LoadableState {
     return errors;
   }
 
+  /// Validates the cart/address/slot/preference and, once valid, places the
+  /// order through the shared [confirmDemoOrder] flow, records activity,
+  /// and clears the cart.
+  ///
+  /// A no-op — without touching submission state — while a previous call is
+  /// still in flight (see [isSubmitting]): this is a belt-and-braces guard
+  /// against a double-tap or a second programmatic call racing the first
+  /// one, on top of the checkout screen already disabling its submit button
+  /// while [isSubmitting] is true (issue #59).
+  ///
+  /// [idempotencyKey] identifies this checkout *attempt* and is forwarded
+  /// to `place_grocery_order` so a retried submission (the same key)
+  /// returns the existing order instead of creating a duplicate and
+  /// decrementing stock again. Callers should generate one per attempt
+  /// (e.g. once per checkout screen visit) and keep passing the same value
+  /// across retries of that attempt; when omitted, a fresh key is generated
+  /// for this call only, which gives no protection against a retry that
+  /// calls this method again.
   Future<GroceryCheckoutResult> confirmOrder({
     required GroceryDeliveryAddress address,
     required GroceryDeliverySlot? slot,
     required GrocerySubstitutionPreference? substitutionPreference,
+    String? idempotencyKey,
     DateTime? now,
   }) {
+    if (_isSubmitting) {
+      return Future.value(GroceryCheckoutResult.invalid(const []));
+    }
+
     final errors = validateCheckout(
       address: address,
       slot: slot,
@@ -402,7 +434,15 @@ class GroceryController extends ChangeNotifier with LoadableState {
           ),
         )
         .toList(growable: false);
+    final resolvedIdempotencyKey = idempotencyKey ?? generateIdempotencyKey();
     GroceryOrderConfirmation? confirmation;
+
+    if (errors.isNotEmpty) {
+      return Future.value(GroceryCheckoutResult.invalid(errors));
+    }
+
+    _isSubmitting = true;
+    notifyListeners();
 
     return confirmDemoOrder<GroceryCheckoutResult, List<String>>(
       validation: errors,
@@ -416,6 +456,7 @@ class GroceryController extends ChangeNotifier with LoadableState {
               address: address,
               substitutionPreference: substitutionPreference!,
               items: confirmedItems,
+              idempotencyKey: resolvedIdempotencyKey,
             ),
           ) ??
           Future.value(null),
@@ -456,7 +497,10 @@ class GroceryController extends ChangeNotifier with LoadableState {
         notifyListeners();
         return GroceryCheckoutResult.confirmed(confirmation!);
       },
-    );
+    ).whenComplete(() {
+      _isSubmitting = false;
+      notifyListeners();
+    });
   }
 
   @visibleForTesting

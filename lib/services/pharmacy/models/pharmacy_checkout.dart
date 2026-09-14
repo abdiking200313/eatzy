@@ -83,10 +83,21 @@ class PharmacyOrderLineInput {
 }
 
 class PharmacyOrderRequest {
-  const PharmacyOrderRequest({required this.details, required this.items});
+  const PharmacyOrderRequest({
+    required this.details,
+    required this.items,
+    this.idempotencyKey,
+  });
 
   final PharmacyCheckoutDetails details;
   final List<PharmacyOrderLineInput> items;
+
+  /// A client-generated token identifying this checkout attempt (issue
+  /// #59). `place_pharmacy_order` uses it, together with the caller's
+  /// profile, to return the existing order instead of inserting a duplicate
+  /// row and decrementing stock again when the same attempt is submitted
+  /// more than once. `null` disables that protection for this call.
+  final String? idempotencyKey;
 
   Map<String, dynamic> toRpcParams() {
     if (items.isEmpty) {
@@ -102,6 +113,7 @@ class PharmacyOrderRequest {
       'p_address_line': details.addressLine.trim(),
       'p_delivery_instructions': details.deliveryInstructions.trim(),
       'p_items': items.map((item) => item.toRpcMap()).toList(growable: false),
+      'p_idempotency_key': idempotencyKey,
     };
   }
 }
