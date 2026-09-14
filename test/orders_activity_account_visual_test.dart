@@ -158,6 +158,13 @@ class _FakeProfileRepository implements ProfileRepository {
 
   @override
   Future<CustomerProfile?> fetchCurrentProfile() async => profile;
+
+  @override
+  Future<CustomerProfile> updateProfile({
+    required String firstName,
+    required String lastName,
+    required String phone,
+  }) async => throw UnimplementedError('not exercised by this test');
 }
 
 class _FakeWalletRepository implements WalletRepository {

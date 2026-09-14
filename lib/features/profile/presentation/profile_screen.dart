@@ -51,6 +51,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
+  Future<void> _editProfile(BuildContext context) async {
+    await context.push(AppRoutes.editProfile);
+    if (!context.mounted) return;
+    // Always reload after returning from the edit screen (rather than
+    // threading a result value back through `pop`) so the header reflects
+    // whatever is actually saved, including when the user backs out without
+    // saving (a no-op reload) or edits again in a later visit.
+    setState(() {
+      _profileFuture = _loadProfile();
+    });
+  }
+
   Future<void> _logout(BuildContext context) async {
     try {
       await AuthService().signOut();
@@ -94,6 +106,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget build(BuildContext context) {
     return AppScaffold(
       title: 'Profile',
+      actions: [
+        IconButton(
+          tooltip: 'Edit profile',
+          icon: const Icon(Icons.edit_outlined),
+          onPressed: () => _editProfile(context),
+        ),
+      ],
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(TwSpacing.x5),
         child: Column(

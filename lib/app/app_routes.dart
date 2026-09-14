@@ -75,6 +75,7 @@ class AppRoutes {
   static const cart = '/cart';
   static const checkout = '/checkout';
   static const profile = '/profile';
+  static const editProfile = '/profile/edit';
   static const addresses = '/addresses';
   static const settings = '/settings';
   static const support = '/support';

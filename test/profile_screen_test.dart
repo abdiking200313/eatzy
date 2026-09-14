@@ -31,6 +31,7 @@ void main() {
     expect(find.text('+252 61 234 5678'), findsOneWidget);
     expect(find.text('Addresses'), findsOneWidget);
     expect(find.text('Logout'), findsOneWidget);
+    expect(find.byIcon(Icons.edit_outlined), findsOneWidget);
 
     expect(find.text('Gold Member'), findsNothing);
     expect(find.text('Activity'), findsNothing);
@@ -82,6 +83,13 @@ class _ProfileRepository implements ProfileRepository {
 
   @override
   Future<CustomerProfile?> fetchCurrentProfile() async => profile;
+
+  @override
+  Future<CustomerProfile> updateProfile({
+    required String firstName,
+    required String lastName,
+    required String phone,
+  }) async => throw UnimplementedError('not exercised by this test');
 }
 
 class _ThrowingProfileRepository implements ProfileRepository {
@@ -91,6 +99,13 @@ class _ThrowingProfileRepository implements ProfileRepository {
 
   @override
   Future<CustomerProfile?> fetchCurrentProfile() async => throw error;
+
+  @override
+  Future<CustomerProfile> updateProfile({
+    required String firstName,
+    required String lastName,
+    required String phone,
+  }) async => throw error;
 }
 
 class _FakeErrorReporter implements ErrorReporter {
