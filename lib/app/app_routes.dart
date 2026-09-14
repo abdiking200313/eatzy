@@ -81,6 +81,13 @@ class AppRoutes {
   static const support = '/support';
   static const wallet = '/wallet';
 
+  // Static legal documents (issue #37), reached from Settings → Privacy
+  // Policy / Terms & Conditions. In-app content only — see
+  // `LegalDocumentScreen`'s doc comment for the app-store-hosting gap this
+  // does not close.
+  static const privacyPolicy = '/settings/privacy-policy';
+  static const termsOfService = '/settings/terms-of-service';
+
   // Bare `/track-order` is kept for backward compatibility with any old
   // deep link that has no order to point at — `TrackOrderScreen` renders a
   // "no order selected" empty state for it rather than crashing (see

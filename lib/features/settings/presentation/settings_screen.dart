@@ -314,20 +314,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     onTap: _showAboutSheet,
                   ),
                   const Divider(height: 1),
-                  // Privacy Policy / Terms & Conditions are tracked by
-                  // issue #37 — no legal text exists yet, so these stay
-                  // non-interactive placeholders rather than a fabricated
-                  // policy page.
-                  const SettingCard(
+                  // Real in-app Privacy Policy / Terms screens now exist
+                  // (issue #37) — see PrivacyPolicyScreen/
+                  // TermsOfServiceScreen for the drafted text and their doc
+                  // comments for the remaining app-store hosted-URL gap.
+                  SettingCard(
                     title: 'Privacy Policy',
-                    subtitle: 'Coming soon',
+                    subtitle: 'How we handle your data',
                     icon: Icons.privacy_tip_outlined,
+                    onTap: () => context.push(AppRoutes.privacyPolicy),
                   ),
                   const Divider(height: 1),
-                  const SettingCard(
+                  SettingCard(
                     title: 'Terms & Conditions',
-                    subtitle: 'Coming soon',
+                    subtitle: 'Rules for using Zivo',
                     icon: Icons.description_outlined,
+                    onTap: () => context.push(AppRoutes.termsOfService),
                   ),
                 ],
               ),
