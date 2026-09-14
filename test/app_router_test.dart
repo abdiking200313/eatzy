@@ -320,4 +320,13 @@ void main() {
       expect(AppRouter.isProtectedLocation(AppRoutes.trackOrder), isTrue);
     });
   });
+
+  group('unknown routes (issue #40)', () {
+    test('an unregistered path is not a registered route', () {
+      expect(
+        AppRouter.hasRegisteredRoute('/this-path-does-not-exist'),
+        isFalse,
+      );
+    });
+  });
 }
