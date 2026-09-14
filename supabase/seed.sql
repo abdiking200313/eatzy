@@ -20,6 +20,13 @@
 -- own dedicated demo account (fixed id below) and only ever attaches demo
 -- activity to that account, never to a real user's profile.
 --
+-- The demo orders below pass `is_demo => true` explicitly (issue #31).
+-- They used to get that flag from the column default, but
+-- `migrations/20260918000000_allow_real_non_demo_orders.sql` flipped that
+-- default to `false` so that a real, app-placed order is the normal case --
+-- so demo data now has to say it is demo data rather than relying on the
+-- default to mean it.
+--
 -- Cleaning/cleaner demo data (the former `cleaner-amina` catalog and its
 -- demo booking) is intentionally NOT reproduced here: the cleaning vertical
 -- was removed entirely in issue #50
@@ -462,6 +469,7 @@ begin
         delivery_fee,
         tax,
         total,
+        is_demo,
         created_at,
         updated_at
       )
@@ -474,6 +482,7 @@ begin
         499,
         v_food_tax,
         v_food_subtotal + 499 + v_food_tax,
+        true,
         now() - interval '4 days',
         now() - interval '4 days'
       )
@@ -539,6 +548,7 @@ begin
         subtotal,
         delivery_fee,
         total,
+        is_demo,
         created_at,
         updated_at
       )
@@ -560,6 +570,7 @@ begin
         v_grocery_price,
         250,
         v_grocery_price + 250,
+        true,
         now() - interval '4 days',
         now() - interval '3 days'
       )
@@ -608,6 +619,7 @@ begin
         subtotal,
         delivery_fee,
         total,
+        is_demo,
         created_at,
         updated_at
       )
@@ -623,6 +635,7 @@ begin
         v_pharmacy_price,
         250,
         v_pharmacy_price + 250,
+        true,
         now() - interval '3 days',
         now() - interval '2 days'
       )
