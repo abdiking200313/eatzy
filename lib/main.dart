@@ -7,6 +7,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'app/app_router.dart';
 import 'config/theme.dart';
+import 'features/onboarding/data/onboarding_preferences.dart';
 import 'platform/activity/data/activity_repository.dart';
 import 'platform/activity/presentation/activity_controller.dart';
 import 'platform/error_reporting/error_reporter.dart';
@@ -77,6 +78,13 @@ void main() {
           localStorage: SecureSessionStorage(supabaseUrl: supabaseUrl),
         ),
       );
+
+      // Loaded once, up front, so AppRouter's synchronous redirect can gate
+      // a returning signed-out user past onboarding on this very first
+      // frame -- see OnboardingLaunchGate and issue #15.
+      OnboardingLaunchGate.hasSeenOnboarding =
+          await const SharedPreferencesOnboardingPreferences()
+              .hasSeenOnboarding();
 
       final cartController = CartController.instance;
       final currentUserId = Supabase.instance.client.auth.currentUser?.id;

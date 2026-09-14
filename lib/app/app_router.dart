@@ -9,9 +9,7 @@ import '../features/auth/presentation/forgot_password_screen.dart';
 import '../features/auth/presentation/login_screen.dart';
 import '../features/auth/presentation/register_screen.dart';
 import '../features/auth/presentation/reset_password_screen.dart';
-import '../features/onboarding/presentation/onboarding_page_1.dart';
-import '../features/onboarding/presentation/onboarding_page_2.dart';
-import '../features/onboarding/presentation/onboarding_page_3.dart';
+import '../features/onboarding/data/onboarding_preferences.dart';
 import '../features/onboarding/presentation/welcome_screen.dart';
 import '../features/orders/presentation/track_order_screen.dart';
 import '../features/profile/presentation/profile_screen.dart';
@@ -64,9 +62,6 @@ class AppRouter {
     AppRoutes.login,
     AppRoutes.register,
     AppRoutes.forgotPassword,
-    AppRoutes.onboardingOne,
-    AppRoutes.onboardingTwo,
-    AppRoutes.onboardingThree,
   };
 
   // These pages can be opened without a Supabase session.
@@ -76,9 +71,6 @@ class AppRouter {
     _page(AppRoutes.login, const LoginScreen()),
     _page(AppRoutes.register, const RegisterScreen()),
     _page(AppRoutes.forgotPassword, const ForgotPasswordScreen()),
-    _page(AppRoutes.onboardingOne, const OnboardingPage1()),
-    _page(AppRoutes.onboardingTwo, const OnboardingPage2()),
-    _page(AppRoutes.onboardingThree, const OnboardingPage3()),
   ];
 
   // The four bottom-nav tabs. Each is its own StatefulShellBranch below, so
@@ -293,6 +285,7 @@ class AppRouter {
       isLoggedIn: isLoggedIn,
       isProtected: isProtected,
       location: location,
+      hasSeenOnboarding: OnboardingLaunchGate.hasSeenOnboarding,
     );
   }
 
@@ -300,6 +293,7 @@ class AppRouter {
     required bool isLoggedIn,
     required bool isProtected,
     required String location,
+    bool hasSeenOnboarding = false,
   }) {
     if (!isLoggedIn && isProtected) {
       return AppRoutes.login;
@@ -307,6 +301,15 @@ class AppRouter {
 
     if (isLoggedIn && _signedOutOnlyRoutes.contains(location)) {
       return AppRoutes.mainApp;
+    }
+
+    // A returning signed-out user (this device already finished or skipped
+    // onboarding at least once, per [OnboardingLaunchGate]) skips straight
+    // past the welcome/onboarding slides on this and every later launch,
+    // landing on login instead of seeing the first-launch sequence again
+    // (issue #15).
+    if (!isLoggedIn && hasSeenOnboarding && location == AppRoutes.welcome) {
+      return AppRoutes.login;
     }
 
     return null;

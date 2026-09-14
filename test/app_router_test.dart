@@ -15,11 +15,11 @@ void main() {
       expect(redirect, AppRoutes.mainApp);
     });
 
-    test('sends a restored session away from onboarding', () {
+    test('sends a restored session away from register', () {
       final redirect = AppRouter.resolveRedirect(
         isLoggedIn: true,
         isProtected: false,
-        location: AppRoutes.onboardingTwo,
+        location: AppRoutes.register,
       );
 
       expect(redirect, AppRoutes.mainApp);
@@ -87,6 +87,60 @@ void main() {
         expect(redirect, isNull);
       },
     );
+  });
+
+  group('onboarding first-launch gating (issue #15)', () {
+    test('keeps a first-time signed-out visitor on welcome', () {
+      final redirect = AppRouter.resolveRedirect(
+        isLoggedIn: false,
+        isProtected: false,
+        location: AppRoutes.welcome,
+      );
+
+      expect(redirect, isNull);
+    });
+
+    test('sends a returning signed-out user (already seen onboarding) from '
+        'welcome straight to login', () {
+      final redirect = AppRouter.resolveRedirect(
+        isLoggedIn: false,
+        isProtected: false,
+        location: AppRoutes.welcome,
+        hasSeenOnboarding: true,
+      );
+
+      expect(redirect, AppRoutes.login);
+    });
+
+    test('does not divert a returning signed-out user away from login', () {
+      final redirect = AppRouter.resolveRedirect(
+        isLoggedIn: false,
+        isProtected: false,
+        location: AppRoutes.login,
+        hasSeenOnboarding: true,
+      );
+
+      expect(redirect, isNull);
+    });
+
+    test('a returning but already-signed-in user still goes to the app, '
+        'not login', () {
+      final redirect = AppRouter.resolveRedirect(
+        isLoggedIn: true,
+        isProtected: false,
+        location: AppRoutes.welcome,
+        hasSeenOnboarding: true,
+      );
+
+      expect(redirect, AppRoutes.mainApp);
+    });
+
+    test('there is no standalone onboarding route left to redirect through '
+        '(dead-end routes removed, see app_routes.dart)', () {
+      expect(AppRouter.hasRegisteredRoute('/onboarding/one'), isFalse);
+      expect(AppRouter.hasRegisteredRoute('/onboarding/two'), isFalse);
+      expect(AppRouter.hasRegisteredRoute('/onboarding/three'), isFalse);
+    });
   });
 
   group('restaurant routes', () {
