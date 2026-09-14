@@ -40,6 +40,25 @@ flutter run
 
 Requires a Supabase project — see `supabase/` for schema/migrations. Note: the linked docs below live one directory above this repo's root and are **not tracked in this git repository** (a plain clone of this repo won't include them) — treat them as historical local notes, not guaranteed-available references. This README and the code/tests are the current source of truth; see `AGENTS.md` and `vault/` in this repo for up-to-date architecture and conventions.
 
+### Pointing at a different Supabase project
+
+The Supabase URL and anon key are read from `lib/config/env.dart` via
+`String.fromEnvironment`, defaulting to the live project so `flutter run` /
+`flutter test` / `flutter build` need no extra flags. To point the app at a
+different project (e.g. a future dev/staging project), pass both defines
+together:
+
+```bash
+flutter run \
+  --dart-define=SUPABASE_URL=https://your-project.supabase.co \
+  --dart-define=SUPABASE_ANON_KEY=your-anon-key
+```
+
+The same two `--dart-define` flags work on `flutter build`/`flutter test`.
+Provisioning an actual separate dev/staging Supabase project is a separate,
+out-of-scope follow-up (see issue #42) — this only wires up the ability to
+point at one once it exists.
+
 ## 📱 Supported Platforms
 
 - ✅ iOS

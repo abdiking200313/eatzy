@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../config/env.dart';
 import '../../config/theme.dart';
 import '../../features/onboarding/data/onboarding_preferences.dart';
 import '../../services/food/presentation/cart_controller.dart';
@@ -44,11 +45,11 @@ class StartupResult {
 /// the app (they land with an empty cart / no recent activity instead,
 /// which the relevant screens already know how to display and retry).
 Future<StartupResult> runStartupSequence() async {
-  const supabaseUrl = 'https://jzubookmbrtslocuzepe.supabase.co';
+  const supabaseUrl = Env.supabaseUrl;
   try {
     await Supabase.initialize(
       url: supabaseUrl,
-      publishableKey: 'sb_publishable_yLgLRnh00I5zjImD-Q7R6A_uOO-l0sT',
+      publishableKey: Env.supabaseAnonKey,
       authOptions: FlutterAuthClientOptions(
         localStorage: SecureSessionStorage(supabaseUrl: supabaseUrl),
       ),
