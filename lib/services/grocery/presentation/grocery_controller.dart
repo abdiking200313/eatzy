@@ -116,7 +116,9 @@ class GroceryController extends ChangeNotifier with LoadableState {
   GroceryOrderConfirmation? _lastConfirmation;
   bool _isSubmitting = false;
 
-  Future<void> _pendingCartWrite = Future<void>.value();
+  final CartWriteQueue _cartWriteQueue = CartWriteQueue(
+    label: 'GroceryController',
+  );
   String? _cartOwnerId;
   int _cartLoadGeneration = 0;
   bool _isCartLoading = false;
@@ -173,7 +175,7 @@ class GroceryController extends ChangeNotifier with LoadableState {
   /// (e.g. before loading a second controller from the same storage) should
   /// await this first.
   @visibleForTesting
-  Future<void> get pendingCartWrite => _pendingCartWrite;
+  Future<void> get pendingCartWrite => _cartWriteQueue.pending;
   String? get storeId =>
       _cart.isEmpty ? null : _cart.values.first.product.storeId;
 
@@ -205,12 +207,11 @@ class GroceryController extends ChangeNotifier with LoadableState {
     _isCartLoading = true;
     notifyListeners();
 
-    List<GroceryCartLine> loadedLines;
-    try {
-      loadedLines = await _storage.read(_cartStorageOwner);
-    } on Object {
-      loadedLines = const [];
-    }
+    final loadedLines = await readCartLogged(
+      _storage,
+      _cartStorageOwner,
+      label: 'GroceryController',
+    );
     if (generation != _cartLoadGeneration) {
       return;
     }
@@ -605,16 +606,6 @@ class GroceryController extends ChangeNotifier with LoadableState {
   }
 
   Future<void> _queueCartWrite(Future<void> Function() write) {
-    final previousWrite = _pendingCartWrite;
-    final operation = () async {
-      try {
-        await previousWrite;
-      } on Object {
-        // A later cart change should still get a chance to persist.
-      }
-      await write();
-    }();
-    _pendingCartWrite = operation;
-    return operation;
+    return _cartWriteQueue.enqueue(write);
   }
 }
