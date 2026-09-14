@@ -69,11 +69,12 @@ void main() {
         DeviceOrientation.portraitDown,
       ]);
 
+      const supabaseUrl = 'https://jzubookmbrtslocuzepe.supabase.co';
       await Supabase.initialize(
-        url: 'https://jzubookmbrtslocuzepe.supabase.co',
+        url: supabaseUrl,
         publishableKey: 'sb_publishable_yLgLRnh00I5zjImD-Q7R6A_uOO-l0sT',
         authOptions: FlutterAuthClientOptions(
-          localStorage: SecureSessionStorage(),
+          localStorage: SecureSessionStorage(supabaseUrl: supabaseUrl),
         ),
       );
 
