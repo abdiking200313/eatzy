@@ -7,6 +7,7 @@ import 'cart_controller.dart';
 import '../../../platform/activity/models/activity_item.dart';
 import '../../../platform/activity/presentation/activity_controller.dart';
 import '../../shared/data/idempotency_key.dart';
+import '../../shared/data/rpc_helpers.dart';
 import '../../shared/presentation/confirm_order_flow.dart';
 import '../data/food_repository.dart';
 import '../models/food_models.dart';
@@ -117,47 +118,63 @@ class FoodController extends ChangeNotifier {
     _addressErrors = const [];
     notifyListeners();
 
-    final result = await confirmDemoOrder<FoodCheckoutResult, bool>(
-      validation: hasOrder,
-      isValid: (isValid) => isValid,
-      onInvalid: (_) => FoodCheckoutResult.invalid(const []),
-      placeOrder: () => _repository.placeOrder(
-        FoodOrderRequest(
-          restaurantId: restaurantId,
-          address: address,
-          items: [
-            for (final item in items)
-              FoodOrderLineInput(
-                menuItemId: item.menuItemId,
-                quantity: item.quantity,
-              ),
-          ],
-          idempotencyKey: idempotencyKey ?? generateIdempotencyKey(),
-        ),
-      ),
-      fallbackOrderId: () => 'food-${DateTime.now().microsecondsSinceEpoch}',
-      onSaveFailed: () => FoodCheckoutResult.invalid(const [
-        'The food order could not be saved. Please try again.',
-      ]),
-      recordActivity: (orderId) => _activityController.record(
-        ActivityItem(
-          id: orderId,
-          serviceId: ServiceId.food,
-          title: _cartController.restaurantName ?? 'Food order',
-          subtitle:
-              '${items.length} ${items.length == 1 ? 'item' : 'items'} • '
-              '${address.city}',
-          status: 'Confirmed',
-          occurredAt: DateTime.now(),
-          amount: _cartController.total,
-          detailsRoute: AppRoutes.food,
-          paymentMethod: 'cash_on_delivery',
-          paymentStatus: 'pending_collection',
-        ),
-      ),
-      clearCart: _cartController.clear,
-      onConfirmed: FoodCheckoutResult.confirmed,
-    );
+    final result =
+        await confirmDemoOrder<FoodCheckoutResult, bool, PlacedOrder>(
+          validation: hasOrder,
+          isValid: (isValid) => isValid,
+          onInvalid: (_) => FoodCheckoutResult.invalid(const []),
+          placeOrder: () => _repository.placeOrder(
+            FoodOrderRequest(
+              restaurantId: restaurantId,
+              address: address,
+              items: [
+                for (final item in items)
+                  FoodOrderLineInput(
+                    menuItemId: item.menuItemId,
+                    quantity: item.quantity,
+                  ),
+              ],
+              idempotencyKey: idempotencyKey ?? generateIdempotencyKey(),
+            ),
+          ),
+          // No real repository is ever configured out from under `_repository`
+          // (it defaults to a live Supabase-backed one — see its getter above),
+          // so this only matters for a caller that injects `null`-returning
+          // test doubles; it mirrors the client-side estimate the cart screen
+          // already showed, since no server round trip actually happened.
+          fallbackOrder: () => PlacedOrder(
+            orderId: 'food-${DateTime.now().microsecondsSinceEpoch}',
+            subtotal: _cartController.subtotal,
+            deliveryFee: _cartController.deliveryFee,
+            tax: _cartController.tax,
+            total: _cartController.total,
+          ),
+          onSaveFailed: () => FoodCheckoutResult.invalid(const [
+            'The food order could not be saved. Please try again.',
+          ]),
+          // `order.total` is the RPC's authoritative, server-computed total
+          // (issue #60) — not `_cartController.total`, which can be stale if a
+          // menu price changed between the cart being built and this checkout
+          // being confirmed.
+          recordActivity: (order) => _activityController.record(
+            ActivityItem(
+              id: order.orderId,
+              serviceId: ServiceId.food,
+              title: _cartController.restaurantName ?? 'Food order',
+              subtitle:
+                  '${items.length} ${items.length == 1 ? 'item' : 'items'} • '
+                  '${address.city}',
+              status: 'Confirmed',
+              occurredAt: DateTime.now(),
+              amount: order.total,
+              detailsRoute: AppRoutes.food,
+              paymentMethod: 'cash_on_delivery',
+              paymentStatus: 'pending_collection',
+            ),
+          ),
+          clearCart: _cartController.clear,
+          onConfirmed: (order) => FoodCheckoutResult.confirmed(order.orderId),
+        );
 
     _submissionError = result.isSuccess
         ? null

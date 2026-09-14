@@ -10,6 +10,7 @@ import '../../../platform/activity/presentation/activity_controller.dart';
 import '../../../platform/session/session_reset_registry.dart';
 import '../../shared/data/cart_storage.dart';
 import '../../shared/data/idempotency_key.dart';
+import '../../shared/data/rpc_helpers.dart';
 import '../../shared/presentation/confirm_order_flow.dart';
 import '../../shared/presentation/loadable_state_mixin.dart';
 import '../data/grocery_repository.dart';
@@ -423,8 +424,13 @@ class GroceryController extends ChangeNotifier with LoadableState {
     );
     final createdAt = now ?? DateTime.now();
     // Snapshot cart-derived values before the shared flow clears the cart.
+    // These are only used for the no-repository (demo) fallback below —
+    // once a real repository is configured, the RPC's returned totals
+    // (issue #60) are used instead.
     final confirmedStoreId = storeId;
     final confirmedStoreName = storeName;
+    final confirmedSubtotal = subtotal;
+    final confirmedDeliveryFee = deliveryFee;
     final confirmedAmount = total;
     final confirmedItems = _cart.values
         .map(
@@ -444,7 +450,7 @@ class GroceryController extends ChangeNotifier with LoadableState {
     _isSubmitting = true;
     notifyListeners();
 
-    return confirmDemoOrder<GroceryCheckoutResult, List<String>>(
+    return confirmDemoOrder<GroceryCheckoutResult, List<String>, PlacedOrder>(
       validation: errors,
       isValid: (validation) => validation.isEmpty,
       onInvalid: (validation) => GroceryCheckoutResult.invalid(validation),
@@ -460,28 +466,38 @@ class GroceryController extends ChangeNotifier with LoadableState {
             ),
           ) ??
           Future.value(null),
-      fallbackOrderId: () => 'grocery-${createdAt.microsecondsSinceEpoch}',
+      fallbackOrder: () => PlacedOrder(
+        orderId: 'grocery-${createdAt.microsecondsSinceEpoch}',
+        subtotal: confirmedSubtotal,
+        deliveryFee: confirmedDeliveryFee,
+        tax: 0,
+        total: confirmedAmount,
+      ),
       onSaveFailed: () => GroceryCheckoutResult.invalid([
         'The grocery order could not be saved. Please try again.',
       ]),
-      recordActivity: (orderId) {
+      // `order.total` is the RPC's authoritative, server-computed total
+      // (issue #60) — not the client-computed `confirmedAmount`, which can
+      // be stale if a product price changed between the cart being built
+      // and this checkout being confirmed.
+      recordActivity: (order) {
         confirmation = GroceryOrderConfirmation(
-          orderId: orderId,
+          orderId: order.orderId,
           createdAt: createdAt,
-          amount: confirmedAmount,
+          amount: order.total,
           slot: slot!,
           address: address,
           substitutionPreference: substitutionPreference!,
         );
         _activityController.record(
           ActivityItem(
-            id: orderId,
+            id: order.orderId,
             serviceId: ServiceId.grocery,
             title: confirmedStoreName ?? 'Grocery order',
             subtitle: '${slot.label}, ${slot.detail}',
             status: 'Demo confirmed',
             occurredAt: createdAt,
-            amount: confirmedAmount,
+            amount: order.total,
             detailsRoute: '/grocery',
             paymentMethod: 'cash_on_delivery',
             paymentStatus: 'pending_collection',
@@ -492,7 +508,7 @@ class GroceryController extends ChangeNotifier with LoadableState {
         _cart.clear();
         return _persistCart();
       },
-      onConfirmed: (orderId) {
+      onConfirmed: (order) {
         _lastConfirmation = confirmation;
         notifyListeners();
         return GroceryCheckoutResult.confirmed(confirmation!);

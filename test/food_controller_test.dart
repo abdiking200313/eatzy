@@ -6,6 +6,7 @@ import 'package:chowflow/platform/activity/presentation/activity_controller.dart
 import 'package:chowflow/services/food/data/food_repository.dart';
 import 'package:chowflow/services/food/models/food_models.dart';
 import 'package:chowflow/services/food/presentation/food_controller.dart';
+import 'package:chowflow/services/shared/data/rpc_helpers.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'helpers/memory_cart_storage.dart';
@@ -155,21 +156,59 @@ void main() {
       expect(repository.lastRequest!.idempotencyKey, isNotEmpty);
     },
   );
+
+  test('confirmOrder records the RPC-returned total, not the client cart '
+      'total, into the activity feed (issue #60)', () async {
+    await addBurger();
+    // The cart's own estimate (unit price 10 + 10% tax + delivery fee)
+    // deliberately differs from what the fake repository returns below,
+    // simulating a menu price that changed between the cart being built
+    // and this checkout being confirmed -- the RPC's number must win.
+    expect(cartController.total, isNot(9999));
+    final controller = FoodController(
+      cartController: cartController,
+      orderRepository: const _FakeFoodOrderRepository(
+        placed: PlacedOrder(
+          orderId: 'food-test-order',
+          subtotal: 8000,
+          deliveryFee: 499,
+          tax: 800,
+          total: 9299,
+        ),
+      ),
+      activityController: activityController,
+    );
+
+    final result = await controller.confirmOrder(_testAddress);
+
+    expect(result.isSuccess, isTrue);
+    expect(activityController.items.single.amount, 9299);
+    expect(activityController.items.single.amount, isNot(cartController.total));
+  });
 }
 
 class _FakeFoodOrderRepository implements FoodOrderRepository {
-  const _FakeFoodOrderRepository();
+  const _FakeFoodOrderRepository({
+    this.placed = const PlacedOrder(
+      orderId: 'food-test-order',
+      subtotal: 1000,
+      deliveryFee: 499,
+      tax: 100,
+      total: 1599,
+    ),
+  });
+
+  final PlacedOrder placed;
 
   @override
-  Future<String> placeOrder(FoodOrderRequest request) async =>
-      'food-test-order';
+  Future<PlacedOrder> placeOrder(FoodOrderRequest request) async => placed;
 }
 
 class _FailingFoodOrderRepository implements FoodOrderRepository {
   const _FailingFoodOrderRepository();
 
   @override
-  Future<String> placeOrder(FoodOrderRequest request) async {
+  Future<PlacedOrder> placeOrder(FoodOrderRequest request) async {
     throw Exception('network error');
   }
 }
@@ -181,10 +220,16 @@ class _RecordingFoodOrderRepository implements FoodOrderRepository {
   FoodOrderRequest? lastRequest;
 
   @override
-  Future<String> placeOrder(FoodOrderRequest request) async {
+  Future<PlacedOrder> placeOrder(FoodOrderRequest request) async {
     callCount++;
     lastRequest = request;
-    return 'food-order-$callCount';
+    return PlacedOrder(
+      orderId: 'food-order-$callCount',
+      subtotal: 1000,
+      deliveryFee: 499,
+      tax: 100,
+      total: 1599,
+    );
   }
 }
 
@@ -193,12 +238,20 @@ class _RecordingFoodOrderRepository implements FoodOrderRepository {
 /// [FoodController.isSubmitting]) while a submission is still in flight.
 class _ControllableFoodOrderRepository implements FoodOrderRepository {
   int callCount = 0;
-  final _pending = Completer<String>();
+  final _pending = Completer<PlacedOrder>();
 
-  void complete(String orderId) => _pending.complete(orderId);
+  void complete(String orderId) => _pending.complete(
+    PlacedOrder(
+      orderId: orderId,
+      subtotal: 1000,
+      deliveryFee: 499,
+      tax: 100,
+      total: 1599,
+    ),
+  );
 
   @override
-  Future<String> placeOrder(FoodOrderRequest request) {
+  Future<PlacedOrder> placeOrder(FoodOrderRequest request) {
     callCount++;
     return _pending.future;
   }

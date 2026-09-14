@@ -6,6 +6,7 @@ import 'package:chowflow/services/food/models/food_models.dart';
 import 'package:chowflow/services/food/presentation/cart_controller.dart';
 import 'package:chowflow/services/food/presentation/checkout_screen.dart';
 import 'package:chowflow/services/food/presentation/food_cart_screen.dart';
+import 'package:chowflow/services/shared/data/rpc_helpers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -136,6 +137,12 @@ class _FakeFoodOrderRepository implements FoodOrderRepository {
   const _FakeFoodOrderRepository();
 
   @override
-  Future<String> placeOrder(FoodOrderRequest request) async =>
-      'food-test-order';
+  Future<PlacedOrder> placeOrder(FoodOrderRequest request) async =>
+      const PlacedOrder(
+        orderId: 'food-test-order',
+        subtotal: 1000,
+        deliveryFee: 499,
+        tax: 100,
+        total: 1599,
+      );
 }

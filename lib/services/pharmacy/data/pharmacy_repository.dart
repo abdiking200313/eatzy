@@ -46,7 +46,7 @@ abstract interface class PharmacyStoreRepository {
 }
 
 abstract interface class PharmacyOrderRepository {
-  Future<String> placeOrder(PharmacyOrderRequest request);
+  Future<PlacedOrder> placeOrder(PharmacyOrderRequest request);
 }
 
 class SeededPharmacyRepository implements PharmacyRepository {
@@ -227,11 +227,11 @@ class SupabasePharmacyOrderRepository implements PharmacyOrderRepository {
   final SupabaseClient _client;
 
   @override
-  Future<String> placeOrder(PharmacyOrderRequest request) async {
+  Future<PlacedOrder> placeOrder(PharmacyOrderRequest request) async {
     final response = await _client.rpc<Object?>(
       'place_pharmacy_order',
       params: request.toRpcParams(),
     );
-    return requiredRpcId(response, 'pharmacy order');
+    return PlacedOrder.fromRpcResponse(response, 'pharmacy order');
   }
 }

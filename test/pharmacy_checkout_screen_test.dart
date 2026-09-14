@@ -6,6 +6,7 @@ import 'package:chowflow/services/pharmacy/models/pharmacy_cart_item.dart';
 import 'package:chowflow/services/pharmacy/models/pharmacy_checkout.dart';
 import 'package:chowflow/services/pharmacy/presentation/pharmacy_checkout_screen.dart';
 import 'package:chowflow/services/pharmacy/presentation/pharmacy_controller.dart';
+import 'package:chowflow/services/shared/data/rpc_helpers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -16,12 +17,20 @@ import 'helpers/memory_cart_storage.dart';
 /// while the first submission is still in flight.
 class _ControllablePharmacyOrderRepository implements PharmacyOrderRepository {
   int callCount = 0;
-  final _pending = Completer<String>();
+  final _pending = Completer<PlacedOrder>();
 
-  void complete(String orderId) => _pending.complete(orderId);
+  void complete(String orderId) => _pending.complete(
+    PlacedOrder(
+      orderId: orderId,
+      subtotal: 1000,
+      deliveryFee: 250,
+      tax: 0,
+      total: 1250,
+    ),
+  );
 
   @override
-  Future<String> placeOrder(PharmacyOrderRequest request) {
+  Future<PlacedOrder> placeOrder(PharmacyOrderRequest request) {
     callCount++;
     return _pending.future;
   }

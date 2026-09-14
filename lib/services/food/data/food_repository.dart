@@ -17,7 +17,7 @@ abstract interface class RestaurantLocationRepository {
 }
 
 abstract interface class FoodOrderRepository {
-  Future<String> placeOrder(FoodOrderRequest request);
+  Future<PlacedOrder> placeOrder(FoodOrderRequest request);
 }
 
 class SupabaseFoodDealRepository implements FoodDealRepository {
@@ -105,11 +105,11 @@ class SupabaseFoodOrderRepository implements FoodOrderRepository {
   final SupabaseClient _client;
 
   @override
-  Future<String> placeOrder(FoodOrderRequest request) async {
+  Future<PlacedOrder> placeOrder(FoodOrderRequest request) async {
     final response = await _client.rpc<Object?>(
       'place_food_order',
       params: request.toRpcParams(),
     );
-    return requiredRpcId(response, 'food order');
+    return PlacedOrder.fromRpcResponse(response, 'food order');
   }
 }

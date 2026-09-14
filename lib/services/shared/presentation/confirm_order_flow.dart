@@ -9,39 +9,41 @@ import 'dart:async';
 /// - [isValid] reports whether [validation] passed.
 /// - [onInvalid] builds the failure result to return when validation fails.
 /// - [placeOrder] performs the repository call; a `null` result falls back
-///   to [fallbackOrderId] to synthesize a demo order id (matching prior
-///   behavior for controllers without a real order repository configured).
+///   to [fallbackOrder] to synthesize a demo order (matching prior behavior
+///   for controllers without a real order repository configured).
 /// - [onSaveFailed] builds the failure result to return if [placeOrder]
 ///   throws.
-/// - [recordActivity] and [clearCart] run, in that order, once an order id
-///   is available, before [onConfirmed] builds the success result.
-///   [clearCart] may return a `Future` (e.g. a cart backed by persisted
-///   storage) or complete synchronously; either way it is awaited before
-///   [onConfirmed] runs, so callers that need the clear to finish first
-///   (matching prior inline behavior) can rely on that ordering.
-Future<T> confirmDemoOrder<T, V>({
+/// - [recordActivity] and [clearCart] run, in that order, once an order
+///   ([R] -- e.g. a `PlacedOrder` carrying the RPC's authoritative id and
+///   totals, see issue #60) is available, before [onConfirmed] builds the
+///   success result. [clearCart] may return a `Future` (e.g. a cart backed
+///   by persisted storage) or complete synchronously; either way it is
+///   awaited before [onConfirmed] runs, so callers that need the clear to
+///   finish first (matching prior inline behavior) can rely on that
+///   ordering.
+Future<T> confirmDemoOrder<T, V, R>({
   required V validation,
   required bool Function(V validation) isValid,
   required T Function(V validation) onInvalid,
-  required Future<String?> Function() placeOrder,
-  required String Function() fallbackOrderId,
+  required Future<R?> Function() placeOrder,
+  required R Function() fallbackOrder,
   required T Function() onSaveFailed,
-  required void Function(String orderId) recordActivity,
+  required void Function(R order) recordActivity,
   required FutureOr<void> Function() clearCart,
-  required T Function(String orderId) onConfirmed,
+  required T Function(R order) onConfirmed,
 }) async {
   if (!isValid(validation)) {
     return onInvalid(validation);
   }
 
-  String orderId;
+  R order;
   try {
-    orderId = await placeOrder() ?? fallbackOrderId();
+    order = await placeOrder() ?? fallbackOrder();
   } on Object {
     return onSaveFailed();
   }
 
-  recordActivity(orderId);
+  recordActivity(order);
   await clearCart();
-  return onConfirmed(orderId);
+  return onConfirmed(order);
 }
