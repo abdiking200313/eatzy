@@ -373,11 +373,11 @@ class PharmacyController extends ChangeNotifier with LoadableState {
     if (_cartItems.isEmpty) {
       errors['cart'] = 'Add at least one OTC product before checkout.';
     }
-    if (details.customerName.trim().length < 2) {
-      errors['customerName'] = 'Enter the customer name.';
+    if (details.recipientName.trim().length < 2) {
+      errors['recipientName'] = 'Enter the customer name.';
     }
-    if (details.phoneNumber.trim().length < 7) {
-      errors['phoneNumber'] = 'Enter a valid phone number.';
+    if (details.phone.trim().length < 7) {
+      errors['phone'] = 'Enter a valid phone number.';
     }
     if (details.city.trim().isEmpty) {
       errors['city'] = 'Enter a city in Somalia.';
@@ -385,8 +385,8 @@ class PharmacyController extends ChangeNotifier with LoadableState {
     if (details.district.trim().isEmpty) {
       errors['district'] = 'Enter a district.';
     }
-    if (details.addressLine.trim().length < 5) {
-      errors['addressLine'] = 'Enter a complete delivery address.';
+    if (details.street.trim().length < 5) {
+      errors['street'] = 'Enter a complete delivery address.';
     }
     if (_cartItems.any(
       (item) =>

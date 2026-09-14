@@ -598,11 +598,11 @@ begin
     if v_pharmacy_product_name is not null then
       insert into public.pharmacy_orders (
         profile_id,
-        customer_name,
-        phone_number,
+        recipient_name,
+        phone,
         city,
         district,
-        address_line,
+        street,
         delivery_instructions,
         status,
         subtotal,

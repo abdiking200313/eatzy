@@ -86,33 +86,33 @@ void main() {
 
   test('checkout validates cart and Somalia delivery details', () {
     const emptyDetails = PharmacyCheckoutDetails(
-      customerName: '',
-      phoneNumber: '12',
+      recipientName: '',
+      phone: '12',
       city: '',
       district: '',
-      addressLine: '',
+      street: '',
     );
 
     final validation = controller.validateCheckout(emptyDetails);
 
     expect(validation.isValid, isFalse);
     expect(validation.errorFor('cart'), isNotNull);
-    expect(validation.errorFor('customerName'), isNotNull);
-    expect(validation.errorFor('phoneNumber'), isNotNull);
+    expect(validation.errorFor('recipientName'), isNotNull);
+    expect(validation.errorFor('phone'), isNotNull);
     expect(validation.errorFor('city'), contains('Somalia'));
     expect(validation.errorFor('district'), isNotNull);
-    expect(validation.errorFor('addressLine'), isNotNull);
+    expect(validation.errorFor('street'), isNotNull);
     expect(PharmacyCheckoutDetails.country, 'Somalia');
   });
 
   test('demo checkout records pharmacy activity and clears its cart', () async {
     controller.addProduct(controller.products.first);
     const details = PharmacyCheckoutDetails(
-      customerName: 'Asha Ali',
-      phoneNumber: '+252 61 234 5678',
+      recipientName: 'Asha Ali',
+      phone: '+252 61 234 5678',
       city: 'Mogadishu',
       district: 'Hodan',
-      addressLine: 'Taleex Road, blue gate',
+      street: 'Taleex Road, blue gate',
       deliveryInstructions: 'Please call on arrival.',
     );
 
@@ -188,11 +188,11 @@ void main() {
     throwingController.addProduct(throwingController.products.first);
 
     const details = PharmacyCheckoutDetails(
-      customerName: 'Asha Ali',
-      phoneNumber: '+252 61 234 5678',
+      recipientName: 'Asha Ali',
+      phone: '+252 61 234 5678',
       city: 'Mogadishu',
       district: 'Hodan',
-      addressLine: 'Taleex Road, blue gate',
+      street: 'Taleex Road, blue gate',
       deliveryInstructions: 'Please call on arrival.',
     );
 
@@ -225,11 +225,11 @@ void main() {
     submittingController.addProduct(submittingController.products.first);
 
     const details = PharmacyCheckoutDetails(
-      customerName: 'Asha Ali',
-      phoneNumber: '+252 61 234 5678',
+      recipientName: 'Asha Ali',
+      phone: '+252 61 234 5678',
       city: 'Mogadishu',
       district: 'Hodan',
-      addressLine: 'Taleex Road, blue gate',
+      street: 'Taleex Road, blue gate',
     );
 
     final first = submittingController.placeDemoOrder(details);
@@ -267,11 +267,11 @@ void main() {
       );
 
       const details = PharmacyCheckoutDetails(
-        customerName: 'Asha Ali',
-        phoneNumber: '+252 61 234 5678',
+        recipientName: 'Asha Ali',
+        phone: '+252 61 234 5678',
         city: 'Mogadishu',
         district: 'Hodan',
-        addressLine: 'Taleex Road, blue gate',
+        street: 'Taleex Road, blue gate',
       );
 
       recordingController.addProduct(recordingController.products.first);
@@ -323,11 +323,11 @@ void main() {
     expect(serverPricedController.total, isNot(4250));
 
     const details = PharmacyCheckoutDetails(
-      customerName: 'Asha Ali',
-      phoneNumber: '+252 61 234 5678',
+      recipientName: 'Asha Ali',
+      phone: '+252 61 234 5678',
       city: 'Mogadishu',
       district: 'Hodan',
-      addressLine: 'Taleex Road, blue gate',
+      street: 'Taleex Road, blue gate',
     );
 
     final result = await serverPricedController.placeDemoOrder(details);
