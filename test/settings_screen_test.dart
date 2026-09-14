@@ -72,6 +72,13 @@ class _FakeProfileRepository implements ProfileRepository {
 
   @override
   Future<CustomerProfile?> fetchCurrentProfile() async => profile;
+
+  @override
+  Future<CustomerProfile> updateProfile({
+    required String firstName,
+    required String lastName,
+    required String phone,
+  }) async => throw UnimplementedError('not exercised by this test');
 }
 
 void main() {
@@ -171,9 +178,9 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Coming soon'), findsNWidgets(5));
-      // Only the two real destinations (Change Password, About Us) should
-      // render the "this row navigates" chevron.
-      expect(find.byIcon(Icons.arrow_forward_ios), findsNWidgets(2));
+      // Only the real destinations (Phone Number, Change Password, About
+      // Us) should render the "this row navigates" chevron.
+      expect(find.byIcon(Icons.arrow_forward_ios), findsNWidgets(3));
 
       expect(tester.takeException(), isNull);
     },

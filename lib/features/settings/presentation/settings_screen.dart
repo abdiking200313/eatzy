@@ -183,10 +183,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
               padding: EdgeInsets.zero,
               child: Column(
                 children: [
-                  // Read-only for now: editing email/phone is issue #13's
-                  // scope. These show the real signed-in values instead of
-                  // the old hardcoded placeholders, with no chevron/onTap
-                  // since tapping them does nothing yet.
+                  // Shows the real signed-in email instead of the old
+                  // hardcoded placeholder. Stays inert (no chevron/onTap):
+                  // the profile-edit flow added by issue #13 only edits
+                  // name/phone, not the auth email, so there is nowhere
+                  // honest to send this tap yet.
                   SettingCard(
                     title: 'Email Address',
                     subtitle: (_email?.isNotEmpty ?? false)
@@ -210,6 +211,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         title: 'Phone Number',
                         subtitle: subtitle,
                         icon: Icons.phone_outlined,
+                        // A real profile-edit flow now exists on master
+                        // (issue #13) and lets the signed-in user change
+                        // their phone number, so this row can honestly
+                        // navigate there instead of staying inert.
+                        onTap: () => context.push(AppRoutes.editProfile),
                       );
                     },
                   ),
