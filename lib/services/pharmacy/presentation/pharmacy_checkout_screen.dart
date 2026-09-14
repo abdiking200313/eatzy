@@ -101,7 +101,7 @@ class _PharmacyCheckoutScreenState extends State<PharmacyCheckoutScreen> {
                       controller: _nameController,
                       label: 'Customer name',
                       icon: Icons.person_outline,
-                      errorText: _errors['customerName'],
+                      errorText: _errors['recipientName'],
                     ),
                     const SizedBox(height: TwSpacing.x3),
                     _CheckoutField(
@@ -110,7 +110,7 @@ class _PharmacyCheckoutScreenState extends State<PharmacyCheckoutScreen> {
                       label: 'Phone number',
                       icon: Icons.phone_outlined,
                       keyboardType: TextInputType.phone,
-                      errorText: _errors['phoneNumber'],
+                      errorText: _errors['phone'],
                     ),
                     const SizedBox(height: TwSpacing.x3),
                     _CheckoutField(
@@ -134,7 +134,7 @@ class _PharmacyCheckoutScreenState extends State<PharmacyCheckoutScreen> {
                       controller: _addressController,
                       label: 'Street, building or landmark',
                       icon: Icons.home_outlined,
-                      errorText: _errors['addressLine'],
+                      errorText: _errors['street'],
                     ),
                     const SizedBox(height: TwSpacing.x3),
                     _CheckoutField(
@@ -175,11 +175,11 @@ class _PharmacyCheckoutScreenState extends State<PharmacyCheckoutScreen> {
 
   PharmacyCheckoutDetails _details() {
     return PharmacyCheckoutDetails(
-      customerName: _nameController.text,
-      phoneNumber: _phoneController.text,
+      recipientName: _nameController.text,
+      phone: _phoneController.text,
       city: _cityController.text,
       district: _districtController.text,
-      addressLine: _addressController.text,
+      street: _addressController.text,
       deliveryInstructions: _instructionsController.text,
     );
   }
