@@ -1,7 +1,10 @@
 import 'dart:convert';
 
+import 'package:chowflow/app/app_routes.dart';
 import 'package:chowflow/config/theme.dart';
 import 'package:chowflow/features/auth/data/auth_service.dart';
+import 'package:chowflow/features/legal/presentation/privacy_policy_screen.dart';
+import 'package:chowflow/features/legal/presentation/terms_of_service_screen.dart';
 import 'package:chowflow/features/profile/data/profile_repository.dart';
 import 'package:chowflow/features/profile/models/customer_profile.dart';
 import 'package:chowflow/features/settings/presentation/settings_screen.dart';
@@ -122,6 +125,14 @@ Widget _pumpableSettingsScreen({
         path: '/login',
         builder: (_, _) => const Scaffold(body: Text('Login destination')),
       ),
+      GoRoute(
+        path: AppRoutes.privacyPolicy,
+        builder: (_, _) => const PrivacyPolicyScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.termsOfService,
+        builder: (_, _) => const TermsOfServiceScreen(),
+      ),
     ],
   );
   return MaterialApp.router(theme: buildAppTheme(), routerConfig: router);
@@ -195,8 +206,8 @@ void main() {
   });
 
   testWidgets(
-    'dead nav rows (Language/Currency/Theme/Privacy/Terms) are honest '
-    'placeholders with no chevron and no tap action',
+    'dead nav rows (Language/Currency/Theme) are honest placeholders with '
+    'no chevron and no tap action',
     (tester) async {
       final authService = await _signedInAuthService(
         userId: 'customer-3',
@@ -223,11 +234,83 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('Coming soon'), findsNWidgets(5));
-      // Only the real destinations (Phone Number, Change Password, About
-      // Us) should render the "this row navigates" chevron.
-      expect(find.byIcon(Icons.arrow_forward_ios), findsNWidgets(3));
+      // Only Language/Currency/Theme remain unimplemented placeholders —
+      // Privacy Policy and Terms & Conditions now navigate to real screens
+      // (issue #37).
+      expect(find.text('Coming soon'), findsNWidgets(3));
+      // The real destinations (Phone Number, Change Password, About Us,
+      // Privacy Policy, Terms & Conditions) should render the "this row
+      // navigates" chevron.
+      expect(find.byIcon(Icons.arrow_forward_ios), findsNWidgets(5));
 
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets(
+    'Privacy Policy navigates to a screen that renders real policy text',
+    (tester) async {
+      final authService = await _signedInAuthService(
+        userId: 'customer-9',
+        email: 'user9@zivo.app',
+      );
+
+      await tester.pumpWidget(
+        _pumpableSettingsScreen(
+          authService: authService,
+          profileRepository: _FakeProfileRepository(
+            const CustomerProfile(
+              id: 'customer-9',
+              firstName: 'Sam',
+              lastName: 'Yusuf',
+              phone: '+252 61 000 0000',
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.scrollUntilVisible(find.text('Privacy Policy'), 200);
+      await tester.tap(find.text('Privacy Policy'));
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('Information We Collect'), findsOneWidget);
+      expect(
+        find.textContaining('Effective September 14, 2026'),
+        findsOneWidget,
+      );
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets(
+    'Terms & Conditions navigates to a screen that renders real terms text',
+    (tester) async {
+      final authService = await _signedInAuthService(
+        userId: 'customer-10',
+        email: 'user10@zivo.app',
+      );
+
+      await tester.pumpWidget(
+        _pumpableSettingsScreen(
+          authService: authService,
+          profileRepository: _FakeProfileRepository(
+            const CustomerProfile(
+              id: 'customer-10',
+              firstName: 'Sam',
+              lastName: 'Yusuf',
+              phone: '+252 61 000 0000',
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.scrollUntilVisible(find.text('Terms & Conditions'), 200);
+      await tester.tap(find.text('Terms & Conditions'));
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('Your Account'), findsOneWidget);
       expect(tester.takeException(), isNull);
     },
   );

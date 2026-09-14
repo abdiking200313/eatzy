@@ -9,6 +9,8 @@ import '../features/auth/presentation/forgot_password_screen.dart';
 import '../features/auth/presentation/login_screen.dart';
 import '../features/auth/presentation/register_screen.dart';
 import '../features/auth/presentation/reset_password_screen.dart';
+import '../features/legal/presentation/privacy_policy_screen.dart';
+import '../features/legal/presentation/terms_of_service_screen.dart';
 import '../features/onboarding/data/onboarding_preferences.dart';
 import '../features/onboarding/presentation/welcome_screen.dart';
 import '../features/orders/presentation/track_order_screen.dart';
@@ -156,6 +158,8 @@ class AppRouter {
     AppRoutes.resetPassword: ResetPasswordScreen(),
     AppRoutes.support: SupportScreen(),
     AppRoutes.wallet: WalletScreen(),
+    AppRoutes.privacyPolicy: PrivacyPolicyScreen(),
+    AppRoutes.termsOfService: TermsOfServiceScreen(),
     AppRoutes.trackOrder: ZivoServiceTheme(
       serviceId: ServiceId.food,
       child: TrackOrderScreen(),
