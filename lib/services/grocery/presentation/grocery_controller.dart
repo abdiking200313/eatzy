@@ -102,6 +102,11 @@ class GroceryController extends ChangeNotifier with LoadableState {
   final List<GroceryDeliverySlot> _deliverySlots = [];
   final Map<String, GroceryCartLine> _cart = {};
 
+  /// Store IDs individually fetched via [loadStore] (as opposed to via the
+  /// every-store [load]). Consulted by [hasLoadedStore] so a screen scoped
+  /// to one store doesn't need the full multi-store catalog loaded first.
+  final Set<String> _loadedStoreIds = {};
+
   static const String _guestCartOwner = 'guest';
 
   bool _hasLoaded = false;
@@ -121,6 +126,14 @@ class GroceryController extends ChangeNotifier with LoadableState {
   UnmodifiableListView<GroceryCartLine> get cart =>
       UnmodifiableListView(_cart.values.toList(growable: false));
   bool get hasLoaded => _hasLoaded;
+
+  /// Whether [storeId] can be found in [stores]: either the full catalog
+  /// has been loaded at least once (via [load]), or that specific store was
+  /// individually loaded via [loadStore]. `GroceryStoreScreen` gates on this
+  /// instead of [hasLoaded] so a direct/deep link to one store doesn't wait
+  /// on (or force) an every-store load first.
+  bool hasLoadedStore(String storeId) =>
+      _hasLoaded || _loadedStoreIds.contains(storeId);
 
   /// Whether the loaded stores/catalog are old enough that [load] should
   /// treat them as needing a refetch: never loaded, or last loaded at least
@@ -235,6 +248,49 @@ class GroceryController extends ChangeNotifier with LoadableState {
       },
       onError: (error, stackTrace) =>
           'Groceries could not be loaded. Please try again.',
+    );
+  }
+
+  /// Loads a single store (and just its own products), scoped by [storeId]
+  /// — the store-detail counterpart of [load], which fetches every active
+  /// store at once for the store-*list* screen. `GroceryStoreScreen` should
+  /// call this instead of [load] so opening one store (including a cold
+  /// start/deep link before [stores] holds anything yet) never has to pull
+  /// every other store's catalog just to render one.
+  ///
+  /// Falls back to [load] when the injected repository doesn't implement
+  /// [GroceryCatalogRepository] (e.g. [SeededGroceryRepository] in tests) —
+  /// the full catalog it fetches already contains every store, this one
+  /// included.
+  Future<void> loadStore(String storeId, {bool forceRefresh = false}) async {
+    final catalogRepository = _catalogRepository;
+    if (catalogRepository == null) {
+      return load(forceRefresh: forceRefresh);
+    }
+    if (isLoading) {
+      return;
+    }
+    if (!forceRefresh && hasLoadedStore(storeId) && !isStale) {
+      return;
+    }
+    await runLoad(
+      fetch: () async {
+        final store = await catalogRepository.fetchStore(storeId);
+        if (store != null) {
+          final index = _stores.indexWhere(
+            (existing) => existing.id == store.id,
+          );
+          if (index == -1) {
+            _stores.add(store);
+          } else {
+            _stores[index] = store;
+          }
+          _loadedStoreIds.add(storeId);
+        }
+        _lastLoadedAt = _now();
+      },
+      onError: (error, stackTrace) =>
+          'This store could not be loaded. Please try again.',
     );
   }
 

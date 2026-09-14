@@ -39,10 +39,13 @@ class _GroceryStoreScreenState extends State<GroceryStoreScreen> {
   void initState() {
     super.initState();
     // See GroceryScreen.initState for why the load is kicked off before
-    // the first state snapshot is taken.
-    if ((!_controller.hasLoaded || _controller.isStale) &&
+    // the first state snapshot is taken. Uses the store-scoped `loadStore`
+    // (not `load`) so viewing one store never pulls every other store's
+    // catalog too — including on a cold start/deep link straight to this
+    // screen, before `GroceryScreen`'s list has loaded anything.
+    if ((!_controller.hasLoadedStore(widget.storeId) || _controller.isStale) &&
         !_controller.isLoading) {
-      unawaited(_controller.load());
+      unawaited(_controller.loadStore(widget.storeId));
     }
     _syncLoadState();
     _controller.addListener(_handleControllerChanged);
@@ -59,13 +62,13 @@ class _GroceryStoreScreenState extends State<GroceryStoreScreen> {
 
   void _syncLoadState() {
     _isLoading = _controller.isLoading;
-    _hasLoaded = _controller.hasLoaded;
+    _hasLoaded = _controller.hasLoadedStore(widget.storeId);
     _loadError = _controller.loadError;
   }
 
   void _handleControllerChanged() {
     final isLoading = _controller.isLoading;
-    final hasLoaded = _controller.hasLoaded;
+    final hasLoaded = _controller.hasLoadedStore(widget.storeId);
     final loadError = _controller.loadError;
     if (isLoading == _isLoading &&
         hasLoaded == _hasLoaded &&
@@ -129,7 +132,7 @@ class _GroceryStoreScreenState extends State<GroceryStoreScreen> {
               PrimaryButton(
                 label: 'Try again',
                 fullWidth: false,
-                onPressed: _controller.load,
+                onPressed: () => _controller.loadStore(widget.storeId),
               ),
             ],
           ),
@@ -150,10 +153,19 @@ class _GroceryStoreScreenState extends State<GroceryStoreScreen> {
     }
 
     final products = _visibleProducts(store);
+    // One fixed header row (area/notice/search field) + one row per product,
+    // or (once loaded) one "no products" row in place of the product rows
+    // when the search scope has nothing to show. Flattened into a single
+    // `ListView.builder` (rather than building every product row eagerly)
+    // so a large catalog only builds the rows actually on/near screen —
+    // see issue #177.
+    final showEmptyRow = products.isEmpty;
+    final itemCount = 1 + (showEmptyRow ? 1 : products.length);
 
     return RefreshIndicator(
-      onRefresh: () => _controller.load(forceRefresh: true),
-      child: ListView(
+      onRefresh: () =>
+          _controller.loadStore(widget.storeId, forceRefresh: true),
+      child: ListView.builder(
         padding: const EdgeInsets.fromLTRB(
           TwSpacing.x5,
           TwSpacing.x2,
@@ -161,28 +173,40 @@ class _GroceryStoreScreenState extends State<GroceryStoreScreen> {
           TwSpacing.x8,
         ),
         physics: const AlwaysScrollableScrollPhysics(),
-        children: [
-          Text(store.area, style: TwText.textSm),
-          const SizedBox(height: TwSpacing.x2),
-          Text(
-            'Products marked per kg can be added in 0.5 kg steps.',
-            style: TwText.textSm,
-          ),
-          const SizedBox(height: TwSpacing.x5),
-          _searchField(),
-          const SizedBox(height: TwSpacing.x5),
-          if (products.isEmpty)
-            _EmptyProducts(searchQuery: _searchController.text.trim())
-          else
-            for (final product in products)
-              Padding(
-                padding: const EdgeInsets.only(bottom: TwSpacing.x3),
-                child: GroceryProductCard(
-                  product: product,
-                  onAdd: () => _add(product),
-                ),
+        itemCount: itemCount,
+        itemBuilder: (context, index) {
+          if (index == 0) {
+            return Padding(
+              padding: const EdgeInsets.only(bottom: TwSpacing.x5),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(store.area, style: TwText.textSm),
+                  const SizedBox(height: TwSpacing.x2),
+                  Text(
+                    'Products marked per kg can be added in 0.5 kg steps.',
+                    style: TwText.textSm,
+                  ),
+                  const SizedBox(height: TwSpacing.x5),
+                  _searchField(),
+                ],
               ),
-        ],
+            );
+          }
+
+          if (showEmptyRow) {
+            return _EmptyProducts(searchQuery: _searchController.text.trim());
+          }
+
+          final product = products[index - 1];
+          return Padding(
+            padding: const EdgeInsets.only(bottom: TwSpacing.x3),
+            child: GroceryProductCard(
+              product: product,
+              onAdd: () => _add(product),
+            ),
+          );
+        },
       ),
     );
   }
