@@ -2,6 +2,9 @@ import 'package:chowflow/config/theme.dart';
 import 'package:chowflow/features/profile/data/profile_repository.dart';
 import 'package:chowflow/features/profile/models/customer_profile.dart';
 import 'package:chowflow/features/profile/presentation/profile_screen.dart';
+import 'package:chowflow/features/wallet/data/wallet_repository.dart';
+import 'package:chowflow/features/wallet/models/wallet_payment_method_record.dart';
+import 'package:chowflow/features/wallet/models/wallet_transaction_record.dart';
 import 'package:chowflow/platform/error_reporting/error_reporter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -22,6 +25,7 @@ void main() {
               phone: '+252 61 234 5678',
             ),
           ),
+          walletRepository: _FakeWalletRepository(12050),
         ),
       ),
     );
@@ -42,6 +46,67 @@ void main() {
   });
 
   testWidgets(
+    'wallet row reads the real balance from WalletRepository instead of a '
+    'hardcoded figure (issue #14)',
+    (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: buildAppTheme(),
+          home: ProfileScreen(
+            profileRepository: const _ProfileRepository(null),
+            walletRepository: _FakeWalletRepository(12050),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Same real balance (in cents) formatted the same way the wallet
+      // screen formats it, not a second independently hardcoded string.
+      expect(find.text(r'$120.50'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'a failed wallet balance load omits the trailing amount instead of '
+    'showing a stale or fabricated number (issue #14)',
+    (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: buildAppTheme(),
+          home: ProfileScreen(
+            profileRepository: const _ProfileRepository(null),
+            walletRepository: _ThrowingWalletRepository(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text(r'$120.50'), findsNothing);
+      expect(find.textContaining(r'$'), findsNothing);
+    },
+  );
+
+  testWidgets(
+    'Coupons & Offers row is removed and Notifications routes to Settings '
+    'instead of being a dead tap target (issue #14)',
+    (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: buildAppTheme(),
+          home: ProfileScreen(
+            profileRepository: const _ProfileRepository(null),
+            walletRepository: _FakeWalletRepository(0),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Coupons & Offers'), findsNothing);
+      expect(find.text('Notifications'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
     'a failed profile load still renders the empty state, but reports the '
     'error instead of swallowing it silently (issue #40)',
     (tester) async {
@@ -56,6 +121,7 @@ void main() {
           theme: buildAppTheme(),
           home: ProfileScreen(
             profileRepository: _ThrowingProfileRepository(loadError),
+            walletRepository: const _FakeWalletRepository(0),
           ),
         ),
       );
@@ -115,4 +181,37 @@ class _FakeErrorReporter implements ErrorReporter {
   void reportError(Object error, StackTrace stack, {String? context}) {
     reported.add((error: error, stack: stack, context: context));
   }
+}
+
+class _FakeWalletRepository implements WalletRepository {
+  const _FakeWalletRepository(this.balanceCents);
+
+  final int balanceCents;
+
+  @override
+  Future<int> fetchBalance() async => balanceCents;
+
+  @override
+  Future<List<WalletTransactionRecord>> fetchTransactions({
+    int limit = 20,
+  }) async => const [];
+
+  @override
+  Future<List<WalletPaymentMethodRecord>> fetchPaymentMethods() async =>
+      const [];
+}
+
+class _ThrowingWalletRepository implements WalletRepository {
+  @override
+  Future<int> fetchBalance() async =>
+      throw StateError('boom: wallet balance query failed');
+
+  @override
+  Future<List<WalletTransactionRecord>> fetchTransactions({
+    int limit = 20,
+  }) async => const [];
+
+  @override
+  Future<List<WalletPaymentMethodRecord>> fetchPaymentMethods() async =>
+      const [];
 }
