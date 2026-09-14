@@ -183,11 +183,15 @@ class SupabaseGroceryCatalogRepository
     if (storeId.trim().isEmpty) {
       throw const FormatException('A grocery store ID is required.');
     }
+    // Reads from `grocery_delivery_slots_available` (issue #82), not the
+    // base `grocery_delivery_slots` table: the view already excludes a slot
+    // whose computed delivery window has elapsed (and, via RLS with
+    // `security_invoker`, an inactive slot or one at an inactive store), so
+    // this query no longer needs its own `is_active` filter.
     final rows = await _client
-        .from('grocery_delivery_slots')
+        .from('grocery_delivery_slots_available')
         .select('id, store_id, label, detail')
         .eq('store_id', storeId)
-        .eq('is_active', true)
         .order('sort_order');
 
     return List.unmodifiable(
