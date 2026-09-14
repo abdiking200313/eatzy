@@ -7,17 +7,18 @@ upstream_concept: 00-Index
 
 # Open Tasks
 
-**Refreshed 2026-09-13 (board worker, 66th run) — major reload, see [[Status Log]] 2026-09-13 for full detail.** The owner did a mass reply/approval pass today answering every `waiting-on-you` question at once; the 25-run "nothing eligible" streak (43rd-65th) is over. **Source of truth is always a live `list_issues`/`gh issue list --repo abdiking200313/eatzy --state open` call** — re-check before relying on this for anything that matters.
+**Refreshed 2026-09-14 (board worker, 67th run), see [[Status Log]] 2026-09-14 for full detail.** **Source of truth is always a live `list_issues`/`gh issue list --repo abdiking200313/eatzy --state open` call** — re-check before relying on this for anything that matters.
 
-## Current state as of the 66th run (2026-09-13)
+## Current state as of the 67th run (2026-09-14)
 
-- **`waiting-on-you` is empty** — every previously-blocked issue (#8, #16, #40, #74, #78, #79, #132) got an owner decision today and was relabeled `todo` (or stayed as informational tracking for #79).
-- **6 issues processed and merged this run**: #3 (PR #182), #8 (PR #185, currency→integer-cents migration), #9 (PR #183, rewards feature deleted), #12 (PR #186, fake payment-methods screen deleted), #16 (PR #184, `com.zivo.app` rebrand), #30 (PR #187, cash-on-delivery payment scaffolding). Plus one infra fix not tied to an issue: PR #188, a `SessionStart` hook that auto-installs the Flutter SDK (this session found none installed at all — see [[Status Log]] 2026-09-13 for detail, and [[Multi-Agent Setup]]/[[Conventions]] if this recurs).
-- **Two migrations from this run still need manual production application** (never auto-applied by the board worker): #8's cents-conversion migration and #30's payment-columns migration. Both were called out explicitly in their PR bodies.
-- **Remaining `todo`, oldest-first, next run's pickup order**: #34 (core tables missing migration — now approved, unblocks #74), #40 (crash reporting SDK-independent half — Firebase Crashlytics decided, SDK wiring itself deferred until the owner provisions a project), #59 (checkout idempotency), #60 (pricing/tax/fee single source of truth — likely overlaps with #8's cents work, re-check its text against the new schema before implementing), #74 (RLS enable — do after #34 lands, per the owner's own instruction), #78 (shared `delivery_addresses` platform layer — shape decided: FK'd shared table + mandated columns, clean-break no backfill), #82 (grocery order delivery-window race).
-- **Still not board-worker-pickable despite `todo`**: #132 (merchant app scaffold — owner's own comment reaffirms this needs a human to kick off even though decisions are now recorded: same-repo, `com.zivo.merchant`); #133/#134/#135 stay blocked on #132 actually existing.
+- **`waiting-on-you` holds only #34** (core tables missing migration — genuinely blocked again, no live Supabase DB access exists in any board-worker sandbox; asked the owner for a `supabase db pull` dump or read-only connection string).
+- **5 issues processed and merged this run**: #40 (PR #191, global error handling/error-reporter scaffolding), #59 (PR #192, checkout idempotency), #60 (PR #193, server-owned pricing config + RPC-returned total), #82 (PR #194, elapsed grocery delivery-slot rejection), #78 (PR #195, shared `delivery_addresses` table + pharmacy column renames + FK on all three order tables).
+- **Five migrations from this run still need manual production application** (never auto-applied by the board worker): #59/#60/#82/#78's, plus #34's fix once it's unblocked. All called out explicitly in their own PR bodies.
+- **`place_food_order`/`place_grocery_order`/`place_pharmacy_order` are now four migrations deep this cycle alone** — `supabase/migrations/20260917000000_add_shared_delivery_addresses.sql` is the current authoritative definition for all three as of this run; check for anything newer before assuming that's still true.
+- **Remaining `todo`, oldest-first, next run's pickup order**: #74 (RLS enable — still blocked on #34 actually landing), then the fresh, not-yet-triaged-for-ambiguity 2026-09-12 batch: #177, #178 (the shared-checkout-flow error swallow deliberately left by #40's PR for this issue), #179, #180, #181.
+- **Still not board-worker-pickable despite `todo`**: #132 (merchant app scaffold — needs a human to kick off); #133/#134/#135 stay blocked on #132.
 - **Tracking-only, no direct work**: #29, #52, #128, #176.
-- **Not yet triaged for ambiguity**: #177, #178, #179, #180, #181 (a fresh 2026-09-12 audit batch, sibling to tracking issue #176) — next run should check these for genuine ambiguity before picking up.
+- **Process note**: #34 and #40 both carried a stale `agent-in-progress` label at this run's start with no branch/PR/vault trace of real work — treated as a labeling artifact, see [[Multi-Agent Setup]].
 
 ---
 
@@ -45,15 +46,9 @@ upstream_concept: 00-Index
 
 | # | Title | Asked | Notes |
 |---|---|---|---|
-| 8 | Currency decimal-vs-integer + schema drift (`item_categories`/`icon_url`/etc.) | 2026-08-26 (7th run) | Needs the live `menu_items.price` column type checked (integer cents vs numeric dollars) — no DB credentials available to any session here; comment lays out the mechanical fix for either answer |
-| 16 | Native app identifiers still `com.example.chowflow` | 2026-08-15T00:55 UTC | Needs the reverse-domain identifier to use (no existing `com.zivo.*` anywhere to infer from) |
-| 40 | No global error handling / crash reporting / production logging | 2026-08-17T20:38 UTC | Needs crash-reporting SDK choice (Sentry vs Firebase Crashlytics vs none) + credentials; offered to land the SDK-independent half first |
-| 78 | Every vertical models delivery address/order differently — no shared platform layer | 2026-08-27 (11th run) | Issue itself asks to "decide on a shared platform core" — needs the schema shape picked (shared `delivery_addresses` + mandated column set vs. full `orders` supertype) and how it relates to #2's already-in-flight food-address migration (PR #95) |
-| 79 | Order status can never change after creation — no UPDATE path exists | 2026-08-27 (11th run) | **#131 (the actual implementation) merged 2026-08-30 (14th run), PR #154** — posted an informational comment on #79 with the RPC names/assumptions, left it open (not closed) per the human's own instruction to leave it tracking until #131's merge is confirmed. Candidate to close on a future run once confirmed. |
-| 74 | RLS unverifiable for six client-queried food tables | 2026-08-30 (13th run) | Blocked on issue #34 (missing table DDL), which isn't itself `todo`-approved — can't write a working RLS-enable migration for tables no migration creates. Asked whether to approve #34 first or let this issue absorb that scope too |
-| 132 | Merchant self-service (4/6): scaffold a separate merchant Flutter app | 2026-08-30 (14th run) | Issue's own text says this needs human scoping, not a direct board-worker pickup — asked same-repo-vs-separate-repo (issue recommends same-repo but says to flag, not silently pick), package identifier, and whether to hold #133/#134/#135 as a block on this answer |
+| 34 | Core tables exist in no migration — fresh environment cannot be provisioned | 2026-09-14 (67th run) | No live Supabase DB credentials/CLI link exist in any board-worker sandbox, and the sandbox proxy blocks reaching the Supabase host directly even with the client's own public key. Asked for a `supabase db pull`/`pg_dump --schema-only` dump or a read-only connection string. Blocks #74 until resolved. |
 
-#16/#40 still have only the agent's own clarifying-question comment as of 2026-09-12 (run 65) — no human reply on either yet (going on ~28 and ~26 days respectively). #78 still no human reply. #79/#74/#132 also unchanged.
+All other rows previously in this table (#8, #16, #40, #74's original block, #78, #79, #132) were resolved by the owner's 2026-09-13 mass reply pass — see [[Status Log]] 2026-09-13 and 2026-09-14 for what happened to each. #74 is `todo` (not `waiting-on-you`) but still practically blocked — see the blocked table below.
 
 ## `agent-in-progress` — open PR awaiting review
 
