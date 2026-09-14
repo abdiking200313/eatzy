@@ -10,6 +10,14 @@ abstract interface class GroceryRepository {
 abstract interface class GroceryCatalogRepository {
   Future<List<GroceryStore>> fetchStores();
 
+  /// Fetches a single store (`grocery_stores.id`) and just its own products,
+  /// scoped by `grocery_products.store_id` — the grocery counterpart of
+  /// `PharmacyCatalogRepository.fetchProducts(storeId: ...)`. Returns `null`
+  /// when no active store matches [storeId]. Used by `GroceryStoreScreen`,
+  /// which only ever renders one store at a time, instead of the
+  /// every-store-at-once [fetchStores].
+  Future<GroceryStore?> fetchStore(String storeId);
+
   Future<List<GroceryDeliverySlot>> fetchDeliverySlots(String storeId);
 }
 
@@ -128,16 +136,21 @@ class SupabaseGroceryCatalogRepository
   /// Bounds on the multi-store browse read.
   ///
   /// `fetchStores()` renders every active store *and* its products
-  /// together on one screen (see `GroceryScreen`), grouping products by
-  /// store client-side. There is no "selected store" concept in the
-  /// current UX to filter by, so a real keyset/RPC-based per-store
-  /// pagination contract isn't a drop-in fix here without also changing
-  /// the browse UX (out of scope for issue #61 — tracked as a follow-up).
-  /// Until then, these limits only bound the worst case: previously this
+  /// together, grouping products by store client-side — used only by
+  /// `GroceryScreen`'s store-*list* screen (store name/area/product count
+  /// per card), not by the single-store `GroceryStoreScreen` (see
+  /// [fetchStore], added by issue #177 once issue #140 introduced a
+  /// "selected store" concept to scope by). These limits bound the worst
+  /// case of that still-necessarily-multi-store read: previously this
   /// query had no limit at all and pulled the entire multi-store catalog
   /// on every load.
   static const int maxStores = 30;
   static const int maxProducts = 300;
+
+  /// Bound on [fetchStore]'s single-store product read. Higher than
+  /// [maxProducts] (which is spread across up to [maxStores] stores) since
+  /// this is the full read for one store's own catalog.
+  static const int maxProductsPerStore = 300;
 
   @override
   Future<List<GroceryStore>> fetchStores() async {
@@ -175,6 +188,44 @@ class SupabaseGroceryCatalogRepository
           products: productsByStore[row['id']?.toString()] ?? const [],
         ),
       ),
+    );
+  }
+
+  @override
+  Future<GroceryStore?> fetchStore(String storeId) async {
+    if (storeId.trim().isEmpty) {
+      throw const FormatException('A grocery store ID is required.');
+    }
+
+    final storeRow = await _client
+        .from('grocery_stores')
+        .select('id, name, area')
+        .eq('id', storeId)
+        .eq('is_active', true)
+        .maybeSingle();
+    if (storeRow == null) {
+      return null;
+    }
+
+    final productRows = await _client
+        .from('grocery_products')
+        .select(
+          'id, store_id, name, description, unit_price, pricing_unit, '
+          'quantity_step, available_quantity, low_stock_threshold, icon',
+        )
+        .eq('store_id', storeId)
+        .eq('is_active', true)
+        .order('name')
+        .limit(maxProductsPerStore);
+
+    final products = _mapRows(
+      productRows,
+      'grocery products',
+    ).map(GroceryProduct.fromMap).toList(growable: false);
+
+    return GroceryStore.fromMap(
+      Map<String, dynamic>.from(storeRow),
+      products: products,
     );
   }
 

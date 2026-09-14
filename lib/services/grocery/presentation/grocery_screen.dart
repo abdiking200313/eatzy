@@ -144,10 +144,18 @@ class _GroceryScreenState extends State<GroceryScreen> {
     }
 
     final stores = _visibleStores();
+    // One fixed header row (heading/blurb/search field) + one row per store,
+    // or (once loaded) one "no stores" row in place of the store rows when
+    // the search has nothing to show. Flattened into a single
+    // `ListView.builder` (rather than building every store row eagerly) so
+    // a large store list only builds the rows actually on/near screen —
+    // see issue #177.
+    final showEmptyRow = stores.isEmpty;
+    final itemCount = 1 + (showEmptyRow ? 1 : stores.length);
 
     return RefreshIndicator(
       onRefresh: () => _controller.load(forceRefresh: true),
-      child: ListView(
+      child: ListView.builder(
         padding: const EdgeInsets.fromLTRB(
           TwSpacing.x5,
           TwSpacing.x2,
@@ -155,25 +163,40 @@ class _GroceryScreenState extends State<GroceryScreen> {
           TwSpacing.x8,
         ),
         physics: const AlwaysScrollableScrollPhysics(),
-        children: [
-          Text('Somali stores near you', style: TwText.textXl),
-          const SizedBox(height: TwSpacing.x2),
-          Text('Pick a store to browse its products.', style: TwText.textSm),
-          const SizedBox(height: TwSpacing.x5),
-          _searchField(),
-          const SizedBox(height: TwSpacing.x5),
-          if (stores.isEmpty)
-            _EmptyStores(searchQuery: _searchController.text.trim())
-          else
-            for (final store in stores)
-              Padding(
-                padding: const EdgeInsets.only(bottom: TwSpacing.x3),
-                child: GroceryStoreCard(
-                  store: store,
-                  onPressed: () => _openStore(store),
-                ),
+        itemCount: itemCount,
+        itemBuilder: (context, index) {
+          if (index == 0) {
+            return Padding(
+              padding: const EdgeInsets.only(bottom: TwSpacing.x5),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Somali stores near you', style: TwText.textXl),
+                  const SizedBox(height: TwSpacing.x2),
+                  Text(
+                    'Pick a store to browse its products.',
+                    style: TwText.textSm,
+                  ),
+                  const SizedBox(height: TwSpacing.x5),
+                  _searchField(),
+                ],
               ),
-        ],
+            );
+          }
+
+          if (showEmptyRow) {
+            return _EmptyStores(searchQuery: _searchController.text.trim());
+          }
+
+          final store = stores[index - 1];
+          return Padding(
+            padding: const EdgeInsets.only(bottom: TwSpacing.x3),
+            child: GroceryStoreCard(
+              store: store,
+              onPressed: () => _openStore(store),
+            ),
+          );
+        },
       ),
     );
   }

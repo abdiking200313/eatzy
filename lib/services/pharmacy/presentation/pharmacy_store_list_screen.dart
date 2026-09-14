@@ -156,65 +156,100 @@ class _PharmacyStoreListScreenState extends State<PharmacyStoreListScreen> {
     );
   }
 
+  // Two slivers: a fixed header (search field + heading) and the store rows
+  // themselves, the latter built lazily via `SliverList.builder` (rather
+  // than eagerly as a `Column` of every row up front) so a large pharmacy
+  // list only builds the rows actually on/near screen — see issue #177.
+  // `_buildStoreList`/`_buildFilteredStoreList` each return a sliver, which
+  // is why they can sit directly in `CustomScrollView.slivers` even wrapped
+  // in a `FutureBuilder` (its `builder` result — a sliver — is exactly what
+  // `FutureBuilder.build` returns, with no intervening box wrapper).
   Widget _buildContent(List<PharmacyStore> stores) {
-    return ListView(
-      padding: const EdgeInsets.all(TwSpacing.x5),
+    return CustomScrollView(
       physics: const AlwaysScrollableScrollPhysics(),
-      children: [
-        OutlinedCard(
-          backgroundColor: TwColors.card,
-          borderColor: TwColors.border,
-          borderRadius: 50,
-          child: Row(
-            children: [
-              const Icon(Icons.search, color: TwColors.textMuted),
-              const SizedBox(width: TwSpacing.x4),
-              Expanded(
-                child: TextField(
-                  controller: _searchController,
-                  onChanged: _onSearchChanged,
-                  textInputAction: TextInputAction.search,
-                  decoration: const InputDecoration(
-                    isCollapsed: true,
-                    border: InputBorder.none,
-                    hintText: 'Search pharmacies...',
-                    hintStyle: TextStyle(color: TwColors.textMuted),
+      slivers: [
+        SliverPadding(
+          padding: const EdgeInsets.fromLTRB(
+            TwSpacing.x5,
+            TwSpacing.x5,
+            TwSpacing.x5,
+            0,
+          ),
+          sliver: SliverToBoxAdapter(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                OutlinedCard(
+                  backgroundColor: TwColors.card,
+                  borderColor: TwColors.border,
+                  borderRadius: 50,
+                  child: Row(
+                    children: [
+                      const Icon(Icons.search, color: TwColors.textMuted),
+                      const SizedBox(width: TwSpacing.x4),
+                      Expanded(
+                        child: TextField(
+                          controller: _searchController,
+                          onChanged: _onSearchChanged,
+                          textInputAction: TextInputAction.search,
+                          decoration: const InputDecoration(
+                            isCollapsed: true,
+                            border: InputBorder.none,
+                            hintText: 'Search pharmacies...',
+                            hintStyle: TextStyle(color: TwColors.textMuted),
+                          ),
+                        ),
+                      ),
+                      if (_searchController.text.isNotEmpty)
+                        GestureDetector(
+                          onTap: _clearSearch,
+                          child: const Padding(
+                            padding: EdgeInsets.only(left: TwSpacing.x2),
+                            child: Icon(
+                              Icons.clear,
+                              size: 20,
+                              color: TwColors.textMuted,
+                            ),
+                          ),
+                        ),
+                    ],
                   ),
                 ),
-              ),
-              if (_searchController.text.isNotEmpty)
-                GestureDetector(
-                  onTap: _clearSearch,
-                  child: const Padding(
-                    padding: EdgeInsets.only(left: TwSpacing.x2),
-                    child: Icon(
-                      Icons.clear,
-                      size: 20,
-                      color: TwColors.textMuted,
-                    ),
-                  ),
-                ),
-            ],
+                const SizedBox(height: TwSpacing.rhythmSection),
+                Text('Pharmacies near you', style: TwText.textXl),
+                const SizedBox(height: TwSpacing.rhythmDefault),
+              ],
+            ),
           ),
         ),
-        const SizedBox(height: TwSpacing.rhythmSection),
-        Text('Pharmacies near you', style: TwText.textXl),
-        const SizedBox(height: TwSpacing.rhythmDefault),
-        _filteredStores == null
-            ? _buildStoreList(stores)
-            : _buildFilteredStoreList(_filteredStores!),
+        SliverPadding(
+          padding: const EdgeInsets.fromLTRB(
+            TwSpacing.x5,
+            0,
+            TwSpacing.x5,
+            TwSpacing.x5,
+          ),
+          sliver: _filteredStores == null
+              ? _buildStoreList(stores)
+              : _buildFilteredStoreList(_filteredStores!),
+        ),
       ],
     );
   }
 
   Widget _buildStoreList(List<PharmacyStore> stores) {
     if (stores.isEmpty) {
-      return const Padding(
-        padding: EdgeInsets.all(TwSpacing.x8),
-        child: Center(child: Text('No pharmacies found.')),
+      return const SliverToBoxAdapter(
+        child: Padding(
+          padding: EdgeInsets.all(TwSpacing.x8),
+          child: Center(child: Text('No pharmacies found.')),
+        ),
       );
     }
-    return Column(children: [for (final store in stores) _buildStore(store)]);
+    return SliverList.builder(
+      itemCount: stores.length,
+      itemBuilder: (context, index) => _buildStore(stores[index]),
+    );
   }
 
   Widget _buildFilteredStoreList(Future<List<PharmacyStore>> future) {
@@ -222,29 +257,36 @@ class _PharmacyStoreListScreenState extends State<PharmacyStoreListScreen> {
       future: future,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Padding(
-            padding: EdgeInsets.all(TwSpacing.x8),
-            child: Center(child: CircularProgressIndicator()),
+          return const SliverToBoxAdapter(
+            child: Padding(
+              padding: EdgeInsets.all(TwSpacing.x8),
+              child: Center(child: CircularProgressIndicator()),
+            ),
           );
         }
         if (snapshot.hasError) {
-          return const Padding(
-            padding: EdgeInsets.all(TwSpacing.x8),
-            child: Center(child: Text('Pharmacies could not be loaded.')),
+          return const SliverToBoxAdapter(
+            child: Padding(
+              padding: EdgeInsets.all(TwSpacing.x8),
+              child: Center(child: Text('Pharmacies could not be loaded.')),
+            ),
           );
         }
 
         final stores = snapshot.data ?? const <PharmacyStore>[];
         if (stores.isEmpty) {
           final searchQuery = _searchController.text.trim();
-          return Padding(
-            padding: const EdgeInsets.all(TwSpacing.x8),
-            child: Center(child: Text('No pharmacies match "$searchQuery".')),
+          return SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.all(TwSpacing.x8),
+              child: Center(child: Text('No pharmacies match "$searchQuery".')),
+            ),
           );
         }
 
-        return Column(
-          children: [for (final store in stores) _buildStore(store)],
+        return SliverList.builder(
+          itemCount: stores.length,
+          itemBuilder: (context, index) => _buildStore(stores[index]),
         );
       },
     );
