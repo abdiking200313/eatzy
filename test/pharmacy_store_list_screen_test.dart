@@ -1,8 +1,5 @@
 import 'package:chowflow/app/app_routes.dart';
 import 'package:chowflow/config/theme.dart';
-import 'package:chowflow/platform/activity/presentation/activity_controller.dart';
-import 'package:chowflow/services/pharmacy/data/pharmacy_repository.dart';
-import 'package:chowflow/services/pharmacy/models/pharmacy_cart_item.dart';
 import 'package:chowflow/services/pharmacy/models/pharmacy_store.dart';
 import 'package:chowflow/services/pharmacy/presentation/pharmacy_controller.dart';
 import 'package:chowflow/services/pharmacy/presentation/pharmacy_store_list_screen.dart';
@@ -10,7 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 
-import 'helpers/memory_cart_storage.dart';
+import 'helpers/controllers.dart';
 
 void main() {
   const stores = [
@@ -30,13 +27,7 @@ void main() {
   // explicit fake here (never `PharmacyController.instance`, which requires
   // a live Supabase client) mirrors how `PharmacyCatalogScreen` tests avoid
   // touching the real singleton.
-  PharmacyController buildController() {
-    return PharmacyController(
-      repository: const SeededPharmacyRepository(),
-      activityController: ActivityController(),
-      storage: MemoryCartStorage<PharmacyCartItem>(),
-    );
-  }
+  PharmacyController buildController() => buildPharmacyController();
 
   testWidgets('pharmacy store list renders every pharmacy', (tester) async {
     await tester.pumpWidget(

@@ -9,6 +9,7 @@ import 'package:chowflow/services/shared/data/rpc_helpers.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import 'helpers/controllers.dart';
 import 'helpers/memory_cart_storage.dart';
 
 void main() {
@@ -19,8 +20,7 @@ void main() {
   setUp(() async {
     activityController = ActivityController();
     storage = MemoryCartStorage<GroceryCartLine>();
-    controller = GroceryController(
-      repository: const SeededGroceryRepository(),
+    controller = buildGroceryController(
       activityController: activityController,
       storage: storage,
     );
@@ -134,8 +134,7 @@ void main() {
 
     // Simulate the app restarting: a brand new controller backed by the
     // same underlying storage should restore the persisted cart.
-    final restarted = GroceryController(
-      repository: const SeededGroceryRepository(),
+    final restarted = buildGroceryController(
       activityController: activityController,
       storage: storage,
     );
@@ -167,11 +166,9 @@ void main() {
 
   test('confirmOrder surfaces an error, resets loading, and keeps the cart '
       'when the order repository throws', () async {
-    final throwingController = GroceryController(
-      repository: const SeededGroceryRepository(),
+    final throwingController = buildGroceryController(
       orderRepository: const _ThrowingGroceryOrderRepository(),
       activityController: activityController,
-      storage: MemoryCartStorage<GroceryCartLine>(),
     );
     await throwingController.load();
     final rice = throwingController.stores
@@ -218,11 +215,9 @@ void main() {
     // through `confirmDemoOrder`'s generic `catch` into the same
     // "could not be saved" message, so a real Postgres error message is
     // never shown to the user and the flow does not crash.
-    final elapsedSlotController = GroceryController(
-      repository: const SeededGroceryRepository(),
+    final elapsedSlotController = buildGroceryController(
       orderRepository: const _ElapsedSlotGroceryOrderRepository(),
       activityController: activityController,
-      storage: MemoryCartStorage<GroceryCartLine>(),
     );
     await elapsedSlotController.load();
     final rice = elapsedSlotController.stores
@@ -264,11 +259,9 @@ void main() {
   test('confirmOrder ignores a second call while a submission is in flight '
       '(issue #59)', () async {
     final repository = _ControllableGroceryOrderRepository();
-    final submittingController = GroceryController(
-      repository: const SeededGroceryRepository(),
+    final submittingController = buildGroceryController(
       orderRepository: repository,
       activityController: activityController,
-      storage: MemoryCartStorage<GroceryCartLine>(),
     );
     await submittingController.load();
     final rice = submittingController.stores
@@ -315,11 +308,9 @@ void main() {
     'repository, and synthesizes one when none is given (issue #59)',
     () async {
       final repository = _RecordingGroceryOrderRepository();
-      final recordingController = GroceryController(
-        repository: const SeededGroceryRepository(),
+      final recordingController = buildGroceryController(
         orderRepository: repository,
         activityController: activityController,
-        storage: MemoryCartStorage<GroceryCartLine>(),
       );
       await recordingController.load();
       final rice = recordingController.stores
@@ -376,11 +367,9 @@ void main() {
         total: 5250,
       ),
     );
-    final serverPricedController = GroceryController(
-      repository: const SeededGroceryRepository(),
+    final serverPricedController = buildGroceryController(
       orderRepository: repository,
       activityController: activityController,
-      storage: MemoryCartStorage<GroceryCartLine>(),
     );
     await serverPricedController.load();
     final rice = serverPricedController.stores
@@ -413,10 +402,9 @@ void main() {
     test('load does not refetch an already-loaded, fresh catalog', () async {
       final repository = _CountingGroceryRepository();
       final now = DateTime.utc(2026, 8, 27, 12);
-      final freshController = GroceryController(
+      final freshController = buildGroceryController(
         repository: repository,
         now: () => now,
-        storage: MemoryCartStorage<GroceryCartLine>(),
       );
 
       await freshController.load();
@@ -433,10 +421,9 @@ void main() {
     test('load refetches once the catalog goes stale', () async {
       final repository = _CountingGroceryRepository();
       var now = DateTime.utc(2026, 8, 27, 12);
-      final staleController = GroceryController(
+      final staleController = buildGroceryController(
         repository: repository,
         now: () => now,
-        storage: MemoryCartStorage<GroceryCartLine>(),
       );
 
       await staleController.load();
@@ -456,10 +443,9 @@ void main() {
       () async {
         final repository = _CountingGroceryRepository();
         final now = DateTime.utc(2026, 8, 27, 12);
-        final forcedController = GroceryController(
+        final forcedController = buildGroceryController(
           repository: repository,
           now: () => now,
-          storage: MemoryCartStorage<GroceryCartLine>(),
         );
 
         await forcedController.load();

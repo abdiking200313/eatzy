@@ -10,6 +10,7 @@ import 'package:chowflow/services/pharmacy/presentation/pharmacy_controller.dart
 import 'package:chowflow/services/shared/data/rpc_helpers.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'helpers/controllers.dart';
 import 'helpers/memory_cart_storage.dart';
 
 void main() {
@@ -20,8 +21,7 @@ void main() {
   setUp(() async {
     activityController = ActivityController();
     storage = MemoryCartStorage<PharmacyCartItem>();
-    controller = PharmacyController(
-      repository: const SeededPharmacyRepository(),
+    controller = buildPharmacyController(
       activityController: activityController,
       storage: storage,
       now: () => DateTime.utc(2026, 7, 27, 12),
@@ -136,8 +136,7 @@ void main() {
 
     // Simulate the app restarting: a brand new controller backed by the
     // same underlying storage should restore the persisted cart.
-    final restarted = PharmacyController(
-      repository: const SeededPharmacyRepository(),
+    final restarted = buildPharmacyController(
       activityController: activityController,
       storage: storage,
       now: () => DateTime.utc(2026, 7, 27, 12),
@@ -175,12 +174,10 @@ void main() {
   test('placeDemoOrder surfaces an error, resets loading, and keeps the cart '
       'when the order repository throws', () async {
     final throwingActivityController = ActivityController();
-    final throwingController = PharmacyController(
-      repository: const SeededPharmacyRepository(),
+    final throwingController = buildPharmacyController(
       orderRepository: const _ThrowingPharmacyOrderRepository(),
       activityController: throwingActivityController,
       now: () => DateTime.utc(2026, 7, 27, 12),
-      storage: MemoryCartStorage<PharmacyCartItem>(),
     );
     await throwingController.loadProducts(
       storeId: SeededPharmacyRepository.defaultStoreId,
@@ -212,11 +209,9 @@ void main() {
   test('placeDemoOrder ignores a second call while a submission is in flight '
       '(issue #59)', () async {
     final repository = _ControllablePharmacyOrderRepository();
-    final submittingController = PharmacyController(
-      repository: const SeededPharmacyRepository(),
+    final submittingController = buildPharmacyController(
       orderRepository: repository,
       activityController: activityController,
-      storage: MemoryCartStorage<PharmacyCartItem>(),
       now: () => DateTime.utc(2026, 7, 27, 12),
     );
     await submittingController.loadProducts(
@@ -255,11 +250,9 @@ void main() {
     'repository, and synthesizes one when none is given (issue #59)',
     () async {
       final repository = _RecordingPharmacyOrderRepository();
-      final recordingController = PharmacyController(
-        repository: const SeededPharmacyRepository(),
+      final recordingController = buildPharmacyController(
         orderRepository: repository,
         activityController: activityController,
-        storage: MemoryCartStorage<PharmacyCartItem>(),
         now: () => DateTime.utc(2026, 7, 27, 12),
       );
       await recordingController.loadProducts(
@@ -309,11 +302,9 @@ void main() {
         total: 4250,
       ),
     );
-    final serverPricedController = PharmacyController(
-      repository: const SeededPharmacyRepository(),
+    final serverPricedController = buildPharmacyController(
       orderRepository: repository,
       activityController: activityController,
-      storage: MemoryCartStorage<PharmacyCartItem>(),
       now: () => DateTime.utc(2026, 7, 27, 12),
     );
     await serverPricedController.loadProducts(
@@ -342,11 +333,9 @@ void main() {
       () async {
         final repository = _CountingPharmacyRepository();
         final now = DateTime.utc(2026, 8, 27, 12);
-        final freshController = PharmacyController(
+        final freshController = buildPharmacyController(
           repository: repository,
-          activityController: ActivityController(),
           now: () => now,
-          storage: MemoryCartStorage<PharmacyCartItem>(),
         );
 
         await freshController.loadProducts(
@@ -368,11 +357,9 @@ void main() {
     test('loadProducts refetches once the catalog goes stale', () async {
       final repository = _CountingPharmacyRepository();
       var now = DateTime.utc(2026, 8, 27, 12);
-      final staleController = PharmacyController(
+      final staleController = buildPharmacyController(
         repository: repository,
-        activityController: ActivityController(),
         now: () => now,
-        storage: MemoryCartStorage<PharmacyCartItem>(),
       );
 
       await staleController.loadProducts(
@@ -396,11 +383,9 @@ void main() {
       () async {
         final repository = _CountingPharmacyRepository();
         final now = DateTime.utc(2026, 8, 27, 12);
-        final forcedController = PharmacyController(
+        final forcedController = buildPharmacyController(
           repository: repository,
-          activityController: ActivityController(),
           now: () => now,
-          storage: MemoryCartStorage<PharmacyCartItem>(),
         );
 
         await forcedController.loadProducts(
@@ -420,10 +405,8 @@ void main() {
   group('store-scoped catalog (issue #141)', () {
     test('loadProducts scopes the catalog to one pharmacy at a time', () async {
       final repository = _MultiStorePharmacyRepository();
-      final multiStoreController = PharmacyController(
+      final multiStoreController = buildPharmacyController(
         repository: repository,
-        activityController: ActivityController(),
-        storage: MemoryCartStorage<PharmacyCartItem>(),
       );
 
       await multiStoreController.loadProducts(storeId: 'store-a');
@@ -446,10 +429,8 @@ void main() {
     });
 
     test('loadProducts narrows results with a search query', () async {
-      final multiStoreController = PharmacyController(
+      final multiStoreController = buildPharmacyController(
         repository: _MultiStorePharmacyRepository(),
-        activityController: ActivityController(),
-        storage: MemoryCartStorage<PharmacyCartItem>(),
       );
 
       await multiStoreController.loadProducts(

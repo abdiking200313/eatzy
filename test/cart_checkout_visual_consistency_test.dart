@@ -3,21 +3,16 @@ import 'package:chowflow/config/theme.dart';
 import 'package:chowflow/services/food/models/cart_item.dart';
 import 'package:chowflow/services/food/presentation/cart_controller.dart';
 import 'package:chowflow/services/food/presentation/checkout_screen.dart';
-import 'package:chowflow/platform/activity/presentation/activity_controller.dart';
 import 'package:chowflow/services/food/presentation/food_cart_screen.dart';
-import 'package:chowflow/services/grocery/data/grocery_repository.dart';
-import 'package:chowflow/services/grocery/models/grocery_models.dart';
 import 'package:chowflow/services/grocery/presentation/grocery_cart_screen.dart';
 import 'package:chowflow/services/grocery/presentation/grocery_checkout_screen.dart';
-import 'package:chowflow/services/grocery/presentation/grocery_controller.dart';
 import 'package:chowflow/services/pharmacy/data/pharmacy_repository.dart';
-import 'package:chowflow/services/pharmacy/models/pharmacy_cart_item.dart';
 import 'package:chowflow/services/pharmacy/presentation/pharmacy_cart_screen.dart';
 import 'package:chowflow/services/pharmacy/presentation/pharmacy_checkout_screen.dart';
-import 'package:chowflow/services/pharmacy/presentation/pharmacy_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'helpers/controllers.dart';
 import 'helpers/memory_cart_storage.dart';
 
 /// Redesign phase 5 (#26) DoD: a 320x640 @1.4x-text-scale no-overflow case
@@ -105,11 +100,7 @@ void main() {
   testWidgets(
     'grocery cart stays overflow-free on a narrow, large-text screen',
     (tester) async {
-      final controller = GroceryController(
-        repository: const SeededGroceryRepository(),
-        activityController: ActivityController(),
-        storage: MemoryCartStorage<GroceryCartLine>(),
-      );
+      final controller = buildGroceryController();
       await controller.load();
       final products = controller.stores
           .expand((store) => store.products)
@@ -135,11 +126,7 @@ void main() {
   testWidgets(
     'grocery checkout stays overflow-free on a narrow, large-text screen',
     (tester) async {
-      final controller = GroceryController(
-        repository: const SeededGroceryRepository(),
-        activityController: ActivityController(),
-        storage: MemoryCartStorage<GroceryCartLine>(),
-      );
+      final controller = buildGroceryController();
       await controller.load();
       final product = controller.stores
           .expand((store) => store.products)
@@ -178,11 +165,7 @@ void main() {
   testWidgets(
     'pharmacy cart stays overflow-free on a narrow, large-text screen',
     (tester) async {
-      final controller = PharmacyController(
-        repository: const SeededPharmacyRepository(),
-        activityController: ActivityController(),
-        storage: MemoryCartStorage<PharmacyCartItem>(),
-      );
+      final controller = buildPharmacyController();
       await controller.loadProducts(
         storeId: SeededPharmacyRepository.defaultStoreId,
       );
@@ -205,11 +188,7 @@ void main() {
   testWidgets(
     'pharmacy checkout stays overflow-free on a narrow, large-text screen',
     (tester) async {
-      final controller = PharmacyController(
-        repository: const SeededPharmacyRepository(),
-        activityController: ActivityController(),
-        storage: MemoryCartStorage<PharmacyCartItem>(),
-      );
+      final controller = buildPharmacyController();
       await controller.loadProducts(
         storeId: SeededPharmacyRepository.defaultStoreId,
       );
