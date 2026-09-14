@@ -1,23 +1,16 @@
-import 'package:chowflow/platform/activity/presentation/activity_controller.dart';
 import 'package:chowflow/services/pharmacy/data/pharmacy_repository.dart';
-import 'package:chowflow/services/pharmacy/models/pharmacy_cart_item.dart';
 import 'package:chowflow/services/pharmacy/models/pharmacy_product.dart';
 import 'package:chowflow/services/pharmacy/presentation/pharmacy_catalog_screen.dart';
-import 'package:chowflow/services/pharmacy/presentation/pharmacy_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'helpers/memory_cart_storage.dart';
+import 'helpers/controllers.dart';
 
 void main() {
   testWidgets('pharmacy catalog clearly explains the OTC-only scope', (
     tester,
   ) async {
-    final controller = PharmacyController(
-      repository: const SeededPharmacyRepository(),
-      activityController: ActivityController(),
-      storage: MemoryCartStorage<PharmacyCartItem>(),
-    );
+    final controller = buildPharmacyController();
 
     await tester.pumpWidget(
       MaterialApp(
@@ -53,11 +46,7 @@ void main() {
     tester,
   ) async {
     final repository = _CountingPharmacyRepository();
-    final controller = PharmacyController(
-      repository: repository,
-      activityController: ActivityController(),
-      storage: MemoryCartStorage<PharmacyCartItem>(),
-    );
+    final controller = buildPharmacyController(repository: repository);
 
     await tester.pumpWidget(
       MaterialApp(
@@ -81,10 +70,8 @@ void main() {
   testWidgets('typing a search term narrows this pharmacy\'s catalog', (
     tester,
   ) async {
-    final controller = PharmacyController(
+    final controller = buildPharmacyController(
       repository: _MultiStorePharmacyRepository(),
-      activityController: ActivityController(),
-      storage: MemoryCartStorage<PharmacyCartItem>(),
     );
 
     await tester.pumpWidget(
@@ -108,10 +95,8 @@ void main() {
   testWidgets(
     'adding a product from a different pharmacy prompts to replace the cart',
     (tester) async {
-      final controller = PharmacyController(
+      final controller = buildPharmacyController(
         repository: _MultiStorePharmacyRepository(),
-        activityController: ActivityController(),
-        storage: MemoryCartStorage<PharmacyCartItem>(),
       );
       await controller.loadProducts(storeId: 'store-a');
       controller.addProduct(controller.products.first);

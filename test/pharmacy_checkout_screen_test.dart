@@ -1,16 +1,13 @@
 import 'dart:async';
 
-import 'package:chowflow/platform/activity/presentation/activity_controller.dart';
 import 'package:chowflow/services/pharmacy/data/pharmacy_repository.dart';
-import 'package:chowflow/services/pharmacy/models/pharmacy_cart_item.dart';
 import 'package:chowflow/services/pharmacy/models/pharmacy_checkout.dart';
 import 'package:chowflow/services/pharmacy/presentation/pharmacy_checkout_screen.dart';
-import 'package:chowflow/services/pharmacy/presentation/pharmacy_controller.dart';
 import 'package:chowflow/services/shared/data/rpc_helpers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'helpers/memory_cart_storage.dart';
+import 'helpers/controllers.dart';
 
 /// A [PharmacyOrderRepository] fake whose [placeOrder] only resolves once
 /// the test calls [complete], so a widget test can exercise a second tap
@@ -45,14 +42,8 @@ void main() {
       addTearDown(() => tester.binding.setSurfaceSize(null));
 
       final repository = _ControllablePharmacyOrderRepository();
-      final controller = PharmacyController(
-        repository: const SeededPharmacyRepository(),
+      final controller = await buildLoadedPharmacyController(
         orderRepository: repository,
-        activityController: ActivityController(),
-        storage: MemoryCartStorage<PharmacyCartItem>(),
-      );
-      await controller.loadProducts(
-        storeId: SeededPharmacyRepository.defaultStoreId,
       );
       controller.addProduct(controller.products.first);
 

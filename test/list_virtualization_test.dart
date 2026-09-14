@@ -1,18 +1,16 @@
-import 'package:chowflow/platform/activity/presentation/activity_controller.dart';
 import 'package:chowflow/services/grocery/data/grocery_repository.dart';
 import 'package:chowflow/services/grocery/models/grocery_models.dart';
 import 'package:chowflow/services/grocery/presentation/grocery_controller.dart';
 import 'package:chowflow/services/grocery/presentation/grocery_screen.dart';
 import 'package:chowflow/services/grocery/presentation/grocery_store_screen.dart';
 import 'package:chowflow/services/pharmacy/data/pharmacy_repository.dart';
-import 'package:chowflow/services/pharmacy/models/pharmacy_cart_item.dart';
 import 'package:chowflow/services/pharmacy/models/pharmacy_product.dart';
 import 'package:chowflow/services/pharmacy/models/pharmacy_store.dart';
-import 'package:chowflow/services/pharmacy/presentation/pharmacy_controller.dart';
 import 'package:chowflow/services/pharmacy/presentation/pharmacy_store_list_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'helpers/controllers.dart';
 import 'helpers/memory_cart_storage.dart';
 
 /// Pins issue #61's list-virtualization fix (reverted by the store-scoping
@@ -87,10 +85,8 @@ void main() {
         for (var i = 0; i < 300; i++)
           PharmacyStore(id: 'pharmacy-$i', name: 'Pharmacy $i', address: ''),
       ];
-      final controller = PharmacyController(
+      final controller = buildPharmacyController(
         repository: const _EmptyPharmacyRepository(),
-        activityController: ActivityController(),
-        storage: MemoryCartStorage<PharmacyCartItem>(),
       );
 
       await tester.pumpWidget(
