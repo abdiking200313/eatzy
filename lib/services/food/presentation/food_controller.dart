@@ -149,9 +149,14 @@ class FoodController extends ChangeNotifier {
             tax: _cartController.tax,
             total: _cartController.total,
           ),
-          onSaveFailed: () => FoodCheckoutResult.invalid(const [
-            'The food order could not be saved. Please try again.',
-          ]),
+          onSaveFailed: (error, stackTrace) {
+            debugPrint(
+              'FoodController.confirmOrder failed: $error\n$stackTrace',
+            );
+            return FoodCheckoutResult.invalid(const [
+              'The food order could not be saved. Please try again.',
+            ]);
+          },
           // `order.total` is the RPC's authoritative, server-computed total
           // (issue #60) — not `_cartController.total`, which can be stale if a
           // menu price changed between the cart being built and this checkout

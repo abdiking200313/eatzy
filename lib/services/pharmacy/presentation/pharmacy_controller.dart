@@ -480,12 +480,17 @@ class PharmacyController extends ChangeNotifier with LoadableState {
             tax: 0,
             total: confirmedTotal,
           ),
-          onSaveFailed: () => PharmacyCheckoutResult.invalid(
-            const PharmacyCheckoutValidation({
-              'order':
-                  'The pharmacy order could not be saved. Please try again.',
-            }),
-          ),
+          onSaveFailed: (error, stackTrace) {
+            debugPrint(
+              'PharmacyController.placeDemoOrder failed: $error\n$stackTrace',
+            );
+            return PharmacyCheckoutResult.invalid(
+              const PharmacyCheckoutValidation({
+                'order':
+                    'The pharmacy order could not be saved. Please try again.',
+              }),
+            );
+          },
           // `order.total` is the RPC's authoritative, server-computed total
           // (issue #60) — not the client-computed `confirmedTotal`, which can
           // be stale if a product price changed between the cart being built
