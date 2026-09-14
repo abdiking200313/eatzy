@@ -4,6 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../app/app_routes.dart';
 import '../../../config/theme.dart';
+import '../../../platform/error_reporting/error_reporter.dart';
 import '../../../widgets/app_scaffold.dart';
 import '../../auth/data/auth_error_message.dart';
 import '../../auth/data/auth_service.dart';
@@ -37,7 +38,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
           widget.profileRepository ??
           SupabaseProfileRepository(client: Supabase.instance.client);
       return await repository.fetchCurrentProfile();
-    } on Object {
+    } on Object catch (error, stack) {
+      // Falls back to the "Zivo customer" empty state below either way (see
+      // ProfileHeader usage in build()), but the failure must not be
+      // silently swallowed — see issue #40.
+      ErrorReporting.instance.reportError(
+        error,
+        stack,
+        context: 'ProfileScreen._loadProfile',
+      );
       return null;
     }
   }

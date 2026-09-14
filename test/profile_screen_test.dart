@@ -2,6 +2,7 @@ import 'package:chowflow/config/theme.dart';
 import 'package:chowflow/features/profile/data/profile_repository.dart';
 import 'package:chowflow/features/profile/models/customer_profile.dart';
 import 'package:chowflow/features/profile/presentation/profile_screen.dart';
+import 'package:chowflow/platform/error_reporting/error_reporter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -38,6 +39,40 @@ void main() {
     expect(find.text('Cancelled'), findsNothing);
     expect(find.byIcon(Icons.verified), findsNothing);
   });
+
+  testWidgets(
+    'a failed profile load still renders the empty state, but reports the '
+    'error instead of swallowing it silently (issue #40)',
+    (tester) async {
+      final originalReporter = ErrorReporting.instance;
+      final fakeReporter = _FakeErrorReporter();
+      ErrorReporting.instance = fakeReporter;
+      addTearDown(() => ErrorReporting.instance = originalReporter);
+
+      final loadError = StateError('profile lookup failed');
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: buildAppTheme(),
+          home: ProfileScreen(
+            profileRepository: _ThrowingProfileRepository(loadError),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Unchanged UI behavior: a failed load still falls back to the
+      // "Zivo customer" empty state rather than getting a different UI.
+      expect(find.text('Zivo customer'), findsOneWidget);
+
+      // But the failure must now be visible instead of silently swallowed.
+      expect(fakeReporter.reported, hasLength(1));
+      expect(fakeReporter.reported.single.error, loadError);
+      expect(
+        fakeReporter.reported.single.context,
+        'ProfileScreen._loadProfile',
+      );
+    },
+  );
 }
 
 class _ProfileRepository implements ProfileRepository {
@@ -47,4 +82,22 @@ class _ProfileRepository implements ProfileRepository {
 
   @override
   Future<CustomerProfile?> fetchCurrentProfile() async => profile;
+}
+
+class _ThrowingProfileRepository implements ProfileRepository {
+  const _ThrowingProfileRepository(this.error);
+
+  final Object error;
+
+  @override
+  Future<CustomerProfile?> fetchCurrentProfile() async => throw error;
+}
+
+class _FakeErrorReporter implements ErrorReporter {
+  final List<({Object error, StackTrace stack, String? context})> reported = [];
+
+  @override
+  void reportError(Object error, StackTrace stack, {String? context}) {
+    reported.add((error: error, stack: stack, context: context));
+  }
 }

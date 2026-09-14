@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -8,45 +9,96 @@ import 'app/app_router.dart';
 import 'config/theme.dart';
 import 'platform/activity/data/activity_repository.dart';
 import 'platform/activity/presentation/activity_controller.dart';
+import 'platform/error_reporting/error_reporter.dart';
 import 'platform/session/account_state_coordinator.dart';
 import 'platform/session/secure_session_storage.dart';
 import 'platform/system_ui/android_navigation_bar_controller.dart';
 import 'services/food/presentation/cart_controller.dart';
 import 'services/grocery/presentation/grocery_controller.dart';
 import 'services/pharmacy/presentation/pharmacy_controller.dart';
+import 'widgets/error_fallback.dart';
 import 'widgets/zivo_logo.dart';
 
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+// Global error handling scaffolding (issue #40). There is no crash-reporting
+// SDK wired in yet — Firebase Crashlytics is the owner's chosen SDK, deferred
+// to a fast-follow once `google-services.json` / `GoogleService-Info.plist`
+// exist for a real Firebase project (see the issue's follow-up decision) —
+// so every hook below reports through `ErrorReporting.instance`
+// (`lib/platform/error_reporting/error_reporter.dart`), which currently just
+// logs. Swapping in Crashlytics later only means replacing that one
+// instance, not touching these handlers.
+void main() {
+  runZonedGuarded(
+    () async {
+      WidgetsFlutterBinding.ensureInitialized();
 
-  // Lock the app to portrait orientation. This is the single cross-platform
-  // source of truth; ios/Runner/Info.plist and
-  // android/app/src/main/AndroidManifest.xml are also restricted to portrait
-  // for defense-in-depth (see issue #56).
-  await SystemChrome.setPreferredOrientations([
-    DeviceOrientation.portraitUp,
-    DeviceOrientation.portraitDown,
-  ]);
+      // Replaces Flutter's default grey ErrorWidget box with an on-brand
+      // fallback for any widget subtree that fails to build.
+      ErrorWidget.builder = (_) => const ErrorFallbackView();
 
-  await Supabase.initialize(
-    url: 'https://jzubookmbrtslocuzepe.supabase.co',
-    publishableKey: 'sb_publishable_yLgLRnh00I5zjImD-Q7R6A_uOO-l0sT',
-    authOptions: FlutterAuthClientOptions(localStorage: SecureSessionStorage()),
+      // Framework-caught errors (e.g. a widget build failure) still get
+      // Flutter's normal debug-console dump via presentError, in addition to
+      // being routed through the shared reporter.
+      final previousOnError = FlutterError.onError;
+      FlutterError.onError = (FlutterErrorDetails details) {
+        previousOnError?.call(details);
+        ErrorReporting.instance.reportError(
+          details.exception,
+          details.stack ?? StackTrace.current,
+          context: 'FlutterError',
+        );
+      };
+
+      // Errors thrown outside the Flutter framework's own error zone (e.g.
+      // from a platform channel callback).
+      PlatformDispatcher.instance.onError = (error, stack) {
+        ErrorReporting.instance.reportError(
+          error,
+          stack,
+          context: 'PlatformDispatcher',
+        );
+        return true;
+      };
+
+      // Lock the app to portrait orientation. This is the single
+      // cross-platform source of truth; ios/Runner/Info.plist and
+      // android/app/src/main/AndroidManifest.xml are also restricted to
+      // portrait for defense-in-depth (see issue #56).
+      await SystemChrome.setPreferredOrientations([
+        DeviceOrientation.portraitUp,
+        DeviceOrientation.portraitDown,
+      ]);
+
+      await Supabase.initialize(
+        url: 'https://jzubookmbrtslocuzepe.supabase.co',
+        publishableKey: 'sb_publishable_yLgLRnh00I5zjImD-Q7R6A_uOO-l0sT',
+        authOptions: FlutterAuthClientOptions(
+          localStorage: SecureSessionStorage(),
+        ),
+      );
+
+      final cartController = CartController.instance;
+      final currentUserId = Supabase.instance.client.auth.currentUser?.id;
+      await cartController.loadForOwner(currentUserId);
+      await GroceryController.instance.loadForOwner(currentUserId);
+      await PharmacyController.instance.loadForOwner(currentUserId);
+      ActivityController.instance.configureRepository(
+        SupabaseActivityRepository(client: Supabase.instance.client),
+      );
+      if (currentUserId != null) {
+        await ActivityController.instance.load();
+      }
+
+      runApp(ZivoApp(cartController: cartController));
+    },
+    (error, stack) {
+      ErrorReporting.instance.reportError(
+        error,
+        stack,
+        context: 'runZonedGuarded',
+      );
+    },
   );
-
-  final cartController = CartController.instance;
-  final currentUserId = Supabase.instance.client.auth.currentUser?.id;
-  await cartController.loadForOwner(currentUserId);
-  await GroceryController.instance.loadForOwner(currentUserId);
-  await PharmacyController.instance.loadForOwner(currentUserId);
-  ActivityController.instance.configureRepository(
-    SupabaseActivityRepository(client: Supabase.instance.client),
-  );
-  if (currentUserId != null) {
-    await ActivityController.instance.load();
-  }
-
-  runApp(ZivoApp(cartController: cartController));
 }
 
 class ZivoApp extends StatefulWidget {

@@ -39,6 +39,7 @@ import '../services/pharmacy/presentation/pharmacy_checkout_screen.dart';
 import '../services/pharmacy/presentation/pharmacy_store_list_screen.dart';
 import 'app_routes.dart';
 import 'main_app_screen.dart';
+import 'not_found_screen.dart';
 import 'service_module.dart';
 
 /// Maps a `customer_activity.service_id` path segment (`food`, `grocery`,
@@ -278,6 +279,9 @@ class AppRouter {
     refreshListenable: _authRefresh,
     redirect: _redirect,
     routes: [..._publicRoutes, _shellRoute, ..._standaloneProtectedRoutes],
+    // Replaces go_router's default error page for an unrecognized path
+    // (issue #40) with an on-brand screen that gives the user a way back.
+    errorBuilder: (_, _) => const NotFoundScreen(),
   );
 
   static String? _redirect(BuildContext context, GoRouterState state) {
