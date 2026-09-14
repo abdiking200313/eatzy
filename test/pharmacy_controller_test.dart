@@ -7,6 +7,7 @@ import 'package:chowflow/services/pharmacy/models/pharmacy_cart_item.dart';
 import 'package:chowflow/services/pharmacy/models/pharmacy_checkout.dart';
 import 'package:chowflow/services/pharmacy/models/pharmacy_product.dart';
 import 'package:chowflow/services/pharmacy/presentation/pharmacy_controller.dart';
+import 'package:chowflow/services/shared/data/rpc_helpers.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'helpers/memory_cart_storage.dart';
@@ -293,6 +294,48 @@ void main() {
     },
   );
 
+  test('placeDemoOrder records the RPC-returned total, not the client cart '
+      'total, into the activity feed (issue #60)', () async {
+    // A price returned by the RPC that deliberately differs from the
+    // client-computed cart total, simulating a product price that
+    // changed between the cart being built and this checkout being
+    // confirmed -- the RPC's number must win.
+    final repository = _RecordingPharmacyOrderRepository(
+      placed: const PlacedOrder(
+        orderId: 'pharmacy-server-order',
+        subtotal: 4000,
+        deliveryFee: 250,
+        tax: 0,
+        total: 4250,
+      ),
+    );
+    final serverPricedController = PharmacyController(
+      repository: const SeededPharmacyRepository(),
+      orderRepository: repository,
+      activityController: activityController,
+      storage: MemoryCartStorage<PharmacyCartItem>(),
+      now: () => DateTime.utc(2026, 7, 27, 12),
+    );
+    await serverPricedController.loadProducts(
+      storeId: SeededPharmacyRepository.defaultStoreId,
+    );
+    serverPricedController.addProduct(serverPricedController.products.first);
+    expect(serverPricedController.total, isNot(4250));
+
+    const details = PharmacyCheckoutDetails(
+      customerName: 'Asha Ali',
+      phoneNumber: '+252 61 234 5678',
+      city: 'Mogadishu',
+      district: 'Hodan',
+      addressLine: 'Taleex Road, blue gate',
+    );
+
+    final result = await serverPricedController.placeDemoOrder(details);
+
+    expect(result.isSuccess, isTrue);
+    expect(activityController.items.single.amount, 4250);
+  });
+
   group('catalog staleness and pull-to-refresh', () {
     test(
       'loadProducts does not refetch an already-loaded, fresh catalog',
@@ -549,22 +592,34 @@ class _ThrowingPharmacyOrderRepository implements PharmacyOrderRepository {
   const _ThrowingPharmacyOrderRepository();
 
   @override
-  Future<String> placeOrder(PharmacyOrderRequest request) {
+  Future<PlacedOrder> placeOrder(PharmacyOrderRequest request) {
     throw Exception('Simulated network failure while placing pharmacy order');
   }
 }
 
 /// A [PharmacyOrderRepository] fake that records every request it receives
-/// and resolves immediately with an incrementing order id.
+/// and resolves immediately with an incrementing order id, or with a
+/// caller-supplied [placed] result (used to simulate the RPC pricing an
+/// order differently than the client's cart estimate).
 class _RecordingPharmacyOrderRepository implements PharmacyOrderRepository {
+  _RecordingPharmacyOrderRepository({this.placed});
+
+  final PlacedOrder? placed;
   int callCount = 0;
   PharmacyOrderRequest? lastRequest;
 
   @override
-  Future<String> placeOrder(PharmacyOrderRequest request) async {
+  Future<PlacedOrder> placeOrder(PharmacyOrderRequest request) async {
     callCount++;
     lastRequest = request;
-    return 'pharmacy-order-$callCount';
+    return placed ??
+        PlacedOrder(
+          orderId: 'pharmacy-order-$callCount',
+          subtotal: 1000,
+          deliveryFee: 250,
+          tax: 0,
+          total: 1250,
+        );
   }
 }
 
@@ -574,12 +629,20 @@ class _RecordingPharmacyOrderRepository implements PharmacyOrderRepository {
 /// flight.
 class _ControllablePharmacyOrderRepository implements PharmacyOrderRepository {
   int callCount = 0;
-  final _pending = Completer<String>();
+  final _pending = Completer<PlacedOrder>();
 
-  void complete(String orderId) => _pending.complete(orderId);
+  void complete(String orderId) => _pending.complete(
+    PlacedOrder(
+      orderId: orderId,
+      subtotal: 1000,
+      deliveryFee: 250,
+      tax: 0,
+      total: 1250,
+    ),
+  );
 
   @override
-  Future<String> placeOrder(PharmacyOrderRequest request) {
+  Future<PlacedOrder> placeOrder(PharmacyOrderRequest request) {
     callCount++;
     return _pending.future;
   }

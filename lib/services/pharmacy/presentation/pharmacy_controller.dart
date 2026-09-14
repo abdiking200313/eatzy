@@ -10,6 +10,7 @@ import '../../../platform/activity/presentation/activity_controller.dart';
 import '../../../platform/session/session_reset_registry.dart';
 import '../../shared/data/cart_storage.dart';
 import '../../shared/data/idempotency_key.dart';
+import '../../shared/data/rpc_helpers.dart';
 import '../../shared/presentation/confirm_order_flow.dart';
 import '../../shared/presentation/loadable_state_mixin.dart';
 import '../data/pharmacy_repository.dart';
@@ -435,6 +436,11 @@ class PharmacyController extends ChangeNotifier with LoadableState {
 
     final confirmedAt = _now();
     // Snapshot cart-derived values before the shared flow clears the cart.
+    // These are only used for the no-repository (demo) fallback below —
+    // once a real repository is configured, the RPC's returned totals
+    // (issue #60) are used instead.
+    final confirmedSubtotal = subtotal;
+    final confirmedDeliveryFee = isCartEmpty ? 0 : deliveryFee;
     final confirmedTotal = total;
     final confirmedItemCount = itemCount;
     final confirmedItems = _cartItems
@@ -450,54 +456,70 @@ class PharmacyController extends ChangeNotifier with LoadableState {
     _isSubmitting = true;
     notifyListeners();
 
-    return confirmDemoOrder<PharmacyCheckoutResult, PharmacyCheckoutValidation>(
-      validation: validation,
-      isValid: (validation) => validation.isValid,
-      onInvalid: (validation) => PharmacyCheckoutResult.invalid(validation),
-      placeOrder: () =>
-          _orderRepository?.placeOrder(
-            PharmacyOrderRequest(
-              details: details,
-              items: confirmedItems,
-              idempotencyKey: resolvedIdempotencyKey,
-            ),
-          ) ??
-          Future.value(null),
-      fallbackOrderId: () => 'pharmacy-${confirmedAt.microsecondsSinceEpoch}',
-      onSaveFailed: () => PharmacyCheckoutResult.invalid(
-        const PharmacyCheckoutValidation({
-          'order': 'The pharmacy order could not be saved. Please try again.',
-        }),
-      ),
-      recordActivity: (orderId) {
-        _activityController.record(
-          ActivityItem(
-            id: orderId,
-            serviceId: ServiceId.pharmacy,
-            title: 'Pharmacy order',
-            subtitle:
-                '$confirmedItemCount OTC '
-                '${confirmedItemCount == 1 ? 'item' : 'items'}',
-            status: 'Demo confirmed',
-            occurredAt: confirmedAt,
-            amount: confirmedTotal,
-            detailsRoute: '/pharmacy',
-            paymentMethod: 'cash_on_delivery',
-            paymentStatus: 'pending_collection',
+    return confirmDemoOrder<
+          PharmacyCheckoutResult,
+          PharmacyCheckoutValidation,
+          PlacedOrder
+        >(
+          validation: validation,
+          isValid: (validation) => validation.isValid,
+          onInvalid: (validation) => PharmacyCheckoutResult.invalid(validation),
+          placeOrder: () =>
+              _orderRepository?.placeOrder(
+                PharmacyOrderRequest(
+                  details: details,
+                  items: confirmedItems,
+                  idempotencyKey: resolvedIdempotencyKey,
+                ),
+              ) ??
+              Future.value(null),
+          fallbackOrder: () => PlacedOrder(
+            orderId: 'pharmacy-${confirmedAt.microsecondsSinceEpoch}',
+            subtotal: confirmedSubtotal,
+            deliveryFee: confirmedDeliveryFee,
+            tax: 0,
+            total: confirmedTotal,
           ),
-        );
-      },
-      clearCart: clearCart,
-      onConfirmed: (orderId) => PharmacyCheckoutResult.success(
-        orderId: orderId,
-        message:
-            'Order confirmed. No payment was processed and no order '
-            'was sent to a pharmacy.',
-      ),
-    ).whenComplete(() {
-      _isSubmitting = false;
-      notifyListeners();
-    });
+          onSaveFailed: () => PharmacyCheckoutResult.invalid(
+            const PharmacyCheckoutValidation({
+              'order':
+                  'The pharmacy order could not be saved. Please try again.',
+            }),
+          ),
+          // `order.total` is the RPC's authoritative, server-computed total
+          // (issue #60) — not the client-computed `confirmedTotal`, which can
+          // be stale if a product price changed between the cart being built
+          // and this checkout being confirmed.
+          recordActivity: (order) {
+            _activityController.record(
+              ActivityItem(
+                id: order.orderId,
+                serviceId: ServiceId.pharmacy,
+                title: 'Pharmacy order',
+                subtitle:
+                    '$confirmedItemCount OTC '
+                    '${confirmedItemCount == 1 ? 'item' : 'items'}',
+                status: 'Demo confirmed',
+                occurredAt: confirmedAt,
+                amount: order.total,
+                detailsRoute: '/pharmacy',
+                paymentMethod: 'cash_on_delivery',
+                paymentStatus: 'pending_collection',
+              ),
+            );
+          },
+          clearCart: clearCart,
+          onConfirmed: (order) => PharmacyCheckoutResult.success(
+            orderId: order.orderId,
+            message:
+                'Order confirmed. No payment was processed and no order '
+                'was sent to a pharmacy.',
+          ),
+        )
+        .whenComplete(() {
+          _isSubmitting = false;
+          notifyListeners();
+        });
   }
 
   int _indexOf(String productId) {

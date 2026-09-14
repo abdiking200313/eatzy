@@ -5,6 +5,7 @@ import 'package:chowflow/platform/activity/presentation/activity_controller.dart
 import 'package:chowflow/services/grocery/data/grocery_repository.dart';
 import 'package:chowflow/services/grocery/models/grocery_models.dart';
 import 'package:chowflow/services/grocery/presentation/grocery_controller.dart';
+import 'package:chowflow/services/shared/data/rpc_helpers.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'helpers/memory_cart_storage.dart';
@@ -303,6 +304,55 @@ void main() {
     },
   );
 
+  test('confirmOrder records the RPC-returned total, not the client cart '
+      'total, into the activity feed and confirmation (issue #60)', () async {
+    // A price returned by the RPC that deliberately differs from the
+    // client-computed cart total, simulating a product price that
+    // changed between the cart being built and this checkout being
+    // confirmed -- the RPC's number must win for both the activity feed
+    // and the returned confirmation.
+    final repository = _RecordingGroceryOrderRepository(
+      placed: const PlacedOrder(
+        orderId: 'grocery-server-order',
+        subtotal: 5000,
+        deliveryFee: 250,
+        tax: 0,
+        total: 5250,
+      ),
+    );
+    final serverPricedController = GroceryController(
+      repository: const SeededGroceryRepository(),
+      orderRepository: repository,
+      activityController: activityController,
+      storage: MemoryCartStorage<GroceryCartLine>(),
+    );
+    await serverPricedController.load();
+    final rice = serverPricedController.stores
+        .expand((store) => store.products)
+        .firstWhere((product) => product.id == 'bakaal-rice');
+    serverPricedController.addProduct(rice);
+    final clientComputedTotal = serverPricedController.total;
+    expect(clientComputedTotal, isNot(5250));
+
+    const address = GroceryDeliveryAddress(
+      recipientName: 'Amina',
+      phone: '+252 61 234 5678',
+      street: 'Near Taleex Road',
+      district: 'Hodan',
+      city: 'Mogadishu',
+    );
+
+    final result = await serverPricedController.confirmOrder(
+      address: address,
+      slot: GroceryController.deliverySlots.first,
+      substitutionPreference: GrocerySubstitutionPreference.contactMe,
+    );
+
+    expect(result.isSuccess, isTrue);
+    expect(result.confirmation!.amount, 5250);
+    expect(activityController.items.single.amount, 5250);
+  });
+
   group('catalog staleness and pull-to-refresh', () {
     test('load does not refetch an already-loaded, fresh catalog', () async {
       final repository = _CountingGroceryRepository();
@@ -383,22 +433,34 @@ class _ThrowingGroceryOrderRepository implements GroceryOrderRepository {
   const _ThrowingGroceryOrderRepository();
 
   @override
-  Future<String> placeOrder(GroceryOrderRequest request) {
+  Future<PlacedOrder> placeOrder(GroceryOrderRequest request) {
     throw Exception('Simulated network failure while placing grocery order');
   }
 }
 
 /// A [GroceryOrderRepository] fake that records every request it receives
-/// and resolves immediately with an incrementing order id.
+/// and resolves immediately with an incrementing order id, or with a
+/// caller-supplied [placed] result (used to simulate the RPC pricing an
+/// order differently than the client's cart estimate).
 class _RecordingGroceryOrderRepository implements GroceryOrderRepository {
+  _RecordingGroceryOrderRepository({this.placed});
+
+  final PlacedOrder? placed;
   int callCount = 0;
   GroceryOrderRequest? lastRequest;
 
   @override
-  Future<String> placeOrder(GroceryOrderRequest request) async {
+  Future<PlacedOrder> placeOrder(GroceryOrderRequest request) async {
     callCount++;
     lastRequest = request;
-    return 'grocery-order-$callCount';
+    return placed ??
+        PlacedOrder(
+          orderId: 'grocery-order-$callCount',
+          subtotal: 1000,
+          deliveryFee: 250,
+          tax: 0,
+          total: 1250,
+        );
   }
 }
 
@@ -407,12 +469,20 @@ class _RecordingGroceryOrderRepository implements GroceryOrderRepository {
 /// [GroceryController.isSubmitting]) while a submission is still in flight.
 class _ControllableGroceryOrderRepository implements GroceryOrderRepository {
   int callCount = 0;
-  final _pending = Completer<String>();
+  final _pending = Completer<PlacedOrder>();
 
-  void complete(String orderId) => _pending.complete(orderId);
+  void complete(String orderId) => _pending.complete(
+    PlacedOrder(
+      orderId: orderId,
+      subtotal: 1000,
+      deliveryFee: 250,
+      tax: 0,
+      total: 1250,
+    ),
+  );
 
   @override
-  Future<String> placeOrder(GroceryOrderRequest request) {
+  Future<PlacedOrder> placeOrder(GroceryOrderRequest request) {
     callCount++;
     return _pending.future;
   }

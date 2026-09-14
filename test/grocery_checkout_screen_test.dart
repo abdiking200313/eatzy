@@ -5,6 +5,7 @@ import 'package:chowflow/services/grocery/data/grocery_repository.dart';
 import 'package:chowflow/services/grocery/models/grocery_models.dart';
 import 'package:chowflow/services/grocery/presentation/grocery_checkout_screen.dart';
 import 'package:chowflow/services/grocery/presentation/grocery_controller.dart';
+import 'package:chowflow/services/shared/data/rpc_helpers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -15,12 +16,20 @@ import 'helpers/memory_cart_storage.dart';
 /// while the first submission is still in flight.
 class _ControllableGroceryOrderRepository implements GroceryOrderRepository {
   int callCount = 0;
-  final _pending = Completer<String>();
+  final _pending = Completer<PlacedOrder>();
 
-  void complete(String orderId) => _pending.complete(orderId);
+  void complete(String orderId) => _pending.complete(
+    PlacedOrder(
+      orderId: orderId,
+      subtotal: 1000,
+      deliveryFee: 250,
+      tax: 0,
+      total: 1250,
+    ),
+  );
 
   @override
-  Future<String> placeOrder(GroceryOrderRequest request) {
+  Future<PlacedOrder> placeOrder(GroceryOrderRequest request) {
     callCount++;
     return _pending.future;
   }

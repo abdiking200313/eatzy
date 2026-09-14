@@ -6,6 +6,7 @@ import 'package:chowflow/services/food/presentation/checkout_screen.dart';
 import 'package:chowflow/platform/activity/presentation/activity_controller.dart';
 import 'package:chowflow/services/food/data/food_repository.dart';
 import 'package:chowflow/services/food/models/food_models.dart';
+import 'package:chowflow/services/shared/data/rpc_helpers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -18,7 +19,7 @@ class _ThrowingFoodOrderRepository implements FoodOrderRepository {
   const _ThrowingFoodOrderRepository();
 
   @override
-  Future<String> placeOrder(FoodOrderRequest request) {
+  Future<PlacedOrder> placeOrder(FoodOrderRequest request) {
     throw Exception('Simulated network failure while placing food order');
   }
 }
@@ -29,12 +30,20 @@ class _ThrowingFoodOrderRepository implements FoodOrderRepository {
 class _ControllableFoodOrderRepository implements FoodOrderRepository {
   int callCount = 0;
   final List<FoodOrderRequest> requests = [];
-  final _pending = Completer<String>();
+  final _pending = Completer<PlacedOrder>();
 
-  void complete(String orderId) => _pending.complete(orderId);
+  void complete(String orderId) => _pending.complete(
+    PlacedOrder(
+      orderId: orderId,
+      subtotal: 1000,
+      deliveryFee: 499,
+      tax: 100,
+      total: 1599,
+    ),
+  );
 
   @override
-  Future<String> placeOrder(FoodOrderRequest request) {
+  Future<PlacedOrder> placeOrder(FoodOrderRequest request) {
     callCount++;
     requests.add(request);
     return _pending.future;

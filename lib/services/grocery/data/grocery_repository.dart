@@ -14,7 +14,7 @@ abstract interface class GroceryCatalogRepository {
 }
 
 abstract interface class GroceryOrderRepository {
-  Future<String> placeOrder(GroceryOrderRequest request);
+  Future<PlacedOrder> placeOrder(GroceryOrderRequest request);
 }
 
 class SeededGroceryRepository implements GroceryRepository {
@@ -205,12 +205,12 @@ class SupabaseGroceryOrderRepository implements GroceryOrderRepository {
   final SupabaseClient _client;
 
   @override
-  Future<String> placeOrder(GroceryOrderRequest request) async {
+  Future<PlacedOrder> placeOrder(GroceryOrderRequest request) async {
     final response = await _client.rpc<Object?>(
       'place_grocery_order',
       params: request.toRpcParams(),
     );
-    return requiredRpcId(response, 'grocery order');
+    return PlacedOrder.fromRpcResponse(response, 'grocery order');
   }
 }
 
