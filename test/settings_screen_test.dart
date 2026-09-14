@@ -7,6 +7,7 @@ import 'package:chowflow/features/profile/models/customer_profile.dart';
 import 'package:chowflow/features/settings/presentation/settings_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -66,9 +67,16 @@ Future<AuthService> _signedInAuthService({
 }
 
 class _FakeProfileRepository implements ProfileRepository {
-  const _FakeProfileRepository(this.profile);
+  _FakeProfileRepository(this.profile, {this.deleteAccountError});
 
   final CustomerProfile? profile;
+
+  /// When non-null, [deleteAccount] throws this instead of succeeding, so
+  /// the failure-path snackbar behavior can be exercised without a real
+  /// backend error.
+  final Object? deleteAccountError;
+
+  bool deleteAccountCalled = false;
 
   @override
   Future<CustomerProfile?> fetchCurrentProfile() async => profile;
@@ -79,6 +87,44 @@ class _FakeProfileRepository implements ProfileRepository {
     required String lastName,
     required String phone,
   }) async => throw UnimplementedError('not exercised by this test');
+
+  @override
+  Future<void> deleteAccount() async {
+    deleteAccountCalled = true;
+    if (deleteAccountError != null) {
+      throw deleteAccountError!;
+    }
+  }
+}
+
+/// `_confirmDeleteAccount` calls `context.go(AppRoutes.login)` on success
+/// (matching `_logout`), which requires a real `GoRouter` ancestor — this
+/// wraps `SettingsScreen` with a minimal one instead of a bare `MaterialApp`,
+/// matching the harness pattern `edit_profile_screen_test.dart` uses for the
+/// same reason.
+Widget _pumpableSettingsScreen({
+  required AuthService authService,
+  required ProfileRepository profileRepository,
+}) {
+  final router = GoRouter(
+    initialLocation: '/settings',
+    routes: [
+      GoRoute(
+        path: '/settings',
+        builder: (_, _) => SettingsScreen(
+          authService: authService,
+          profileRepository: profileRepository,
+          notificationPreferencesStorage:
+              MemoryNotificationPreferencesStorage(),
+        ),
+      ),
+      GoRoute(
+        path: '/login',
+        builder: (_, _) => const Scaffold(body: Text('Login destination')),
+      ),
+    ],
+  );
+  return MaterialApp.router(theme: buildAppTheme(), routerConfig: router);
 }
 
 void main() {
@@ -95,7 +141,7 @@ void main() {
           theme: buildAppTheme(),
           home: SettingsScreen(
             authService: authService,
-            profileRepository: const _FakeProfileRepository(
+            profileRepository: _FakeProfileRepository(
               CustomerProfile(
                 id: 'customer-1',
                 firstName: 'Amina',
@@ -130,7 +176,7 @@ void main() {
         theme: buildAppTheme(),
         home: SettingsScreen(
           authService: authService,
-          profileRepository: const _FakeProfileRepository(
+          profileRepository: _FakeProfileRepository(
             CustomerProfile(
               id: 'customer-2',
               firstName: 'Sam',
@@ -162,7 +208,7 @@ void main() {
           theme: buildAppTheme(),
           home: SettingsScreen(
             authService: authService,
-            profileRepository: const _FakeProfileRepository(
+            profileRepository: _FakeProfileRepository(
               CustomerProfile(
                 id: 'customer-3',
                 firstName: 'Sam',
@@ -199,7 +245,7 @@ void main() {
         theme: buildAppTheme(),
         home: SettingsScreen(
           authService: authService,
-          profileRepository: const _FakeProfileRepository(
+          profileRepository: _FakeProfileRepository(
             CustomerProfile(
               id: 'customer-4',
               firstName: 'Sam',
@@ -231,7 +277,7 @@ void main() {
         email: 'user5@zivo.app',
       );
       final storage = MemoryNotificationPreferencesStorage();
-      const profile = _FakeProfileRepository(
+      final profile = _FakeProfileRepository(
         CustomerProfile(
           id: 'customer-5',
           firstName: 'Sam',
@@ -298,6 +344,127 @@ void main() {
         matching: find.byType(Switch),
       );
       expect(tester.widget<Switch>(reopenedSwitchFinder).value, isTrue);
+    },
+  );
+
+  testWidgets(
+    'canceling the delete-account confirmation dialog does not delete the '
+    'account',
+    (tester) async {
+      final authService = await _signedInAuthService(
+        userId: 'customer-6',
+        email: 'user6@zivo.app',
+      );
+      final repository = _FakeProfileRepository(
+        const CustomerProfile(
+          id: 'customer-6',
+          firstName: 'Sam',
+          lastName: 'Yusuf',
+          phone: '+252 61 000 0000',
+        ),
+      );
+
+      await tester.pumpWidget(
+        _pumpableSettingsScreen(
+          authService: authService,
+          profileRepository: repository,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.scrollUntilVisible(find.text('Delete Account'), 200);
+      await tester.tap(find.text('Delete Account'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Delete your account?'), findsOneWidget);
+
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+
+      expect(repository.deleteAccountCalled, isFalse);
+      expect(find.text('Login destination'), findsNothing);
+      expect(find.byType(SettingsScreen), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'confirming account deletion calls the repository, signs out, and '
+    'routes to login',
+    (tester) async {
+      final authService = await _signedInAuthService(
+        userId: 'customer-7',
+        email: 'user7@zivo.app',
+      );
+      final repository = _FakeProfileRepository(
+        const CustomerProfile(
+          id: 'customer-7',
+          firstName: 'Sam',
+          lastName: 'Yusuf',
+          phone: '+252 61 000 0000',
+        ),
+      );
+
+      await tester.pumpWidget(
+        _pumpableSettingsScreen(
+          authService: authService,
+          profileRepository: repository,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.scrollUntilVisible(find.text('Delete Account'), 200);
+      await tester.tap(find.text('Delete Account'));
+      await tester.pumpAndSettle();
+
+      // Two "Delete Account" texts now exist: the settings-screen button
+      // (scrolled off-screen but still in the tree) and the dialog's
+      // confirm button. `findsAtLeastNWidgets` avoids asserting exactly how
+      // many, only that the dialog's copy tap resolves.
+      await tester.tap(find.text('Delete Account').last);
+      await tester.pumpAndSettle();
+
+      expect(repository.deleteAccountCalled, isTrue);
+      expect(authService.getCurrentUserId(), isNull);
+      expect(find.text('Login destination'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'a failed account deletion shows an error and leaves the user signed in',
+    (tester) async {
+      final authService = await _signedInAuthService(
+        userId: 'customer-8',
+        email: 'user8@zivo.app',
+      );
+      final repository = _FakeProfileRepository(
+        const CustomerProfile(
+          id: 'customer-8',
+          firstName: 'Sam',
+          lastName: 'Yusuf',
+          phone: '+252 61 000 0000',
+        ),
+        deleteAccountError: StateError('boom'),
+      );
+
+      await tester.pumpWidget(
+        _pumpableSettingsScreen(
+          authService: authService,
+          profileRepository: repository,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.scrollUntilVisible(find.text('Delete Account'), 200);
+      await tester.tap(find.text('Delete Account'));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Delete Account').last);
+      await tester.pumpAndSettle();
+
+      expect(repository.deleteAccountCalled, isTrue);
+      expect(find.textContaining('Could not delete account'), findsOneWidget);
+      expect(authService.getCurrentUserId(), isNotNull);
+      expect(find.text('Login destination'), findsNothing);
     },
   );
 }

@@ -114,6 +114,47 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
+  Future<void> _confirmDeleteAccount() async {
+    final shouldDelete = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Delete your account?'),
+        content: const Text(
+          'This permanently removes your profile and personal data. '
+          "This can't be undone.",
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: TwColors.error),
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: const Text('Delete Account'),
+          ),
+        ],
+      ),
+    );
+
+    if (shouldDelete != true || !mounted) return;
+
+    try {
+      await _profileRepository.deleteAccount();
+      // The account's PII is now wiped server-side; sign out immediately so
+      // the local session can't keep operating against the emptied profile
+      // (see ProfileRepository.deleteAccount's doc comment).
+      await _authService.signOut();
+      if (mounted) context.go(AppRoutes.login);
+    } catch (error) {
+      if (!mounted) return;
+      final message = describeAuthError(error, context: 'Account deletion');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Could not delete account: $message')),
+      );
+    }
+  }
+
   void _showAboutSheet() {
     showModalBottomSheet<void>(
       context: context,
@@ -296,6 +337,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
               label: 'Logout',
               onPressed: _logout,
               color: TwColors.error,
+            ),
+            const SizedBox(height: TwSpacing.rhythmDefault),
+            Center(
+              child: TextButton(
+                onPressed: _confirmDeleteAccount,
+                child: const Text(
+                  'Delete Account',
+                  style: TextStyle(color: TwColors.error),
+                ),
+              ),
             ),
             const SizedBox(height: TwSpacing.x5),
           ],
