@@ -156,6 +156,10 @@ class _ProfileRepository implements ProfileRepository {
     required String lastName,
     required String phone,
   }) async => throw UnimplementedError('not exercised by this test');
+
+  @override
+  Future<void> deleteAccount() async =>
+      throw UnimplementedError('not exercised by this test');
 }
 
 class _ThrowingProfileRepository implements ProfileRepository {
@@ -172,6 +176,9 @@ class _ThrowingProfileRepository implements ProfileRepository {
     required String lastName,
     required String phone,
   }) async => throw error;
+
+  @override
+  Future<void> deleteAccount() async => throw error;
 }
 
 class _FakeErrorReporter implements ErrorReporter {

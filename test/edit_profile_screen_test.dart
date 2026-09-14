@@ -123,4 +123,8 @@ class _FakeProfileRepository implements ProfileRepository {
       phone: phone,
     );
   }
+
+  @override
+  Future<void> deleteAccount() async =>
+      throw UnimplementedError('not exercised by this test');
 }
