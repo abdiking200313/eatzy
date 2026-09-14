@@ -7,9 +7,9 @@ upstream_concept: 00-Index
 
 # Open Tasks
 
-**Refreshed 2026-09-14 (board worker, 67th run), see [[Status Log]] 2026-09-14 for full detail.** **Source of truth is always a live `list_issues`/`gh issue list --repo abdiking200313/eatzy --state open` call** — re-check before relying on this for anything that matters.
+**Refreshed 2026-09-14 (board worker, 68th run), see [[Status Log]] 2026-09-14 for full detail.** **Source of truth is always a live `list_issues`/`gh issue list --repo abdiking200313/eatzy --state open` call** — re-check before relying on this for anything that matters.
 
-## Current state as of the 67th run (2026-09-14)
+## Current state as of the 68th run (2026-09-14)
 
 - **`waiting-on-you` holds only #34** (core tables missing migration — genuinely blocked again, no live Supabase DB access exists in any board-worker sandbox; asked the owner for a `supabase db pull` dump or read-only connection string).
 - **5 issues processed and merged this run**: #40 (PR #191, global error handling/error-reporter scaffolding), #59 (PR #192, checkout idempotency), #60 (PR #193, server-owned pricing config + RPC-returned total), #82 (PR #194, elapsed grocery delivery-slot rejection), #78 (PR #195, shared `delivery_addresses` table + pharmacy column renames + FK on all three order tables).
