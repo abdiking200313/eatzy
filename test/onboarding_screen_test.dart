@@ -1,13 +1,22 @@
 import 'package:chowflow/app/app_routes.dart';
 import 'package:chowflow/config/theme.dart';
+import 'package:chowflow/features/onboarding/data/onboarding_preferences.dart';
 import 'package:chowflow/features/onboarding/presentation/welcome_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shared_preferences_platform_interface/in_memory_shared_preferences_async.dart';
+import 'package:shared_preferences_platform_interface/shared_preferences_async_platform_interface.dart';
 
 import 'helpers/network_image_mock.dart';
 
 void main() {
+  setUp(() {
+    SharedPreferencesAsyncPlatform.instance =
+        InMemorySharedPreferencesAsync.empty();
+    OnboardingLaunchGate.hasSeenOnboarding = false;
+  });
+
   GoRouter buildRouter() => GoRouter(
     initialLocation: '/',
     routes: [
@@ -67,4 +76,46 @@ void main() {
       });
     },
   );
+
+  group('onboarding first-launch gating (issue #15)', () {
+    testWidgets('tapping Skip marks onboarding seen and opens the app', (
+      tester,
+    ) async {
+      await withMockNetworkImages(() async {
+        await tester.pumpWidget(
+          MaterialApp.router(
+            theme: buildAppTheme(),
+            routerConfig: buildRouter(),
+          ),
+        );
+        await tester.pump();
+
+        await tester.tap(find.text('Skip'));
+        await tester.pumpAndSettle();
+
+        expect(find.text(AppRoutes.mainApp), findsOneWidget);
+        expect(OnboardingLaunchGate.hasSeenOnboarding, isTrue);
+      });
+    });
+
+    testWidgets('tapping Get Started marks onboarding seen too', (
+      tester,
+    ) async {
+      await withMockNetworkImages(() async {
+        await tester.pumpWidget(
+          MaterialApp.router(
+            theme: buildAppTheme(),
+            routerConfig: buildRouter(),
+          ),
+        );
+        await tester.pump();
+
+        await tester.tap(find.text('Get Started'));
+        await tester.pumpAndSettle();
+
+        expect(find.text(AppRoutes.register), findsOneWidget);
+        expect(OnboardingLaunchGate.hasSeenOnboarding, isTrue);
+      });
+    });
+  });
 }
