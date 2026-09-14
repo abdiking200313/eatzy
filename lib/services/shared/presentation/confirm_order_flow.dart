@@ -12,7 +12,10 @@ import 'dart:async';
 ///   to [fallbackOrder] to synthesize a demo order (matching prior behavior
 ///   for controllers without a real order repository configured).
 /// - [onSaveFailed] builds the failure result to return if [placeOrder]
-///   throws.
+///   throws, given the caught error and stack trace so callers can log it
+///   (and, where the error is actionable, surface something more specific
+///   than a generic retry message). Mirrors [LoadableState.runLoad]'s
+///   `onError` signature.
 /// - [recordActivity] and [clearCart] run, in that order, once an order
 ///   ([R] -- e.g. a `PlacedOrder` carrying the RPC's authoritative id and
 ///   totals, see issue #60) is available, before [onConfirmed] builds the
@@ -27,7 +30,7 @@ Future<T> confirmDemoOrder<T, V, R>({
   required T Function(V validation) onInvalid,
   required Future<R?> Function() placeOrder,
   required R Function() fallbackOrder,
-  required T Function() onSaveFailed,
+  required T Function(Object error, StackTrace stackTrace) onSaveFailed,
   required void Function(R order) recordActivity,
   required FutureOr<void> Function() clearCart,
   required T Function(R order) onConfirmed,
@@ -39,8 +42,8 @@ Future<T> confirmDemoOrder<T, V, R>({
   R order;
   try {
     order = await placeOrder() ?? fallbackOrder();
-  } on Object {
-    return onSaveFailed();
+  } on Object catch (error, stackTrace) {
+    return onSaveFailed(error, stackTrace);
   }
 
   recordActivity(order);

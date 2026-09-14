@@ -529,9 +529,14 @@ class GroceryController extends ChangeNotifier with LoadableState {
         tax: 0,
         total: confirmedAmount,
       ),
-      onSaveFailed: () => GroceryCheckoutResult.invalid([
-        'The grocery order could not be saved. Please try again.',
-      ]),
+      onSaveFailed: (error, stackTrace) {
+        debugPrint(
+          'GroceryController.confirmOrder failed: $error\n$stackTrace',
+        );
+        return GroceryCheckoutResult.invalid([
+          'The grocery order could not be saved. Please try again.',
+        ]);
+      },
       // `order.total` is the RPC's authoritative, server-computed total
       // (issue #60) — not the client-computed `confirmedAmount`, which can
       // be stale if a product price changed between the cart being built
