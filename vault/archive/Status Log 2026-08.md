@@ -1,6 +1,6 @@
 ---
 tags: [history, log, archive]
-summary: Archived Status Log entries for 2026-08-12 through 2026-08-15 (setup, first thorough audit pass, routine recreation/cleaning removal/app-icons run), moved out of the live log once it passed the ~150-line archive threshold.
+summary: Archived Status Log entries for 2026-08-12 through 2026-08-30 (setup, first thorough audit pass, routine recreation/cleaning removal/app-icons run, and the 13th-15th board-worker runs), moved out of the live log once it passed the ~150-line archive threshold.
 status: append-only
 upstream_concept: 00-Index
 ---
@@ -74,3 +74,32 @@ Added `dart format --output=none --set-exit-if-changed` to all `.claude/agents/*
 - **Issue #50 executed**: cleaning/cleaner vertical deleted entirely — `lib/services/cleaning/`, its 2 dedicated test files, all `ServiceId.cleaning`/route/theme/session references removed; `ActivityItem.fromMap` now drops legacy `'cleaning'`-typed activity rows instead of throwing. New unapplied migration `supabase/migrations/20260815153920_remove_cleaning_vertical.sql` drops the cleaning tables/RPCs/view branch — **not run against the live DB**, manual follow-up. `dart format`/`flutter analyze`/`flutter test` (53/53) all clean. See PR for #50.
 - **Board worker built issue #33** (stock Flutter template app icons/splash screen on Android+iOS): made `ZivoMarkPainter` in `lib/widgets/zivo_logo.dart` public and added `tool/generate_brand_assets.dart` (a `flutter_test`-based rasterizer) so the app-icon/splash source PNGs under `assets/icon/` are generated from the exact same brand mark used in-app, not a separate hand-made asset. Wired via `flutter_launcher_icons` + `flutter_native_splash` (new dev deps, config in `pubspec.yaml`); ran both generators for Android (incl. adaptive icon)/iOS/macOS/Windows/web. `flutter_launcher_icons` has no Linux target — left Linux icon untouched, noted as an assumption in the PR. Also fixed the stale "A new Flutter project." description in `web/manifest.json` and `web/index.html` per the issue. Format/analyze/test all clean (60/60).
 - Issue #16 (native bundle identifiers) is still `waiting-on-you` — my clarifying question is up, no reply yet.
+
+---
+
+## 2026-08-30 (13th run — big backlog reload)
+
+- The "nothing eligible" streak was stale — between the last run and this one the human approved/filed a large new batch: a 7-issue merchant self-service epic (#128 tracking + #129-135), 9 new small UI/bug issues (#137-144, plus #122/#123 approved to `todo`), and 5 older `todo`-without-`waiting-on-you` issues (#38, #43, #73, #74, #81).
+- Processed 6 issues oldest-first: #38→PR #145, #73→PR #146, #81→PR #148, #122→PR #147, #43→PR #149, all merged; #74 found genuinely blocked (depends on issue #34, not itself `todo`-approved) and relabeled `waiting-on-you`.
+- **#79 got a real human reply this run** (no bot footer) redirecting its fulfilment-model question to the new #128/#131 decision — left `waiting-on-you` as-is since the actual implementation lands via #131.
+- #16/#40/#78 still no human reply.
+
+## 2026-08-30 (14th run — merchant chain kickoff + blocking checkout fix)
+
+- Processed #123 (merged, PR #152), #129 (merged, PR #151), #130 (merged, PR #153), #131 (merged, PR #154, also resolves #79's fulfilment-path question), #132 (**paused `waiting-on-you`** — issue's own text says it needs human scoping before pickup, asked the 3 questions the issue itself raises), #136 (merged, PR #157 — a real production-breaking bug, food checkout was broken for every user, now fixed), #137 (merged, PR #156).
+- **#133/#134/#135 skipped**, all depend on #132. Merchant chain now blocked at #132 until the human answers the same-repo-vs-separate-repo question.
+
+## 2026-08-30 (15th run — fresh-audit-pass batch cleared)
+
+- **`waiting-on-you` re-checked first, no change**: #8/#16/#40/#78/#132 re-checked via `get_comments` — still only agent-authored comments, no genuine human reply on any. #74 unchanged (still blocked on #34's approval, per the 13th/14th run finding). #79's most recent comment is already this bot's own informational follow-up from the 14th run (posted after #131 merged) — nothing new to act upon there, correctly left open per the human's own earlier instruction to leave it tracking until confirmed.
+- **Processed all 6 remaining oldest `todo` issues from the #137-144 fresh-audit batch**, strict oldest-first, all dispatched as parallel `isolation: "worktree"` background agents from clean `master` (`a8d6529`), all merged:
+  - **#138** ("Added to cart" snackbar used Flutter's plain 4s default, inconsistent wording/styling across 5 call sites) → PR #162. New shared `showCartSnackBar(context, message)` helper in `lib/widgets/app_misc.dart` — `SnackBarBehavior.floating`, ~1.8s duration, rounded shape, inset margin, existing `TwColors`/`TwSpacing`/`TwRadius` tokens. All 5 call sites (food's restaurant/cart screens, grocery's screen/cart screen, pharmacy's catalog screen) switched over, each site's own message-text logic preserved untouched. Verified via Flutter's own `Scaffold` source that a floating SnackBar's auto-lift-above-FAB/bottom-nav is independent of `margin`, so one shared style is safe everywhere including the food FAB screen. 164/164 tests.
+  - **#139** (cart icon inconsistent: grocery/pharmacy had a small outline `IconButton`+default `Badge`, food had no AppBar icon at all and used a bottom FAB instead) → PR #160. New shared `CartAppBarAction` widget (`lib/widgets/cart_app_bar_action.dart`) — 44x44 filled chip in the vertical's soft accent color, solid icon, accent-colored count badge shown only when non-empty. Food's competing bottom FAB removed since the issue explicitly disallows two entry points on one screen.
+  - **#142** (Recent Activity section cramped) → PR #159, `TwSpacing.rhythmTight`/`x3` → `x4` on the home screen.
+  - **#143** (resize search bar/promo banner to match a user-attached reference image, plus a follow-up comment to remove the greeting) → PR #161 — **could not actually view the reference screenshot** (see process/environment finding below); removed the greeting entirely regardless (that instruction didn't depend on the image) and made a text-description-only sizing pass.
+  - **#140** (grocery: browse one store at a time like food) → PR #163, `GroceryScreen` split into a store-list screen + new `GroceryStoreScreen` store-scoped catalog, mirroring food's restaurant-list→menu pattern; no schema change.
+  - **#141** (pharmacy: same store-selection restructuring, was gated on #129 which merged last run) → PR #164, same pattern via a new `PharmacyStoreListScreen` + `pharmacy_stores`-scoped `PharmacyController`, plus a store-conflict cart guard mirroring grocery's.
+  - All 6 agents correctly rebased onto each other's concurrent merges (`CartAppBarAction`/`showCartSnackBar` from #139/#138 got adopted into #140/#141's new screens rather than reverted) — no unresolved conflicts, no lost work.
+- **Only #144 left unpicked from this batch** (picked up 2026-08-31, 16th run). #133/#134/#135 still blocked on #132 (`waiting-on-you`, unchanged).
+
+**Process/environment finding, 15th run:** a GitHub issue-comment image attachment (`github.com/user-attachments/assets/...`) is **not fetchable from a dispatched agent's sandbox** — direct `curl` is blocked by the agent proxy (only allows repo-scoped GitHub API paths, not arbitrary `github.com` hosts) and `WebFetch` 404s (unauthenticated fetch against what resolves as a private-repo attachment). This is the second time this exact limitation has been hit (issue #143's own body already flagged a prior session hitting it when trying to attach the image in the first place) — treat any future issue that hinges on a user-attached screenshot as needing either the image pasted as inline issue text/markdown description, or a human to paste the relevant measurements/colors directly into the issue body, rather than expecting a dispatched agent to fetch the attachment URL itself.
