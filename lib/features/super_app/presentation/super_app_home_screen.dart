@@ -39,74 +39,100 @@ class _SuperAppHomeScreenState extends State<SuperAppHomeScreen> {
   @override
   Widget build(BuildContext context) {
     final controller = widget.activityController ?? ActivityController.instance;
+    // Only the Recent Activity preview below depends on `controller`, so it
+    // is the only part of this screen wrapped in a listener (see
+    // GroceryCartBadgeAction/PharmacyCartBadgeAction for the same narrow-
+    // listener pattern). Everything else here builds once per screen build
+    // instead of on every ActivityController notification (issue #181).
+    return Scaffold(
+      backgroundColor: TwColors.bg,
+      body: ListView(
+        padding: const EdgeInsets.only(bottom: TwSpacing.x8),
+        children: [
+          _HomeHeader(
+            onSearch: () => context.push(AppRoutes.foodExplore),
+            onNotifications: () {},
+            onSettings: () => context.push(AppRoutes.settings),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+              TwSpacing.x5,
+              TwSpacing.x5,
+              TwSpacing.x5,
+              0,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _PromoBanner(
+                  onExplore: () => context.push(AppRoutes.foodExplore),
+                ),
+                const SizedBox(height: TwSpacing.x8),
+                _SectionHeader(
+                  title: 'Categories',
+                  actionLabel: 'See all',
+                  onPressed: () => context.push(AppRoutes.services),
+                ),
+                const SizedBox(height: TwSpacing.x3),
+                _ServiceGrid(modules: ServiceRegistry.modules),
+                const SizedBox(height: TwSpacing.x8),
+                _SectionHeader(
+                  title: 'Popular Restaurants',
+                  actionLabel: 'View all',
+                  onPressed: () => context.push(AppRoutes.foodExplore),
+                ),
+                const SizedBox(height: TwSpacing.x3),
+              ],
+            ),
+          ),
+          _PopularRestaurants(future: _restaurantsFuture),
+          _RecentActivitySection(controller: controller),
+        ],
+      ),
+    );
+  }
+}
+
+/// Scopes the `ActivityController` listener to just the Recent Activity
+/// preview so a `record()`/`load()` notification only rebuilds this small
+/// subtree, not the rest of the super-app home screen (issue #181).
+class _RecentActivitySection extends StatelessWidget {
+  const _RecentActivitySection({required this.controller});
+
+  final ActivityController controller;
+
+  @override
+  Widget build(BuildContext context) {
     return AnimatedBuilder(
       animation: controller,
       builder: (context, _) {
         final recentItems = controller.items.take(3).toList(growable: false);
-        return Scaffold(
-          backgroundColor: TwColors.bg,
-          body: ListView(
-            padding: const EdgeInsets.only(bottom: TwSpacing.x8),
-            children: [
-              _HomeHeader(
-                onSearch: () => context.push(AppRoutes.foodExplore),
-                onNotifications: () {},
-                onSettings: () => context.push(AppRoutes.settings),
+        if (recentItems.isEmpty) {
+          return const SizedBox.shrink();
+        }
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                TwSpacing.x5,
+                TwSpacing.x8,
+                TwSpacing.x5,
+                0,
               ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(
-                  TwSpacing.x5,
-                  TwSpacing.x5,
-                  TwSpacing.x5,
-                  0,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _PromoBanner(
-                      onExplore: () => context.push(AppRoutes.foodExplore),
-                    ),
-                    const SizedBox(height: TwSpacing.x8),
-                    _SectionHeader(
-                      title: 'Categories',
-                      actionLabel: 'See all',
-                      onPressed: () => context.push(AppRoutes.services),
-                    ),
-                    const SizedBox(height: TwSpacing.x3),
-                    _ServiceGrid(modules: ServiceRegistry.modules),
-                    const SizedBox(height: TwSpacing.x8),
-                    _SectionHeader(
-                      title: 'Popular Restaurants',
-                      actionLabel: 'View all',
-                      onPressed: () => context.push(AppRoutes.foodExplore),
-                    ),
-                    const SizedBox(height: TwSpacing.x3),
-                  ],
-                ),
+              child: _SectionHeader(
+                title: 'Recent Activity',
+                actionLabel: 'View all',
+                onPressed: () => context.go(AppRoutes.activity),
               ),
-              _PopularRestaurants(future: _restaurantsFuture),
-              if (recentItems.isNotEmpty) ...[
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(
-                    TwSpacing.x5,
-                    TwSpacing.x8,
-                    TwSpacing.x5,
-                    0,
-                  ),
-                  child: _SectionHeader(
-                    title: 'Recent Activity',
-                    actionLabel: 'View all',
-                    onPressed: () => context.go(AppRoutes.activity),
-                  ),
-                ),
-                const SizedBox(height: TwSpacing.x4),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: TwSpacing.x5),
-                  child: _RecentActivityListCard(items: recentItems),
-                ),
-              ],
-            ],
-          ),
+            ),
+            const SizedBox(height: TwSpacing.x4),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: TwSpacing.x5),
+              child: _RecentActivityListCard(items: recentItems),
+            ),
+          ],
         );
       },
     );
