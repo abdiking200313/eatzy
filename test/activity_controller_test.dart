@@ -152,6 +152,38 @@ void main() {
     expect(repository.fetchCount, 2);
   });
 
+  test('load() logs the original exception and stack trace instead of '
+      'discarding them, while still setting the generic user-facing error '
+      '(issue #19)', () async {
+    final repository = _FailingActivityRepository(
+      StateError('boom: repository unreachable'),
+    );
+    final controller = ActivityController(repository: repository);
+
+    final originalDebugPrint = debugPrint;
+    final logged = <String>[];
+    debugPrint = (String? message, {int? wrapWidth}) {
+      if (message != null) logged.add(message);
+    };
+    try {
+      await controller.load();
+    } finally {
+      debugPrint = originalDebugPrint;
+    }
+
+    expect(
+      controller.loadError,
+      'Activity could not be loaded. Please try again.',
+    );
+    expect(
+      logged.any((line) => line.contains('boom: repository unreachable')),
+      isTrue,
+      reason:
+          'the real exception must be logged, not silently replaced by '
+          'the generic user-facing message',
+    );
+  });
+
   group('"Track order" row action (issue #43)', () {
     testWidgets('a real-service row exposes a track action that navigates to '
         'trackOrderDetails with that row\'s service/order id', (tester) async {
@@ -238,5 +270,16 @@ class _CountingActivityRepository implements ActivityRepository {
   Future<List<ActivityItem>> fetchActivities({int limit = 100}) async {
     fetchCount++;
     return const [];
+  }
+}
+
+class _FailingActivityRepository implements ActivityRepository {
+  _FailingActivityRepository(this.error);
+
+  final Object error;
+
+  @override
+  Future<List<ActivityItem>> fetchActivities({int limit = 100}) async {
+    throw error;
   }
 }

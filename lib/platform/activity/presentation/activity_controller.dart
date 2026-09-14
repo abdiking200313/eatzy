@@ -5,6 +5,18 @@ import 'package:flutter/foundation.dart';
 import '../data/activity_repository.dart';
 import '../models/activity_item.dart';
 
+/// Unified activity feed for the food/grocery/pharmacy verticals.
+///
+/// This is a hand-rolled `ChangeNotifier` singleton (see [instance]) rather
+/// than a `@riverpod`/`AsyncNotifier`, which is otherwise this project's
+/// stated state-management convention. That is a deliberate, accepted
+/// exception -- not an oversight -- per the resolution of issue #19: a full
+/// Riverpod migration was judged a bigger refactor than the issue's scope
+/// warranted, and AGENTS.md itself says not to introduce a new state
+/// management framework for a localized task without an explicit
+/// architectural reason and user agreement. Revisit only with a fresh,
+/// explicit decision to migrate, not as an incidental side effect of an
+/// unrelated change.
 class ActivityController extends ChangeNotifier {
   ActivityController({ActivityRepository? repository})
     : _repository = repository;
