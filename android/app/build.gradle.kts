@@ -3,6 +3,9 @@ plugins {
     id("kotlin-android")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
+    // Processes google-services.json into the resources firebase_core needs
+    // (issue #47). Must come after the Android application plugin above.
+    id("com.google.gms.google-services")
 }
 
 android {
