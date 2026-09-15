@@ -8,6 +8,13 @@ Reverse-chronological. Each session/major chunk of work gets an entry.
 
 ---
 
+## 2026-09-15 (73rd run — nothing eligible, queue unchanged)
+
+- `waiting-on-you` re-checked via `get_comments`: **#34** and **#47** both still show only the bot's own request comment (2026-09-14/2026-09-15), no human reply on either — both stay blocked. #74 still blocked on #34.
+- **#132** re-checked: still `todo`, but re-read its own comment thread — the owner's 2026-09-13 reply that answered the scoping questions explicitly reaffirms "this specifically needs a human to scope/kick off rather than an automatic board-worker pickup, even with `todo` on it." Confirmed still not board-worker-pickable despite the label; #133/#134/#135 stay blocked on it.
+- `list_issues` for `todo`/`waiting-on-you` returned the same 11 issues as the 72nd run's end state (tracking-only #29/#52/#128/#176, blocked #74/#132/#133/#134/#135, waiting-on-you #34/#47) — nothing new filed or approved since.
+- Nothing implemented this run.
+
 ## 2026-09-15 (72nd run — 4 more merged, #47 paused, #34 still blocked)
 
 - `waiting-on-you` re-checked first: **#34** — still only the bot's own schema-dump request from the 67th run, no human reply, stays blocked. #74 still blocked on #34.

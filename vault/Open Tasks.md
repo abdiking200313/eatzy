@@ -7,7 +7,11 @@ upstream_concept: 00-Index
 
 # Open Tasks
 
-**Refreshed 2026-09-15 (board worker, 72nd run), see [[Status Log]] 2026-09-15 (72nd run) for full detail.** **Source of truth is always a live `list_issues`/`gh issue list --repo abdiking200313/eatzy --state open` call** — re-check before relying on this for anything that matters.
+**Re-verified unchanged 2026-09-15 (board worker, 73rd run), see [[Status Log]] 2026-09-15 (73rd run) for full detail.** **Source of truth is always a live `list_issues`/`gh issue list --repo abdiking200313/eatzy --state open` call** — re-check before relying on this for anything that matters.
+
+## Current state as of the 73rd run (2026-09-15)
+
+- **Unchanged from the 72nd run** — no new issues filed/approved, no human reply on #34 or #47. #132 re-confirmed still not board-worker-pickable despite `todo` (owner's own 2026-09-13 comment says so explicitly).
 
 ## Current state as of the 72nd run (2026-09-15)
 
