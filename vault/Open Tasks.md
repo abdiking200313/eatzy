@@ -9,9 +9,16 @@ upstream_concept: 00-Index
 
 **Re-verified unchanged 2026-09-15 (board worker, 74th run), see [[Status Log]] 2026-09-15 (74th run) for full detail.** **Source of truth is always a live `list_issues`/`gh issue list --repo abdiking200313/eatzy --state open` call** — re-check before relying on this for anything that matters.
 
+## Update, 2026-09-15 (interactive session, post-74th-run)
+
+- **#132 is no longer human-only.** The owner reversed their own 2026-09-13 "needs a human to kick off" instruction — issue body rewritten to bake in the already-decided answers (same repo, `merchant_app/` at root, `com.zivo.merchant`) and drop the "flag for approver" framing entirely. Also added to [[Multi-Agent Setup]]: creating a new top-level Flutter project is orchestrator-owned (like `pubspec.yaml`/native shells already are), not something that needs a human. **Treat #132 as a normal `todo` pick from the next run onward** — #133/#134/#135 still wait on it actually landing (real dependency, not an approval gate).
+- **#47 relabeled back to `todo`** (off `waiting-on-you`) — the owner created a Firebase project and committed `google-services.json`/`GoogleService-Info.plist` for both platforms. Scope narrowed to **Android only** in the issue body (Gradle plugin, `firebase_core`/`firebase_messaging`, FCM init, permission/toggle UI) — iOS explicitly deferred pending an Apple Developer account (same blocker as #55). Server-side FCM credentials still need the owner to set them directly as a Supabase edge-function secret, never pasted into an issue.
+- **New issue filed: #222** (`needs-approval`) — `android/gradle.properties` hardcodes a Windows-only `org.gradle.java.home` path (from commit `9be3eac`), breaking `flutter build`/`run` for Android on any non-Windows machine. Not caught by CI (`verify` job never does a real Android build). Awaiting approval, not yet actionable.
+- **#176 (code-quality audit, tracking) has zero sub-issues** — the owner asked for the actual audit to be run and findings filed; see whichever Status Log entry follows this one for the outcome.
+
 ## Current state as of the 74th run (2026-09-15)
 
-- **Unchanged from the 73rd run** — no new issues filed/approved, no human reply on #34 or #47 (re-checked `get_comments` directly on both). #132 stays not board-worker-pickable despite `todo` (owner's own 2026-09-13 comment says so explicitly).
+- **Unchanged from the 73rd run** — no new issues filed/approved, no human reply on #34 (re-checked `get_comments`). See the update note above this section for what changed afterward in an interactive session.
 
 ## Current state as of the 73rd run (2026-09-15)
 
@@ -25,8 +32,8 @@ upstream_concept: 00-Index
 - **New environment finding**: the outbound proxy allowlist is asset-type-specific — `fonts.gstatic.com`/`fonts.googleapis.com` reachable, `lh3.googleusercontent.com` and Google's Maven/AGP repo both blocked. See [[Multi-Agent Setup]].
 - **CI (`verify` check, issue #17) still not marked as a required branch-protection status** — unchanged, still needs a human to flip that GitHub setting.
 - **Remaining `todo`, not yet actionable**: none outside the tables below — re-check `list_issues` next run in case new issues were approved or filed.
-- **Still not board-worker-pickable despite `todo`**: #132 (merchant app scaffold — needs a human to kick off); #133/#134/#135 stay blocked on #132.
-- **Tracking-only, no direct work**: #29, #52, #128, #176.
+- **#132 now board-worker-pickable** (see the 2026-09-15 update note above) — pick it up like any other `todo` issue. #133/#134/#135 stay blocked until it actually lands.
+- **Tracking-only, no direct work**: #29, #52, #128. #176 is tracking but see the update note above — findings are being filed under it directly.
 - **Still not fixed, belongs with #34's eventual fix**: `supabase/seed.sql` inserts `profiles(full_name, ...)` but `schema.sql` defines `firstname`/`lastname`, no `full_name` — same drift class AGENTS.md already warns about.
 
 ---
@@ -55,10 +62,9 @@ upstream_concept: 00-Index
 
 | # | Title | Asked | Notes |
 |---|---|---|---|
-| 34 | Core tables exist in no migration — fresh environment cannot be provisioned | 2026-09-14 (67th run) | No live Supabase DB credentials/CLI link exist in any board-worker sandbox, and the sandbox proxy blocks reaching the Supabase host directly even with the client's own public key. Asked for a `supabase db pull`/`pg_dump --schema-only` dump or a read-only connection string. Blocks #74 until resolved. |
-| 47 | Push notifications promised in UI, no infra exists | 2026-09-15 (72nd run) | Needs a real Firebase project (`google-services.json`/`GoogleService-Info.plist`, APNs certs, FCM server credentials) — none of that exists anywhere in this environment and it can't be fabricated. Asked the owner to either provide project config, authorize creating a new Firebase project, or scope this down to just the client-side permission-request/toggle-wiring flow as a smaller unblocked first step. |
+| 34 | Core tables exist in no migration — fresh environment cannot be provisioned | 2026-09-14 (67th run) | No live Supabase DB credentials/CLI link exist in any board-worker sandbox, and the sandbox proxy blocks reaching the Supabase host directly even with the client's own public key. Asked for a `supabase db pull`/`pg_dump --schema-only` dump or a read-only connection string. Blocks #74 until resolved. As of 2026-09-15 the owner said they'd provide a connection string in an interactive session — check for it directly on the issue/PR before re-asking. |
 
-All other rows previously in this table (#8, #16, #40, #74's original block, #78, #79, #132) were resolved by the owner's 2026-09-13 mass reply pass — see [[Status Log]] 2026-09-13 and 2026-09-14 for what happened to each. #74 is `todo` (not `waiting-on-you`) but still practically blocked — see the blocked table below.
+**#47 moved back out of this table 2026-09-15** — see the update note near the top of this file; it's `todo` again, not `waiting-on-you`. All other rows previously in this table (#8, #16, #40, #74's original block, #78, #79, #132) were resolved by the owner's 2026-09-13 mass reply pass — see [[Status Log]] 2026-09-13 and 2026-09-14 for what happened to each. #74 is `todo` (not `waiting-on-you`) but still practically blocked — see the blocked table below.
 
 ## `agent-in-progress` — open PR awaiting review
 
