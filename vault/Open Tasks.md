@@ -14,7 +14,7 @@ upstream_concept: 00-Index
 - **#132 is no longer human-only.** The owner reversed their own 2026-09-13 "needs a human to kick off" instruction — issue body rewritten to bake in the already-decided answers (same repo, `merchant_app/` at root, `com.zivo.merchant`) and drop the "flag for approver" framing entirely. Also added to [[Multi-Agent Setup]]: creating a new top-level Flutter project is orchestrator-owned (like `pubspec.yaml`/native shells already are), not something that needs a human. **Treat #132 as a normal `todo` pick from the next run onward** — #133/#134/#135 still wait on it actually landing (real dependency, not an approval gate).
 - **#47 relabeled back to `todo`** (off `waiting-on-you`) — the owner created a Firebase project and committed `google-services.json`/`GoogleService-Info.plist` for both platforms. Scope narrowed to **Android only** in the issue body (Gradle plugin, `firebase_core`/`firebase_messaging`, FCM init, permission/toggle UI) — iOS explicitly deferred pending an Apple Developer account (same blocker as #55). Server-side FCM credentials still need the owner to set them directly as a Supabase edge-function secret, never pasted into an issue.
 - **New issue filed: #222** (`needs-approval`) — `android/gradle.properties` hardcodes a Windows-only `org.gradle.java.home` path (from commit `9be3eac`), breaking `flutter build`/`run` for Android on any non-Windows machine. Not caught by CI (`verify` job never does a real Android build). Awaiting approval, not yet actionable.
-- **#176 (code-quality audit, tracking) has zero sub-issues** — the owner asked for the actual audit to be run and findings filed; see whichever Status Log entry follows this one for the outcome.
+- **#176 closed.** Its "zero sub-issues" reading from earlier was wrong — this repo doesn't use GitHub's formal sub-issue linking (confirmed #128 shows the same false-empty result despite #129-135 being real children), only "part of #N" text in each child's body. #176's actual findings — #177/#178/#179/#180/#181 — are all merged; closed it same as #21's precedent. **Lesson for future runs**: never treat `get_sub_issues`/`has_children` as authoritative for whether a tracking issue (#21/#29/#52/#128/#176-style) has real work under it — search issue bodies for "part of #N" instead.
 
 ## Current state as of the 74th run (2026-09-15)
 
@@ -33,7 +33,7 @@ upstream_concept: 00-Index
 - **CI (`verify` check, issue #17) still not marked as a required branch-protection status** — unchanged, still needs a human to flip that GitHub setting.
 - **Remaining `todo`, not yet actionable**: none outside the tables below — re-check `list_issues` next run in case new issues were approved or filed.
 - **#132 now board-worker-pickable** (see the 2026-09-15 update note above) — pick it up like any other `todo` issue. #133/#134/#135 stay blocked until it actually lands.
-- **Tracking-only, no direct work**: #29, #52, #128. #176 is tracking but see the update note above — findings are being filed under it directly.
+- **Tracking-only, no direct work**: #29, #52, #128. #176 closed 2026-09-15 (see update note above) — its findings were already done, not empty as first thought.
 - **Still not fixed, belongs with #34's eventual fix**: `supabase/seed.sql` inserts `profiles(full_name, ...)` but `schema.sql` defines `firstname`/`lastname`, no `full_name` — same drift class AGENTS.md already warns about.
 
 ---
