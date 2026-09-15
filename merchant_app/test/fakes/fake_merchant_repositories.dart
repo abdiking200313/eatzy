@@ -1,5 +1,8 @@
 import 'package:merchant_app/features/catalog/data/merchant_catalog_repository.dart';
 import 'package:merchant_app/features/catalog/models/merchant_catalog_item.dart';
+import 'package:merchant_app/features/orders/data/merchant_orders_repository.dart';
+import 'package:merchant_app/features/orders/models/merchant_order.dart';
+import 'package:merchant_app/features/orders/models/merchant_order_vertical.dart';
 import 'package:merchant_app/features/store/data/merchant_store_repository.dart';
 import 'package:merchant_app/features/store/models/merchant_store.dart';
 import 'package:merchant_app/features/store/models/merchant_vertical.dart';
@@ -164,5 +167,67 @@ class FakeMerchantCatalogRepository implements MerchantCatalogRepository {
   Future<List<PharmacyCategory>> fetchPharmacyCategories() async {
     if (failureToThrow != null) throw failureToThrow!;
     return List.of(_categories);
+  }
+}
+
+/// In-memory fake for issue #134's `MerchantOrdersRepository`.
+/// [advanceOrderStatus] re-implements the same legal-transition check as
+/// `is_legal_order_status_transition` in
+/// `supabase/migrations/20260830140000_add_order_status_transition_rpcs.sql`
+/// (via `MerchantVertical.orderStatusFlow`, the same source of truth the
+/// real app reads), so tests can exercise both a legal advance and a
+/// rejected illegal one without a live Supabase project.
+class FakeMerchantOrdersRepository implements MerchantOrdersRepository {
+  FakeMerchantOrdersRepository({List<MerchantOrder>? initialOrders})
+    : _orders = List.of(initialOrders ?? const []);
+
+  final List<MerchantOrder> _orders;
+
+  /// When set, every method throws this instead of succeeding.
+  Object? failureToThrow;
+
+  @override
+  Future<List<MerchantOrder>> fetchOrders({
+    required MerchantVertical vertical,
+    required String storeId,
+  }) async {
+    if (failureToThrow != null) throw failureToThrow!;
+    return List.of(_orders);
+  }
+
+  @override
+  Future<String> advanceOrderStatus({
+    required MerchantVertical vertical,
+    required String orderId,
+    required String newStatus,
+  }) async {
+    if (failureToThrow != null) throw failureToThrow!;
+    final index = _orders.indexWhere((order) => order.id == orderId);
+    if (index == -1) {
+      throw const OrderStatusTransitionException('Order not found');
+    }
+    final current = _orders[index];
+    if (!_isLegalTransition(vertical, current.status, newStatus)) {
+      throw OrderStatusTransitionException(
+        'Illegal ${vertical.name} order status transition: '
+        '${current.status} -> $newStatus',
+      );
+    }
+    _orders[index] = current.copyWith(status: newStatus);
+    return newStatus;
+  }
+
+  static bool _isLegalTransition(
+    MerchantVertical vertical,
+    String from,
+    String to,
+  ) {
+    final flow = vertical.orderStatusFlow;
+    final fromIndex = flow.indexOf(from);
+    if (to == 'cancelled') {
+      return fromIndex == 0 || fromIndex == 1;
+    }
+    final toIndex = flow.indexOf(to);
+    return fromIndex != -1 && toIndex == fromIndex + 1;
   }
 }
