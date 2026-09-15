@@ -7,18 +7,19 @@ upstream_concept: 00-Index
 
 # Open Tasks
 
-**Refreshed 2026-09-14 (board worker, 71st run), see [[Status Log]] 2026-09-14 (71st run) for full detail.** **Source of truth is always a live `list_issues`/`gh issue list --repo abdiking200313/eatzy --state open` call** — re-check before relying on this for anything that matters.
+**Refreshed 2026-09-15 (board worker, 72nd run), see [[Status Log]] 2026-09-15 (72nd run) for full detail.** **Source of truth is always a live `list_issues`/`gh issue list --repo abdiking200313/eatzy --state open` call** — re-check before relying on this for anything that matters.
 
-## Current state as of the 71st run (2026-09-14)
+## Current state as of the 72nd run (2026-09-15)
 
-- **`waiting-on-you` holds only #34** (core tables missing migration — still genuinely blocked, no live Supabase DB access exists in any board-worker sandbox, no human reply yet to the schema-dump request from the 67th run). #74 still blocked on #34.
-- **6 issues processed and merged this run, the 2026-08-14 audit-batch tail**: #19 (PR #209, documented `ActivityController` singleton as a deliberate exception, added a regression test), #41 (PR #210, new `StartupGate` bootstrap widget — startup runs behind timeouts + retry UI instead of blocking `runApp`), #31 (PR #211, dropped the `is_demo`-forces-true CHECK, RPCs now write real orders as `is_demo=false`, currency/country checks deliberately untouched), #42 (PR #212, new `lib/config/env.dart` env abstraction via `--dart-define`/`String.fromEnvironment`), #36 (PR #213, account deletion via anonymize-not-hard-delete + new `delete_own_account` RPC), #37 (PR #214, real drafted Privacy Policy/ToS shipped as in-app screens + `docs/legal/*.md`, external hosting still needed for app-store submission).
-- **One migration landed this run** (#31's `is_demo` fix) — **not applied to production**, `supabase db push` still pending, per standing convention.
-- **CI (`verify` check, issue #17) still not marked as a required branch-protection status** — unchanged from the 70th run, still needs a human to flip that GitHub setting.
-- **Remaining `todo`, oldest-first, next run's pickup order**: #44, #45, #46, #47, #48, #49 — the rest of the 2026-08-14 audit batch, not yet triaged for ambiguity.
+- **This clears the entire 2026-08-14 audit batch.** `todo`-and-unblocked is now empty aside from tracking issues.
+- **`waiting-on-you` holds #34** (core tables missing migration — still genuinely blocked, no live Supabase DB access exists in any board-worker sandbox, no human reply yet to the schema-dump request from the 67th run) **and now also #47** (push notifications — needs a real Firebase/APNs project with credentials that don't exist anywhere in this environment; asked the owner to either provide project config, authorize creating one, or scope down to just the client-side permission/toggle flow as a smaller first step). #74 still blocked on #34.
+- **4 issues processed and merged this run**: #44 (PR #219, onboarding CDN-image hardening — found mostly already fixed by an earlier change, added `pubspec.yaml` `assets:` section + branded error fallback; could NOT bundle the actual replacement illustrations since `lh3.googleusercontent.com` is blocked by the sandbox's network policy, flagged as an owner follow-up), #45 (PR #218, bundled real Outfit `.ttf` files locally — `fonts.gstatic.com` IS reachable unlike the image CDN — removed the `google_fonts` dependency entirely), #46 (PR #220, Android release minify/shrink/obfuscate + proguard-rules.pro + README docs — could not run an actual release build, no Android SDK and Google's Maven repo also proxy-blocked in this sandbox), #48 (PR #217, `allowBackup="false"`, confirmed #7's secure-storage fix already covers the session-token half). One issue (#49, web/PWA branding) handled directly without subagent dispatch since it was trivial — found already mostly fixed, only `manifest.json`'s theme colors were stale.
+- **New environment finding**: the outbound proxy allowlist is asset-type-specific — `fonts.gstatic.com`/`fonts.googleapis.com` reachable, `lh3.googleusercontent.com` and Google's Maven/AGP repo both blocked. See [[Multi-Agent Setup]].
+- **CI (`verify` check, issue #17) still not marked as a required branch-protection status** — unchanged, still needs a human to flip that GitHub setting.
+- **Remaining `todo`, not yet actionable**: none outside the tables below — re-check `list_issues` next run in case new issues were approved or filed.
 - **Still not board-worker-pickable despite `todo`**: #132 (merchant app scaffold — needs a human to kick off); #133/#134/#135 stay blocked on #132.
 - **Tracking-only, no direct work**: #29, #52, #128, #176.
-- **New finding this run, belongs with #34's eventual fix**: `supabase/seed.sql` inserts `profiles(full_name, ...)` but `schema.sql` defines `firstname`/`lastname`, no `full_name` — same drift class AGENTS.md already warns about, not fixed.
+- **Still not fixed, belongs with #34's eventual fix**: `supabase/seed.sql` inserts `profiles(full_name, ...)` but `schema.sql` defines `firstname`/`lastname`, no `full_name` — same drift class AGENTS.md already warns about.
 
 ---
 
@@ -47,6 +48,7 @@ upstream_concept: 00-Index
 | # | Title | Asked | Notes |
 |---|---|---|---|
 | 34 | Core tables exist in no migration — fresh environment cannot be provisioned | 2026-09-14 (67th run) | No live Supabase DB credentials/CLI link exist in any board-worker sandbox, and the sandbox proxy blocks reaching the Supabase host directly even with the client's own public key. Asked for a `supabase db pull`/`pg_dump --schema-only` dump or a read-only connection string. Blocks #74 until resolved. |
+| 47 | Push notifications promised in UI, no infra exists | 2026-09-15 (72nd run) | Needs a real Firebase project (`google-services.json`/`GoogleService-Info.plist`, APNs certs, FCM server credentials) — none of that exists anywhere in this environment and it can't be fabricated. Asked the owner to either provide project config, authorize creating a new Firebase project, or scope this down to just the client-side permission-request/toggle-wiring flow as a smaller unblocked first step. |
 
 All other rows previously in this table (#8, #16, #40, #74's original block, #78, #79, #132) were resolved by the owner's 2026-09-13 mass reply pass — see [[Status Log]] 2026-09-13 and 2026-09-14 for what happened to each. #74 is `todo` (not `waiting-on-you`) but still practically blocked — see the blocked table below.
 
@@ -68,7 +70,7 @@ All other rows previously in this table (#8, #16, #40, #74's original block, #78
 
 ## Remaining `todo`, not yet picked up
 
-**As of the 71st run (2026-09-14)**: #44, #45, #46, #47, #48, #49 — the last of the 2026-08-14 audit batch (#19/#31/#36/#37/#41/#42, the rest of that batch, all merged this run — see [[Status Log]] 2026-09-14 "71st run"). Not yet triaged individually for ambiguity. #133/#134/#135 (merchant screens/QA) still **blocked on #132** (`waiting-on-you`). Re-check via `list_issues` before assuming this list is complete — a further human approval pass or reply could change it any time.
+**As of the 72nd run (2026-09-15)**: none — the 2026-08-14 audit batch (#44/#45/#46/#48/#49 merged, #47 moved to `waiting-on-you`) is fully cleared, see [[Status Log]] 2026-09-15 "72nd run". #133/#134/#135 (merchant screens/QA) still **blocked on #132** (`waiting-on-you`). Re-check via `list_issues` before assuming this list is complete — a further human approval pass or reply could change it any time.
 
 **Empty as of the 16th run (2026-08-31) through the 69th run (2026-09-14)** — historical note, superseded by the above: #144 (the last actionable `todo` from the prior batch) merged via PR #166, and the queue then sat genuinely empty (aside from blocked/tracking issues) for 54 runs until this run's mass approval.
 
