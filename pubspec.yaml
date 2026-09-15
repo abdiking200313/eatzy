@@ -100,6 +100,15 @@ flutter:
   # assets:
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
+  #
+  # `assets/icon/` already holds the app-icon/splash-logo source PNGs used by
+  # the `flutter_launcher_icons`/`flutter_native_splash` build-time configs
+  # above, but those tools read the files directly off disk — they don't put
+  # them in the app's runtime asset bundle. Declaring the folder here also
+  # bundles it for runtime use (e.g. `Image.asset` branded fallbacks — see
+  # issue #44) without changing anything about how those two tools behave.
+  assets:
+    - assets/icon/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
