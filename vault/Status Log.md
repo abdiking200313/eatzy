@@ -8,6 +8,12 @@ Reverse-chronological. Each session/major chunk of work gets an entry.
 
 ---
 
+## 2026-09-15 (74th run — nothing eligible, queue unchanged)
+
+- `list_issues` for `todo`/`waiting-on-you` returned the same 11 issues as the 73rd run's end state: tracking-only #29/#52/#128/#176, blocked #74 (on #34)/#132 (needs human kickoff)/#133/#134/#135 (on #132), `waiting-on-you` #34/#47.
+- Re-checked `get_comments` on **#34** and **#47** directly (not just the vault cache): both still show only the bot's own request comment (2026-09-14 and 2026-09-15 respectively), no human reply on either. Both stay blocked.
+- Nothing implemented this run.
+
 ## 2026-09-15 (73rd run — nothing eligible, queue unchanged)
 
 - `waiting-on-you` re-checked via `get_comments`: **#34** and **#47** both still show only the bot's own request comment (2026-09-14/2026-09-15), no human reply on either — both stay blocked. #74 still blocked on #34.
