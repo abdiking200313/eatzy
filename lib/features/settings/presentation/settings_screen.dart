@@ -4,6 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../app/app_routes.dart';
 import '../../../config/theme.dart';
+import '../../../platform/notifications/push_notifications.dart';
 import '../../../widgets/app_cards.dart';
 import '../../../widgets/app_scaffold.dart';
 import '../../auth/data/auth_error_message.dart';
@@ -21,11 +22,16 @@ class SettingsScreen extends StatefulWidget {
     this.authService,
     this.profileRepository,
     this.notificationPreferencesStorage,
+    this.pushNotificationGateway,
   });
 
   final AuthService? authService;
   final ProfileRepository? profileRepository;
   final NotificationPreferencesStorage? notificationPreferencesStorage;
+
+  /// Overridable for tests; defaults to [PushNotifications.instance] (issue
+  /// #47).
+  final PushNotificationGateway? pushNotificationGateway;
 
   @override
   State<SettingsScreen> createState() => _SettingsScreenState();
@@ -45,6 +51,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
   NotificationPreferencesStorage get _preferencesStorage =>
       widget.notificationPreferencesStorage ??
       SharedPreferencesNotificationPreferencesStorage();
+
+  PushNotificationGateway get _pushNotificationGateway =>
+      widget.pushNotificationGateway ?? PushNotifications.instance;
 
   @override
   void initState() {
@@ -86,9 +95,34 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Future<void> _loadPreferences() async {
     final ownerId = _readCurrentUserId();
     if (ownerId == null) return;
-    final stored = await _preferencesStorage.read(ownerId);
+    var stored = await _preferencesStorage.read(ownerId);
+    // Reconcile a stale "on" against the real OS permission (issue #47):
+    // before this issue, toggling this switch never asked for permission,
+    // so an existing install can have `pushNotifications: true` saved with
+    // no permission ever granted -- exactly the false promise the issue is
+    // about. A device that denied/revoked it since should show (and save)
+    // the switch as off rather than keep claiming push is on.
+    if (stored.pushNotifications) {
+      final hasPermission = await _readHasPushPermission();
+      if (!hasPermission) {
+        stored = stored.copyWith(pushNotifications: false);
+        await _preferencesStorage.write(ownerId, stored);
+      }
+    }
     if (!mounted) return;
     setState(() => _preferences = stored);
+  }
+
+  /// Wraps [PushNotificationGateway.hasPermission], treating a failure (no
+  /// Firebase platform channel, as in a plain widget test that doesn't
+  /// inject a fake gateway) as "can't tell" rather than forcing the
+  /// preference off.
+  Future<bool> _readHasPushPermission() async {
+    try {
+      return await _pushNotificationGateway.hasPermission();
+    } on Object {
+      return true;
+    }
   }
 
   Future<void> _updatePreferences(NotificationPreferences next) async {
@@ -99,6 +133,34 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final ownerId = _readCurrentUserId();
     if (ownerId == null) return;
     await _preferencesStorage.write(ownerId, next);
+  }
+
+  /// Handles the "Push Notifications" toggle specifically (issue #47):
+  /// turning it on must actually request OS permission first, and only
+  /// persists "on" if that permission is granted -- otherwise the toggle
+  /// stays off and the user is told why, instead of silently lying about
+  /// whether push notifications will arrive. Turning it off never needs
+  /// permission, so it just persists like any other preference.
+  Future<void> _setPushNotifications(bool enabled) async {
+    if (!enabled) {
+      await _updatePreferences(_preferences.copyWith(pushNotifications: false));
+      return;
+    }
+
+    final granted = await _pushNotificationGateway.requestPermission();
+    if (!granted) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Notifications are blocked for Zivo. Enable them in your '
+            'device settings to turn this on.',
+          ),
+        ),
+      );
+      return;
+    }
+    await _updatePreferences(_preferences.copyWith(pushNotifications: true));
   }
 
   Future<void> _logout() async {
@@ -183,9 +245,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     title: 'Push Notifications',
                     subtitle: 'Get notifications about your orders',
                     value: _preferences.pushNotifications,
-                    onChanged: (value) => _updatePreferences(
-                      _preferences.copyWith(pushNotifications: value),
-                    ),
+                    onChanged: _setPushNotifications,
                   ),
                   const Divider(height: 1),
                   ToggleCard(

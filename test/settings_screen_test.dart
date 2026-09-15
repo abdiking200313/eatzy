@@ -7,6 +7,7 @@ import 'package:chowflow/features/legal/presentation/privacy_policy_screen.dart'
 import 'package:chowflow/features/legal/presentation/terms_of_service_screen.dart';
 import 'package:chowflow/features/profile/data/profile_repository.dart';
 import 'package:chowflow/features/profile/models/customer_profile.dart';
+import 'package:chowflow/features/settings/data/notification_preferences_repository.dart';
 import 'package:chowflow/features/settings/presentation/settings_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -15,6 +16,7 @@ import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import 'helpers/fake_push_notification_gateway.dart';
 import 'helpers/memory_notification_preferences_storage.dart';
 
 // See test/login_screen_test.dart and test/auth_service_test.dart for why
@@ -427,6 +429,170 @@ void main() {
         matching: find.byType(Switch),
       );
       expect(tester.widget<Switch>(reopenedSwitchFinder).value, isTrue);
+    },
+  );
+
+  testWidgets(
+    'turning push notifications on requests permission and persists it once '
+    'granted',
+    (tester) async {
+      final authService = await _signedInAuthService(
+        userId: 'customer-11',
+        email: 'user11@zivo.app',
+      );
+      final storage = MemoryNotificationPreferencesStorage();
+      await storage.write(
+        'customer-11',
+        NotificationPreferences.defaults.copyWith(pushNotifications: false),
+      );
+      final gateway = FakePushNotificationGateway(granted: true);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: buildAppTheme(),
+          home: SettingsScreen(
+            authService: authService,
+            profileRepository: _FakeProfileRepository(
+              const CustomerProfile(
+                id: 'customer-11',
+                firstName: 'Sam',
+                lastName: 'Yusuf',
+                phone: '+252 61 000 0000',
+              ),
+            ),
+            notificationPreferencesStorage: storage,
+            pushNotificationGateway: gateway,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final switchFinder = find.descendant(
+        of: find
+            .ancestor(
+              of: find.text('Push Notifications'),
+              matching: find.byType(Row),
+            )
+            .first,
+        matching: find.byType(Switch),
+      );
+      expect(tester.widget<Switch>(switchFinder).value, isFalse);
+
+      await tester.tap(switchFinder);
+      await tester.pumpAndSettle();
+
+      expect(gateway.requestPermissionCallCount, 1);
+      expect(tester.widget<Switch>(switchFinder).value, isTrue);
+      final saved = await storage.read('customer-11');
+      expect(saved.pushNotifications, isTrue);
+    },
+  );
+
+  testWidgets(
+    'turning push notifications on stays off and warns when permission is '
+    'denied',
+    (tester) async {
+      final authService = await _signedInAuthService(
+        userId: 'customer-12',
+        email: 'user12@zivo.app',
+      );
+      final storage = MemoryNotificationPreferencesStorage();
+      await storage.write(
+        'customer-12',
+        NotificationPreferences.defaults.copyWith(pushNotifications: false),
+      );
+      final gateway = FakePushNotificationGateway(granted: false);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: buildAppTheme(),
+          home: SettingsScreen(
+            authService: authService,
+            profileRepository: _FakeProfileRepository(
+              const CustomerProfile(
+                id: 'customer-12',
+                firstName: 'Sam',
+                lastName: 'Yusuf',
+                phone: '+252 61 000 0000',
+              ),
+            ),
+            notificationPreferencesStorage: storage,
+            pushNotificationGateway: gateway,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final switchFinder = find.descendant(
+        of: find
+            .ancestor(
+              of: find.text('Push Notifications'),
+              matching: find.byType(Row),
+            )
+            .first,
+        matching: find.byType(Switch),
+      );
+
+      await tester.tap(switchFinder);
+      await tester.pumpAndSettle();
+
+      expect(tester.widget<Switch>(switchFinder).value, isFalse);
+      final saved = await storage.read('customer-12');
+      expect(saved.pushNotifications, isFalse);
+      expect(
+        find.textContaining('Enable them in your device settings'),
+        findsOneWidget,
+      );
+    },
+  );
+
+  testWidgets(
+    'a stored push-on preference is reconciled to off if OS permission was '
+    'since revoked',
+    (tester) async {
+      final authService = await _signedInAuthService(
+        userId: 'customer-13',
+        email: 'user13@zivo.app',
+      );
+      final storage = MemoryNotificationPreferencesStorage();
+      await storage.write(
+        'customer-13',
+        NotificationPreferences.defaults.copyWith(pushNotifications: true),
+      );
+      final gateway = FakePushNotificationGateway(granted: false);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: buildAppTheme(),
+          home: SettingsScreen(
+            authService: authService,
+            profileRepository: _FakeProfileRepository(
+              const CustomerProfile(
+                id: 'customer-13',
+                firstName: 'Sam',
+                lastName: 'Yusuf',
+                phone: '+252 61 000 0000',
+              ),
+            ),
+            notificationPreferencesStorage: storage,
+            pushNotificationGateway: gateway,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final switchFinder = find.descendant(
+        of: find
+            .ancestor(
+              of: find.text('Push Notifications'),
+              matching: find.byType(Row),
+            )
+            .first,
+        matching: find.byType(Switch),
+      );
+      expect(tester.widget<Switch>(switchFinder).value, isFalse);
+      final saved = await storage.read('customer-13');
+      expect(saved.pushNotifications, isFalse);
     },
   );
 

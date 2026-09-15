@@ -6,6 +6,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../config/env.dart';
 import '../../config/theme.dart';
 import '../../features/onboarding/data/onboarding_preferences.dart';
+import '../../features/settings/data/notification_preferences_repository.dart';
 import '../../services/food/presentation/cart_controller.dart';
 import '../../services/grocery/presentation/grocery_controller.dart';
 import '../../services/pharmacy/presentation/pharmacy_controller.dart';
@@ -13,6 +14,7 @@ import '../../widgets/zivo_logo.dart';
 import '../activity/data/activity_repository.dart';
 import '../activity/presentation/activity_controller.dart';
 import '../error_reporting/error_reporter.dart';
+import '../notifications/push_notifications.dart';
 import '../session/secure_session_storage.dart';
 
 /// How long any single startup network call is allowed to run before it is
@@ -77,6 +79,30 @@ Future<StartupResult> runStartupSequence() async {
 
   final cartController = CartController.instance;
   final currentUserId = Supabase.instance.client.auth.currentUser?.id;
+
+  // Firebase init + an initial permission prompt (issue #47), Android only
+  // -- see PushNotificationGateway's doc comment. Best-effort like every
+  // other step here: a user with push notifications off (or a device that
+  // can't reach Firebase) still reaches the app normally, just without a
+  // token. Respects the #10 preference already on disk for a returning
+  // signed-in user instead of re-prompting regardless of their choice; a
+  // signed-out user (or one who has never set a preference) falls back to
+  // NotificationPreferences.defaults, which has push on.
+  await _runBestEffort('PushNotifications.initialize', () async {
+    await PushNotifications.instance.initialize().timeout(
+      kStartupNetworkTimeout,
+    );
+    final preferences = currentUserId == null
+        ? NotificationPreferences.defaults
+        : await SharedPreferencesNotificationPreferencesStorage()
+              .read(currentUserId)
+              .timeout(kStartupNetworkTimeout);
+    if (preferences.pushNotifications) {
+      await PushNotifications.instance.requestPermission().timeout(
+        kStartupNetworkTimeout,
+      );
+    }
+  });
 
   await _runBestEffort(
     'CartController.loadForOwner',
