@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:merchant_app/features/store/presentation/merchant_store_controller.dart';
 import 'package:merchant_app/features/shell/presentation/merchant_shell.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-// Smoke-tests the minimal nav shell from issue #132: it must land on real
-// routed "My Store" / "Orders" destinations (not just TODO comments), and
-// switching tabs must actually switch content.
+import 'fakes/fake_merchant_repositories.dart';
+
+// Smoke-tests the nav shell: it must land on real routed "My Store"
+// (issue #133) / "Orders" (still a stub, issue #134) destinations, and
+// switching tabs must actually switch content. "My Store" is given a fake,
+// no-store-yet repository so this stays a pure widget test with no Supabase
+// network access.
 void main() {
   const testUser = User(
     id: 'merchant-1',
@@ -15,22 +20,25 @@ void main() {
     createdAt: '2026-01-01T00:00:00Z',
   );
 
+  MerchantStoreController fakeStoreController() =>
+      MerchantStoreController(repository: FakeMerchantStoreRepository());
+
   testWidgets('shows "My Store" destination by default', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
-        home: MerchantShell(user: testUser, onSignedOut: () {}),
+        home: MerchantShell(
+          user: testUser,
+          onSignedOut: () {},
+          myStoreController: fakeStoreController(),
+        ),
       ),
     );
+    await tester.pumpAndSettle();
 
     expect(find.text('My Store'), findsWidgets);
     expect(find.text('Orders'), findsWidgets);
-    expect(
-      find.text(
-        'Catalog and store management are coming soon. This is a '
-        'placeholder destination for issue #133.',
-      ),
-      findsOneWidget,
-    );
+    // No store yet for this fake merchant -- the empty/create-store state.
+    expect(find.text("You don't have a store yet"), findsOneWidget);
   });
 
   testWidgets('switching to Orders shows the Orders destination', (
@@ -38,9 +46,14 @@ void main() {
   ) async {
     await tester.pumpWidget(
       MaterialApp(
-        home: MerchantShell(user: testUser, onSignedOut: () {}),
+        home: MerchantShell(
+          user: testUser,
+          onSignedOut: () {},
+          myStoreController: fakeStoreController(),
+        ),
       ),
     );
+    await tester.pumpAndSettle();
 
     await tester.tap(find.widgetWithText(NavigationDestination, 'Orders'));
     await tester.pumpAndSettle();
