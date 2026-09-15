@@ -7,10 +7,10 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'fakes/fake_merchant_repositories.dart';
 
 // Smoke-tests the nav shell: it must land on real routed "My Store"
-// (issue #133) / "Orders" (still a stub, issue #134) destinations, and
-// switching tabs must actually switch content. "My Store" is given a fake,
-// no-store-yet repository so this stays a pure widget test with no Supabase
-// network access.
+// (issue #133) / "Orders" (issue #134) destinations, sharing one
+// `MerchantStoreController` between them, and switching tabs must actually
+// switch content. Both are given a fake, no-store-yet repository so this
+// stays a pure widget test with no Supabase network access.
 void main() {
   const testUser = User(
     id: 'merchant-1',
@@ -58,12 +58,9 @@ void main() {
     await tester.tap(find.widgetWithText(NavigationDestination, 'Orders'));
     await tester.pumpAndSettle();
 
-    expect(
-      find.text(
-        'Incoming and past orders are coming soon. This is a '
-        'placeholder destination for issue #134.',
-      ),
-      findsOneWidget,
-    );
+    // No store yet for this fake merchant -- Orders shows its own "set up
+    // your store first" empty state, resolved from the same shared
+    // `MerchantStoreController` "My Store" also uses.
+    expect(find.text('Set up your store first'), findsOneWidget);
   });
 }
