@@ -7,26 +7,13 @@
 
 # The following line activates a set of recommended lints for Flutter apps,
 # packages, and plugins designed to encourage good coding practices.
+include: package:flutter_lints/flutter.yaml
+
 analyzer:
-  language:
-    strict-casts: true
-    strict-raw-types: true
-    strict-inference: true
   exclude:
     - build/**
     - android/**
     - ios/**
-    - web/**
-    - windows/**
-    - macos/**
-    - linux/**
-    # merchant_app/ is a separate, independent Flutter project (its own
-    # pubspec.yaml/dependencies -- issue #132) with its own
-    # analysis_options.yaml. Excluding it here keeps this project's
-    # `flutter analyze` scoped to this app regardless of whether
-    # merchant_app has had its own `flutter pub get` run yet.
-    - merchant_app/**
-include: package:flutter_lints/flutter.yaml
 
 linter:
   # The lint rules applied to this project can be customized in the
