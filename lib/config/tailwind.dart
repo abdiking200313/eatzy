@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 class TwColors {
   static const Color white = Color(0xFFFFFFFF);
@@ -91,53 +90,64 @@ class TwRadius {
 }
 
 class TwText {
-  // Resolved once at first use (not per-build): `GoogleFonts.outfit(...)`
-  // does font-asset lookup + TextStyle allocation, so it must not be called
-  // by `build()` on every rebuild. See issue #65. `copyWith`-based variants
-  // below reuse the already-resolved base style instead of re-resolving.
-  static final TextStyle text3xl = GoogleFonts.outfit(
+  // Resolved once at first use (not per-build): building a `TextStyle` here
+  // does allocation work, so it must not be redone by `build()` on every
+  // rebuild. See issue #65. `copyWith`-based variants below reuse the
+  // already-resolved base style instead of re-resolving.
+  //
+  // `fontFamily: 'Outfit'` references the Outfit TTFs bundled via
+  // `pubspec.yaml`'s `fonts:` section (issue #45) rather than fetching the
+  // font from fonts.gstatic.com at runtime via google_fonts.
+  static const TextStyle text3xl = TextStyle(
+    fontFamily: 'Outfit',
     fontSize: 30,
     fontWeight: FontWeight.w700,
     height: 1.15,
     color: TwColors.text,
   );
 
-  static final TextStyle text2xl = GoogleFonts.outfit(
+  static const TextStyle text2xl = TextStyle(
+    fontFamily: 'Outfit',
     fontSize: 26,
     fontWeight: FontWeight.w700,
     height: 1.2,
     color: TwColors.text,
   );
 
-  static final TextStyle textXl = GoogleFonts.outfit(
+  static const TextStyle textXl = TextStyle(
+    fontFamily: 'Outfit',
     fontSize: 22,
     fontWeight: FontWeight.w700,
     height: 1.25,
     color: TwColors.text,
   );
 
-  static final TextStyle textLg = GoogleFonts.outfit(
+  static const TextStyle textLg = TextStyle(
+    fontFamily: 'Outfit',
     fontSize: 19,
     fontWeight: FontWeight.w500,
     height: 1.4,
     color: TwColors.text,
   );
 
-  static final TextStyle textBase = GoogleFonts.outfit(
+  static const TextStyle textBase = TextStyle(
+    fontFamily: 'Outfit',
     fontSize: 17,
     fontWeight: FontWeight.w400,
     height: 1.4,
     color: TwColors.text,
   );
 
-  static final TextStyle textSm = GoogleFonts.outfit(
+  static const TextStyle textSm = TextStyle(
+    fontFamily: 'Outfit',
     fontSize: 15,
     fontWeight: FontWeight.w400,
     height: 1.35,
     color: TwColors.textMuted,
   );
 
-  static final TextStyle textXs = GoogleFonts.outfit(
+  static const TextStyle textXs = TextStyle(
+    fontFamily: 'Outfit',
     fontSize: 13,
     fontWeight: FontWeight.w500,
     height: 1.3,
@@ -153,7 +163,8 @@ class TwText {
     fontWeight: FontWeight.w600,
   );
 
-  static final TextStyle button = GoogleFonts.outfit(
+  static const TextStyle button = TextStyle(
+    fontFamily: 'Outfit',
     fontSize: 15,
     fontWeight: FontWeight.w600,
     color: TwColors.onPrimary,
@@ -167,7 +178,8 @@ class TwText {
   /// Small uppercase "eyebrow"/section-kicker style for headings like
   /// "OUR SERVICES". Applied to existing all-caps section headers by
   /// whichever later redesign phase touches that screen.
-  static final TextStyle sectionLabel = GoogleFonts.outfit(
+  static const TextStyle sectionLabel = TextStyle(
+    fontFamily: 'Outfit',
     fontSize: 13,
     fontWeight: FontWeight.w700,
     height: 1.3,
@@ -202,7 +214,13 @@ ThemeData buildAppTheme() {
     outline: TwColors.borderStrong,
     outlineVariant: TwColors.border,
   );
-  final baseTextTheme = GoogleFonts.outfitTextTheme();
+  // `headlineLarge`/`headlineMedium` are the only `TextTheme` roles not
+  // overridden by a `TwText` style below, so they fall through to this base
+  // theme; `.apply(fontFamily: 'Outfit')` keeps them on the bundled Outfit
+  // font (rather than the platform default) without needing google_fonts.
+  final baseTextTheme = Typography.material2021().black.apply(
+    fontFamily: 'Outfit',
+  );
   final fieldBorder = OutlineInputBorder(
     borderRadius: BorderRadius.circular(TwRadius.xl),
     borderSide: const BorderSide(color: TwColors.border),
