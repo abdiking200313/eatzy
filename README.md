@@ -159,6 +159,30 @@ flutter build ios
 flutter build web
 ```
 
+### Android release: obfuscation and symbol archiving
+
+Android release builds enable R8 code shrinking, resource shrinking, and
+obfuscation (`android/app/build.gradle.kts`, `android/app/proguard-rules.pro`
+— issue #46). Obfuscated release builds are unreadable in crash reports
+without their debug symbols, so build with `--obfuscate` and
+`--split-debug-info` and archive the resulting symbols directory for every
+release you ship:
+
+```bash
+# App bundle (Play Store)
+flutter build appbundle --release --obfuscate --split-debug-info=build/symbols
+
+# APK, split per ABI to keep each download small
+flutter build apk --release --obfuscate --split-debug-info=build/symbols --split-per-abi
+```
+
+`build/symbols` (git-ignored, matching this repo's existing `app.*.symbols` /
+`app.*.map.json` slots) must be archived outside of git for each release
+build you distribute — for example attached to the release's CI artifacts or
+uploaded to your crash reporting tool. Without it, a future crash report from
+an obfuscated release build cannot be symbolicated back to real class/method
+names and source lines.
+
 ## 📋 Roadmap
 
 See this repo's GitHub Issues (`todo` label) for the current, maintained list of planned work — it supersedes any static roadmap in this file, which will otherwise inevitably drift.
