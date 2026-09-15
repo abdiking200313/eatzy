@@ -103,3 +103,16 @@ Added `dart format --output=none --set-exit-if-changed` to all `.claude/agents/*
 - **Only #144 left unpicked from this batch** (picked up 2026-08-31, 16th run). #133/#134/#135 still blocked on #132 (`waiting-on-you`, unchanged).
 
 **Process/environment finding, 15th run:** a GitHub issue-comment image attachment (`github.com/user-attachments/assets/...`) is **not fetchable from a dispatched agent's sandbox** — direct `curl` is blocked by the agent proxy (only allows repo-scoped GitHub API paths, not arbitrary `github.com` hosts) and `WebFetch` 404s (unauthenticated fetch against what resolves as a private-repo attachment). This is the second time this exact limitation has been hit (issue #143's own body already flagged a prior session hitting it when trying to attach the image in the first place) — treat any future issue that hinges on a user-attached screenshot as needing either the image pasted as inline issue text/markdown description, or a human to paste the relevant measurements/colors directly into the issue body, rather than expecting a dispatched agent to fetch the attachment URL itself.
+
+## 2026-08-31 (16th run — single issue, queue otherwise still blocked)
+
+- `waiting-on-you` re-checked first (#8/#16/#40/#74/#78/#79/#132) — all still only bot-authored comments (posted under the owner's own account or as `claude[bot]`, each carrying the Claude Code footer), no genuine human reply on any.
+- Only **#144** was actionable (checkout field errors should show inline below each field everywhere, like pharmacy already does) — implemented and merged as **PR #166**. `DeliveryAddressCard` and the food/grocery checkout screens now set `errorText` per field instead of a generic bullet-list/banner, matching pharmacy's existing pattern; new widget tests added in `test/checkout_screen_test.dart`/`test/grocery_checkout_screen_test.dart`; 187/187 tests, `dart format`/`flutter analyze` clean.
+- Assumption worth a second look: `FoodController.addressErrors`/`GroceryController.validateCheckout` still return plain `List<String>` messages (not pharmacy's keyed `Map<String,String>`) — each screen maps the known message strings to field keys locally instead of touching the controllers, to stay inside this task's presentation-only scope.
+- #133/#134/#135 still blocked on #132; #128/#52/#29 still tracking-only. Nothing else eligible — stopped early after 1 issue.
+
+## 2026-08-31 to 2026-09-03 (17th-26th runs — nothing eligible, queue unchanged)
+
+- Ten consecutive runs each re-checked `waiting-on-you` (#8/#16/#40/#74/#78/#79/#132) via `get_comments`/`list_issues` — no genuine human reply landed on any across this entire span. #74's only non-bot comment throughout is a non-owner promotional post from `cekuu35`.
+- #133/#134/#135 stayed blocked on #132 the whole span; #128/#52/#29 remained tracking-only. No `todo`-and-not-blocked issue existed in any of these runs.
+- Nothing implemented in any of the 10 runs.
