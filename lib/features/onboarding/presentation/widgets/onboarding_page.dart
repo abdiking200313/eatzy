@@ -14,6 +14,17 @@ class OnboardingPage extends StatelessWidget {
     this.badge,
   });
 
+  /// Hero illustration URL. The three onboarding slides currently pass a
+  /// `lh3.googleusercontent.com/aida-public/...` URL — a Google Stitch
+  /// design-tool asset host the project doesn't control and that has no
+  /// documented lifetime (issue #44). This widget already hardens against
+  /// that (see [_OnboardingImageFallback] below: a themed loader while
+  /// fetching, a branded local-asset fallback on error, no bare
+  /// `NetworkImage`), but the URLs themselves are still effectively
+  /// ephemeral third-party links. Replacing them with real bundled
+  /// illustration assets is a follow-up for the project owner, since the
+  /// current CDN host is unreachable from this environment's sandboxed
+  /// network policy and no pixel-accurate replacement could be fetched here.
   final String imageUrl;
   final String title;
   final String description;
@@ -97,6 +108,11 @@ class OnboardingPage extends StatelessWidget {
 /// Loading/error placeholder for the onboarding hero image, matching the
 /// fallback pattern used by other `CachedNetworkImage` call sites in the
 /// app (a neutral tinted box with a centered icon or spinner).
+///
+/// The error state shows the bundled Zivo mark instead of a generic
+/// "broken image" icon, so a dead third-party CDN link (see [OnboardingPage]
+/// docs above) degrades to a branded placeholder rather than a blank or
+/// obviously-broken box.
 class _OnboardingImageFallback extends StatelessWidget {
   const _OnboardingImageFallback({this.showLoader = false});
 
@@ -109,10 +125,14 @@ class _OnboardingImageFallback extends StatelessWidget {
       child: Center(
         child: showLoader
             ? const CircularProgressIndicator(strokeWidth: 2)
-            : const Icon(
-                Icons.image_outlined,
-                color: TwColors.textMuted,
-                size: 42,
+            : Opacity(
+                opacity: 0.6,
+                child: Image.asset(
+                  'assets/icon/app_icon_foreground.png',
+                  width: 64,
+                  height: 64,
+                  fit: BoxFit.contain,
+                ),
               ),
       ),
     );
