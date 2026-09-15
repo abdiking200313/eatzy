@@ -3,17 +3,19 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../auth/data/merchant_auth_service.dart';
 import '../../orders/presentation/orders_screen.dart';
+import '../../store/presentation/merchant_store_controller.dart';
 import '../../store/presentation/my_store_screen.dart';
 
-/// Minimal post-sign-in navigation shell (issue #132): a bottom nav with
-/// two stub destinations, "My Store" and "Orders", filled in by the two
-/// child issues (#133/#134) that follow this scaffold.
+/// Post-sign-in navigation shell (issue #132): a bottom nav with two
+/// destinations, "My Store" (real store/catalog management, issue #133) and
+/// "Orders" (still a stub -- order queue/fulfillment is issue #134).
 class MerchantShell extends StatefulWidget {
   const MerchantShell({
     super.key,
     required this.user,
     required this.onSignedOut,
     this.authService,
+    this.myStoreController,
   });
 
   final User user;
@@ -21,6 +23,10 @@ class MerchantShell extends StatefulWidget {
 
   /// Overridable for tests; defaults to a real [MerchantAuthService].
   final MerchantAuthService? authService;
+
+  /// Overridable for tests, forwarded to [MyStoreScreen]; defaults to a real
+  /// Supabase-backed controller.
+  final MerchantStoreController? myStoreController;
 
   @override
   State<MerchantShell> createState() => _MerchantShellState();
@@ -32,7 +38,13 @@ class _MerchantShellState extends State<MerchantShell> {
 
   int _selectedIndex = 0;
 
-  static const _destinations = [MyStoreScreen(), OrdersScreen()];
+  late final List<Widget> _destinations = [
+    MyStoreScreen(
+      ownerId: widget.user.id,
+      controller: widget.myStoreController,
+    ),
+    const OrdersScreen(),
+  ];
 
   Future<void> _signOut() async {
     await _authService.signOut();
