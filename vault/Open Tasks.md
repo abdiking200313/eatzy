@@ -7,7 +7,14 @@ upstream_concept: 00-Index
 
 # Open Tasks
 
-**Re-verified unchanged 2026-09-15 (board worker, 74th run), see [[Status Log]] 2026-09-15 (74th run) for full detail.** **Source of truth is always a live `list_issues`/`gh issue list --repo abdiking200313/eatzy --state open` call** — re-check before relying on this for anything that matters.
+**Updated 2026-09-15 (board worker, 75th run), see [[Status Log]] 2026-09-15 (75th run) for full detail.** **Source of truth is always a live `list_issues`/`gh issue list --repo abdiking200313/eatzy --state open` call** — re-check before relying on this for anything that matters.
+
+## Update, 2026-09-15 (75th run) — merchant self-service epic complete, #128 closed
+
+- **#47 and #132 both merged** (PR #224, PR #225) — the interactive-session update below (post-74th-run) had made both actionable again; picked up as this run's first two issues, dispatched in parallel since their files are disjoint.
+- **#132 landing unblocked #133/#134/#135** — all three processed the same run and merged: #133 (PR #226, store profile + catalog CRUD), #134 (PR #227, order queue/fulfillment — also closed a real RLS gap #131 had left open, see [[Status Log]]), #135 (PR #228, controller/screen test coverage).
+- **#128 (tracking issue) closed directly** once all 7 children (#129-135) confirmed closed — same pattern as #21/#176. The entire merchant self-service feature (schema, RLS, RPCs, a whole second `merchant_app/` Flutter project, screens, tests) is now merged to `master`. Two remaining follow-ups noted on the closing comment: an unapplied migration batch needs a manual `supabase db push`, and RLS/RPC integration testing stays blocked on #81.
+- **New process gotcha this run** (see [[Multi-Agent Setup]]): dispatching #47/#132 in parallel without `isolation: "worktree"` caused a real git HEAD race in the shared working directory — both agents self-detected and repaired it with no data loss, but future parallel dispatches should use `isolation: "worktree"` rather than relying on that. #133/#134/#135 were dispatched sequentially with worktree isolation afterward, no issues.
 
 ## Update, 2026-09-15 (interactive session, post-74th-run)
 
@@ -62,9 +69,9 @@ upstream_concept: 00-Index
 
 | # | Title | Asked | Notes |
 |---|---|---|---|
-| 34 | Core tables exist in no migration — fresh environment cannot be provisioned | 2026-09-14 (67th run) | No live Supabase DB credentials/CLI link exist in any board-worker sandbox, and the sandbox proxy blocks reaching the Supabase host directly even with the client's own public key. Asked for a `supabase db pull`/`pg_dump --schema-only` dump or a read-only connection string. Blocks #74 until resolved. As of 2026-09-15 the owner said they'd provide a connection string in an interactive session — check for it directly on the issue/PR before re-asking. |
+| 34 | Core tables exist in no migration — fresh environment cannot be provisioned | 2026-09-14 (67th run) | No live Supabase DB credentials/CLI link exist in any board-worker sandbox, and the sandbox proxy blocks reaching the Supabase host directly even with the client's own public key. Asked for a `supabase db pull`/`pg_dump --schema-only` dump or a read-only connection string. Blocks #74 until resolved. As of 2026-09-15 the owner said they'd provide a connection string in an interactive session — check for it directly on the issue/PR before re-asking. Re-checked 75th run: still only the bot's own comment, no reply yet. |
 
-**#47 moved back out of this table 2026-09-15** — see the update note near the top of this file; it's `todo` again, not `waiting-on-you`. All other rows previously in this table (#8, #16, #40, #74's original block, #78, #79, #132) were resolved by the owner's 2026-09-13 mass reply pass — see [[Status Log]] 2026-09-13 and 2026-09-14 for what happened to each. #74 is `todo` (not `waiting-on-you`) but still practically blocked — see the blocked table below.
+**#47 and #132 both cleared this table for good 2026-09-15 (75th run)** — both merged (PR #224, PR #225), see the update note near the top of this file. All other rows previously in this table (#8, #16, #40, #74's original block, #78, #79) were resolved by the owner's 2026-09-13 mass reply pass — see [[Status Log]] 2026-09-13 and 2026-09-14 for what happened to each. #74 is `todo` (not `waiting-on-you`) but still practically blocked — see the blocked table below. **#34 is now the only row left in this table.**
 
 ## `agent-in-progress` — open PR awaiting review
 
@@ -80,11 +87,12 @@ upstream_concept: 00-Index
 |---|---|---|
 | 29 | Deploy-readiness audit (tracking) | Umbrella/index issue — findings already filed as the `needs-approval` #30-83 batch |
 | 52 | Architecture, performance & cross-layer review (tracking) | Umbrella/index issue, same pattern as #21/#29 — its 31 child issues (#53-83ish) are the real work |
-| 128 | Merchant self-service (tracking) | Umbrella issue for the #129-135 chain. **#129/#130/#131 merged as of the 14th run (2026-08-30)** — schema, RLS, and order-status RPCs all done. **Blocked at #132** (needs human scoping — no subagent owns creating a new top-level Flutter app, see `waiting-on-you` table above) — #133/#134/#135 all depend on it and can't proceed until it's answered |
+
+**#128 (merchant self-service tracking) closed 2026-09-15 (75th run)** — all 7 children (#129-135) merged, entire epic complete. See the update note near the top of this file and [[Status Log]] 2026-09-15 "75th run". No longer in this table.
 
 ## Remaining `todo`, not yet picked up
 
-**As of the 72nd run (2026-09-15)**: none — the 2026-08-14 audit batch (#44/#45/#46/#48/#49 merged, #47 moved to `waiting-on-you`) is fully cleared, see [[Status Log]] 2026-09-15 "72nd run". #133/#134/#135 (merchant screens/QA) still **blocked on #132** (`waiting-on-you`). Re-check via `list_issues` before assuming this list is complete — a further human approval pass or reply could change it any time.
+**As of the 75th run (2026-09-15)**: none — #47/#132/#133/#134/#135 all merged this run, #128 closed. Only #29/#52 (tracking-only, no direct work) and #74/#34 (blocked on each other) remain in the `todo`/`waiting-on-you` queue. Re-check via `list_issues` before assuming this list is complete — a further human approval pass, a reply on #34, or a new issue could change it any time.
 
 **Empty as of the 16th run (2026-08-31) through the 69th run (2026-09-14)** — historical note, superseded by the above: #144 (the last actionable `todo` from the prior batch) merged via PR #166, and the queue then sat genuinely empty (aside from blocked/tracking issues) for 54 runs until this run's mass approval.
 
