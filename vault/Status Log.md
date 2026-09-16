@@ -8,6 +8,12 @@ Reverse-chronological. Each session/major chunk of work gets an entry.
 
 ---
 
+## 2026-09-16 (board worker — nothing eligible, queue unchanged since 75th run)
+
+- `list_issues` for `todo`/`waiting-on-you` returned the same 4 issues as the 75th run's end state: tracking-only #29/#52, blocked #74 (on #34), `waiting-on-you` #34.
+- Re-checked `get_comments` on **#34** directly: still only the bot's own schema-dump request (2026-09-14), no human reply. Stays blocked; #74 stays blocked on #34.
+- Nothing implemented this run.
+
 ## 2026-09-15 (75th run — merchant self-service epic completed, #128 closed)
 
 - `waiting-on-you` re-checked first: **#34** — still only the bot's own schema-dump request (67th run), no human reply, stays blocked. #74 still blocked on #34.
@@ -147,36 +153,6 @@ Reverse-chronological. Each session/major chunk of work gets an entry.
 - **Process fix (43rd run)**: found this file (`vault/Status Log.md`) had been stored on disk as a single line of base64 text (no line terminators, ~16KB) instead of plain markdown — some prior run's write path base64-encoded the content instead of writing it directly. Decoded it, verified the decoded content matched the expected reverse-chronological history, and rewrote the file as plain text. If a future run finds a vault note unreadable/garbled again, try `base64 -d` on it before assuming data loss — check `file <path>` for "ASCII text, with very long lines, with no line terminators" as the tell.
 - Nothing implemented in any of the 14 runs.
 
-## 2026-09-06 (37th-41st runs — nothing eligible, queue unchanged)
-
-- All five runs re-checked `waiting-on-you` via `get_comments` on all 7 (#8/#16/#40/#74/#78/#79/#132): every comment on all 7 is still agent-authored (owner-account-posted questions/informational follow-ups, `claude[bot]`'s own #79 comment, or `cekuu35`'s non-owner promotional comment on #74) — no genuine human reply on any.
-- #133/#134/#135 still blocked on #132 (unanswered); #128/#52/#29 still tracking-only, no direct work. No `todo`-and-not-blocked issue exists. `list_issues` for `todo`/`waiting-on-you` returned the same 13 issues as prior runs.
-- Nothing implemented in any of the 5 runs.
-
-## 2026-09-05 (34th-36th runs — nothing eligible, queue unchanged)
-
-- All three runs re-checked `waiting-on-you` via `get_comments` on all 7 (#8/#16/#40/#74/#78/#79/#132): every comment on all 7 is still agent-authored (owner-account-posted questions/informational follow-ups, `claude[bot]`'s own #79 comment, or `cekuu35`'s non-owner promotional comment on #74) — no genuine human reply on any.
-- #133/#134/#135 still blocked on #132 (unanswered); #128/#52/#29 still tracking-only, no direct work. `list_issues` for `todo`/`waiting-on-you` returned the exact same 13 issues as prior runs.
-- Nothing implemented in any of the 3 runs.
-
-## 2026-09-04 (31st-33rd runs — nothing eligible, queue unchanged)
-
-- All three runs re-checked `waiting-on-you` via `get_comments` on all 7 (#8/#16/#40/#74/#78/#79/#132): every comment on all 7 is still agent-authored (owner-account-posted questions/informational follow-ups, `claude[bot]`'s own #79 comment, or `cekuu35`'s non-owner promotional comment on #74) — no genuine human reply on any.
-- #133/#134/#135 still blocked on #132 (unanswered); #128/#52/#29 still tracking-only, no direct work. `list_issues` for `todo`/`waiting-on-you` returned the exact same 13 issues as prior runs.
-- Nothing implemented in any of the 3 runs.
-
-## 2026-09-03 to 2026-09-04 (27th-30th runs — nothing eligible, queue unchanged)
-
-- Four consecutive runs each re-checked `waiting-on-you` (#8/#16/#40/#74/#78/#79/#132) via `get_comments` — no genuine human reply landed on any across this span. #74's only non-bot comment throughout is a non-owner promotional post from `cekuu35`.
-- #133/#134/#135 stayed blocked on #132 the whole span; #128/#52/#29 remained tracking-only. No `todo`-and-not-blocked issue existed in any of these runs.
-- Nothing implemented in any of the 4 runs.
-
-## 2026-08-31 to 2026-09-03 (17th-26th runs — nothing eligible, queue unchanged)
-
-- Ten consecutive runs each re-checked `waiting-on-you` (#8/#16/#40/#74/#78/#79/#132) via `get_comments`/`list_issues` — no genuine human reply landed on any across this entire span. #74's only non-bot comment throughout is a non-owner promotional post from `cekuu35`.
-- #133/#134/#135 stayed blocked on #132 the whole span; #128/#52/#29 remained tracking-only. No `todo`-and-not-blocked issue existed in any of these runs.
-- Nothing implemented in any of the 10 runs.
-
 ---
 
-Entries older than 2026-09-03 (2026-08-12 through 2026-09-03: initial setup, first thorough audit pass, the routine-recreation/cleaning-removal/app-icons run, the 13th-16th board-worker runs, and the 17th-26th "nothing eligible" streak) archived to `vault/archive/Status Log 2026-08.md`. **Archived 2026-09-15 (72nd run)** per this file's own ~150-line threshold.
+Entries older than 2026-09-06 (2026-08-12 through 2026-09-06: initial setup, first thorough audit pass, the routine-recreation/cleaning-removal/app-icons run, the 13th-16th board-worker runs, and the 17th-41st "nothing eligible" streak) archived to `vault/archive/Status Log 2026-08.md`. **Archived 2026-09-15 (72nd run), extended 2026-09-16** per this file's own ~150-line threshold. **Note (2026-09-16): a duplicate copy of the 17th-26th-run block had been left behind in this file after the 72nd-run archive — removed; the archive file already had the only copy.**
