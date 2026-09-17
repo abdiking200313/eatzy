@@ -12,9 +12,8 @@ upstream_concept: 00-Index
 ## Update, 2026-09-17 (later run) — #232/#233 filed and dispatched
 
 - Two new owner-filed issues appeared since the previous run: **#232** (retire `merchant_app/`, unify merchant+customer login into the main app with a post-login role redirect) and **#233** (rebuild the 3 onboarding slides to match a concrete design spec, given in full text in the issue body). Both judged unambiguous, labeled `agent-in-progress`, dispatched as background agents this run.
-- **#233 merged as PR #234, issue closed** — clean run, no new gotchas (Flutter SDK pre-installed, no proxy issues). See [[Status Log]] 2026-09-17 for full detail.
-- **#232 outcome not yet known** — check `list_pull_requests`/`list_branches` for `agent/issue-232-unify-merchant-login` to see whether it merged, is open awaiting a fix, or needs re-picking.
-- Queue otherwise unchanged: only #29/#52 (tracking-only) remain besides #232.
+- **Both merged**: #233 as PR #234, #232 as PR #235 (retires `merchant_app/` entirely, ports the merchant feature into `lib/features/merchant/**`, adds the post-login/session-restore role redirect to `AppRoutes.merchantDashboard`). Both issues auto-closed. See [[Status Log]] 2026-09-17 for full per-issue detail.
+- **Queue is back down to #29/#52 only** (tracking-only umbrellas, no direct work) — re-check `list_issues` fresh next run.
 
 ## Update, 2026-09-17 — #34 resolved by owner directly, #74 unblocked and merged
 
