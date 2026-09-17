@@ -1,5 +1,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-permission android:name="android.permission.INTERNET"/>
+    <!-- Android 13+ (API 33) requires this runtime permission before a push
+         notification can be shown; firebase_messaging's requestPermission()
+         prompts for it (issue #47). -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
     <application
         android:label="Zivo"
         android:name="${applicationName}"

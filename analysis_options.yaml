@@ -20,6 +20,12 @@ analyzer:
     - windows/**
     - macos/**
     - linux/**
+    # merchant_app/ is a separate, independent Flutter project (its own
+    # pubspec.yaml/dependencies -- issue #132) with its own
+    # analysis_options.yaml. Excluding it here keeps this project's
+    # `flutter analyze` scoped to this app regardless of whether
+    # merchant_app has had its own `flutter pub get` run yet.
+    - merchant_app/**
 include: package:flutter_lints/flutter.yaml
 
 linter:

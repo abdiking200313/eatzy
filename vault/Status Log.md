@@ -8,6 +8,34 @@ Reverse-chronological. Each session/major chunk of work gets an entry.
 
 ---
 
+## 2026-09-17 (board worker — nothing eligible, queue unchanged since 75th run)
+
+- `list_issues` for `todo`/`waiting-on-you` returned the same 4 issues as the 75th/76th-run end state: tracking-only #29/#52, blocked #74 (on #34), `waiting-on-you` #34.
+- Re-checked `get_comments` on **#34** directly: still only the bot's own schema-dump request (2026-09-14), no human reply. Stays blocked; #74 stays blocked on #34.
+- Nothing implemented this run.
+
+## 2026-09-16 (board worker — nothing eligible, queue unchanged since 75th run)
+
+- `list_issues` for `todo`/`waiting-on-you` returned the same 4 issues as the 75th run's end state: tracking-only #29/#52, blocked #74 (on #34), `waiting-on-you` #34.
+- Re-checked `get_comments` on **#34** directly: still only the bot's own schema-dump request (2026-09-14), no human reply. Stays blocked; #74 stays blocked on #34.
+- Nothing implemented this run.
+
+## 2026-09-15 (75th run — merchant self-service epic completed, #128 closed)
+
+- `waiting-on-you` re-checked first: **#34** — still only the bot's own schema-dump request (67th run), no human reply, stays blocked. #74 still blocked on #34.
+- **#47** and **#132** were both newly actionable this run (see the interactive-session update in [[Open Tasks]] dated 2026-09-15 — the owner had answered both since the 74th run's check earlier the same day):
+  - **#47** (Android push notifications) → PR #224. `firebase_core`/`firebase_messaging` added, `com.google.gms.google-services` Gradle plugin applied against the owner's already-committed `google-services.json`, new `PushNotificationGateway` (mirrors the `ErrorReporter` pattern), Firebase init + permission request wired into `startup_gate.dart`, Settings screen's existing push toggle (#10) now reconciles against real OS permission state. iOS untouched (deferred to #55/Apple Developer account); server-side FCM delivery deferred as the issue explicitly allows. 307/307 tests passing.
+  - **#132** (merchant app scaffold) → PR #225. New sibling `merchant_app/` Flutter project (`com.zivo.merchant`), sign-in gated on `profiles.role in ('merchant','admin')` against the exact check-constraint values from #129's migration, nav shell with "My Store"/"Orders" stub destinations. Root app's `analysis_options.yaml` needed one exclude-list entry for `merchant_app/**` so root `flutter analyze` doesn't recurse into the new project's own package imports.
+- **Both #47 and #132 dispatched in parallel (disjoint files) in the same, non-isolated working directory — this caused a real git HEAD race**: the #47 agent's first commit landed on the #132 agent's branch and vice versa mid-task. Both agents independently detected it via `git reflog`/`git branch -vv`, repaired their own branch (`git branch -f` + reset for #47; extract-patch + reset-and-redo-in-a-fresh-worktree for #132), and verified no data loss before pushing/merging — no actual damage, but see the new [[Multi-Agent Setup]] gotcha this run added: **use `isolation: "worktree"` on every parallel `Agent` dispatch from now on**, don't rely on agents to self-detect a shared-directory race.
+- **#132 landing unblocked the rest of the merchant chain** (#133/#134/#135 depend on it) — processed all three in the same run, this time each dispatched sequentially with `isolation: "worktree"` (no further races):
+  - **#133** (store profile + catalog CRUD) → PR #226. Verified real table/column names from the migrations rather than guessing (`restaurants`/`menu_items`, `grocery_stores`/`grocery_products`, `pharmacy_stores`/`pharmacy_products` — grocery/pharmacy stores have no `description`/`image_url` columns, noted as a v1 gap). New `MerchantStoreController`/`MerchantCatalogController` (`ChangeNotifier`, mirrors `grocery_controller.dart`). Widget tests for loading/empty/error states added, not deferred. 50/50 merchant-app tests, 307/307 root tests.
+  - **#134** (order queue/fulfillment) → PR #227. Verified RPC names/vocabulary from #131's migration (`advance_{food,grocery,pharmacy}_order_status`, vocab `confirmed→{preparing|shopping|packing}→out_for_delivery→delivered`, `cancelled` reachable from either of the first two states). **Found and closed a real schema gap**: #131 never added a merchant-side select policy on the order tables, so #134's own acceptance criterion ("a merchant sees only their store's orders") was unenforceable — added `supabase/migrations/20260920000000_add_merchant_order_read_policies.sql`, purely additive, reusing #131's existing `merchant_owns_order()` predicate rather than reimplementing it. Not yet applied to any live database (flagged as a manual follow-up, per convention). Pull-to-refresh instead of Realtime (issue's own stated v1 scope). This agent hit the known mid-CI-wait gotcha (ended its turn once, resumed and finished the merge on its own after the orchestrator started polling in parallel) — no orchestrator action was actually needed this time, but see the polling note below.
+  - **#135** (controller/screen test coverage) → PR #228. Investigated existing #133/#134 coverage before writing anything (per the issue's own instruction) — found loading/empty/error coverage was already thorough, but the one real gap was that #134's "illegal transition" tests only covered the RPC-rejection *error-handling* path, not that the client's own call sites never *attempt* an illegal transition in the first place. Added `order_status_transition_client_test.dart` (34 tests, legal-transition table hand-transcribed independently from the SQL migration as an oracle) to close that gap; did not pad with redundant tests where coverage already existed. PR explicitly documents the #81 RLS-testing gap as required. 114/114 merchant-app tests (80 existing + 34 new), 307/307 root tests.
+- **#128 (merchant self-service tracking issue) closed directly** (not via PR — same pattern as #21/#176) once all 7 children (#129-135) were confirmed closed via `issue_read`. Follow-ups noted in the closing comment: two migrations from this epic (#131-era + #134's new one) still need a manual `supabase db push`; RLS/RPC integration testing stays blocked on #81.
+- **New gotcha, `#134`'s CI wait**: same class as the 71st/72nd runs' "agent ends turn mid-CI-wait" — the orchestrator started an independent background `curl`+`$GITHUB_TOKEN` polling loop as a safety net while the dispatched agent was also (per its own updated prompt) supposed to poll in-loop itself; the agent's own resumption ended up finishing the merge first, so the orchestrator's parallel poll was redundant (harmless, just wasted a bit of background compute) rather than necessary. Confirms this gotcha still recurs even when the dispatch prompt explicitly instructs in-loop polling — worth having the orchestrator poll as standing practice rather than trusting the instruction alone.
+- **Net result**: 5 issues merged this run (#47, #132, #133, #134, #135), 1 tracking issue closed (#128). `todo`/`waiting-on-you` queue reduced from 10 to 6: tracking-only #29/#52 remain (no children left under #128 since it's closed), blocked #74 (on #34)/#34 (`waiting-on-you`, still no human reply).
+- Stopped after 5 issues (queue had nothing else eligible — #74 blocked, #34 waiting, #29/#52 tracking-only), under the routine's 6-per-run cap.
+
 ## 2026-09-15 (74th run — nothing eligible, queue unchanged)
 
 - `list_issues` for `todo`/`waiting-on-you` returned the same 11 issues as the 73rd run's end state: tracking-only #29/#52/#128/#176, blocked #74 (on #34)/#132 (needs human kickoff)/#133/#134/#135 (on #132), `waiting-on-you` #34/#47.
@@ -131,36 +159,6 @@ Reverse-chronological. Each session/major chunk of work gets an entry.
 - **Process fix (43rd run)**: found this file (`vault/Status Log.md`) had been stored on disk as a single line of base64 text (no line terminators, ~16KB) instead of plain markdown — some prior run's write path base64-encoded the content instead of writing it directly. Decoded it, verified the decoded content matched the expected reverse-chronological history, and rewrote the file as plain text. If a future run finds a vault note unreadable/garbled again, try `base64 -d` on it before assuming data loss — check `file <path>` for "ASCII text, with very long lines, with no line terminators" as the tell.
 - Nothing implemented in any of the 14 runs.
 
-## 2026-09-06 (37th-41st runs — nothing eligible, queue unchanged)
-
-- All five runs re-checked `waiting-on-you` via `get_comments` on all 7 (#8/#16/#40/#74/#78/#79/#132): every comment on all 7 is still agent-authored (owner-account-posted questions/informational follow-ups, `claude[bot]`'s own #79 comment, or `cekuu35`'s non-owner promotional comment on #74) — no genuine human reply on any.
-- #133/#134/#135 still blocked on #132 (unanswered); #128/#52/#29 still tracking-only, no direct work. No `todo`-and-not-blocked issue exists. `list_issues` for `todo`/`waiting-on-you` returned the same 13 issues as prior runs.
-- Nothing implemented in any of the 5 runs.
-
-## 2026-09-05 (34th-36th runs — nothing eligible, queue unchanged)
-
-- All three runs re-checked `waiting-on-you` via `get_comments` on all 7 (#8/#16/#40/#74/#78/#79/#132): every comment on all 7 is still agent-authored (owner-account-posted questions/informational follow-ups, `claude[bot]`'s own #79 comment, or `cekuu35`'s non-owner promotional comment on #74) — no genuine human reply on any.
-- #133/#134/#135 still blocked on #132 (unanswered); #128/#52/#29 still tracking-only, no direct work. `list_issues` for `todo`/`waiting-on-you` returned the exact same 13 issues as prior runs.
-- Nothing implemented in any of the 3 runs.
-
-## 2026-09-04 (31st-33rd runs — nothing eligible, queue unchanged)
-
-- All three runs re-checked `waiting-on-you` via `get_comments` on all 7 (#8/#16/#40/#74/#78/#79/#132): every comment on all 7 is still agent-authored (owner-account-posted questions/informational follow-ups, `claude[bot]`'s own #79 comment, or `cekuu35`'s non-owner promotional comment on #74) — no genuine human reply on any.
-- #133/#134/#135 still blocked on #132 (unanswered); #128/#52/#29 still tracking-only, no direct work. `list_issues` for `todo`/`waiting-on-you` returned the exact same 13 issues as prior runs.
-- Nothing implemented in any of the 3 runs.
-
-## 2026-09-03 to 2026-09-04 (27th-30th runs — nothing eligible, queue unchanged)
-
-- Four consecutive runs each re-checked `waiting-on-you` (#8/#16/#40/#74/#78/#79/#132) via `get_comments` — no genuine human reply landed on any across this span. #74's only non-bot comment throughout is a non-owner promotional post from `cekuu35`.
-- #133/#134/#135 stayed blocked on #132 the whole span; #128/#52/#29 remained tracking-only. No `todo`-and-not-blocked issue existed in any of these runs.
-- Nothing implemented in any of the 4 runs.
-
-## 2026-08-31 to 2026-09-03 (17th-26th runs — nothing eligible, queue unchanged)
-
-- Ten consecutive runs each re-checked `waiting-on-you` (#8/#16/#40/#74/#78/#79/#132) via `get_comments`/`list_issues` — no genuine human reply landed on any across this entire span. #74's only non-bot comment throughout is a non-owner promotional post from `cekuu35`.
-- #133/#134/#135 stayed blocked on #132 the whole span; #128/#52/#29 remained tracking-only. No `todo`-and-not-blocked issue existed in any of these runs.
-- Nothing implemented in any of the 10 runs.
-
 ---
 
-Entries older than 2026-09-03 (2026-08-12 through 2026-09-03: initial setup, first thorough audit pass, the routine-recreation/cleaning-removal/app-icons run, the 13th-16th board-worker runs, and the 17th-26th "nothing eligible" streak) archived to `vault/archive/Status Log 2026-08.md`. **Archived 2026-09-15 (72nd run)** per this file's own ~150-line threshold.
+Entries older than 2026-09-06 (2026-08-12 through 2026-09-06: initial setup, first thorough audit pass, the routine-recreation/cleaning-removal/app-icons run, the 13th-16th board-worker runs, and the 17th-41st "nothing eligible" streak) archived to `vault/archive/Status Log 2026-08.md`. **Archived 2026-09-15 (72nd run), extended 2026-09-16** per this file's own ~150-line threshold. **Note (2026-09-16): a duplicate copy of the 17th-26th-run block had been left behind in this file after the 72nd-run archive — removed; the archive file already had the only copy.**
