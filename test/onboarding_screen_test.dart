@@ -8,8 +8,6 @@ import 'package:go_router/go_router.dart';
 import 'package:shared_preferences_platform_interface/in_memory_shared_preferences_async.dart';
 import 'package:shared_preferences_platform_interface/shared_preferences_async_platform_interface.dart';
 
-import 'helpers/network_image_mock.dart';
-
 void main() {
   setUp(() {
     SharedPreferencesAsyncPlatform.instance =
@@ -36,16 +34,15 @@ void main() {
   testWidgets('welcome screen shows the first onboarding slide', (
     tester,
   ) async {
-    await withMockNetworkImages(() async {
-      await tester.pumpWidget(
-        MaterialApp.router(theme: buildAppTheme(), routerConfig: buildRouter()),
-      );
-      await tester.pump();
+    await tester.pumpWidget(
+      MaterialApp.router(theme: buildAppTheme(), routerConfig: buildRouter()),
+    );
+    await tester.pump();
 
-      expect(find.text('Discover Flavors'), findsOneWidget);
-      expect(find.text('Get Started'), findsOneWidget);
-      expect(find.text('Skip'), findsOneWidget);
-    });
+    expect(find.text("See What's Open Near You"), findsOneWidget);
+    expect(find.text('Ayam Penyet Ria'), findsOneWidget);
+    expect(find.text('Get Started'), findsOneWidget);
+    expect(find.text('Skip'), findsOneWidget);
   });
 
   testWidgets(
@@ -54,68 +51,81 @@ void main() {
       await tester.binding.setSurfaceSize(const Size(320, 640));
       addTearDown(() => tester.binding.setSurfaceSize(null));
 
-      await withMockNetworkImages(() async {
-        await tester.pumpWidget(
-          MaterialApp.router(
-            theme: buildAppTheme(),
-            routerConfig: buildRouter(),
-            builder: (context, child) => MediaQuery(
-              data: const MediaQueryData(
-                size: Size(320, 640),
-                textScaler: TextScaler.linear(1.4),
-              ),
-              child: child!,
+      await tester.pumpWidget(
+        MaterialApp.router(
+          theme: buildAppTheme(),
+          routerConfig: buildRouter(),
+          builder: (context, child) => MediaQuery(
+            data: const MediaQueryData(
+              size: Size(320, 640),
+              textScaler: TextScaler.linear(1.4),
             ),
+            child: child!,
           ),
-        );
-        await tester.pump();
+        ),
+      );
+      await tester.pump();
 
-        expect(find.text('Discover Flavors'), findsOneWidget);
-        expect(find.text('Get Started'), findsOneWidget);
-        expect(tester.takeException(), isNull);
-      });
+      expect(find.text("See What's Open Near You"), findsOneWidget);
+      expect(find.text('Get Started'), findsOneWidget);
+      expect(tester.takeException(), isNull);
     },
   );
+
+  testWidgets('second and third slides render their redesigned content', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp.router(theme: buildAppTheme(), routerConfig: buildRouter()),
+    );
+    await tester.pump();
+
+    final pageView = find.byType(PageView);
+
+    await tester.fling(pageView, const Offset(-800, 0), 1000);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Order In A Few Taps'), findsOneWidget);
+    expect(find.text('Ayam Penyet Ria'), findsOneWidget);
+    expect(find.text('Total incl. delivery'), findsOneWidget);
+
+    await tester.fling(pageView, const Offset(-800, 0), 1000);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Know Exactly When It Lands'), findsOneWidget);
+    expect(find.text('On the way'), findsOneWidget);
+    expect(find.text('Rider picked up'), findsOneWidget);
+  });
 
   group('onboarding first-launch gating (issue #15)', () {
     testWidgets('tapping Skip marks onboarding seen and opens the app', (
       tester,
     ) async {
-      await withMockNetworkImages(() async {
-        await tester.pumpWidget(
-          MaterialApp.router(
-            theme: buildAppTheme(),
-            routerConfig: buildRouter(),
-          ),
-        );
-        await tester.pump();
+      await tester.pumpWidget(
+        MaterialApp.router(theme: buildAppTheme(), routerConfig: buildRouter()),
+      );
+      await tester.pump();
 
-        await tester.tap(find.text('Skip'));
-        await tester.pumpAndSettle();
+      await tester.tap(find.text('Skip'));
+      await tester.pumpAndSettle();
 
-        expect(find.text(AppRoutes.mainApp), findsOneWidget);
-        expect(OnboardingLaunchGate.hasSeenOnboarding, isTrue);
-      });
+      expect(find.text(AppRoutes.mainApp), findsOneWidget);
+      expect(OnboardingLaunchGate.hasSeenOnboarding, isTrue);
     });
 
     testWidgets('tapping Get Started marks onboarding seen too', (
       tester,
     ) async {
-      await withMockNetworkImages(() async {
-        await tester.pumpWidget(
-          MaterialApp.router(
-            theme: buildAppTheme(),
-            routerConfig: buildRouter(),
-          ),
-        );
-        await tester.pump();
+      await tester.pumpWidget(
+        MaterialApp.router(theme: buildAppTheme(), routerConfig: buildRouter()),
+      );
+      await tester.pump();
 
-        await tester.tap(find.text('Get Started'));
-        await tester.pumpAndSettle();
+      await tester.tap(find.text('Get Started'));
+      await tester.pumpAndSettle();
 
-        expect(find.text(AppRoutes.register), findsOneWidget);
-        expect(OnboardingLaunchGate.hasSeenOnboarding, isTrue);
-      });
+      expect(find.text(AppRoutes.register), findsOneWidget);
+      expect(OnboardingLaunchGate.hasSeenOnboarding, isTrue);
     });
   });
 }
