@@ -9,11 +9,12 @@ upstream_concept: 00-Index
 
 **Updated 2026-09-17 (board worker), see [[Status Log]] 2026-09-17 for full detail.** **Source of truth is always a live `list_issues`/`gh issue list --repo abdiking200313/eatzy --state open` call** — re-check before relying on this for anything that matters.
 
-## Update, 2026-09-17 (later run) — #232/#233 filed and dispatched, in progress
+## Update, 2026-09-17 (later run) — #232/#233 filed and dispatched
 
 - Two new owner-filed issues appeared since the previous run: **#232** (retire `merchant_app/`, unify merchant+customer login into the main app with a post-login role redirect) and **#233** (rebuild the 3 onboarding slides to match a concrete design spec, given in full text in the issue body). Both judged unambiguous, labeled `agent-in-progress`, dispatched as background agents this run.
-- **Outcome not yet known** — both agents were still running when this run ended. Next run (or this vault entry, if a later action in the same session updates it): check `list_pull_requests`/`list_branches` for `agent/issue-232-unify-merchant-login` and `agent/issue-233-onboarding-redesign` to see whether either merged, is open awaiting a fix, or needs re-picking (e.g. if the dispatch itself failed silently).
-- Queue otherwise unchanged: only #29/#52 (tracking-only) remain besides these two.
+- **#233 merged as PR #234, issue closed** — clean run, no new gotchas (Flutter SDK pre-installed, no proxy issues). See [[Status Log]] 2026-09-17 for full detail.
+- **#232 outcome not yet known** — check `list_pull_requests`/`list_branches` for `agent/issue-232-unify-merchant-login` to see whether it merged, is open awaiting a fix, or needs re-picking.
+- Queue otherwise unchanged: only #29/#52 (tracking-only) remain besides #232.
 
 ## Update, 2026-09-17 — #34 resolved by owner directly, #74 unblocked and merged
 
