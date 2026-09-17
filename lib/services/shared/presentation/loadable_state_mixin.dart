@@ -38,3 +38,50 @@ mixin LoadableState on ChangeNotifier {
     }
   }
 }
+
+/// A reusable "track saving/error state around an async mutation" shell, the
+/// create/update/delete counterpart of [LoadableState]. Kept separate from
+/// [LoadableState] so a screen can distinguish "still loading the initial
+/// data" from "a save/delete is in flight" (e.g. to disable just a submit
+/// button rather than the whole screen). Added alongside the merchant
+/// dashboard port (issue #232) but generally reusable by any
+/// [ChangeNotifier]-based controller with a save/create/update/delete path.
+mixin SavableState on ChangeNotifier {
+  bool _isSaving = false;
+  String? _saveError;
+
+  bool get isSaving => _isSaving;
+  String? get saveError => _saveError;
+
+  /// Runs [mutate], managing [isSaving] and [saveError] around it. Returns
+  /// `true` on success, `false` if [mutate] threw (with [onError] used to
+  /// produce the message stored in [saveError]).
+  Future<bool> runSave({
+    required Future<void> Function() mutate,
+    required String Function(Object error, StackTrace stackTrace) onError,
+  }) async {
+    _isSaving = true;
+    _saveError = null;
+    notifyListeners();
+
+    var succeeded = true;
+    try {
+      await mutate();
+    } on Object catch (error, stackTrace) {
+      succeeded = false;
+      _saveError = onError(error, stackTrace);
+    } finally {
+      _isSaving = false;
+      notifyListeners();
+    }
+    return succeeded;
+  }
+
+  /// Clears a previously-set [saveError] without touching [isSaving], e.g.
+  /// when the user dismisses an error banner or edits the form again.
+  void clearSaveError() {
+    if (_saveError == null) return;
+    _saveError = null;
+    notifyListeners();
+  }
+}

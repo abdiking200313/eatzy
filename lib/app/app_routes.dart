@@ -24,6 +24,14 @@ class AppRoutes {
   static const services = '/services';
   static const activity = '/activity';
 
+  // The merchant dashboard (issue #232, superseding the standalone
+  // `merchant_app` project from issue #132): `AppRouter` sends a signed-in
+  // `merchant`/`admin` account here instead of [mainApp], right after
+  // sign-in and again on session-restore at app start. There is no
+  // customer-facing link to this route and no switcher back to the
+  // customer home for the same account -- see the router's redirect logic.
+  static const merchantDashboard = '/merchant';
+
   // Food service
   static const food = '/food';
 

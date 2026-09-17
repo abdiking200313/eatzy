@@ -2,20 +2,27 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../app/app_routes.dart';
+import '../../../app/merchant_session_gate.dart';
 import '../../../config/theme.dart';
 import '../../../widgets/app_cards.dart';
 import '../../../widgets/app_widgets.dart';
 import '../../../widgets/zivo_logo.dart';
+import '../../merchant/auth/data/merchant_role_service.dart';
 import '../data/auth_error_message.dart';
 import '../data/auth_service.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key, this.authService});
+  const LoginScreen({super.key, this.authService, this.merchantRoleService});
 
   /// Overrides the default [AuthService] used to submit sign-in requests.
   /// Only intended for tests — production code always uses the default,
   /// which lazily reads `Supabase.instance.client`.
   final AuthService? authService;
+
+  /// Overrides the default [MerchantRoleService] used to decide whether a
+  /// successful sign-in should land on the merchant dashboard instead of
+  /// the customer home (issue #232). Only intended for tests.
+  final MerchantRoleService? merchantRoleService;
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -23,6 +30,8 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   AuthService get _authService => widget.authService ?? AuthService();
+  MerchantRoleService get _merchantRoleService =>
+      widget.merchantRoleService ?? MerchantRoleService();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   bool _isLoading = false;
@@ -47,7 +56,21 @@ class _LoginScreenState extends State<LoginScreen> {
     try {
       await _authService.signInWithEmailPassword(email, password);
       if (!mounted) return;
-      context.go(AppRoutes.mainApp);
+
+      // Issue #232: same sign-in form for every account -- a
+      // `merchant`/`admin` `profiles.role` lands on the merchant dashboard
+      // instead of the customer home, decided here right after a
+      // successful sign-in (and again on session-restore at app start, see
+      // `runStartupSequence`). A lookup failure fails closed into the
+      // customer experience rather than blocking the login.
+      final userId = _authService.getCurrentUserId();
+      final role = userId == null
+          ? null
+          : await _merchantRoleService.fetchRole(userId);
+      final isMerchant = isAuthorizedMerchantRole(role);
+      MerchantSessionGate.isMerchantRole = isMerchant;
+      if (!mounted) return;
+      context.go(isMerchant ? AppRoutes.merchantDashboard : AppRoutes.mainApp);
     } catch (error) {
       if (!mounted) return;
       _showMessage(

@@ -3,8 +3,10 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../app/merchant_session_gate.dart';
 import '../../config/env.dart';
 import '../../config/theme.dart';
+import '../../features/merchant/auth/data/merchant_role_service.dart';
 import '../../features/onboarding/data/onboarding_preferences.dart';
 import '../../features/settings/data/notification_preferences_repository.dart';
 import '../../services/food/presentation/cart_controller.dart';
@@ -79,6 +81,24 @@ Future<StartupResult> runStartupSequence() async {
 
   final cartController = CartController.instance;
   final currentUserId = Supabase.instance.client.auth.currentUser?.id;
+
+  // Issue #232: resolve merchant/admin routing once at startup for a
+  // restored session, so AppRouter's synchronous redirect can send a
+  // merchant/admin account to the merchant dashboard on this very first
+  // frame instead of the customer home -- mirrors the OnboardingLaunchGate
+  // load above. Best-effort: a failed lookup falls back to `false`
+  // (customer routing), the same fail-closed behavior as
+  // MerchantRoleService.fetchRole itself.
+  if (currentUserId == null) {
+    MerchantSessionGate.isMerchantRole = false;
+  } else {
+    await _runBestEffort('MerchantRoleService.fetchRole', () async {
+      final role = await MerchantRoleService()
+          .fetchRole(currentUserId)
+          .timeout(kStartupNetworkTimeout);
+      MerchantSessionGate.isMerchantRole = isAuthorizedMerchantRole(role);
+    }, onFailure: () => MerchantSessionGate.isMerchantRole = false);
+  }
 
   // Firebase init + an initial permission prompt (issue #47), Android only
   // -- see PushNotificationGateway's doc comment. Best-effort like every
