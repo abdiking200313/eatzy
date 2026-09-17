@@ -11,6 +11,7 @@ import '../features/auth/presentation/register_screen.dart';
 import '../features/auth/presentation/reset_password_screen.dart';
 import '../features/legal/presentation/privacy_policy_screen.dart';
 import '../features/legal/presentation/terms_of_service_screen.dart';
+import '../features/merchant/shell/presentation/merchant_shell.dart';
 import '../features/onboarding/data/onboarding_preferences.dart';
 import '../features/onboarding/presentation/welcome_screen.dart';
 import '../features/orders/presentation/track_order_screen.dart';
@@ -40,6 +41,7 @@ import '../services/pharmacy/presentation/pharmacy_checkout_screen.dart';
 import '../services/pharmacy/presentation/pharmacy_store_list_screen.dart';
 import 'app_routes.dart';
 import 'main_app_screen.dart';
+import 'merchant_session_gate.dart';
 import 'not_found_screen.dart';
 import 'service_module.dart';
 
@@ -164,6 +166,11 @@ class AppRouter {
       serviceId: ServiceId.food,
       child: TrackOrderScreen(),
     ),
+    // The merchant dashboard (issue #232): a `merchant`/`admin` account is
+    // redirected here instead of `mainApp` by `_redirect` below. It is its
+    // own standalone protected page, not part of the customer bottom-nav
+    // shell -- see `MerchantShell`'s own doc comment.
+    AppRoutes.merchantDashboard: MerchantShell(),
   };
 
   static final List<RouteBase> _standaloneProtectedRoutes = [
@@ -292,6 +299,7 @@ class AppRouter {
       isProtected: isProtected,
       location: location,
       hasSeenOnboarding: OnboardingLaunchGate.hasSeenOnboarding,
+      isMerchant: MerchantSessionGate.isMerchantRole,
     );
   }
 
@@ -300,13 +308,22 @@ class AppRouter {
     required bool isProtected,
     required String location,
     bool hasSeenOnboarding = false,
+    // Issue #232: whether the signed-in account's `profiles.role` is
+    // `merchant`/`admin` (see `MerchantSessionGate`), resolved once at
+    // sign-in/session-restore rather than looked up on every redirect.
+    // Landing back on a route in `_signedOutOnlyRoutes` (welcome/login/
+    // register/forgot-password, or the redirect-only root) is the only
+    // moment this sends a merchant/admin account somewhere other than the
+    // customer home -- there is no further role-based gating of any other
+    // route, per issue #232's scope (no customer-vs-merchant switcher).
+    bool isMerchant = false,
   }) {
     if (!isLoggedIn && isProtected) {
       return AppRoutes.login;
     }
 
     if (isLoggedIn && _signedOutOnlyRoutes.contains(location)) {
-      return AppRoutes.mainApp;
+      return isMerchant ? AppRoutes.merchantDashboard : AppRoutes.mainApp;
     }
 
     // A returning signed-out user (this device already finished or skipped
@@ -368,6 +385,12 @@ class _AuthStateRefresh extends ChangeNotifier {
       // the reset-password screen instead of the normal signed-in redirect.
       if (authState.event == AuthChangeEvent.passwordRecovery) {
         AppRouter.router.go(AppRoutes.resetPassword);
+      }
+      // Issue #232: clear the cached merchant/admin routing decision on
+      // sign-out so a later, unrelated session-restore or sign-in always
+      // starts from a fresh lookup rather than a stale cached role.
+      if (authState.event == AuthChangeEvent.signedOut) {
+        MerchantSessionGate.isMerchantRole = false;
       }
       notifyListeners();
     });

@@ -89,6 +89,63 @@ void main() {
     );
   });
 
+  group('merchant dashboard routing (issue #232)', () {
+    test('a merchant/admin account restored on welcome lands on the '
+        'merchant dashboard, not the customer home', () {
+      final redirect = AppRouter.resolveRedirect(
+        isLoggedIn: true,
+        isProtected: false,
+        location: AppRoutes.welcome,
+        isMerchant: true,
+      );
+
+      expect(redirect, AppRoutes.merchantDashboard);
+    });
+
+    test('a merchant/admin account is also redirected away from login', () {
+      final redirect = AppRouter.resolveRedirect(
+        isLoggedIn: true,
+        isProtected: false,
+        location: AppRoutes.login,
+        isMerchant: true,
+      );
+
+      expect(redirect, AppRoutes.merchantDashboard);
+    });
+
+    test('a customer account (the default) still lands on the customer '
+        'home, unaffected', () {
+      final redirect = AppRouter.resolveRedirect(
+        isLoggedIn: true,
+        isProtected: false,
+        location: AppRoutes.welcome,
+      );
+
+      expect(redirect, AppRoutes.mainApp);
+    });
+
+    test('the merchant dashboard is a registered, protected route', () {
+      expect(AppRouter.hasRegisteredRoute(AppRoutes.merchantDashboard), isTrue);
+      expect(
+        AppRouter.isProtectedLocation(AppRoutes.merchantDashboard),
+        isTrue,
+      );
+    });
+
+    test(
+      'a signed-out visitor is sent to login, not the merchant dashboard',
+      () {
+        final redirect = AppRouter.resolveRedirect(
+          isLoggedIn: false,
+          isProtected: true,
+          location: AppRoutes.merchantDashboard,
+        );
+
+        expect(redirect, AppRoutes.login);
+      },
+    );
+  });
+
   group('onboarding first-launch gating (issue #15)', () {
     test('keeps a first-time signed-out visitor on welcome', () {
       final redirect = AppRouter.resolveRedirect(
