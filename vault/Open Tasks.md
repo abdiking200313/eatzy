@@ -7,7 +7,13 @@ upstream_concept: 00-Index
 
 # Open Tasks
 
-**Updated 2026-09-15 (board worker, 75th run), see [[Status Log]] 2026-09-15 (75th run) for full detail.** **Source of truth is always a live `list_issues`/`gh issue list --repo abdiking200313/eatzy --state open` call** — re-check before relying on this for anything that matters.
+**Updated 2026-09-17 (board worker), see [[Status Log]] 2026-09-17 for full detail.** **Source of truth is always a live `list_issues`/`gh issue list --repo abdiking200313/eatzy --state open` call** — re-check before relying on this for anything that matters.
+
+## Update, 2026-09-17 — #34 resolved by owner directly, #74 unblocked and merged
+
+- **#34 closed by the owner** (2026-09-17, interactive session via the Supabase connector) — live DB had zero migrations ever applied; all 21 pending migrations applied live, RLS confirmed on via `get_advisors`. **Fixed the live DB only, no migration files added** — repo history still had zero RLS coverage for the tables #74 named.
+- **#74 unblocked and merged as PR #230** — new migration enables RLS + adds public read policies for `restaurants`/`menu_items`/`item_categories`/`restaurant_locations`/`profiles`. `deals`/`deal_items` deliberately excluded (no migration/schema.sql ever references them, `fetchDeals` has no callers) — flagged as a same-class-as-#34 follow-up if the owner wants it resolved.
+- **Queue is now down to #29/#52 only** (tracking-only umbrellas, no direct work) — the first time the `todo`/`waiting-on-you` queue has had zero blocked/waiting items since #34 was filed. Next run: re-check `list_issues` fresh, nothing else is currently known-eligible.
 
 ## Update, 2026-09-15 (75th run) — merchant self-service epic complete, #128 closed
 
@@ -67,11 +73,7 @@ upstream_concept: 00-Index
 
 ## `waiting-on-you` — paused on a human reply
 
-| # | Title | Asked | Notes |
-|---|---|---|---|
-| 34 | Core tables exist in no migration — fresh environment cannot be provisioned | 2026-09-14 (67th run) | No live Supabase DB credentials/CLI link exist in any board-worker sandbox, and the sandbox proxy blocks reaching the Supabase host directly even with the client's own public key. Asked for a `supabase db pull`/`pg_dump --schema-only` dump or a read-only connection string. Blocks #74 until resolved. As of 2026-09-15 the owner said they'd provide a connection string in an interactive session — check for it directly on the issue/PR before re-asking. Re-checked 75th run: still only the bot's own comment, no reply yet. |
-
-**#47 and #132 both cleared this table for good 2026-09-15 (75th run)** — both merged (PR #224, PR #225), see the update note near the top of this file. All other rows previously in this table (#8, #16, #40, #74's original block, #78, #79) were resolved by the owner's 2026-09-13 mass reply pass — see [[Status Log]] 2026-09-13 and 2026-09-14 for what happened to each. #74 is `todo` (not `waiting-on-you`) but still practically blocked — see the blocked table below. **#34 is now the only row left in this table.**
+**Empty as of 2026-09-17.** **#34 cleared this table for good** — closed directly by the owner 2026-09-17 (interactive session, Supabase connector), see [[Status Log]] 2026-09-17. All other rows previously here (#8, #16, #40, #74's original block, #78, #79, #47, #132) were resolved earlier — see [[Status Log]] 2026-09-13 through 2026-09-15.
 
 ## `agent-in-progress` — open PR awaiting review
 
@@ -90,7 +92,11 @@ upstream_concept: 00-Index
 
 **#128 (merchant self-service tracking) closed 2026-09-15 (75th run)** — all 7 children (#129-135) merged, entire epic complete. See the update note near the top of this file and [[Status Log]] 2026-09-15 "75th run". No longer in this table.
 
+**#74 unblocked and merged 2026-09-17** (PR #230) once #34 was resolved by the owner directly. No longer in this table — see the update note near the top of this file and [[Status Log]] 2026-09-17.
+
 ## Remaining `todo`, not yet picked up
+
+**As of 2026-09-17**: none — #74 merged this run (PR #230), #34 closed by the owner directly. Only #29/#52 (tracking-only, no direct work) remain in the `todo`/`waiting-on-you` queue. Re-check via `list_issues` before assuming this list is complete — a new issue or approval could change it any time.
 
 **As of the 75th run (2026-09-15)**: none — #47/#132/#133/#134/#135 all merged this run, #128 closed. Only #29/#52 (tracking-only, no direct work) and #74/#34 (blocked on each other) remain in the `todo`/`waiting-on-you` queue. Re-check via `list_issues` before assuming this list is complete — a further human approval pass, a reply on #34, or a new issue could change it any time.
 

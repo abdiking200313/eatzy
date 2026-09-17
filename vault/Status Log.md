@@ -8,11 +8,13 @@ Reverse-chronological. Each session/major chunk of work gets an entry.
 
 ---
 
-## 2026-09-17 (board worker — nothing eligible, queue unchanged since 75th run)
+## 2026-09-17 (board worker — #34 resolved by owner, #74 unblocked and merged)
 
-- `list_issues` for `todo`/`waiting-on-you` returned the same 4 issues as the 75th/76th-run end state: tracking-only #29/#52, blocked #74 (on #34), `waiting-on-you` #34.
-- Re-checked `get_comments` on **#34** directly: still only the bot's own schema-dump request (2026-09-14), no human reply. Stays blocked; #74 stays blocked on #34.
-- Nothing implemented this run.
+- **#34 was closed directly by the owner today (2026-09-17T14:48 UTC, minutes before this run fired)** — resolved in an interactive session via the Supabase connector, not the schema-dump route originally asked for. Found the live DB had **zero tracked migrations ever applied**; applied all 21 pending migrations directly, confirmed via `get_advisors` that RLS is enabled on every live table. **This fixed the live database only — no new migration files were added**, so the repo's migration history still had zero RLS coverage for the tables #74 named. Confirmed by grep: no `create table`/`enable row level security` for `restaurants`/`menu_items`/`item_categories`/`restaurant_locations`/`profiles` anywhere in `supabase/migrations/`.
+- **#74** (RLS enablement gap) was therefore genuinely unblocked and actionable for the first time. Dispatched to `supabase-agent` (isolation: worktree) → **PR #230**, merged. Adds `supabase/migrations/20260921000000_enable_rls_food_catalog_tables.sql`: enable-only for `profiles`/`restaurant_locations` (their select policies already existed, just orphaned), plus enable + new `using (true)` select policies for `restaurants`/`menu_items`/`item_categories` (no `is_active`-style filter exists client-side for these three, unlike grocery/pharmacy). **`deals`/`deal_items` deliberately excluded** — zero mentions in any migration or `schema.sql`, `fetchDeals` has no callers in `lib/` (already flagged in `food_models.dart`), asserting the table exists would hard-fail migration replay if wrong. Same class of gap as #34 was; worth a follow-up issue if the owner wants it resolved. Not applied to any live database (per convention) — expected no-op live since #34's fix already enabled RLS there.
+- 307/307 tests, `dart format`/`flutter analyze` clean, CI green, merged squash to `master`.
+- Only #29/#52 (tracking-only umbrella issues, no direct work) remain in the `todo`/`waiting-on-you` queue as of this run's end. Re-check `list_issues` next run.
+- Stopped after 1 issue (nothing else eligible).
 
 ## 2026-09-16 (board worker — nothing eligible, queue unchanged since 75th run)
 
