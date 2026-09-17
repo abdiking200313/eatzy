@@ -8,6 +8,13 @@ Reverse-chronological. Each session/major chunk of work gets an entry.
 
 ---
 
+## 2026-09-17 (board worker — nothing eligible, queue unchanged)
+
+- `list_issues` for `todo`/`waiting-on-you` returned the same 4 issues as the 75th run's end state: tracking-only #29/#52, blocked #74 (on #34), `waiting-on-you` #34.
+- Re-checked `get_comments` on **#34** directly: still only the bot's own schema-dump request (2026-09-14), no human reply. Stays blocked; #74 stays blocked on #34.
+- **#74 got a new comment 2026-09-16** but it's non-owner (`cekuu35`, `author_association: NONE`) — a promotional pitch for a paid "Supabase RLS Audit" service, same account/pattern as their earlier comment on this same issue (2026-08-22). Not a reply to anything asked, not actionable, doesn't change #74's blocked-on-#34 status.
+- Nothing implemented this run.
+
 ## 2026-09-16 (board worker — nothing eligible, queue unchanged since 75th run)
 
 - `list_issues` for `todo`/`waiting-on-you` returned the same 4 issues as the 75th run's end state: tracking-only #29/#52, blocked #74 (on #34), `waiting-on-you` #34.
