@@ -8,6 +8,14 @@ Reverse-chronological. Each session/major chunk of work gets an entry.
 
 ---
 
+## 2026-09-17 (board worker — #232/#233 dispatched, both in progress)
+
+- `list_issues` for `todo`/`waiting-on-you` returned 4 issues: tracking-only #29/#52 (unchanged), plus **two brand-new owner-filed issues** since the last run: **#232** (unify merchant+customer login, retire the separate `merchant_app/` project — the owner tested it directly and reversed the #132 decision) and **#233** (redesign onboarding to match a concrete Claude Design mockup, described in full text in the issue body since the canvas link isn't sandbox-fetchable). No `waiting-on-you` issues at all.
+- Both judged unambiguous (detailed spec, explicit out-of-scope, acceptance criteria in both bodies) — no clarifying questions needed. Labeled both `agent-in-progress`, dispatched each as its own fresh background agent (`isolation: "worktree"`, disjoint files — #232 touches `lib/app`/`lib/features/merchant`(new)/`merchant_app`(deleted)/`analysis_options.yaml`; #233 touches only `lib/features/onboarding/presentation/**`), both still running as of this run's end (async, results not yet known to this session).
+- #233 has one owner comment ("remake this image" + a `github.com/user-attachments/assets/...` screenshot) — same known unfetchable-attachment limitation as prior runs (#143, 15th run); the issue body already contains the full textual spec the owner wrote out for exactly this reason, so the dispatched agent was told to implement from the text, not block on the image.
+- **Not yet updated this entry with outcomes** — PR numbers, merge status, and DoD results will be added once each agent's completion notification arrives (next run, or a follow-up to this entry if this session is still live). Check `list_pull_requests`/`list_branches` for `agent/issue-232-unify-merchant-login`/`agent/issue-233-onboarding-redesign` before assuming either is still unstarted.
+- Stopped dispatch after these 2 (nothing else eligible — #29/#52 remain tracking-only).
+
 ## 2026-09-17 (board worker — #34 resolved by owner, #74 unblocked and merged)
 
 - **#34 was closed directly by the owner today (2026-09-17T14:48 UTC, minutes before this run fired)** — resolved in an interactive session via the Supabase connector, not the schema-dump route originally asked for. Found the live DB had **zero tracked migrations ever applied**; applied all 21 pending migrations directly, confirmed via `get_advisors` that RLS is enabled on every live table. **This fixed the live database only — no new migration files were added**, so the repo's migration history still had zero RLS coverage for the tables #74 named. Confirmed by grep: no `create table`/`enable row level security` for `restaurants`/`menu_items`/`item_categories`/`restaurant_locations`/`profiles` anywhere in `supabase/migrations/`.
