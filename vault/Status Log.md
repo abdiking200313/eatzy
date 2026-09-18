@@ -8,6 +8,11 @@ Reverse-chronological. Each session/major chunk of work gets an entry.
 
 ---
 
+## 2026-09-18 (board worker — nothing eligible, queue unchanged)
+
+- `list_issues` for `todo`/`waiting-on-you` returned only #29/#52 — same tracking-only pair as the 2026-09-17 run's end state. No new `waiting-on-you` issue exists to re-check.
+- Nothing implemented this run.
+
 ## 2026-09-17 (board worker — #34 resolved by owner, #74 unblocked and merged)
 
 - **#34 was closed directly by the owner today (2026-09-17T14:48 UTC, minutes before this run fired)** — resolved in an interactive session via the Supabase connector, not the schema-dump route originally asked for. Found the live DB had **zero tracked migrations ever applied**; applied all 21 pending migrations directly, confirmed via `get_advisors` that RLS is enabled on every live table. **This fixed the live database only — no new migration files were added**, so the repo's migration history still had zero RLS coverage for the tables #74 named. Confirmed by grep: no `create table`/`enable row level security` for `restaurants`/`menu_items`/`item_categories`/`restaurant_locations`/`profiles` anywhere in `supabase/migrations/`.

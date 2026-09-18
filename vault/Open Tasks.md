@@ -7,7 +7,7 @@ upstream_concept: 00-Index
 
 # Open Tasks
 
-**Updated 2026-09-17 (board worker), see [[Status Log]] 2026-09-17 for full detail.** **Source of truth is always a live `list_issues`/`gh issue list --repo abdiking200313/eatzy --state open` call** — re-check before relying on this for anything that matters.
+**Updated 2026-09-18 (board worker), see [[Status Log]] 2026-09-18 for full detail. Re-verified unchanged from 2026-09-17.** **Source of truth is always a live `list_issues`/`gh issue list --repo abdiking200313/eatzy --state open` call** — re-check before relying on this for anything that matters.
 
 ## Update, 2026-09-17 — #34 resolved by owner directly, #74 unblocked and merged
 
