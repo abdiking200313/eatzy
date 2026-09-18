@@ -15,4 +15,13 @@ class MerchantSessionGate {
   /// to `false` (customer routing) until a sign-in or session-restore check
   /// sets it, and is reset to `false` on sign-out.
   static bool isMerchantRole = false;
+
+  /// Whether the current session's account is specifically `admin` (a
+  /// strict subset of [isMerchantRole]), set alongside it at the same two
+  /// call sites. Gates the "Accounts" role-management destination in
+  /// [MerchantShell] -- a plain `merchant` account never sees it. This is
+  /// only a UI convenience: the actual authorization is enforced
+  /// server-side by the `admin_lookup_profile_by_email`/
+  /// `admin_set_profile_role` RPCs, not by this flag.
+  static bool isAdmin = false;
 }

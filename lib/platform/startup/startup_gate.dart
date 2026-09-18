@@ -91,13 +91,22 @@ Future<StartupResult> runStartupSequence() async {
   // MerchantRoleService.fetchRole itself.
   if (currentUserId == null) {
     MerchantSessionGate.isMerchantRole = false;
+    MerchantSessionGate.isAdmin = false;
   } else {
-    await _runBestEffort('MerchantRoleService.fetchRole', () async {
-      final role = await MerchantRoleService()
-          .fetchRole(currentUserId)
-          .timeout(kStartupNetworkTimeout);
-      MerchantSessionGate.isMerchantRole = isAuthorizedMerchantRole(role);
-    }, onFailure: () => MerchantSessionGate.isMerchantRole = false);
+    await _runBestEffort(
+      'MerchantRoleService.fetchRole',
+      () async {
+        final role = await MerchantRoleService()
+            .fetchRole(currentUserId)
+            .timeout(kStartupNetworkTimeout);
+        MerchantSessionGate.isMerchantRole = isAuthorizedMerchantRole(role);
+        MerchantSessionGate.isAdmin = role == 'admin';
+      },
+      onFailure: () {
+        MerchantSessionGate.isMerchantRole = false;
+        MerchantSessionGate.isAdmin = false;
+      },
+    );
   }
 
   // Firebase init + an initial permission prompt (issue #47), Android only

@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:chowflow/app/app_routes.dart';
 import 'package:chowflow/features/auth/data/auth_service.dart';
+import 'package:chowflow/features/merchant/admin/presentation/admin_accounts_controller.dart';
 import 'package:chowflow/features/merchant/shell/presentation/merchant_shell.dart';
 import 'package:chowflow/features/merchant/store/presentation/merchant_store_controller.dart';
 import 'package:flutter/material.dart';
@@ -62,6 +63,51 @@ void main() {
     // your store first" empty state, resolved from the same shared
     // `MerchantStoreController` "My Store" also uses.
     expect(find.text('Set up your store first'), findsOneWidget);
+  });
+
+  testWidgets(
+    'hides the Accounts destination for a plain merchant (issue: admin '
+    'role management, 2026-09-18)',
+    (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: MerchantShell(
+            ownerId: 'merchant-1',
+            myStoreController: fakeStoreController(),
+            isAdmin: false,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('My Store'), findsWidgets);
+      expect(find.text('Orders'), findsWidgets);
+      expect(find.text('Accounts'), findsNothing);
+    },
+  );
+
+  testWidgets('shows the Accounts destination for an admin (issue: admin role '
+      'management, 2026-09-18)', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: MerchantShell(
+          ownerId: 'admin-1',
+          myStoreController: fakeStoreController(),
+          isAdmin: true,
+          adminAccountsController: AdminAccountsController(
+            repository: FakeAdminAccountsRepository(),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Accounts'), findsWidgets);
+
+    await tester.tap(find.widgetWithText(NavigationDestination, 'Accounts'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Change account roles'), findsOneWidget);
   });
 
   testWidgets(

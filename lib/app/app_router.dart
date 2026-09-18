@@ -418,6 +418,7 @@ class _AuthStateRefresh extends ChangeNotifier {
       // starts from a fresh lookup rather than a stale cached role.
       if (authState.event == AuthChangeEvent.signedOut) {
         MerchantSessionGate.isMerchantRole = false;
+        MerchantSessionGate.isAdmin = false;
       }
       notifyListeners();
     });
