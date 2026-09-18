@@ -8,6 +8,12 @@ Reverse-chronological. Each session/major chunk of work gets an entry.
 
 ---
 
+## 2026-09-18 (board worker, 5th run this day — nothing eligible, queue unchanged)
+
+- `list_issues` for `todo`/`waiting-on-you` returned only the same tracking-only pair, **#29/#52** — `updated_at` unchanged on both (2026-08-17/2026-08-26), no new "Part of #" children found via `search_issues` (still empty, consistent with [[Conventions]]'s note that GitHub sub-issue linking isn't used here — text search is the right check, and it also came back empty). `waiting-on-you` empty. Only 3 open `needs-approval` issues exist (#32, #55, #222), all off-limits per the approval gate.
+- Noted for continuity, not board-worker's own work: `master` gained one new commit since the 4th run's PR #237 merge — **"Add admin-only account role management"** (commit `3ef4cf1`, an interactive session, owner-requested directly, admin-gated RPCs + a new merchant-dashboard "Accounts" tab for role management). No open GitHub issue tracks it and none needed picking up.
+- Nothing implemented this run.
+
 ## 2026-09-18 (board worker, 4th run this day — new issue #236 implemented and merged)
 
 - `list_issues` for `todo`/`waiting-on-you` returned a new issue this run: **#236** (owner-filed 16:57 UTC, same day, right after testing #232's merchant-login unification landed) plus the same tracking-only #29/#52.
