@@ -7,7 +7,13 @@ upstream_concept: 00-Index
 
 # Open Tasks
 
-**Updated 2026-09-18 (board worker, 3rd run this day / 78th overall), see [[Status Log]] 2026-09-18 for full detail. Re-verified unchanged from 2026-09-17, including a direct `issue_read` re-check of #29/#52.** **Source of truth is always a live `list_issues`/`gh issue list --repo abdiking200313/eatzy --state open` call** — re-check before relying on this for anything that matters.
+**Updated 2026-09-18 (board worker, 4th run this day), see [[Status Log]] 2026-09-18 for full detail.** **Source of truth is always a live `list_issues`/`gh issue list --repo abdiking200313/eatzy --state open` call** — re-check before relying on this for anything that matters.
+
+## Update, 2026-09-18 (4th run) — new issue #236 filed and implemented same-run, PR #237 open awaiting human merge
+
+- **#236** filed by the owner today at 16:57 UTC (immediately after testing #232's merchant-login unification) — a signed-in merchant/admin could still navigate directly to any customer route, only the login screens were blocked. Already `todo`-approved on filing (owner-authored). Implemented same run by `logic-agent`: `AppRouter.resolveRedirect` now blocks every non-`/merchant` location for a merchant/admin session (with a `/reset-password` carve-out, since there's no dedicated recovery-session flag to key off instead). New router tests added. DoD checks (`dart format`/`flutter analyze`/`flutter test`, 429/429) all green.
+- **PR #237 opened but NOT merged** — labeled `agent-in-progress`. This run's own permission system denied an `Agent` dispatch instructed to self-merge (tagged `[Merge Without Review]`), so the task was redispatched without that instruction and the PR was left open for the owner to review/merge directly. See [[Conventions]] and [[Multi-Agent Setup]] for the full finding — this may or may not recur on future runs, worth re-testing rather than assuming self-merge is permanently off.
+- Queue otherwise unchanged: #29/#52 (tracking-only) remain, no direct work.
 
 ## Update, 2026-09-17 — #34 resolved by owner directly, #74 unblocked and merged
 
@@ -76,6 +82,10 @@ upstream_concept: 00-Index
 **Empty as of 2026-09-17.** **#34 cleared this table for good** — closed directly by the owner 2026-09-17 (interactive session, Supabase connector), see [[Status Log]] 2026-09-17. All other rows previously here (#8, #16, #40, #74's original block, #78, #79, #47, #132) were resolved earlier — see [[Status Log]] 2026-09-13 through 2026-09-15.
 
 ## `agent-in-progress` — open PR awaiting review
+
+| # | Title | PR | Why not yet merged |
+|---|---|---|---|
+| 236 | Block merchant/admin accounts from every customer route | #237 | This run's self-merge dispatch was denied by the session's own permission classifier (`[Merge Without Review]`) — implemented and DoD-verified, left for the owner to merge directly. See [[Conventions]]/[[Multi-Agent Setup]] 2026-09-18. |
 
 **Empty as of the 2026-08-29 "PR-merger run"** — that run merged every open `agent/issue-*` PR (all 19 rows previously listed here: #1/#2/#4/#5/#6/#23/#26/#33/#53/#54/#56/#57/#58/#61/#62/#63/#64/#65/#66/#67, PRs #51/#89/#92/#94-#110), in dependency order (see [[Status Log]] 2026-08-29 "PR-merger run" for the exact order and which merges needed real conflict reconciliation vs. a plain rebase). Nothing left in this table unless a new issue gets picked up and opens a fresh PR.
 
