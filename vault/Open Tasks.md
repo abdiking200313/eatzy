@@ -7,7 +7,12 @@ upstream_concept: 00-Index
 
 # Open Tasks
 
-**Updated 2026-09-17 (board worker), see [[Status Log]] 2026-09-17 for full detail.** **Source of truth is always a live `list_issues`/`gh issue list --repo abdiking200313/eatzy --state open` call** — re-check before relying on this for anything that matters.
+**Updated 2026-09-18 (board worker), see [[Status Log]] 2026-09-18 for full detail.** **Source of truth is always a live `list_issues`/`gh issue list --repo abdiking200313/eatzy --state open` call** — re-check before relying on this for anything that matters.
+
+## Update, 2026-09-18 — nothing eligible, queue unchanged
+
+- `todo`/`waiting-on-you` queue still just tracking-only #29/#52, no direct work. Also confirmed no unlabeled/newly-eligible issue slipped through: full open-issue list (6 total) checked directly — #222/#55/#32 remain `needs-approval` (approval gate applies, not eligible), #11 has no status label at all.
+- Nothing implemented this run.
 
 ## Update, 2026-09-17 — #34 resolved by owner directly, #74 unblocked and merged
 
