@@ -5,7 +5,10 @@ import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../app/app_routes.dart';
+import '../../../../app/merchant_session_gate.dart';
 import '../../../auth/data/auth_service.dart';
+import '../../admin/presentation/admin_accounts_controller.dart';
+import '../../admin/presentation/admin_accounts_screen.dart';
 import '../../orders/data/merchant_orders_repository.dart';
 import '../../orders/presentation/orders_screen.dart';
 import '../../store/presentation/merchant_store_controller.dart';
@@ -13,9 +16,11 @@ import '../../store/presentation/my_store_screen.dart';
 
 /// The merchant dashboard's post-sign-in navigation shell (issue #232,
 /// ported from the standalone `merchant_app`'s `MerchantShell`, originally
-/// issue #132): a bottom nav with two destinations, "My Store" (real
-/// store/catalog management, originally issue #133) and "Orders" (the
-/// incoming-order queue and fulfillment screens, originally issue #134).
+/// issue #132): a bottom nav with "My Store" (real store/catalog
+/// management, originally issue #133) and "Orders" (the incoming-order
+/// queue and fulfillment screens, originally issue #134), plus a third
+/// "Accounts" destination (role management, requested 2026-09-18) visible
+/// only to an `admin` account -- see [MerchantSessionGate.isAdmin].
 ///
 /// Reached as an ordinary protected `GoRoute` (`AppRoutes.merchantDashboard`)
 /// once [AppRouter] has already decided -- right after sign-in, or on
@@ -30,6 +35,8 @@ class MerchantShell extends StatefulWidget {
     this.authService,
     this.myStoreController,
     this.ordersRepository,
+    this.isAdmin,
+    this.adminAccountsController,
   });
 
   /// The signed-in merchant's `profiles.id` (== `auth.uid()`). Overridable
@@ -48,6 +55,18 @@ class MerchantShell extends StatefulWidget {
   /// Supabase-backed repository.
   final MerchantOrdersRepository? ordersRepository;
 
+  /// Whether to show the "Accounts" role-management destination (requested
+  /// directly by the app owner, 2026-09-18). Overridable for tests; defaults
+  /// to [MerchantSessionGate.isAdmin], since a plain `merchant` account
+  /// should never see it.
+  final bool? isAdmin;
+
+  /// Overridable for tests, forwarded to [AdminAccountsScreen] when
+  /// [isAdmin] is `true`; defaults to a real Supabase-backed controller.
+  /// Only ever constructed (real or fake) when the "Accounts" destination
+  /// actually renders -- a plain merchant is never asked to stand one up.
+  final AdminAccountsController? adminAccountsController;
+
   @override
   State<MerchantShell> createState() => _MerchantShellState();
 }
@@ -63,6 +82,8 @@ class _MerchantShellState extends State<MerchantShell> {
       MerchantStoreController.supabase(Supabase.instance.client);
   late final bool _ownsStoreController = widget.myStoreController == null;
 
+  late final bool _isAdmin = widget.isAdmin ?? MerchantSessionGate.isAdmin;
+
   int _selectedIndex = 0;
 
   late final List<Widget> _destinations = [
@@ -72,6 +93,8 @@ class _MerchantShellState extends State<MerchantShell> {
       storeController: _storeController,
       ordersRepository: widget.ordersRepository,
     ),
+    if (_isAdmin)
+      AdminAccountsScreen(controller: widget.adminAccountsController),
   ];
 
   Future<void> _signOut() async {
@@ -105,17 +128,23 @@ class _MerchantShellState extends State<MerchantShell> {
         selectedIndex: _selectedIndex,
         onDestinationSelected: (index) =>
             setState(() => _selectedIndex = index),
-        destinations: const [
-          NavigationDestination(
+        destinations: [
+          const NavigationDestination(
             icon: Icon(Icons.storefront_outlined),
             selectedIcon: Icon(Icons.storefront_rounded),
             label: 'My Store',
           ),
-          NavigationDestination(
+          const NavigationDestination(
             icon: Icon(Icons.receipt_long_outlined),
             selectedIcon: Icon(Icons.receipt_long_rounded),
             label: 'Orders',
           ),
+          if (_isAdmin)
+            const NavigationDestination(
+              icon: Icon(Icons.admin_panel_settings_outlined),
+              selectedIcon: Icon(Icons.admin_panel_settings_rounded),
+              label: 'Accounts',
+            ),
         ],
       ),
     );

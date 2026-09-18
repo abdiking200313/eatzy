@@ -69,6 +69,7 @@ class _LoginScreenState extends State<LoginScreen> {
           : await _merchantRoleService.fetchRole(userId);
       final isMerchant = isAuthorizedMerchantRole(role);
       MerchantSessionGate.isMerchantRole = isMerchant;
+      MerchantSessionGate.isAdmin = role == 'admin';
       if (!mounted) return;
       context.go(isMerchant ? AppRoutes.merchantDashboard : AppRoutes.mainApp);
     } catch (error) {
