@@ -8,6 +8,13 @@ Reverse-chronological. Each session/major chunk of work gets an entry.
 
 ---
 
+## 2026-09-18 (board worker — nothing eligible, queue unchanged, 3 runs this day)
+
+- All three runs today: `list_issues` for `todo`/`waiting-on-you` returned only #29/#52 — same tracking-only pair as the 2026-09-17 run's end state. No `waiting-on-you` issue exists to re-check.
+- Second run re-verified #29/#52 directly via `issue_read`: both `updated_at` unchanged (2026-08-17/2026-08-26 respectively), no new comments, still `has_children: false` (per [[Multi-Agent Setup]]'s known gotcha, that field isn't authoritative — but their bodies also still read as pure umbrella/tracking with no new "Part of #" children filed since prior confirmation).
+- Third run (78th overall): same `list_issues` result, same `updated_at` on both issues — re-verified via timestamp comparison only, no need to re-fetch bodies since nothing changed.
+- Nothing implemented in any of the three runs.
+
 ## 2026-09-17 (board worker — #34 resolved by owner, #74 unblocked and merged)
 
 - **#34 was closed directly by the owner today (2026-09-17T14:48 UTC, minutes before this run fired)** — resolved in an interactive session via the Supabase connector, not the schema-dump route originally asked for. Found the live DB had **zero tracked migrations ever applied**; applied all 21 pending migrations directly, confirmed via `get_advisors` that RLS is enabled on every live table. **This fixed the live database only — no new migration files were added**, so the repo's migration history still had zero RLS coverage for the tables #74 named. Confirmed by grep: no `create table`/`enable row level security` for `restaurants`/`menu_items`/`item_categories`/`restaurant_locations`/`profiles` anywhere in `supabase/migrations/`.
