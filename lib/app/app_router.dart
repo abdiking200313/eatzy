@@ -308,22 +308,39 @@ class AppRouter {
     required bool isProtected,
     required String location,
     bool hasSeenOnboarding = false,
-    // Issue #232: whether the signed-in account's `profiles.role` is
-    // `merchant`/`admin` (see `MerchantSessionGate`), resolved once at
+    // Issue #232 / #236: whether the signed-in account's `profiles.role`
+    // is `merchant`/`admin` (see `MerchantSessionGate`), resolved once at
     // sign-in/session-restore rather than looked up on every redirect.
-    // Landing back on a route in `_signedOutOnlyRoutes` (welcome/login/
-    // register/forgot-password, or the redirect-only root) is the only
-    // moment this sends a merchant/admin account somewhere other than the
-    // customer home -- there is no further role-based gating of any other
-    // route, per issue #232's scope (no customer-vs-merchant switcher).
     bool isMerchant = false,
   }) {
     if (!isLoggedIn && isProtected) {
       return AppRoutes.login;
     }
 
+    // Issue #236: a signed-in merchant/admin account is confined to
+    // `/merchant` (and any sub-path under it) for the entire session --
+    // *every* other location, not just the former login/welcome-only
+    // check, sends it back to the merchant dashboard instead. This
+    // supersedes #232's narrower `_signedOutOnlyRoutes` redirect, which
+    // only stopped a merchant account from landing back on a login screen
+    // and left every customer route (`/app`, `/food`, `/settings`, ...)
+    // reachable by direct navigation.
+    //
+    // `/reset-password` is explicitly exempted: it is also reachable
+    // through the temporary session created by tapping a password-recovery
+    // email link (`AuthChangeEvent.passwordRecovery`, handled below in
+    // `_AuthStateRefresh`), which is a different path from the normal
+    // sign-in/session-restore flow that resolves `isMerchant` in the first
+    // place. Without this exemption, a merchant/admin account whose cached
+    // `MerchantSessionGate.isMerchantRole` is still (possibly stale-)true
+    // from an earlier session in the same app run could never reach the
+    // reset-password screen.
+    if (isLoggedIn && isMerchant && !_isMerchantReachableLocation(location)) {
+      return AppRoutes.merchantDashboard;
+    }
+
     if (isLoggedIn && _signedOutOnlyRoutes.contains(location)) {
-      return isMerchant ? AppRoutes.merchantDashboard : AppRoutes.mainApp;
+      return AppRoutes.mainApp;
     }
 
     // A returning signed-out user (this device already finished or skipped
@@ -337,6 +354,16 @@ class AppRouter {
 
     return null;
   }
+
+  /// True when a merchant/admin session is allowed to stay on [location]
+  /// without being redirected to [AppRoutes.merchantDashboard] (issue #236):
+  /// the merchant dashboard itself, any sub-path under it, or the
+  /// password-reset screen (see [resolveRedirect]'s doc comment on why that
+  /// one is exempted).
+  static bool _isMerchantReachableLocation(String location) =>
+      location == AppRoutes.merchantDashboard ||
+      location.startsWith('${AppRoutes.merchantDashboard}/') ||
+      location == AppRoutes.resetPassword;
 
   static bool isProtectedLocation(String location) {
     return _standaloneProtectedPages.containsKey(location) ||

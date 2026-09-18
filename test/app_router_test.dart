@@ -146,6 +146,101 @@ void main() {
     );
   });
 
+  group('merchant/admin accounts are blocked from every customer route '
+      '(issue #236)', () {
+    test('a merchant/admin account is redirected away from a representative '
+        'sample of customer-facing routes', () {
+      for (final location in [
+        AppRoutes.mainApp,
+        AppRoutes.food,
+        AppRoutes.settings,
+        AppRoutes.wallet,
+        AppRoutes.grocery,
+        AppRoutes.pharmacy,
+        AppRoutes.profile,
+        AppRoutes.trackOrder,
+        AppRoutes.foodCheckout,
+      ]) {
+        final redirect = AppRouter.resolveRedirect(
+          isLoggedIn: true,
+          isProtected: AppRouter.isProtectedLocation(location),
+          location: location,
+          isMerchant: true,
+        );
+
+        expect(
+          redirect,
+          AppRoutes.merchantDashboard,
+          reason:
+              '$location should redirect a merchant/admin session to '
+              'the merchant dashboard',
+        );
+      }
+    });
+
+    test('a merchant/admin account can stay on the merchant dashboard '
+        'itself', () {
+      final redirect = AppRouter.resolveRedirect(
+        isLoggedIn: true,
+        isProtected: true,
+        location: AppRoutes.merchantDashboard,
+        isMerchant: true,
+      );
+
+      expect(redirect, isNull);
+    });
+
+    test('a merchant/admin account can stay on a sub-path under the '
+        'merchant dashboard', () {
+      final redirect = AppRouter.resolveRedirect(
+        isLoggedIn: true,
+        isProtected: true,
+        location: '${AppRoutes.merchantDashboard}/orders',
+        isMerchant: true,
+      );
+
+      expect(redirect, isNull);
+    });
+
+    test('a merchant/admin account can still complete a password reset '
+        '(recovery-session exemption)', () {
+      final redirect = AppRouter.resolveRedirect(
+        isLoggedIn: true,
+        isProtected: true,
+        location: AppRoutes.resetPassword,
+        isMerchant: true,
+      );
+
+      expect(redirect, isNull);
+    });
+
+    test("a customer account's navigation is completely unaffected by the "
+        'merchant blanket block', () {
+      for (final location in [
+        AppRoutes.mainApp,
+        AppRoutes.food,
+        AppRoutes.settings,
+        AppRoutes.wallet,
+        AppRoutes.grocery,
+        AppRoutes.pharmacy,
+        AppRoutes.profile,
+        AppRoutes.resetPassword,
+      ]) {
+        final redirect = AppRouter.resolveRedirect(
+          isLoggedIn: true,
+          isProtected: AppRouter.isProtectedLocation(location),
+          location: location,
+        );
+
+        expect(
+          redirect,
+          isNull,
+          reason: '$location should remain reachable by a customer session',
+        );
+      }
+    });
+  });
+
   group('onboarding first-launch gating (issue #15)', () {
     test('keeps a first-time signed-out visitor on welcome', () {
       final redirect = AppRouter.resolveRedirect(
