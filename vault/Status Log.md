@@ -8,10 +8,11 @@ Reverse-chronological. Each session/major chunk of work gets an entry.
 
 ---
 
-## 2026-09-18 (board worker — nothing eligible, queue unchanged)
+## 2026-09-18 (board worker — nothing eligible, queue unchanged, 2 runs this day)
 
-- `list_issues` for `todo`/`waiting-on-you` returned only #29/#52 — same tracking-only pair as the 2026-09-17 run's end state. No new `waiting-on-you` issue exists to re-check.
-- Nothing implemented this run.
+- Both runs today: `list_issues` for `todo`/`waiting-on-you` returned only #29/#52 — same tracking-only pair as the 2026-09-17 run's end state. No `waiting-on-you` issue exists to re-check.
+- Second run re-verified #29/#52 directly via `issue_read`: both `updated_at` unchanged (2026-08-17/2026-08-26 respectively), no new comments, still `has_children: false` (per [[Multi-Agent Setup]]'s known gotcha, that field isn't authoritative — but their bodies also still read as pure umbrella/tracking with no new "Part of #" children filed since prior confirmation).
+- Nothing implemented in either run.
 
 ## 2026-09-17 (board worker — #34 resolved by owner, #74 unblocked and merged)
 
