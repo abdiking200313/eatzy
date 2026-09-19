@@ -264,6 +264,46 @@ void main() {
       expect(redirect, AppRoutes.login);
     });
 
+    test('lets a returning signed-out user reopen welcome on purpose (the '
+        'back button on login/register)', () {
+      final redirect = AppRouter.resolveRedirect(
+        isLoggedIn: false,
+        isProtected: false,
+        location: AppRoutes.welcome,
+        hasSeenOnboarding: true,
+        revisitWelcome: true,
+      );
+
+      expect(redirect, isNull);
+    });
+
+    test('a signed-in user is still sent to the app even with the revisit '
+        'flag', () {
+      final redirect = AppRouter.resolveRedirect(
+        isLoggedIn: true,
+        isProtected: false,
+        location: AppRoutes.welcome,
+        hasSeenOnboarding: true,
+        revisitWelcome: true,
+      );
+
+      expect(redirect, AppRoutes.mainApp);
+    });
+
+    test('welcomeRevisit is recognized only from its own query flag', () {
+      expect(
+        AppRouter.isWelcomeRevisit(Uri.parse(AppRoutes.welcomeRevisit)),
+        isTrue,
+      );
+      expect(AppRouter.isWelcomeRevisit(Uri.parse(AppRoutes.welcome)), isFalse);
+      expect(
+        AppRouter.isWelcomeRevisit(
+          Uri.parse('${AppRoutes.welcome}?revisit=no'),
+        ),
+        isFalse,
+      );
+    });
+
     test('does not divert a returning signed-out user away from login', () {
       final redirect = AppRouter.resolveRedirect(
         isLoggedIn: false,

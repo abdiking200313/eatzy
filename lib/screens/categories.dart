@@ -22,9 +22,16 @@ class CategoriesScreen extends StatelessWidget {
       // narrow widths / large text scales.
       body: ListView.separated(
         padding: const EdgeInsets.all(TwSpacing.x5),
-        itemCount: ServiceRegistry.modules.length,
+        itemCount:
+            ServiceRegistry.modules.length + ServiceRegistry.comingSoon.length,
         separatorBuilder: (_, _) => const SizedBox(height: TwSpacing.x5),
         itemBuilder: (context, index) {
+          if (index >= ServiceRegistry.modules.length) {
+            return _ComingSoonCard(
+              category: ServiceRegistry
+                  .comingSoon[index - ServiceRegistry.modules.length],
+            );
+          }
           final module = ServiceRegistry.modules[index];
           // White card only ("one card per list") — the service accent is
           // confined to the 48px ServiceIconChip, never the card fill or
@@ -61,6 +68,51 @@ class CategoriesScreen extends StatelessWidget {
             ),
           );
         },
+      ),
+    );
+  }
+}
+
+/// A placeholder category with no service behind it yet: same card as a real
+/// module, but tapping it only shows a "coming soon" snackbar.
+class _ComingSoonCard extends StatelessWidget {
+  const _ComingSoonCard({required this.category});
+
+  final ComingSoonCategory category;
+
+  @override
+  Widget build(BuildContext context) {
+    const platform = ZivoServiceColors.platform;
+    return OutlinedCard(
+      child: InkWell(
+        key: Key('services-coming-soon-${category.id}'),
+        onTap: () =>
+            showCartSnackBar(context, '${category.title} is coming soon'),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ServiceIconChip(
+              icon: category.icon,
+              background: platform.soft,
+              foreground: platform.accent,
+              iconSize: 26,
+            ),
+            const SizedBox(height: TwSpacing.rhythmDefault),
+            Text(
+              category.title,
+              textAlign: TextAlign.center,
+              style: TwText.fontBoldBase,
+            ),
+            const SizedBox(height: TwSpacing.rhythmTight),
+            Text(
+              category.description,
+              textAlign: TextAlign.center,
+              style: TwText.textSm,
+            ),
+            const SizedBox(height: TwSpacing.rhythmTight),
+            const StatusPill(label: 'Coming soon', fontSize: 11),
+          ],
+        ),
       ),
     );
   }

@@ -18,12 +18,6 @@ final Map<String, String> _deepLinkOnlyRoutes = {
   // The app itself never navigates here on purpose.
   AppRoutes.root: 'index route, always redirected to welcome by AppRouter',
 
-  // Reached only via AppRouter's own `initialLocation` and the `/` redirect
-  // above -- both internal to AppRouter itself. The app never explicitly
-  // navigates back to welcome (logout goes to /login, not here).
-  AppRoutes.welcome:
-      'reached only via AppRouter.initialLocation / the root redirect',
-
   // Legacy redirect aliases, kept for backward-compat / old deep links.
   // Issue #71 decision: keep these; a route existing only for old links is a
   // normal reason for it to have no in-app link.
@@ -141,6 +135,13 @@ void main() {
     // concrete path via AppRoutes.trackOrderDetailsPath(...).
     if (name == 'trackOrderDetails' &&
         combinedSource.contains('trackOrderDetailsPath(')) {
+      return true;
+    }
+    // Same pattern: login/register's back button opens the welcome slides
+    // via `AppRoutes.welcomeRevisit` (the same route plus a query flag), not
+    // the bare `AppRoutes.welcome` constant.
+    if (name == 'welcome' &&
+        combinedSource.contains('AppRoutes.welcomeRevisit')) {
       return true;
     }
     // Same pattern again: no call site pushes the raw `groceryStore`

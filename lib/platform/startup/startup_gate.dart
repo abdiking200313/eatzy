@@ -6,7 +6,6 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../app/merchant_session_gate.dart';
 import '../../config/env.dart';
 import '../../config/theme.dart';
-import '../../features/merchant/auth/data/merchant_role_service.dart';
 import '../../features/onboarding/data/onboarding_preferences.dart';
 import '../../features/settings/data/notification_preferences_repository.dart';
 import '../../services/food/presentation/cart_controller.dart';
@@ -90,22 +89,14 @@ Future<StartupResult> runStartupSequence() async {
   // (customer routing), the same fail-closed behavior as
   // MerchantRoleService.fetchRole itself.
   if (currentUserId == null) {
-    MerchantSessionGate.isMerchantRole = false;
-    MerchantSessionGate.isAdmin = false;
+    MerchantSessionGate.reset();
   } else {
     await _runBestEffort(
-      'MerchantRoleService.fetchRole',
-      () async {
-        final role = await MerchantRoleService()
-            .fetchRole(currentUserId)
-            .timeout(kStartupNetworkTimeout);
-        MerchantSessionGate.isMerchantRole = isAuthorizedMerchantRole(role);
-        MerchantSessionGate.isAdmin = role == 'admin';
-      },
-      onFailure: () {
-        MerchantSessionGate.isMerchantRole = false;
-        MerchantSessionGate.isAdmin = false;
-      },
+      'MerchantSessionGate.resolveFor',
+      () => MerchantSessionGate.resolveFor(
+        currentUserId,
+      ).timeout(kStartupNetworkTimeout),
+      onFailure: MerchantSessionGate.reset,
     );
   }
 

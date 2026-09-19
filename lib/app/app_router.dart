@@ -11,6 +11,7 @@ import '../features/auth/presentation/register_screen.dart';
 import '../features/auth/presentation/reset_password_screen.dart';
 import '../features/legal/presentation/privacy_policy_screen.dart';
 import '../features/legal/presentation/terms_of_service_screen.dart';
+import '../features/merchant/auth/data/merchant_role_service.dart';
 import '../features/merchant/shell/presentation/merchant_shell.dart';
 import '../features/onboarding/data/onboarding_preferences.dart';
 import '../features/onboarding/presentation/welcome_screen.dart';
@@ -289,18 +290,52 @@ class AppRouter {
     errorBuilder: (_, _) => const NotFoundScreen(),
   );
 
-  static String? _redirect(BuildContext context, GoRouterState state) {
-    final isLoggedIn = Supabase.instance.client.auth.currentSession != null;
-    final location = state.uri.path;
-    final isProtected = isProtectedLocation(location);
+  // A signed-in account's `profiles.role` decides whether it belongs on the
+  // customer home or the merchant dashboard, so it has to be known before
+  // this redirect answers. Otherwise the auth event fired by `signIn` is
+  // handled while the role is still the default "customer", `/login` (a
+  // signed-out-only route) redirects to the customer home, and a
+  // merchant/admin sees that home flash by until the lookup finishes. Stays
+  // synchronous (no extra frame) once the role is cached.
+  static FutureOr<String?> _redirect(
+    BuildContext context,
+    GoRouterState state,
+  ) => redirectFor(
+    userId: Supabase.instance.client.auth.currentSession?.user.id,
+    location: state.uri.path,
+    revisitWelcome: isWelcomeRevisit(state.uri),
+  );
 
-    return resolveRedirect(
-      isLoggedIn: isLoggedIn,
-      isProtected: isProtected,
+  /// True for `AppRoutes.welcomeRevisit`: the welcome slides opened on
+  /// purpose, which a returning user must not be redirected past.
+  static bool isWelcomeRevisit(Uri uri) =>
+      uri.queryParameters[AppRoutes.welcomeRevisitParam] == 'true';
+
+  /// [_redirect]'s logic with the Supabase session and route state passed
+  /// in, so it can be exercised without a live `Supabase.instance`.
+  /// [userId] is the signed-in user's id, or `null` when signed out.
+  static FutureOr<String?> redirectFor({
+    required String? userId,
+    required String location,
+    MerchantRoleService? roleService,
+    bool revisitWelcome = false,
+  }) {
+    String? decide() => resolveRedirect(
+      isLoggedIn: userId != null,
+      isProtected: isProtectedLocation(location),
       location: location,
       hasSeenOnboarding: OnboardingLaunchGate.hasSeenOnboarding,
+      revisitWelcome: revisitWelcome,
       isMerchant: MerchantSessionGate.isMerchantRole,
     );
+
+    if (userId != null && MerchantSessionGate.resolvedUserId != userId) {
+      return MerchantSessionGate.resolveFor(
+        userId,
+        roleService: roleService,
+      ).then((_) => decide());
+    }
+    return decide();
   }
 
   static String? resolveRedirect({
@@ -308,6 +343,10 @@ class AppRouter {
     required bool isProtected,
     required String location,
     bool hasSeenOnboarding = false,
+    // The welcome slides were opened on purpose (see
+    // `AppRoutes.welcomeRevisit`), so a returning user is not bounced past
+    // them to login.
+    bool revisitWelcome = false,
     // Issue #232 / #236: whether the signed-in account's `profiles.role`
     // is `merchant`/`admin` (see `MerchantSessionGate`), resolved once at
     // sign-in/session-restore rather than looked up on every redirect.
@@ -348,7 +387,10 @@ class AppRouter {
     // past the welcome/onboarding slides on this and every later launch,
     // landing on login instead of seeing the first-launch sequence again
     // (issue #15).
-    if (!isLoggedIn && hasSeenOnboarding && location == AppRoutes.welcome) {
+    if (!isLoggedIn &&
+        hasSeenOnboarding &&
+        !revisitWelcome &&
+        location == AppRoutes.welcome) {
       return AppRoutes.login;
     }
 
@@ -417,8 +459,7 @@ class _AuthStateRefresh extends ChangeNotifier {
       // sign-out so a later, unrelated session-restore or sign-in always
       // starts from a fresh lookup rather than a stale cached role.
       if (authState.event == AuthChangeEvent.signedOut) {
-        MerchantSessionGate.isMerchantRole = false;
-        MerchantSessionGate.isAdmin = false;
+        MerchantSessionGate.reset();
       }
       notifyListeners();
     });

@@ -8,6 +8,21 @@ Reverse-chronological. Each session/major chunk of work gets an entry.
 
 ---
 
+## 2026-09-18 (owner-requested, interactive: merchant/admin login flash + "store could not be loaded")
+
+- **Flash of customer home on sign-in**: `signIn` fires an auth event → router redirect ran while the role was still the default "customer" → `/login` (signed-out-only) redirected to `/app`; the login screen's own role lookup then jumped to `/merchant`. Fix: `AppRouter.redirectFor` awaits `MerchantSessionGate.resolveFor` (once per user, in-flight lookup shared with login/startup, `reset()` on sign-out) before answering; synchronous again once cached.
+- **"Your store could not be loaded"**: live `restaurants` has no `address`/`image_url` (stale `schema.sql`); it has `logo_url` (what the customer app reads). Client now uses `logo_url`. Migration `20260922010000_add_restaurants_address.sql` adds `address` — **applied to live** via Supabase MCP (`add_restaurants_address`).
+- **Audit (read-only)**: merchant Orders/Catalog/Store queries checked column-by-column against live — no other mismatches; `advance_*_order_status` RPCs and `merchant_owns_order` exist; no `updated_at` trigger on `profiles`/`restaurants`, so the role-change fix holds.
+- **`supabase/schema.sql` regenerated from live** (24 tables, 54 policies, 33 FKs, 34 indexes — counts verified against live). It is now a *reference snapshot*, not a bootstrap script; `supabase/README.md` updated to say so. Old file had tables that don't exist live (`addresses`, `categories`, `delivery_partners`) and ~20 missing. Fresh-project bootstrap still unsupported (issue #34). `AGENTS.md`/`CLAUDE.md`/`database_diagram.md` still describe the old drift and were not touched.
+- **Found, not fixed**: `profiles` has only a SELECT policy (no client update path — worth checking Edit Profile).
+- `flutter test` 470/470 green.
+
+## 2026-09-18 (owner-requested, interactive: admin sees only an Accounts list)
+
+- `MerchantShell` for an `admin` now shows only a searchable, server-paginated Accounts list (name, email, role dropdown → confirm dialog → save) plus sign-out; no My Store/Orders/bottom nav. Admin's own row is disabled so they can't demote themselves.
+- New RPC `admin_list_profiles` (migration `20260922000000_add_admin_list_profiles_rpc.sql`, **applied to live** via Supabase MCP as `add_admin_list_profiles_rpc`). Same migration fixes `admin_set_profile_role`, which wrote a nonexistent `profiles.updated_at` and so failed on every call. `admin_lookup_profile_by_email` left in place, unused.
+- `dart format`/`flutter analyze` clean, `flutter test` 456/456 green. Not yet verified on a device against the live DB.
+
 ## 2026-09-18 (board worker, 4th run this day — new issue #236 implemented and merged)
 
 - `list_issues` for `todo`/`waiting-on-you` returned a new issue this run: **#236** (owner-filed 16:57 UTC, same day, right after testing #232's merchant-login unification landed) plus the same tracking-only #29/#52.

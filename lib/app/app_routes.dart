@@ -4,6 +4,15 @@ class AppRoutes {
   // Public routes
   static const root = '/';
   static const welcome = '/welcome';
+
+  // The welcome/onboarding slides opened on purpose (the back button on
+  // login/register). A returning signed-out user is normally redirected
+  // from [welcome] straight to login (issue #15); this query flag is the
+  // one exception, so "back to onboarding" doesn't bounce off that
+  // redirect. Same route, same screen -- only the redirect reads the flag.
+  static const welcomeRevisitParam = 'revisit';
+  static const welcomeRevisit = '$welcome?$welcomeRevisitParam=true';
+
   static const login = '/login';
   static const register = '/register';
   static const forgotPassword = '/forgot-password';

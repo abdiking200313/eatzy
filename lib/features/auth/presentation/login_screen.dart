@@ -62,16 +62,22 @@ class _LoginScreenState extends State<LoginScreen> {
       // instead of the customer home, decided here right after a
       // successful sign-in (and again on session-restore at app start, see
       // `runStartupSequence`). A lookup failure fails closed into the
-      // customer experience rather than blocking the login.
+      // customer experience rather than blocking the login. The router's own
+      // redirect (fired by the sign-in event) joins this same lookup, so it
+      // never routes to the customer home while the role is still unknown.
       final userId = _authService.getCurrentUserId();
-      final role = userId == null
-          ? null
-          : await _merchantRoleService.fetchRole(userId);
-      final isMerchant = isAuthorizedMerchantRole(role);
-      MerchantSessionGate.isMerchantRole = isMerchant;
-      MerchantSessionGate.isAdmin = role == 'admin';
+      if (userId != null) {
+        await MerchantSessionGate.resolveFor(
+          userId,
+          roleService: _merchantRoleService,
+        );
+      }
       if (!mounted) return;
-      context.go(isMerchant ? AppRoutes.merchantDashboard : AppRoutes.mainApp);
+      context.go(
+        MerchantSessionGate.isMerchantRole
+            ? AppRoutes.merchantDashboard
+            : AppRoutes.mainApp,
+      );
     } catch (error) {
       if (!mounted) return;
       _showMessage(
@@ -107,7 +113,15 @@ class _LoginScreenState extends State<LoginScreen> {
                         child: IconButton.filled(
                           tooltip: 'Back',
                           onPressed: () {
-                            if (context.canPop()) context.pop();
+                            // With nothing behind this screen (the app opened
+                            // straight on login, or it replaced another route
+                            // via `go`) reopen the onboarding slides instead
+                            // of doing nothing.
+                            if (context.canPop()) {
+                              context.pop();
+                            } else {
+                              context.go(AppRoutes.welcomeRevisit);
+                            }
                           },
                           style: IconButton.styleFrom(
                             backgroundColor: TwColors.white,

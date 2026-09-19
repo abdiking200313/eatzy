@@ -72,7 +72,7 @@ class SupabaseMerchantStoreRepository implements MerchantStoreRepository {
     vertical.storeLocationColumn,
     vertical.storeActiveColumn,
     if (vertical.storeSupportsDescription) 'description',
-    if (vertical.storeSupportsImage) 'image_url',
+    if (vertical.storeSupportsImage) vertical.storeImageColumn,
   ];
 
   @override
@@ -142,7 +142,8 @@ class SupabaseMerchantStoreRepository implements MerchantStoreRepository {
       vertical.storeLocationColumn: location.trim(),
       vertical.storeActiveColumn: isOpen,
       if (vertical.storeSupportsDescription) 'description': description?.trim(),
-      if (vertical.storeSupportsImage) 'image_url': imageUrl?.trim(),
+      if (vertical.storeSupportsImage)
+        vertical.storeImageColumn: imageUrl?.trim(),
     };
 
     final row = await _client

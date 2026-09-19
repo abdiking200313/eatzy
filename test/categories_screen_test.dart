@@ -27,6 +27,26 @@ void main() {
     }
   });
 
+  testWidgets('services list includes coming-soon categories', (tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(home: CategoriesScreen(showBackButton: false)),
+    );
+
+    final electronics = find.byKey(
+      const Key('services-coming-soon-electronics'),
+    );
+    await tester.scrollUntilVisible(
+      electronics,
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    expect(find.text('Electronics'), findsOneWidget);
+
+    await tester.tap(electronics);
+    await tester.pump();
+    expect(find.text('Electronics is coming soon'), findsOneWidget);
+  });
+
   testWidgets('pushed category screen shows a back control', (tester) async {
     await tester.pumpWidget(const MaterialApp(home: CategoriesScreen()));
 

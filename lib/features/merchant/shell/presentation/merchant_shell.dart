@@ -18,9 +18,11 @@ import '../../store/presentation/my_store_screen.dart';
 /// ported from the standalone `merchant_app`'s `MerchantShell`, originally
 /// issue #132): a bottom nav with "My Store" (real store/catalog
 /// management, originally issue #133) and "Orders" (the incoming-order
-/// queue and fulfillment screens, originally issue #134), plus a third
-/// "Accounts" destination (role management, requested 2026-09-18) visible
-/// only to an `admin` account -- see [MerchantSessionGate.isAdmin].
+/// queue and fulfillment screens, originally issue #134).
+///
+/// An `admin` account (see [MerchantSessionGate.isAdmin]) sees none of
+/// that: the shell shows only the "Accounts" role-management list
+/// (requested 2026-09-18) plus the sign-out button, with no bottom nav.
 ///
 /// Reached as an ordinary protected `GoRoute` (`AppRoutes.merchantDashboard`)
 /// once [AppRouter] has already decided -- right after sign-in, or on
@@ -55,16 +57,17 @@ class MerchantShell extends StatefulWidget {
   /// Supabase-backed repository.
   final MerchantOrdersRepository? ordersRepository;
 
-  /// Whether to show the "Accounts" role-management destination (requested
-  /// directly by the app owner, 2026-09-18). Overridable for tests; defaults
-  /// to [MerchantSessionGate.isAdmin], since a plain `merchant` account
-  /// should never see it.
+  /// Whether to show the admin-only "Accounts" role-management screen
+  /// *instead of* the merchant destinations (requested directly by the app
+  /// owner, 2026-09-18). Overridable for tests; defaults to
+  /// [MerchantSessionGate.isAdmin], since a plain `merchant` account should
+  /// never see it.
   final bool? isAdmin;
 
   /// Overridable for tests, forwarded to [AdminAccountsScreen] when
   /// [isAdmin] is `true`; defaults to a real Supabase-backed controller.
-  /// Only ever constructed (real or fake) when the "Accounts" destination
-  /// actually renders -- a plain merchant is never asked to stand one up.
+  /// Only ever constructed (real or fake) for an admin -- a plain merchant
+  /// is never asked to stand one up.
   final AdminAccountsController? adminAccountsController;
 
   @override
@@ -86,6 +89,8 @@ class _MerchantShellState extends State<MerchantShell> {
 
   int _selectedIndex = 0;
 
+  // Lazy, and never touched for an admin: an admin sees only the Accounts
+  // screen, so no store controller (or its Supabase queries) is stood up.
   late final List<Widget> _destinations = [
     MyStoreScreen(ownerId: _ownerId, controller: _storeController),
     OrdersScreen(
@@ -93,8 +98,6 @@ class _MerchantShellState extends State<MerchantShell> {
       storeController: _storeController,
       ordersRepository: widget.ordersRepository,
     ),
-    if (_isAdmin)
-      AdminAccountsScreen(controller: widget.adminAccountsController),
   ];
 
   Future<void> _signOut() async {
@@ -104,7 +107,7 @@ class _MerchantShellState extends State<MerchantShell> {
 
   @override
   void dispose() {
-    if (_ownsStoreController) {
+    if (!_isAdmin && _ownsStoreController) {
       _storeController.dispose();
     }
     super.dispose();
@@ -114,7 +117,7 @@ class _MerchantShellState extends State<MerchantShell> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Zivo Merchant'),
+        title: Text(_isAdmin ? 'Zivo Admin' : 'Zivo Merchant'),
         actions: [
           IconButton(
             tooltip: 'Sign out',
@@ -123,30 +126,31 @@ class _MerchantShellState extends State<MerchantShell> {
           ),
         ],
       ),
-      body: IndexedStack(index: _selectedIndex, children: _destinations),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _selectedIndex,
-        onDestinationSelected: (index) =>
-            setState(() => _selectedIndex = index),
-        destinations: [
-          const NavigationDestination(
-            icon: Icon(Icons.storefront_outlined),
-            selectedIcon: Icon(Icons.storefront_rounded),
-            label: 'My Store',
-          ),
-          const NavigationDestination(
-            icon: Icon(Icons.receipt_long_outlined),
-            selectedIcon: Icon(Icons.receipt_long_rounded),
-            label: 'Orders',
-          ),
-          if (_isAdmin)
-            const NavigationDestination(
-              icon: Icon(Icons.admin_panel_settings_outlined),
-              selectedIcon: Icon(Icons.admin_panel_settings_rounded),
-              label: 'Accounts',
+      body: _isAdmin
+          ? AdminAccountsScreen(
+              controller: widget.adminAccountsController,
+              currentUserId: _ownerId,
+            )
+          : IndexedStack(index: _selectedIndex, children: _destinations),
+      bottomNavigationBar: _isAdmin
+          ? null
+          : NavigationBar(
+              selectedIndex: _selectedIndex,
+              onDestinationSelected: (index) =>
+                  setState(() => _selectedIndex = index),
+              destinations: const [
+                NavigationDestination(
+                  icon: Icon(Icons.storefront_outlined),
+                  selectedIcon: Icon(Icons.storefront_rounded),
+                  label: 'My Store',
+                ),
+                NavigationDestination(
+                  icon: Icon(Icons.receipt_long_outlined),
+                  selectedIcon: Icon(Icons.receipt_long_rounded),
+                  label: 'Orders',
+                ),
+              ],
             ),
-        ],
-      ),
     );
   }
 }

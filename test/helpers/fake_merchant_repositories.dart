@@ -1,5 +1,5 @@
 import 'package:chowflow/features/merchant/admin/data/admin_accounts_repository.dart';
-import 'package:chowflow/features/merchant/admin/models/admin_account_lookup.dart';
+import 'package:chowflow/features/merchant/admin/models/admin_account.dart';
 import 'package:chowflow/features/merchant/catalog/data/merchant_catalog_repository.dart';
 import 'package:chowflow/features/merchant/catalog/models/merchant_catalog_item.dart';
 import 'package:chowflow/features/merchant/orders/data/merchant_orders_repository.dart';
@@ -77,25 +77,45 @@ class FakeMerchantStoreRepository implements MerchantStoreRepository {
   }
 }
 
-/// In-memory fake for `AdminAccountsRepository`. Accounts are keyed by
-/// email since that's what the real `admin_lookup_profile_by_email` RPC
-/// looks up by; [setRole] mutates the matching account in place so a
-/// subsequent [lookupByEmail] call sees the change, mirroring the real RPC
-/// pair operating on the same underlying row.
+/// In-memory fake for `AdminAccountsRepository`, mirroring
+/// `admin_list_profiles` (case-insensitive substring match on email or full
+/// name, then `limit`/`offset` paging over the given order) and
+/// `admin_set_profile_role` operating on the same underlying rows.
 class FakeAdminAccountsRepository implements AdminAccountsRepository {
-  FakeAdminAccountsRepository({
-    Map<String, AdminAccountLookup>? accountsByEmail,
-  }) : _accountsByEmail = Map.of(accountsByEmail ?? const {});
+  FakeAdminAccountsRepository({List<AdminAccount>? accounts})
+    : _accounts = List.of(accounts ?? const []);
 
-  final Map<String, AdminAccountLookup> _accountsByEmail;
+  final List<AdminAccount> _accounts;
 
   /// When set, every method throws this instead of succeeding.
   Object? failureToThrow;
 
+  /// The `search` argument of every [listAccounts] call, in order.
+  final List<String?> searches = [];
+
+  /// The `offset` argument of every [listAccounts] call, in order.
+  final List<int> offsets = [];
+
   @override
-  Future<AdminAccountLookup?> lookupByEmail(String email) async {
+  Future<List<AdminAccount>> listAccounts({
+    String? search,
+    required int limit,
+    required int offset,
+  }) async {
+    searches.add(search);
+    offsets.add(offset);
     if (failureToThrow != null) throw failureToThrow!;
-    return _accountsByEmail[email.trim().toLowerCase()];
+    final needle = (search ?? '').trim().toLowerCase();
+    final matches = _accounts.where(
+      (account) =>
+          needle.isEmpty ||
+          account.email.toLowerCase().contains(needle) ||
+          '${account.firstName} ${account.lastName}'
+              .trim()
+              .toLowerCase()
+              .contains(needle),
+    );
+    return matches.skip(offset).take(limit).toList();
   }
 
   @override
@@ -104,16 +124,9 @@ class FakeAdminAccountsRepository implements AdminAccountsRepository {
     required String newRole,
   }) async {
     if (failureToThrow != null) throw failureToThrow!;
-    final entry = _accountsByEmail.entries.firstWhere(
-      (entry) => entry.value.id == profileId,
-      orElse: () => throw const AdminAccountsException('Profile not found'),
-    );
-    _accountsByEmail[entry.key] = AdminAccountLookup(
-      id: entry.value.id,
-      firstName: entry.value.firstName,
-      lastName: entry.value.lastName,
-      role: newRole,
-    );
+    final index = _accounts.indexWhere((a) => a.id == profileId);
+    if (index < 0) throw const AdminAccountsException('Profile not found');
+    _accounts[index] = _accounts[index].copyWith(role: newRole);
   }
 }
 

@@ -72,6 +72,42 @@ void main() {
     },
   );
 
+  testWidgets('slide content is centered between the header and the buttons', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(800, 900));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    await tester.pumpWidget(
+      MaterialApp.router(theme: buildAppTheme(), routerConfig: buildRouter()),
+    );
+    await tester.pump();
+
+    final headerBottom = tester.getBottomLeft(find.byType(AppBar)).dy;
+    final controlsTop = tester
+        .getTopLeft(find.byType(AnimatedContainer).last)
+        .dy;
+
+    for (var page = 0; page < 3; page++) {
+      final block = find.byKey(const Key('onboarding-block'));
+      final gapAbove = tester.getTopLeft(block).dy - headerBottom;
+      final gapBelow = controlsTop - tester.getBottomLeft(block).dy;
+
+      // Roughly equal space above and below (the dots sit a few px inside
+      // the reserved bottom clearance, hence the tolerance) and content
+      // clear of the header — not hugging the top with the slack below.
+      expect(gapAbove, greaterThan(20), reason: 'slide ${page + 1}');
+      expect(
+        (gapAbove - gapBelow).abs(),
+        lessThan(24),
+        reason: 'slide ${page + 1}',
+      );
+
+      await tester.fling(find.byType(PageView), const Offset(-800, 0), 1000);
+      await tester.pumpAndSettle();
+    }
+  });
+
   testWidgets('second and third slides render their redesigned content', (
     tester,
   ) async {

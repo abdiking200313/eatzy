@@ -1,11 +1,10 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../models/admin_account_lookup.dart';
+import '../models/admin_account.dart';
 
-/// Thrown when `admin_lookup_profile_by_email` or `admin_set_profile_role`
-/// rejects the call -- caller isn't an admin, no account matches the email,
-/// an invalid role, or (per
-/// `supabase/migrations/20260921020000_add_admin_role_management_rpcs.sql`)
+/// Thrown when `admin_list_profiles` or `admin_set_profile_role` rejects the
+/// call -- caller isn't an admin, an invalid role, an unknown profile, or
+/// (per `supabase/migrations/20260921020000_add_admin_role_management_rpcs.sql`)
 /// an attempt to demote the last remaining admin. [message] is the RPC's own
 /// `raise exception` text, already specific and human-readable, so it is
 /// surfaced to the admin verbatim rather than replaced with a generic
@@ -19,19 +18,22 @@ class AdminAccountsException implements Exception {
   String toString() => message;
 }
 
-/// Data access for the admin-only "promote an account" flow (requested
-/// directly by the app owner, 2026-09-18, see the migration above): looking
-/// up an account by its sign-up email and changing its `profiles.role`.
-/// Both operations are admin-gated server-side -- see the RPCs' own
-/// `security definer` checks -- so this repository adds no client-side
-/// authorization logic of its own, matching `MerchantStoreRepository`'s
-/// doc comment on why: the client should never assume it is allowed to call
-/// these just because the screen is reachable.
+/// Data access for the admin-only "Accounts" screen (requested directly by
+/// the app owner, 2026-09-18): listing/searching every account and changing
+/// one's `profiles.role`. Both operations are admin-gated server-side -- see
+/// the RPCs' own `security definer` checks -- so this repository adds no
+/// client-side authorization logic of its own, matching
+/// `MerchantStoreRepository`'s doc comment on why: the client should never
+/// assume it is allowed to call these just because the screen is reachable.
 abstract interface class AdminAccountsRepository {
-  /// Looks up the account signed up with [email], or `null` if none
-  /// matches. Throws [AdminAccountsException] if the caller is not an
-  /// admin.
-  Future<AdminAccountLookup?> lookupByEmail(String email);
+  /// One page of accounts, newest sign-up first. [search] (if non-empty)
+  /// matches anywhere in the email or full name, case-insensitively. Throws
+  /// [AdminAccountsException] if the caller is not an admin.
+  Future<List<AdminAccount>> listAccounts({
+    String? search,
+    required int limit,
+    required int offset,
+  });
 
   /// Sets [profileId]'s `profiles.role` to [newRole] (`'customer'`,
   /// `'merchant'`, or `'admin'`). Throws [AdminAccountsException] on any
@@ -52,20 +54,25 @@ class SupabaseAdminAccountsRepository implements AdminAccountsRepository {
   final SupabaseClient _client;
 
   @override
-  Future<AdminAccountLookup?> lookupByEmail(String email) async {
-    final trimmed = email.trim();
-    if (trimmed.isEmpty) {
-      throw const FormatException('An email address is required.');
-    }
+  Future<List<AdminAccount>> listAccounts({
+    String? search,
+    required int limit,
+    required int offset,
+  }) async {
     try {
       final rows =
           await _client.rpc<Object?>(
-                'admin_lookup_profile_by_email',
-                params: {'target_email': trimmed},
+                'admin_list_profiles',
+                params: {
+                  'search_text': search,
+                  'page_limit': limit,
+                  'page_offset': offset,
+                },
               )
               as List<dynamic>;
-      if (rows.isEmpty) return null;
-      return AdminAccountLookup.fromMap(rows.first as Map<String, dynamic>);
+      return rows
+          .map((row) => AdminAccount.fromMap(row as Map<String, dynamic>))
+          .toList();
     } on PostgrestException catch (error) {
       throw AdminAccountsException(error.message);
     }

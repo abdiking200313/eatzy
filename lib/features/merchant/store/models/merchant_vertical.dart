@@ -78,8 +78,16 @@ extension MerchantVerticalConfig on MerchantVertical {
   /// Only `restaurants` has a `description` column.
   bool get storeSupportsDescription => this == MerchantVertical.food;
 
-  /// Only `restaurants` has an `image_url` column.
+  /// Only `restaurants` has an image column, and on the live table it is
+  /// `logo_url` (not `image_url`, which is what the stale `schema.sql` says
+  /// and what `menu_items` uses). `logo_url` is also what the customer app
+  /// reads for a restaurant's picture (`restaurant_repository.dart`), so a
+  /// merchant's image shows up for customers.
   bool get storeSupportsImage => this == MerchantVertical.food;
+
+  /// The image column on [storeTable]; only meaningful when
+  /// [storeSupportsImage].
+  String get storeImageColumn => 'logo_url';
 
   /// The store table's primary key: `restaurants.id` is a server-generated
   /// `uuid`; `grocery_stores.id` / `pharmacy_stores.id` are client-supplied

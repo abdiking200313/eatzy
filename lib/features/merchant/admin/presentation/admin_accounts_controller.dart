@@ -3,16 +3,19 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../services/shared/presentation/loadable_state_mixin.dart';
 import '../data/admin_accounts_repository.dart';
-import '../models/admin_account_lookup.dart';
+import '../models/admin_account.dart';
 
-/// `ChangeNotifier` controller for the admin-only "promote an account"
-/// screen (requested directly by the app owner, 2026-09-18), following this
-/// repo's existing pattern (e.g. `MerchantStoreController`): a
-/// `ChangeNotifier` with an injected Supabase-backed repository, not a new
-/// state-management framework. [LoadableState] backs the email lookup,
-/// [SavableState] backs the role change.
-class AdminAccountsController extends ChangeNotifier
-    with LoadableState, SavableState {
+/// `ChangeNotifier` controller for the admin-only "Accounts" screen
+/// (requested directly by the app owner, 2026-09-18), following this repo's
+/// existing pattern (e.g. `MerchantStoreController`): a `ChangeNotifier`
+/// with an injected Supabase-backed repository, not a new state-management
+/// framework. [SavableState] backs the role change.
+///
+/// The list's loading state is tracked here rather than with
+/// [LoadableState]: search results arrive out of order as the admin types,
+/// and [LoadableState.runLoad] would let a stale, slower response clear
+/// `isLoading` (or set an error) while a newer search is still in flight.
+class AdminAccountsController extends ChangeNotifier with SavableState {
   // `repository` is a named parameter tests construct directly (e.g.
   // `AdminAccountsController(repository: FakeAdminAccountsRepository())`);
   // an initializing formal would force the external name to the private
@@ -26,63 +29,134 @@ class AdminAccountsController extends ChangeNotifier
         repository: SupabaseAdminAccountsRepository(client: client),
       );
 
+  /// Accounts fetched per page.
+  static const pageSize = 25;
+
   final AdminAccountsRepository _repository;
 
-  AdminAccountLookup? _result;
+  final List<AdminAccount> _accounts = [];
+  String _query = '';
+  bool _hasMore = false;
+  bool _isLoading = false;
+  bool _isLoadingMore = false;
+  String? _loadError;
+  String? _loadMoreError;
+  String? _savingId;
 
-  /// The most recent lookup's match, or `null` if the lookup found nothing,
-  /// hasn't run yet, or failed. Distinguished from "not searched yet" by
-  /// [loadError] and [isLoading] rather than a separate flag: a search that
-  /// completed with no match has `loadError == null`, `isLoading == false`,
-  /// and `result == null`, which the screen renders as "no account found".
-  AdminAccountLookup? get result => _result;
+  /// Bumped by every [load]; a response tagged with an older id is discarded.
+  int _generation = 0;
 
-  /// Whether a lookup has completed (successfully or not) at least once,
-  /// so the screen can distinguish its initial "search for an account"
-  /// prompt from a completed search that found nothing.
-  bool get hasSearched => _hasSearched;
-  bool _hasSearched = false;
+  /// The accounts loaded so far for the current [query], newest first.
+  List<AdminAccount> get accounts => List.unmodifiable(_accounts);
 
-  /// Looks up the account signed up with [email]. On success, [result]
-  /// holds the match (or `null` if none exists) and [hasSearched] becomes
-  /// `true`. On failure, [result] is cleared and [loadError] carries the
-  /// reason (see [AdminAccountsException]).
-  Future<void> lookup(String email) async {
-    await runLoad(
-      fetch: () async {
-        _result = null;
-        _hasSearched = false;
-        _result = await _repository.lookupByEmail(email);
-        _hasSearched = true;
-      },
-      onError: (error, stackTrace) {
-        debugPrint(
-          'AdminAccountsController.lookup failed: $error\n$stackTrace',
-        );
-        if (error is AdminAccountsException || error is FormatException) {
-          return error.toString();
-        }
-        return 'The lookup could not be completed. Please try again.';
-      },
-    );
+  /// The trimmed search text the current [accounts] were loaded for.
+  String get query => _query;
+
+  /// Whether another page is available from [loadMore].
+  bool get hasMore => _hasMore;
+
+  /// Whether a first-page [load] is in flight.
+  bool get isLoading => _isLoading;
+
+  /// Whether a [loadMore] page fetch is in flight.
+  bool get isLoadingMore => _isLoadingMore;
+
+  /// Why the last [load] failed, or `null`.
+  String? get loadError => _loadError;
+
+  /// Why the last [loadMore] failed, or `null`.
+  String? get loadMoreError => _loadMoreError;
+
+  /// The id of the account whose role change is in flight, or `null`.
+  String? get savingId => _savingId;
+
+  /// Loads the first page of accounts matching [query] (all accounts when
+  /// empty), replacing whatever was loaded before. Any older in-flight
+  /// [load]/[loadMore] response is discarded.
+  Future<void> load([String query = '']) async {
+    final generation = ++_generation;
+    _query = query.trim();
+    _isLoading = true;
+    _isLoadingMore = false;
+    _loadError = null;
+    _loadMoreError = null;
+    notifyListeners();
+
+    try {
+      final rows = await _repository.listAccounts(
+        search: _query,
+        limit: pageSize + 1,
+        offset: 0,
+      );
+      if (generation != _generation) return;
+      _accounts
+        ..clear()
+        ..addAll(rows.take(pageSize));
+      _hasMore = rows.length > pageSize;
+    } on Object catch (error, stackTrace) {
+      if (generation != _generation) return;
+      debugPrint('AdminAccountsController.load failed: $error\n$stackTrace');
+      _accounts.clear();
+      _hasMore = false;
+      _loadError = error is AdminAccountsException
+          ? error.message
+          : 'The accounts could not be loaded. Please try again.';
+    } finally {
+      if (generation == _generation) {
+        _isLoading = false;
+        notifyListeners();
+      }
+    }
   }
 
-  /// Sets the currently-looked-up account's role to [newRole]. Returns
-  /// `false` immediately (no-op) if no account is currently loaded. On
-  /// success, [result] reflects the new role so the screen updates without
-  /// a re-lookup.
-  Future<bool> setRole(String newRole) {
-    final current = _result;
-    if (current == null) return Future.value(false);
-    return runSave(
+  /// Appends the next page for the current [query]. No-op when there is
+  /// nothing more to load or a fetch is already running.
+  Future<void> loadMore() async {
+    if (!_hasMore || _isLoading || _isLoadingMore) return;
+    final generation = _generation;
+    _isLoadingMore = true;
+    _loadMoreError = null;
+    notifyListeners();
+
+    try {
+      final rows = await _repository.listAccounts(
+        search: _query,
+        limit: pageSize + 1,
+        offset: _accounts.length,
+      );
+      if (generation != _generation) return;
+      _accounts.addAll(rows.take(pageSize));
+      _hasMore = rows.length > pageSize;
+    } on Object catch (error, stackTrace) {
+      if (generation != _generation) return;
+      debugPrint(
+        'AdminAccountsController.loadMore failed: $error\n$stackTrace',
+      );
+      _loadMoreError = error is AdminAccountsException
+          ? error.message
+          : 'More accounts could not be loaded. Please try again.';
+    } finally {
+      if (generation == _generation) {
+        _isLoadingMore = false;
+        notifyListeners();
+      }
+    }
+  }
+
+  /// Sets account [profileId]'s role to [newRole]. Returns `false` (no-op)
+  /// if that account isn't currently loaded, or if the server rejects the
+  /// change (see [saveError]); on success the loaded account reflects the
+  /// new role without a re-fetch.
+  Future<bool> setRole(String profileId, String newRole) async {
+    if (!_accounts.any((account) => account.id == profileId)) return false;
+    _savingId = profileId;
+    final succeeded = await runSave(
       mutate: () async {
-        await _repository.setRole(profileId: current.id, newRole: newRole);
-        _result = AdminAccountLookup(
-          id: current.id,
-          firstName: current.firstName,
-          lastName: current.lastName,
-          role: newRole,
-        );
+        await _repository.setRole(profileId: profileId, newRole: newRole);
+        final index = _accounts.indexWhere((a) => a.id == profileId);
+        if (index >= 0) {
+          _accounts[index] = _accounts[index].copyWith(role: newRole);
+        }
       },
       onError: (error, stackTrace) {
         debugPrint(
@@ -92,14 +166,8 @@ class AdminAccountsController extends ChangeNotifier
         return 'The role could not be changed. Please try again.';
       },
     );
-  }
-
-  /// Clears the current search result, e.g. so the screen can start a fresh
-  /// lookup after handling the previous one.
-  void clear() {
-    if (_result == null && !_hasSearched) return;
-    _result = null;
-    _hasSearched = false;
+    _savingId = null;
     notifyListeners();
+    return succeeded;
   }
 }

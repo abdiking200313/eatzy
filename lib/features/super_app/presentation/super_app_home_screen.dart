@@ -74,7 +74,11 @@ class _SuperAppHomeScreenState extends State<SuperAppHomeScreen> {
                   onPressed: () => context.push(AppRoutes.services),
                 ),
                 const SizedBox(height: TwSpacing.x3),
-                _ServiceGrid(modules: ServiceRegistry.modules),
+                _ServiceGrid(
+                  modules: ServiceRegistry.modules,
+                  comingSoon: ServiceRegistry.comingSoon,
+                  onMore: () => context.push(AppRoutes.services),
+                ),
                 const SizedBox(height: TwSpacing.x8),
                 _SectionHeader(
                   title: 'Popular Restaurants',
@@ -313,77 +317,185 @@ class _PromoBanner extends StatelessWidget {
   }
 }
 
+/// Four-column category grid: the live service modules first, then the
+/// coming-soon placeholders, then a trailing "More" tile that opens the full
+/// Services list.
 class _ServiceGrid extends StatelessWidget {
-  const _ServiceGrid({required this.modules});
+  const _ServiceGrid({
+    required this.modules,
+    required this.comingSoon,
+    required this.onMore,
+  });
 
   final List<ServiceDescriptor> modules;
+  final List<ComingSoonCategory> comingSoon;
+  final VoidCallback onMore;
 
   @override
   Widget build(BuildContext context) {
     final textScale = MediaQuery.textScalerOf(context).scale(1);
     final tileHeight = 92.0 + ((textScale - 1).clamp(0.0, 1.0) * 30.0);
+    final platform = ZivoServiceColors.platform;
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      itemCount: modules.length,
+      itemCount: modules.length + comingSoon.length + 1,
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3,
-        crossAxisSpacing: TwSpacing.x3,
-        mainAxisSpacing: TwSpacing.x3,
+        crossAxisCount: 4,
+        crossAxisSpacing: TwSpacing.x2,
+        mainAxisSpacing: TwSpacing.x2,
         mainAxisExtent: tileHeight,
       ),
-      itemBuilder: (context, index) => _ServiceTile(module: modules[index]),
+      itemBuilder: (context, index) {
+        if (index < modules.length) {
+          final module = modules[index];
+          final colors = ServiceThemes.forId(module.id);
+          return _CategoryTile(
+            tileKey: Key('service-${module.id.name}'),
+            icon: module.icon,
+            label: module.title,
+            background: colors.soft,
+            foreground: colors.accent,
+            // `go`, not `push`: module.entryRoute belongs to its own shell
+            // branch (see app_router.dart), so this switches branches within
+            // the persistent bottom-nav shell instead of stacking a
+            // full-screen route over it and hiding the nav bar (issue #67).
+            onTap: () => context.go(module.entryRoute),
+          );
+        }
+        final soonIndex = index - modules.length;
+        if (soonIndex < comingSoon.length) {
+          final category = comingSoon[soonIndex];
+          return _CategoryTile(
+            tileKey: Key('coming-soon-${category.id}'),
+            icon: category.icon,
+            label: category.title,
+            background: platform.soft,
+            foreground: platform.accent,
+            comingSoon: true,
+            onTap: () =>
+                showCartSnackBar(context, '${category.title} is coming soon'),
+          );
+        }
+        return _CategoryTile(
+          tileKey: const Key('service-more'),
+          icon: Icons.grid_view_rounded,
+          label: 'More',
+          background: TwColors.border,
+          foreground: TwColors.slate700,
+          onTap: onMore,
+        );
+      },
     );
   }
 }
 
-class _ServiceTile extends StatelessWidget {
-  const _ServiceTile({required this.module});
+class _CategoryTile extends StatelessWidget {
+  const _CategoryTile({
+    required this.tileKey,
+    required this.icon,
+    required this.label,
+    required this.background,
+    required this.foreground,
+    required this.onTap,
+    this.comingSoon = false,
+  });
 
-  final ServiceDescriptor module;
+  /// Applied to the tile's [Material] (its card surface), which tests and
+  /// the white-card rule inspect directly.
+  final Key tileKey;
+  final IconData icon;
+  final String label;
+  final Color background;
+  final Color foreground;
+  final VoidCallback onTap;
+  final bool comingSoon;
 
   @override
   Widget build(BuildContext context) {
-    final colors = ServiceThemes.forId(module.id);
-    return Material(
-      key: Key('service-${module.id.name}'),
-      color: TwColors.card,
-      elevation: 0.6,
-      shadowColor: TwColors.slate900.withOpacityValue(0.1),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(TwRadius.xl),
-        side: const BorderSide(color: TwColors.border),
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        // `go`, not `push`: module.entryRoute belongs to its own shell
-        // branch (see app_router.dart), so this switches branches within
-        // the persistent bottom-nav shell instead of stacking a full-screen
-        // route over it and hiding the nav bar (issue #67).
-        onTap: () => context.go(module.entryRoute),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(
-            vertical: TwSpacing.x2,
-            horizontal: TwSpacing.x1,
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+    return Semantics(
+      label: comingSoon ? '$label, coming soon' : label,
+      button: true,
+      excludeSemantics: true,
+      onTap: onTap,
+      child: Material(
+        key: tileKey,
+        color: TwColors.card,
+        elevation: 0.6,
+        shadowColor: TwColors.slate900.withOpacityValue(0.1),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(TwRadius.xl),
+          side: const BorderSide(color: TwColors.border),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onTap,
+          child: Stack(
             children: [
-              ServiceIconChip(
-                icon: module.icon,
-                background: colors.soft,
-                foreground: colors.accent,
-                borderRadius: TwRadius.full,
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  vertical: TwSpacing.x2,
+                  horizontal: TwSpacing.x1,
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    ServiceIconChip(
+                      icon: icon,
+                      background: background,
+                      foreground: foreground,
+                      borderRadius: TwRadius.full,
+                    ),
+                    const SizedBox(height: TwSpacing.x1),
+                    // Four narrow columns: shrink a long label ("Electronics")
+                    // to fit its tile rather than ellipsize or wrap it.
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        label,
+                        maxLines: 1,
+                        textAlign: TextAlign.center,
+                        style: TwText.fontBoldSm.copyWith(fontSize: 12),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              const SizedBox(height: TwSpacing.x1),
-              Text(
-                module.title,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                textAlign: TextAlign.center,
-                style: TwText.fontBoldSm,
-              ),
+              if (comingSoon)
+                const Positioned(
+                  top: TwSpacing.x1,
+                  right: TwSpacing.x1,
+                  child: _SoonBadge(),
+                ),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _SoonBadge extends StatelessWidget {
+  const _SoonBadge();
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: TwColors.primary,
+        borderRadius: BorderRadius.circular(TwRadius.full),
+        border: Border.all(color: TwColors.white, width: 1.5),
+      ),
+      child: const Padding(
+        padding: EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+        child: Text(
+          'Soon',
+          style: TextStyle(
+            fontFamily: 'Outfit',
+            fontSize: 9,
+            height: 1.2,
+            fontWeight: FontWeight.w700,
+            color: TwColors.white,
           ),
         ),
       ),

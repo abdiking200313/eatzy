@@ -141,7 +141,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         child: IconButton.filled(
                           tooltip: 'Back',
                           onPressed: () {
-                            if (context.canPop()) context.pop();
+                            // With nothing behind this screen (it replaced
+                            // another route via `go`) reopen the onboarding
+                            // slides instead of doing nothing.
+                            if (context.canPop()) {
+                              context.pop();
+                            } else {
+                              context.go(AppRoutes.welcomeRevisit);
+                            }
                           },
                           style: IconButton.styleFrom(
                             backgroundColor: TwColors.white,

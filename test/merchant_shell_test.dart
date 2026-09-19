@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:chowflow/app/app_routes.dart';
 import 'package:chowflow/features/auth/data/auth_service.dart';
+import 'package:chowflow/features/merchant/admin/models/admin_account.dart';
 import 'package:chowflow/features/merchant/admin/presentation/admin_accounts_controller.dart';
 import 'package:chowflow/features/merchant/shell/presentation/merchant_shell.dart';
 import 'package:chowflow/features/merchant/store/presentation/merchant_store_controller.dart';
@@ -66,7 +67,7 @@ void main() {
   });
 
   testWidgets(
-    'hides the Accounts destination for a plain merchant (issue: admin '
+    'never shows the admin Accounts list to a plain merchant (issue: admin '
     'role management, 2026-09-18)',
     (tester) async {
       await tester.pumpWidget(
@@ -83,11 +84,12 @@ void main() {
       expect(find.text('My Store'), findsWidgets);
       expect(find.text('Orders'), findsWidgets);
       expect(find.text('Accounts'), findsNothing);
+      expect(find.text('Zivo Merchant'), findsOneWidget);
     },
   );
 
-  testWidgets('shows the Accounts destination for an admin (issue: admin role '
-      'management, 2026-09-18)', (tester) async {
+  testWidgets('an admin sees only the Accounts list and sign out (issue: '
+      'admin role management, 2026-09-18)', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
         home: MerchantShell(
@@ -95,19 +97,39 @@ void main() {
           myStoreController: fakeStoreController(),
           isAdmin: true,
           adminAccountsController: AdminAccountsController(
-            repository: FakeAdminAccountsRepository(),
+            repository: FakeAdminAccountsRepository(
+              accounts: const [
+                AdminAccount(
+                  id: 'admin-1',
+                  firstName: 'Owner',
+                  lastName: 'Admin',
+                  email: 'owner@example.com',
+                  role: 'admin',
+                ),
+                AdminAccount(
+                  id: 'profile-1',
+                  firstName: 'Amal',
+                  lastName: 'Hassan',
+                  email: 'amal@example.com',
+                  role: 'customer',
+                ),
+              ],
+            ),
           ),
         ),
       ),
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('Accounts'), findsWidgets);
+    expect(find.text('Zivo Admin'), findsOneWidget);
+    expect(find.text('Amal Hassan'), findsOneWidget);
+    expect(find.text('amal@example.com'), findsOneWidget);
+    expect(find.byTooltip('Sign out'), findsOneWidget);
 
-    await tester.tap(find.widgetWithText(NavigationDestination, 'Accounts'));
-    await tester.pumpAndSettle();
-
-    expect(find.text('Change account roles'), findsOneWidget);
+    // None of the merchant destinations exist for an admin.
+    expect(find.byType(NavigationBar), findsNothing);
+    expect(find.text('My Store'), findsNothing);
+    expect(find.text('Orders'), findsNothing);
   });
 
   testWidgets(

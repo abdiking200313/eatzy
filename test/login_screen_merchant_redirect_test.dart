@@ -120,7 +120,7 @@ void main() {
   setUp(() {
     // Each test starts from a clean cached routing decision, mirroring a
     // fresh app launch (see `MerchantSessionGate`'s doc comment).
-    MerchantSessionGate.isMerchantRole = false;
+    MerchantSessionGate.reset();
   });
 
   testWidgets(

@@ -21,6 +21,20 @@ void main() {
     expect(ids, isNot(contains(ServiceId.unknown)));
   });
 
+  test('coming-soon categories are placeholders outside the module list', () {
+    final ids = ServiceRegistry.comingSoon.map((c) => c.id).toSet();
+    final titles = ServiceRegistry.modules.map((m) => m.title).toSet();
+
+    expect(ids.length, ServiceRegistry.comingSoon.length);
+    expect(
+      ServiceRegistry.comingSoon
+          .map((c) => c.title)
+          .toSet()
+          .intersection(titles),
+      isEmpty,
+    );
+  });
+
   test('every service owns a distinct visual palette', () {
     final palettes = {
       for (final id in ServiceId.values) ServiceThemes.forId(id).accent,

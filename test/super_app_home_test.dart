@@ -65,6 +65,85 @@ void main() {
     expect(find.text('/grocery'), findsOneWidget);
   });
 
+  testWidgets('category grid is 4 columns: services, coming soon, then More', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: buildAppTheme(),
+        home: const SuperAppHomeScreen(restaurantLoader: _noRestaurants),
+      ),
+    );
+    await tester.pump();
+
+    const keys = [
+      'service-grocery',
+      'service-food',
+      'service-pharmacy',
+      'coming-soon-fresh-meat',
+      'coming-soon-delivery',
+      'coming-soon-deals',
+      'coming-soon-electronics',
+      'service-more',
+    ];
+    final tops = [
+      for (final key in keys) tester.getTopLeft(find.byKey(Key(key))),
+    ];
+    // Row one is the first four tiles, row two the last four, left to right.
+    for (var i = 0; i < 4; i++) {
+      expect(tops[i].dy, tops[0].dy);
+      expect(tops[i + 4].dy, tops[4].dy);
+      expect(tops[i + 4].dx, tops[i].dx);
+    }
+    expect(tops[4].dy, greaterThan(tops[0].dy));
+    expect(tops[1].dx, greaterThan(tops[0].dx));
+
+    for (final label in [
+      'Fresh Meat',
+      'Delivery',
+      'Deals',
+      'Electronics',
+      'More',
+    ]) {
+      expect(find.text(label), findsOneWidget);
+    }
+    // Only the four placeholders carry the badge.
+    expect(find.text('Soon'), findsNWidgets(4));
+  });
+
+  testWidgets('coming-soon tile shows a snackbar instead of navigating', (
+    tester,
+  ) async {
+    final router = GoRouter(
+      initialLocation: '/',
+      routes: [
+        GoRoute(
+          path: '/',
+          builder: (_, _) =>
+              const SuperAppHomeScreen(restaurantLoader: _noRestaurants),
+        ),
+        GoRoute(
+          path: '/services',
+          builder: (_, _) => const Scaffold(body: Text('services screen')),
+        ),
+      ],
+    );
+    await tester.pumpWidget(
+      MaterialApp.router(theme: buildAppTheme(), routerConfig: router),
+    );
+    await tester.pump();
+
+    await tester.tap(find.byKey(const Key('coming-soon-deals')));
+    await tester.pump();
+    expect(find.text('Deals is coming soon'), findsOneWidget);
+    expect(find.text('services screen'), findsNothing);
+
+    // "More" is a real link to the full list, not a placeholder.
+    await tester.tap(find.byKey(const Key('service-more')));
+    await tester.pumpAndSettle();
+    expect(find.text('services screen'), findsOneWidget);
+  });
+
   testWidgets('service grid stays overflow-free on a narrow screen', (
     tester,
   ) async {

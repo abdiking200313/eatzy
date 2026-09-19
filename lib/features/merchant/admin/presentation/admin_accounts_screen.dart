@@ -3,73 +3,86 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../../../../config/theme.dart';
-import '../models/admin_account_lookup.dart';
+import '../models/admin_account.dart';
 import 'admin_accounts_controller.dart';
 
-/// Admin-only "promote an account" screen (requested directly by the app
-/// owner, 2026-09-18, replacing hand-editing `profiles.role` in the
-/// Supabase SQL editor): search for an account by its sign-up email, then
-/// change its role. Only reachable from [MerchantShell]'s "Accounts"
-/// destination, which only appears for a signed-in `admin` account --- but
-/// the actual authorization is enforced server-side by the
-/// `admin_lookup_profile_by_email` / `admin_set_profile_role` RPCs (see
-/// `supabase/migrations/20260921020000_add_admin_role_management_rpcs.sql`),
+/// Admin-only "Accounts" screen (requested directly by the app owner,
+/// 2026-09-18, replacing hand-editing `profiles.role` in the Supabase SQL
+/// editor): a searchable, paginated list of every account with its name,
+/// email, and a role dropdown. Picking a different role asks for
+/// confirmation, then saves. It is the only thing an admin sees in
+/// [MerchantShell] -- but the actual authorization is enforced server-side
+/// by the `admin_list_profiles` / `admin_set_profile_role` RPCs (see
+/// `supabase/migrations/20260922000000_add_admin_list_profiles_rpc.sql`),
 /// not by this screen being hard to reach.
 class AdminAccountsScreen extends StatefulWidget {
-  const AdminAccountsScreen({super.key, this.controller});
+  const AdminAccountsScreen({super.key, this.controller, this.currentUserId});
 
   /// Overridable for tests; defaults to a real Supabase-backed controller.
   final AdminAccountsController? controller;
+
+  /// The signed-in admin's own `profiles.id`. Their row's dropdown is
+  /// disabled so an admin can't strand themselves by demoting the account
+  /// they are using. Defaults to the current Supabase session's user id.
+  final String? currentUserId;
 
   @override
   State<AdminAccountsScreen> createState() => _AdminAccountsScreenState();
 }
 
 class _AdminAccountsScreenState extends State<AdminAccountsScreen> {
+  static const _roles = ['customer', 'merchant', 'admin'];
+  static const _searchDebounce = Duration(milliseconds: 350);
+  static const _loadMoreThreshold = 240.0;
+
   late final AdminAccountsController _controller =
       widget.controller ??
       AdminAccountsController.supabase(Supabase.instance.client);
   late final bool _ownsController = widget.controller == null;
 
-  final _formKey = GlobalKey<FormState>();
-  final _emailController = TextEditingController();
-  String? _selectedRole;
+  final _searchController = TextEditingController();
+  final _scrollController = ScrollController();
+  Timer? _debounce;
+
+  String? get _currentUserId =>
+      widget.currentUserId ?? Supabase.instance.client.auth.currentUser?.id;
 
   @override
   void initState() {
     super.initState();
-    _controller.addListener(_onControllerChanged);
+    _scrollController.addListener(_onScroll);
+    unawaited(_controller.load());
   }
 
   @override
   void dispose() {
-    _controller.removeListener(_onControllerChanged);
+    _debounce?.cancel();
+    _scrollController
+      ..removeListener(_onScroll)
+      ..dispose();
+    _searchController.dispose();
     if (_ownsController) {
       _controller.dispose();
     }
-    _emailController.dispose();
     super.dispose();
   }
 
-  void _onControllerChanged() {
-    // Keep the role picker's selection in sync with whichever account is
-    // currently loaded, so switching to a new search (or a just-applied
-    // change) doesn't leave a stale selection from a previous account.
-    setState(() => _selectedRole = _controller.result?.role);
+  void _onSearchChanged(String value) {
+    _debounce?.cancel();
+    _debounce = Timer(
+      _searchDebounce,
+      () => unawaited(_controller.load(value)),
+    );
   }
 
-  Future<void> _search() async {
-    final form = _formKey.currentState;
-    if (form == null || !form.validate()) return;
-    FocusScope.of(context).unfocus();
-    await _controller.lookup(_emailController.text);
+  void _onScroll() {
+    final position = _scrollController.position;
+    if (position.pixels >= position.maxScrollExtent - _loadMoreThreshold) {
+      unawaited(_controller.loadMore());
+    }
   }
 
-  Future<void> _applyRoleChange(
-    AdminAccountLookup account,
-    String newRole,
-  ) async {
+  Future<void> _confirmRoleChange(AdminAccount account, String newRole) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -96,148 +109,230 @@ class _AdminAccountsScreenState extends State<AdminAccountsScreen> {
     );
     if (confirmed != true || !mounted) return;
 
-    final succeeded = await _controller.setRole(newRole);
-    if (succeeded && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('${account.displayName} is now $newRole.')),
-      );
-    }
+    final succeeded = await _controller.setRole(account.id, newRole);
+    if (!mounted) return;
+    final message = succeeded
+        ? '${account.displayName} is now $newRole.'
+        : _controller.saveError ?? 'The role could not be changed.';
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
+    final textTheme = Theme.of(context).textTheme;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Accounts', style: textTheme.titleLarge),
+              const SizedBox(height: 4),
+              Text(
+                'Change what each account can do. Customers shop, merchants '
+                'run a store, admins manage accounts.',
+                style: textTheme.bodyMedium,
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: _searchController,
+                onChanged: _onSearchChanged,
+                textInputAction: TextInputAction.search,
+                decoration: const InputDecoration(
+                  labelText: 'Search by name or email',
+                  prefixIcon: Icon(Icons.search_rounded),
+                  border: OutlineInputBorder(),
+                ),
+              ),
+            ],
+          ),
+        ),
+        Expanded(
+          child: ListenableBuilder(
+            listenable: _controller,
+            builder: (context, _) => _buildBody(context),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBody(BuildContext context) {
+    final controller = _controller;
+    final accounts = controller.accounts;
+
+    if (controller.isLoading && accounts.isEmpty) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (controller.loadError != null) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                controller.loadError!,
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
+              ),
+              const SizedBox(height: 12),
+              OutlinedButton(
+                onPressed: () => unawaited(controller.load(controller.query)),
+                child: const Text('Try again'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    if (accounts.isEmpty) {
+      return Center(
+        child: Text(
+          controller.query.isEmpty
+              ? 'No accounts yet.'
+              : 'No accounts match "${controller.query}".',
+          style: Theme.of(context).textTheme.bodyMedium,
+        ),
+      );
+    }
+
+    final showFooter =
+        controller.hasMore ||
+        controller.isLoadingMore ||
+        controller.loadMoreError != null;
+
+    return Column(
+      children: [
+        if (controller.isLoading) const LinearProgressIndicator(),
+        Expanded(
+          child: ListView.builder(
+            controller: _scrollController,
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+            itemCount: accounts.length + (showFooter ? 1 : 0),
+            itemBuilder: (context, index) => index < accounts.length
+                ? _buildAccountCard(context, accounts[index])
+                : _buildFooter(context),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFooter(BuildContext context) {
+    final controller = _controller;
+    if (controller.isLoadingMore) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 16),
+        child: Center(child: CircularProgressIndicator()),
+      );
+    }
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(
-            'Change account roles',
-            style: Theme.of(context).textTheme.titleLarge,
-          ),
-          const SizedBox(height: 4),
-          Text(
-            'Search for an account by email, then grant or remove '
-            'merchant/admin access.',
-            style: Theme.of(context).textTheme.bodyMedium,
-          ),
-          const SizedBox(height: 16),
-          Form(
-            key: _formKey,
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: TextFormField(
-                    controller: _emailController,
-                    keyboardType: TextInputType.emailAddress,
-                    decoration: const InputDecoration(
-                      labelText: 'Account email',
-                      border: OutlineInputBorder(),
-                    ),
-                    validator: (value) =>
-                        (value == null || value.trim().isEmpty)
-                        ? 'Enter an email address.'
-                        : null,
-                    onFieldSubmitted: (_) => unawaited(_search()),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                FilledButton(
-                  onPressed: _controller.isLoading
-                      ? null
-                      : () => unawaited(_search()),
-                  child: _controller.isLoading
-                      ? const SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Text('Search'),
-                ),
-              ],
+          if (controller.loadMoreError != null)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 4),
+              child: Text(
+                controller.loadMoreError!,
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
+              ),
+            ),
+          TextButton(
+            onPressed: () => unawaited(controller.loadMore()),
+            child: Text(
+              controller.loadMoreError != null ? 'Try again' : 'Load more',
             ),
           ),
-          if (_controller.loadError != null) ...[
-            const SizedBox(height: 12),
-            Text(
-              _controller.loadError!,
-              style: TextStyle(color: Theme.of(context).colorScheme.error),
-            ),
-          ],
-          if (_controller.hasSearched && _controller.loadError == null) ...[
-            const SizedBox(height: 20),
-            _buildResult(context),
-          ],
         ],
       ),
     );
   }
 
-  Widget _buildResult(BuildContext context) {
-    final account = _controller.result;
-    if (account == null) {
-      return Text(
-        'No account found for that email.',
-        style: Theme.of(context).textTheme.bodyMedium,
-      );
-    }
-
-    final selectedRole = _selectedRole ?? account.role;
-    final hasChange = selectedRole != account.role;
+  Widget _buildAccountCard(BuildContext context, AdminAccount account) {
+    final textTheme = Theme.of(context).textTheme;
+    final isSelf = account.id == _currentUserId;
+    final isSaving = _controller.savingId == account.id;
+    final roles = _roles.contains(account.role)
+        ? _roles
+        : [..._roles, account.role];
 
     return Card(
+      margin: const EdgeInsets.only(bottom: 12),
       child: Padding(
         padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        child: Row(
           children: [
-            Text(
-              account.displayName,
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'Current role: ${account.role}',
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
-            const SizedBox(height: 16),
-            SegmentedButton<String>(
-              segments: const [
-                ButtonSegment(value: 'customer', label: Text('Customer')),
-                ButtonSegment(value: 'merchant', label: Text('Merchant')),
-                ButtonSegment(value: 'admin', label: Text('Admin')),
-              ],
-              selected: {selectedRole},
-              onSelectionChanged: (selection) =>
-                  setState(() => _selectedRole = selection.first),
-            ),
-            if (_controller.saveError != null) ...[
-              const SizedBox(height: 12),
-              Text(
-                _controller.saveError!,
-                style: TextStyle(color: Theme.of(context).colorScheme.error),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Flexible(
+                        child: Text(
+                          account.displayName,
+                          style: textTheme.titleMedium,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      if (isSelf) ...[
+                        const SizedBox(width: 8),
+                        Text('You', style: textTheme.labelMedium),
+                      ],
+                    ],
+                  ),
+                  if (account.email.isNotEmpty) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      account.email,
+                      style: textTheme.bodySmall,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ],
               ),
-            ],
-            const SizedBox(height: 16),
-            FilledButton(
-              style: hasChange && selectedRole == 'admin'
-                  ? FilledButton.styleFrom(backgroundColor: TwColors.error)
-                  : null,
-              onPressed: !hasChange || _controller.isSaving
-                  ? null
-                  : () => unawaited(_applyRoleChange(account, selectedRole)),
-              child: _controller.isSaving
-                  ? const SizedBox(
-                      height: 20,
-                      width: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Text('Apply role change'),
             ),
+            const SizedBox(width: 12),
+            if (isSaving)
+              const SizedBox(
+                height: 24,
+                width: 24,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              )
+            else
+              DropdownButton<String>(
+                key: ValueKey('role-${account.id}'),
+                value: account.role,
+                items: [
+                  for (final role in roles)
+                    DropdownMenuItem(value: role, child: Text(_label(role))),
+                ],
+                // Controlled by `account.role`, so cancelling the dialog
+                // needs no revert: the dropdown never moved.
+                onChanged: isSelf || _controller.isSaving
+                    ? null
+                    : (value) {
+                        if (value == null || value == account.role) return;
+                        unawaited(_confirmRoleChange(account, value));
+                      },
+              ),
           ],
         ),
       ),
     );
   }
+
+  static String _label(String role) =>
+      role.isEmpty ? role : '${role[0].toUpperCase()}${role.substring(1)}';
 }
