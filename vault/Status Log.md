@@ -8,6 +8,11 @@ Reverse-chronological. Each session/major chunk of work gets an entry.
 
 ---
 
+## 2026-09-19 (board worker, 2nd run today — nothing eligible, queue unchanged)
+
+- `list_issues` for `todo`/`waiting-on-you` returned only tracking-only **#29/#52** again — same as this same day's first run, no new comments/approvals since. Full open-issue count still 6: #29/#52 (tracking), #32/#55/#222 (`needs-approval`, off-limits), #11 (unlabeled real-looking bug, still flagged for owner attention only, not board-worker-eligible).
+- Nothing implemented this run.
+
 ## 2026-09-19 (board worker — nothing eligible, repo down to 6 open issues)
 
 - `list_issues` for `todo`/`waiting-on-you` returned only the same tracking-only pair, **#29/#52** — no direct work under either (confirmed extensively across prior runs). `waiting-on-you` empty.
