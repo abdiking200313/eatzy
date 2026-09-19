@@ -7,7 +7,11 @@ upstream_concept: 00-Index
 
 # Open Tasks
 
-**Updated 2026-09-18 (board worker, 5th run this day), see [[Status Log]] 2026-09-18 for full detail.** **Source of truth is always a live `list_issues`/`gh issue list --repo abdiking200313/eatzy --state open` call** — re-check before relying on this for anything that matters.
+**Updated 2026-09-19 (board worker), see [[Status Log]] 2026-09-19 for full detail.** **Source of truth is always a live `list_issues`/`gh issue list --repo abdiking200313/eatzy --state open` call** — re-check before relying on this for anything that matters.
+
+## Update, 2026-09-19 — nothing eligible, only 6 open issues total
+
+- Same as the 2026-09-18 5th run's end state: only tracking-only **#29/#52** in `todo`, `waiting-on-you` empty. Repo is down to 6 open issues total: #29/#52 (tracking), #32/#55/#222 (`needs-approval`, off-limits), and **#11** — which has neither `todo`, `waiting-on-you`, nor `needs-approval` on it (just domain + severity labels), so it's outside the board worker's protocol either way (not `todo`-approved, and the approval gate only ever *bars* `needs-approval`, it doesn't make an unlabeled issue eligible). Worth a human look since it reads like a real bug (non-functional Addresses screen) that simply has no process label — not touched this run.
 
 ## Update, 2026-09-18 (5th run) — nothing eligible
 

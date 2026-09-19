@@ -8,6 +8,12 @@ Reverse-chronological. Each session/major chunk of work gets an entry.
 
 ---
 
+## 2026-09-19 (board worker — nothing eligible, repo down to 6 open issues)
+
+- `list_issues` for `todo`/`waiting-on-you` returned only the same tracking-only pair, **#29/#52** — no direct work under either (confirmed extensively across prior runs). `waiting-on-you` empty.
+- Full open-issue count is now just 6: #29/#52 (tracking), #32/#55/#222 (`needs-approval`, off-limits per the gate), and **#11** (Addresses screen non-functional, severity:high) — which carries no `todo`/`waiting-on-you`/`needs-approval` label at all, just domain+severity labels. Not board-worker-eligible either way (no `todo` approval), but flagged here since an unlabeled real-looking bug is unusual — worth the owner's attention to either approve or explicitly gate it.
+- Nothing implemented this run.
+
 ## 2026-09-18 (board worker, 5th run this day — nothing eligible, queue unchanged)
 
 - `list_issues` for `todo`/`waiting-on-you` returned only the same tracking-only pair, **#29/#52** — `updated_at` unchanged on both (2026-08-17/2026-08-26), no new "Part of #" children found via `search_issues` (still empty, consistent with [[Conventions]]'s note that GitHub sub-issue linking isn't used here — text search is the right check, and it also came back empty). `waiting-on-you` empty. Only 3 open `needs-approval` issues exist (#32, #55, #222), all off-limits per the approval gate.
