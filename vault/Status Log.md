@@ -8,6 +8,12 @@ Reverse-chronological. Each session/major chunk of work gets an entry.
 
 ---
 
+## 2026-09-19 (board worker — nothing eligible, repo down to 6 open issues)
+
+- `list_issues` for `todo`/`waiting-on-you` returned only the same tracking-only pair, **#29/#52** — no direct work under either (confirmed extensively across prior runs). `waiting-on-you` empty.
+- Full open-issue count is now just 6: #29/#52 (tracking), #32/#55/#222 (`needs-approval`, off-limits per the gate), and **#11** (Addresses screen non-functional, severity:high) — which carries no `todo`/`waiting-on-you`/`needs-approval` label at all, just domain+severity labels. Not board-worker-eligible either way (no `todo` approval), but flagged here since an unlabeled real-looking bug is unusual — worth the owner's attention to either approve or explicitly gate it.
+- Nothing implemented this run.
+
 ## 2026-09-18 (owner-requested, interactive: merchant/admin login flash + "store could not be loaded")
 
 - **Flash of customer home on sign-in**: `signIn` fires an auth event → router redirect ran while the role was still the default "customer" → `/login` (signed-out-only) redirected to `/app`; the login screen's own role lookup then jumped to `/merchant`. Fix: `AppRouter.redirectFor` awaits `MerchantSessionGate.resolveFor` (once per user, in-flight lookup shared with login/startup, `reset()` on sign-out) before answering; synchronous again once cached.
@@ -22,6 +28,12 @@ Reverse-chronological. Each session/major chunk of work gets an entry.
 - `MerchantShell` for an `admin` now shows only a searchable, server-paginated Accounts list (name, email, role dropdown → confirm dialog → save) plus sign-out; no My Store/Orders/bottom nav. Admin's own row is disabled so they can't demote themselves.
 - New RPC `admin_list_profiles` (migration `20260922000000_add_admin_list_profiles_rpc.sql`, **applied to live** via Supabase MCP as `add_admin_list_profiles_rpc`). Same migration fixes `admin_set_profile_role`, which wrote a nonexistent `profiles.updated_at` and so failed on every call. `admin_lookup_profile_by_email` left in place, unused.
 - `dart format`/`flutter analyze` clean, `flutter test` 456/456 green. Not yet verified on a device against the live DB.
+
+## 2026-09-18 (board worker, 5th run this day — nothing eligible, queue unchanged)
+
+- `list_issues` for `todo`/`waiting-on-you` returned only the same tracking-only pair, **#29/#52** — `updated_at` unchanged on both (2026-08-17/2026-08-26), no new "Part of #" children found via `search_issues` (still empty, consistent with [[Conventions]]'s note that GitHub sub-issue linking isn't used here — text search is the right check, and it also came back empty). `waiting-on-you` empty. Only 3 open `needs-approval` issues exist (#32, #55, #222), all off-limits per the approval gate.
+- Noted for continuity, not board-worker's own work: `master` gained one new commit since the 4th run's PR #237 merge — **"Add admin-only account role management"** (commit `3ef4cf1`, an interactive session, owner-requested directly, admin-gated RPCs + a new merchant-dashboard "Accounts" tab for role management). No open GitHub issue tracks it and none needed picking up.
+- Nothing implemented this run.
 
 ## 2026-09-18 (board worker, 4th run this day — new issue #236 implemented and merged)
 
