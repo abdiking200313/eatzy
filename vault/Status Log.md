@@ -8,11 +8,11 @@ Reverse-chronological. Each session/major chunk of work gets an entry.
 
 ---
 
-## 2026-09-19 (board worker — nothing eligible, repo down to 6 open issues)
+## 2026-09-19 (board worker — nothing eligible, repo down to 6 open issues, 2 runs today)
 
-- `list_issues` for `todo`/`waiting-on-you` returned only the same tracking-only pair, **#29/#52** — no direct work under either (confirmed extensively across prior runs). `waiting-on-you` empty.
-- Full open-issue count is now just 6: #29/#52 (tracking), #32/#55/#222 (`needs-approval`, off-limits per the gate), and **#11** (Addresses screen non-functional, severity:high) — which carries no `todo`/`waiting-on-you`/`needs-approval` label at all, just domain+severity labels. Not board-worker-eligible either way (no `todo` approval), but flagged here since an unlabeled real-looking bug is unusual — worth the owner's attention to either approve or explicitly gate it.
-- Nothing implemented this run.
+- Both runs today: `list_issues` for `todo`/`waiting-on-you` returned only the same tracking-only pair, **#29/#52** — no direct work under either (confirmed extensively across prior runs). `waiting-on-you` empty.
+- Full open-issue count is still just 6: #29/#52 (tracking), #32/#55/#222 (`needs-approval`, off-limits per the gate), and **#11** (Addresses screen non-functional, severity:high) — which carries no `todo`/`waiting-on-you`/`needs-approval` label at all, just domain+severity labels. Not board-worker-eligible either way (no `todo` approval), but flagged here since an unlabeled real-looking bug is unusual — worth the owner's attention to either approve or explicitly gate it.
+- Nothing implemented in either run.
 
 ## 2026-09-18 (owner-requested, interactive: merchant/admin login flash + "store could not be loaded")
 
