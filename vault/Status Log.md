@@ -8,6 +8,12 @@ Reverse-chronological. Each session/major chunk of work gets an entry.
 
 ---
 
+## 2026-09-20 (board worker — nothing eligible, queue unchanged)
+
+- `list_issues` for `todo`/`waiting-on-you` returned only the same tracking-only pair, **#29/#52** — `updated_at` unchanged on both. `waiting-on-you` empty. Full open-issue count still 6: #29/#52 (tracking), #32/#55/#222 (`needs-approval`, off-limits), #11 (unlabeled, still not board-worker-eligible).
+- `master` gained one new commit since the 2026-09-19 2nd run's check (`660cf69` "merchant and admin fix with ui beterments", interactive session, not this routine) — not picked up, no open issue tracks it.
+- Nothing implemented this run.
+
 ## 2026-09-19 (board worker — nothing eligible, repo down to 6 open issues, 2 runs today)
 
 - Both runs today: `list_issues` for `todo`/`waiting-on-you` returned only the same tracking-only pair, **#29/#52** — no direct work under either (confirmed extensively across prior runs). `waiting-on-you` empty.

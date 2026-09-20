@@ -7,7 +7,11 @@ upstream_concept: 00-Index
 
 # Open Tasks
 
-**Updated 2026-09-19 (board worker), see [[Status Log]] 2026-09-19 for full detail.** **Source of truth is always a live `list_issues`/`gh issue list --repo abdiking200313/eatzy --state open` call** — re-check before relying on this for anything that matters.
+**Updated 2026-09-20 (board worker), see [[Status Log]] 2026-09-20 for full detail.** **Source of truth is always a live `list_issues`/`gh issue list --repo abdiking200313/eatzy --state open` call** — re-check before relying on this for anything that matters.
+
+## Update, 2026-09-20 — nothing eligible, queue unchanged
+
+- Same as the 2026-09-19 end state: only tracking-only **#29/#52** in `todo`, `waiting-on-you` empty. Still 6 open issues total: #29/#52 (tracking), #32/#55/#222 (`needs-approval`, off-limits), #11 (unlabeled Addresses-screen bug, still outside the board worker's protocol). One unrelated interactive-session commit (`660cf69`, "merchant and admin fix with ui beterments") landed on `master`, not this routine.
 
 ## Update, 2026-09-19 — nothing eligible, only 6 open issues total
 
