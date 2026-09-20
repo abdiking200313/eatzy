@@ -8,7 +8,13 @@ Reverse-chronological. Each session/major chunk of work gets an entry.
 
 ---
 
-## 2026-09-20 (board worker — nothing eligible, queue unchanged)
+## 2026-09-20 (board worker, 2nd run — nothing eligible, queue unchanged)
+
+- `list_issues` for `todo`/`waiting-on-you` returned the same tracking-only pair as the 1st run, **#29/#52** — `updated_at` unchanged on both. `waiting-on-you` empty. Full open-issue count still 6: #29/#52 (tracking), #32/#55/#222 (`needs-approval`, off-limits), #11 (unlabeled, still not board-worker-eligible).
+- No new commits to `master` since the 1st run's PR #241 merge.
+- Nothing implemented this run.
+
+## 2026-09-20 (board worker, 1st run — nothing eligible, queue unchanged)
 
 - `list_issues` for `todo`/`waiting-on-you` returned only the same tracking-only pair, **#29/#52** — `updated_at` unchanged on both. `waiting-on-you` empty. Full open-issue count still 6: #29/#52 (tracking), #32/#55/#222 (`needs-approval`, off-limits), #11 (unlabeled, still not board-worker-eligible).
 - `master` gained one new commit since the 2026-09-19 2nd run's check (`660cf69` "merchant and admin fix with ui beterments", interactive session, not this routine) — not picked up, no open issue tracks it.
