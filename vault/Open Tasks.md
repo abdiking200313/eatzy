@@ -7,7 +7,11 @@ upstream_concept: 00-Index
 
 # Open Tasks
 
-**Updated 2026-09-20 (board worker, 2nd run), see [[Status Log]] 2026-09-20 for full detail.** **Source of truth is always a live `list_issues`/`gh issue list --repo abdiking200313/eatzy --state open` call** — re-check before relying on this for anything that matters.
+**Updated 2026-09-21 (board worker), see [[Status Log]] 2026-09-21 for full detail.** **Source of truth is always a live `list_issues`/`gh issue list --repo abdiking200313/eatzy --state open` call** — re-check before relying on this for anything that matters.
+
+## Update, 2026-09-21 — nothing eligible, queue unchanged
+
+- Same as the 2026-09-20 end state: only tracking-only **#29/#52** in `todo`, `waiting-on-you` empty. Still 6 open issues total: #29/#52 (tracking), #32/#55/#222 (`needs-approval`, off-limits), #11 (unlabeled Addresses-screen bug, still outside the board worker's protocol). No new commits observed since the last run's check. Nothing implemented — run stopped after the cheap eligibility check per protocol.
 
 ## Update, 2026-09-20 (2nd run) — nothing eligible, queue unchanged
 
