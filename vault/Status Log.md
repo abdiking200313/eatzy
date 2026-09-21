@@ -8,6 +8,12 @@ Reverse-chronological. Each session/major chunk of work gets an entry.
 
 ---
 
+## 2026-09-21 (board worker — nothing eligible, queue unchanged)
+
+- `list_issues` for `todo`/`waiting-on-you` returned only the same tracking-only pair, **#29/#52** (both umbrella issues with no direct work, `updated_at` unchanged since 2026-08-26/2026-08-17 respectively). `waiting-on-you` empty.
+- Full open-issue count still 6, unchanged from 2026-09-20: #29/#52 (tracking), #32/#55/#222 (`needs-approval`, off-limits), #11 (unlabeled, still not board-worker-eligible). Only one open PR repo-wide, #85 (unrelated pre-existing infra PR, not this routine).
+- Nothing implemented this run.
+
 ## 2026-09-20 (board worker — nothing eligible, queue unchanged, 4 runs today)
 
 - All four runs: `list_issues` for `todo`/`waiting-on-you` returned only the same tracking-only pair, **#29/#52** — `updated_at` unchanged on both across all runs. `waiting-on-you` empty. Full open-issue count still 6, unchanged all day: #29/#52 (tracking), #32/#55/#222 (`needs-approval`, off-limits), #11 (unlabeled, still not board-worker-eligible).
