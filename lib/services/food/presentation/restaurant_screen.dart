@@ -505,7 +505,8 @@ class _RestaurantHero extends StatelessWidget {
         ? const _RestaurantHeroFallback()
         : CachedNetworkImage(
             imageUrl: trimmedUrl,
-            fit: BoxFit.cover,
+            fit: BoxFit.contain,
+            alignment: Alignment.center,
             memCacheWidth: cacheWidth,
             memCacheHeight: cacheHeight,
             placeholder: (_, _) =>
