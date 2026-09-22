@@ -270,6 +270,7 @@ class AppRouter {
               child: PharmacyCatalogScreen(
                 storeId: state.pathParameters['storeId']!,
                 storeName: state.uri.queryParameters['name'],
+                storeImageUrl: state.uri.queryParameters['photoUrl'],
               ),
             ),
           ),

@@ -54,14 +54,6 @@ class PharmacyCatalogScreen extends StatefulWidget {
   /// fallback treatment when absent (e.g. a bare deep link to this route, or
   /// — currently — every real pharmacy, since `image_url` isn't backfilled
   /// yet).
-  //
-  // TODO(routing): `lib/app/app_router.dart`'s `AppRoutes.pharmacyStore`
-  // route builder currently only forwards `state.uri.queryParameters['name']`
-  // into `storeName`. It should also read a `photoUrl` query parameter (added
-  // by `PharmacyStoreListScreen._openStore`, see below) and pass it through
-  // as `storeImageUrl: state.uri.queryParameters['photoUrl']` so this hero
-  // reflects a real photo once one is set, not just the deep-link/no-photo
-  // fallback.
   final String? storeImageUrl;
 
   final PharmacyController? controller;
