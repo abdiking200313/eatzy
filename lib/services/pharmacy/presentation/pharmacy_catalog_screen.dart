@@ -1,7 +1,10 @@
 import 'dart:async';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../../app/app_routes.dart';
 import '../../../config/theme.dart';
 import '../../../platform/localization/app_money.dart';
 import '../../../widgets/add_to_cart_button.dart';
@@ -17,6 +20,11 @@ import 'widgets/pharmacy_cart_badge_action.dart';
 /// `FoodHomeScreen`'s `_searchDebounce`.
 const Duration _searchDebounce = Duration(milliseconds: 400);
 
+/// Height of the hero banner's `SliverAppBar.expandedHeight` — matches
+/// `RestaurantScreen`'s `_RestaurantAppBar` so this screen reads visually
+/// consistent with food's per-restaurant screen (issue #250).
+const double _kStoreHeroExtent = 230;
+
 /// A single pharmacy's OTC product catalog — reached by picking a pharmacy
 /// on [PharmacyStoreListScreen] first, so browsing (and the cart it feeds)
 /// is always scoped to one pharmacy at a time (issue #141). The pharmacy
@@ -26,6 +34,7 @@ class PharmacyCatalogScreen extends StatefulWidget {
     super.key,
     required this.storeId,
     this.storeName,
+    this.storeImageUrl,
     this.controller,
   });
 
@@ -38,6 +47,22 @@ class PharmacyCatalogScreen extends StatefulWidget {
   /// its own fetch just to show it. Falls back to a generic title when
   /// absent (e.g. a bare deep link to this route).
   final String? storeName;
+
+  /// The pharmacy's photo (`PharmacyStore.imageUrl`), passed through from
+  /// the store list the same way [storeName] is, so the hero banner doesn't
+  /// need its own fetch just to show it. Falls back to the "no photo"
+  /// fallback treatment when absent (e.g. a bare deep link to this route, or
+  /// — currently — every real pharmacy, since `image_url` isn't backfilled
+  /// yet).
+  //
+  // TODO(routing): `lib/app/app_router.dart`'s `AppRoutes.pharmacyStore`
+  // route builder currently only forwards `state.uri.queryParameters['name']`
+  // into `storeName`. It should also read a `photoUrl` query parameter (added
+  // by `PharmacyStoreListScreen._openStore`, see below) and pass it through
+  // as `storeImageUrl: state.uri.queryParameters['photoUrl']` so this hero
+  // reflects a real photo once one is set, not just the deep-link/no-photo
+  // fallback.
+  final String? storeImageUrl;
 
   final PharmacyController? controller;
 
@@ -157,23 +182,34 @@ class _PharmacyCatalogScreenState extends State<PharmacyCatalogScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return AppScaffold(
-      title: widget.storeName ?? 'Pharmacy',
-      showBackButton: true,
-      actions: [PharmacyCartBadgeAction(controller: _controller)],
-      body: _buildBody(),
-    );
-  }
-
-  Widget _buildBody() {
+    // The hero banner only appears once the catalog has something to show
+    // (or at least isn't in its initial loading/error state) — mirrors
+    // `RestaurantScreen`'s `_RestaurantLoading`/`_RestaurantError` not
+    // showing `_RestaurantHero` either. `PharmacyCatalogScreen` always knows
+    // the store's name/photo up front (passed in via [widget.storeName]/
+    // [widget.storeImageUrl]), so this only gates on catalog state.
     if (_isLoading && _productCount == 0) {
-      return const Center(child: CircularProgressIndicator());
+      return AppScaffold(
+        title: widget.storeName ?? 'Pharmacy',
+        showBackButton: true,
+        actions: [PharmacyCartBadgeAction(controller: _controller)],
+        body: const Center(child: CircularProgressIndicator()),
+      );
     }
 
     if (_loadError != null && _productCount == 0) {
-      return _CatalogError(message: _loadError!, onRetry: _retry);
+      return AppScaffold(
+        title: widget.storeName ?? 'Pharmacy',
+        showBackButton: true,
+        actions: [PharmacyCartBadgeAction(controller: _controller)],
+        body: _CatalogError(message: _loadError!, onRetry: _retry),
+      );
     }
 
+    return Scaffold(body: _buildLoadedView());
+  }
+
+  Widget _buildLoadedView() {
     // 3 fixed header rows (search field + notice + heading block) + one row
     // per product + an optional trailing "load more" row, or (once loaded)
     // one "no products" row in place of both when the store/search scope
@@ -188,82 +224,97 @@ class _PharmacyCatalogScreenState extends State<PharmacyCatalogScreen> {
         searchQuery: _searchController.text,
         forceRefresh: true,
       ),
-      child: ListView.builder(
-        padding: const EdgeInsets.all(TwSpacing.x5),
+      child: CustomScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
-        itemCount: itemCount,
-        itemBuilder: (context, index) {
-          if (index == 0) {
-            return Padding(
-              padding: const EdgeInsets.only(bottom: TwSpacing.rhythmDefault),
-              child: _StoreSearchField(
-                controller: _searchController,
-                onChanged: _onSearchChanged,
-                onClear: _clearSearch,
-              ),
-            );
-          }
-          if (index == 1) {
-            return const Padding(
-              padding: EdgeInsets.only(bottom: TwSpacing.rhythmDefault),
-              child: _OtcNotice(),
-            );
-          }
-          if (index == 2) {
-            return Padding(
-              padding: const EdgeInsets.only(bottom: TwSpacing.rhythmDefault),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Health essentials', style: TwText.textXl),
-                  const SizedBox(height: TwSpacing.x1),
-                  Text(
-                    'Seeded products for the interactive Zivo preview.',
-                    style: TwText.textSm,
+        slivers: [
+          _PharmacyAppBar(
+            storeName: widget.storeName ?? 'Pharmacy',
+            imageUrl: widget.storeImageUrl,
+            actions: [PharmacyCartBadgeAction(controller: _controller)],
+          ),
+          SliverPadding(
+            padding: const EdgeInsets.all(TwSpacing.x5),
+            sliver: SliverList(
+              delegate: SliverChildBuilderDelegate((context, index) {
+                if (index == 0) {
+                  return Padding(
+                    padding: const EdgeInsets.only(
+                      bottom: TwSpacing.rhythmDefault,
+                    ),
+                    child: _StoreSearchField(
+                      controller: _searchController,
+                      onChanged: _onSearchChanged,
+                      onClear: _clearSearch,
+                    ),
+                  );
+                }
+                if (index == 1) {
+                  return const Padding(
+                    padding: EdgeInsets.only(bottom: TwSpacing.rhythmDefault),
+                    child: _OtcNotice(),
+                  );
+                }
+                if (index == 2) {
+                  return Padding(
+                    padding: const EdgeInsets.only(
+                      bottom: TwSpacing.rhythmDefault,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Health essentials', style: TwText.textXl),
+                        const SizedBox(height: TwSpacing.x1),
+                        Text(
+                          'Seeded products for the interactive Zivo preview.',
+                          style: TwText.textSm,
+                        ),
+                      ],
+                    ),
+                  );
+                }
+
+                final productIndex = index - 3;
+                if (showEmptyRow && productIndex == 0) {
+                  return Padding(
+                    padding: const EdgeInsets.only(top: TwSpacing.x8),
+                    child: Center(child: Text(_emptyMessage())),
+                  );
+                }
+                if (productIndex >= _productCount) {
+                  // Trailing load-more row: triggers the next page once it
+                  // comes into view instead of eagerly fetching everything
+                  // up front.
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    if (mounted) {
+                      _controller.loadMore();
+                    }
+                  });
+                  return Padding(
+                    padding: const EdgeInsets.only(top: TwSpacing.x4),
+                    child: Center(
+                      child: _isLoadingMore
+                          ? const CircularProgressIndicator()
+                          : const SizedBox(height: 32),
+                    ),
+                  );
+                }
+
+                final product = _controller.products[productIndex];
+                return Padding(
+                  padding: EdgeInsets.only(
+                    bottom: productIndex == _productCount - 1 && !_hasMore
+                        ? TwSpacing.x8
+                        : TwSpacing.x3,
                   ),
-                ],
-              ),
-            );
-          }
-
-          final productIndex = index - 3;
-          if (showEmptyRow && productIndex == 0) {
-            return Padding(
-              padding: const EdgeInsets.only(top: TwSpacing.x8),
-              child: Center(child: Text(_emptyMessage())),
-            );
-          }
-          if (productIndex >= _productCount) {
-            // Trailing load-more row: triggers the next page once it comes
-            // into view instead of eagerly fetching everything up front.
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              if (mounted) {
-                _controller.loadMore();
-              }
-            });
-            return Padding(
-              padding: const EdgeInsets.only(top: TwSpacing.x4),
-              child: Center(
-                child: _isLoadingMore
-                    ? const CircularProgressIndicator()
-                    : const SizedBox(height: 32),
-              ),
-            );
-          }
-
-          final product = _controller.products[productIndex];
-          return Padding(
-            padding: EdgeInsets.only(
-              bottom: productIndex == _productCount - 1 && !_hasMore
-                  ? TwSpacing.x8
-                  : TwSpacing.x3,
+                  child: _ProductCard(
+                    product: product,
+                    onAdd: () => _addProduct(product),
+                  ),
+                );
+              }, childCount: itemCount),
             ),
-            child: _ProductCard(
-              product: product,
-              onAdd: () => _addProduct(product),
-            ),
-          );
-        },
+          ),
+        ],
       ),
     );
   }
@@ -332,6 +383,127 @@ class _PharmacyCatalogScreenState extends State<PharmacyCatalogScreen> {
     };
 
     showCartSnackBar(context, message);
+  }
+}
+
+/// The pharmacy hero app bar — mirrors `RestaurantScreen`'s
+/// `_RestaurantAppBar`/`_RestaurantHero` so this screen reads visually
+/// consistent with food's per-restaurant screen (issue #250).
+class _PharmacyAppBar extends StatelessWidget {
+  const _PharmacyAppBar({
+    required this.storeName,
+    required this.imageUrl,
+    required this.actions,
+  });
+
+  final String storeName;
+  final String? imageUrl;
+  final List<Widget> actions;
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = context.serviceColors;
+    return SliverAppBar(
+      pinned: true,
+      expandedHeight: _kStoreHeroExtent,
+      backgroundColor: palette.accent,
+      foregroundColor: palette.onAccent,
+      leading: IconButton(
+        tooltip: 'Back',
+        icon: const Icon(Icons.arrow_back_rounded),
+        onPressed: () {
+          if (context.canPop()) {
+            context.pop();
+          } else {
+            context.go(AppRoutes.mainApp);
+          }
+        },
+      ),
+      title: Text(
+        storeName,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: TwText.fontBoldBase.copyWith(color: palette.onAccent),
+      ),
+      actions: actions,
+      flexibleSpace: FlexibleSpaceBar(
+        background: _PharmacyHero(imageUrl: imageUrl ?? ''),
+      ),
+    );
+  }
+}
+
+class _PharmacyHero extends StatelessWidget {
+  const _PharmacyHero({required this.imageUrl});
+
+  final String imageUrl;
+
+  @override
+  Widget build(BuildContext context) {
+    final trimmedUrl = imageUrl.trim();
+    // Mirrors `_RestaurantHero`'s decode-size reasoning: the hero fills the
+    // SliverAppBar's expandedHeight at full screen width, so the screen
+    // width/expandedHeight are used as the practical decode bounds, scaled
+    // for device pixel density and capped at 3x since a wider cap buys no
+    // visible sharpness while still inflating decode memory.
+    final cacheScale = MediaQuery.of(context).devicePixelRatio.clamp(1.0, 3.0);
+    final cacheWidth = (MediaQuery.of(context).size.width * cacheScale).round();
+    final cacheHeight = (_kStoreHeroExtent * cacheScale).round();
+    final image = trimmedUrl.isEmpty
+        ? const _PharmacyHeroFallback()
+        : CachedNetworkImage(
+            imageUrl: trimmedUrl,
+            fit: BoxFit.cover,
+            memCacheWidth: cacheWidth,
+            memCacheHeight: cacheHeight,
+            placeholder: (_, _) =>
+                const _PharmacyHeroFallback(showLoader: true),
+            errorWidget: (_, _, _) => const _PharmacyHeroFallback(),
+          );
+
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        // A plain white base under the photo, same as `_RestaurantHero`: a
+        // photo with transparent pixels would otherwise reveal whatever
+        // sits behind this in the widget tree — the app bar's own accent
+        // color — which would read as a stray color bleed-through around
+        // the image rather than a clean background.
+        const ColoredBox(color: TwColors.card),
+        image,
+        DecoratedBox(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                TwColors.slate900.withOpacityValue(85 / 255),
+                TwColors.slate900.withOpacityValue(34 / 255),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _PharmacyHeroFallback extends StatelessWidget {
+  const _PharmacyHeroFallback({this.showLoader = false});
+
+  final bool showLoader;
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = context.serviceColors;
+    return ColoredBox(
+      color: TwColors.card,
+      child: Center(
+        child: showLoader
+            ? CircularProgressIndicator(color: palette.accent)
+            : Icon(Icons.storefront_rounded, color: palette.accent, size: 72),
+      ),
+    );
   }
 }
 

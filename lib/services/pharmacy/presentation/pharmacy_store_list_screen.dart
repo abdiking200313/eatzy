@@ -127,10 +127,17 @@ class _PharmacyStoreListScreenState extends State<PharmacyStoreListScreen> {
   }
 
   void _openStore(PharmacyStore store) {
+    // `photoUrl` is forwarded the same way `name` is, for
+    // `PharmacyCatalogScreen`'s hero banner (issue #250) — see the TODO on
+    // `PharmacyCatalogScreen.storeImageUrl` for the corresponding
+    // `app_router.dart` read this still needs.
     context.push(
       Uri(
         path: AppRoutes.pharmacyStoreDetails(store.id),
-        queryParameters: {'name': store.name},
+        queryParameters: {
+          'name': store.name,
+          if (store.imageUrl != null) 'photoUrl': store.imageUrl,
+        },
       ).toString(),
     );
   }

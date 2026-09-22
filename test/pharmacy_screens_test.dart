@@ -59,7 +59,11 @@ void main() {
     await tester.pumpAndSettle();
     expect(repository.fetchCount, 1);
 
-    await tester.fling(find.byType(ListView), const Offset(0, 300), 1000);
+    await tester.fling(
+      find.byType(CustomScrollView),
+      const Offset(0, 300),
+      1000,
+    );
     await tester.pump();
     await tester.pump(const Duration(seconds: 1));
     await tester.pumpAndSettle();
@@ -82,6 +86,14 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Vitamin A'), findsOneWidget);
+    // The hero banner above the catalog list (issue #250) pushes the second
+    // product row below the fold on a default test viewport — same
+    // `scrollUntilVisible` pattern the OTC-scope test above uses.
+    await tester.scrollUntilVisible(
+      find.text('Bandages A'),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
     expect(find.text('Bandages A'), findsOneWidget);
 
     await tester.enterText(find.byType(TextField), 'Vitamin');
