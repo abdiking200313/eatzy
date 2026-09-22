@@ -8,6 +8,11 @@ Reverse-chronological. Each session/major chunk of work gets an entry.
 
 ---
 
+## 2026-09-22 (board worker — nothing eligible, queue unchanged)
+
+- `list_issues` for `todo`/`waiting-on-you` returned only the same tracking-only pair, **#29/#52**. `waiting-on-you` empty. Full open-issue count still 6, unchanged since 2026-09-21: #29/#52 (tracking), #32/#55/#222 (`needs-approval`, off-limits), #11 (unlabeled, still not board-worker-eligible). No new commits landed on `master` since PR #245.
+- Nothing implemented.
+
 ## 2026-09-21 (board worker — nothing eligible, queue unchanged)
 
 - `list_issues` for `todo`/`waiting-on-you` returned only the same tracking-only pair, **#29/#52**. `waiting-on-you` empty. Full open-issue count still 6, unchanged since 2026-09-20: #29/#52 (tracking), #32/#55/#222 (`needs-approval`, off-limits), #11 (unlabeled, still not board-worker-eligible).
