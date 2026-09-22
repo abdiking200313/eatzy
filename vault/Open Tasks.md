@@ -9,7 +9,11 @@ upstream_concept: 00-Index
 
 **Updated 2026-09-22 (board worker), see [[Status Log]] 2026-09-22 for full detail.** **Source of truth is always a live `list_issues`/`gh issue list --repo abdiking200313/eatzy --state open` call** — re-check before relying on this for anything that matters.
 
-## Update, 2026-09-22 — nothing eligible, queue unchanged
+## Update, 2026-09-22 (2nd run) — nothing eligible, queue unchanged
+
+- Same as the 2026-09-22 1st run's end state (PR #246): only tracking-only **#29/#52** in `todo`, `waiting-on-you` empty. Still 6 open issues total: #29/#52 (tracking), #32/#55/#222 (`needs-approval`, off-limits), #11 (unlabeled Addresses-screen bug, still outside the board worker's protocol). No new commits to `master` since PR #246 merged. Nothing implemented.
+
+## Update, 2026-09-22 (1st run) — nothing eligible, queue unchanged
 
 - Same as the 2026-09-21 3rd run's end state: only tracking-only **#29/#52** in `todo`, `waiting-on-you` empty. Still 6 open issues total: #29/#52 (tracking), #32/#55/#222 (`needs-approval`, off-limits), #11 (unlabeled Addresses-screen bug, still outside the board worker's protocol). No new commits to `master` since PR #245 merged. Nothing implemented.
 
