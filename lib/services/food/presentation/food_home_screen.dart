@@ -6,8 +6,8 @@ import 'package:go_router/go_router.dart';
 import '../../../app/app_routes.dart';
 import '../../../config/theme.dart';
 import '../../../widgets/app_cards.dart';
+import '../../../widgets/app_scaffold.dart';
 import '../../../widgets/cart_app_bar_action.dart';
-import '../../../widgets/zivo_logo.dart';
 import '../data/category_repository.dart';
 import '../data/restaurant_repository.dart';
 import '../models/category.dart';
@@ -145,30 +145,23 @@ class _FoodHomeScreenState extends State<FoodHomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final palette = context.serviceColors;
-    return Scaffold(
-      appBar: AppBar(
-        elevation: 0,
-        title: const ZivoLogo(height: 34),
-        actions: [
-          IconButton(
-            onPressed: null,
-            icon: Icon(Icons.notifications_none, color: palette.accent),
-          ),
-          AnimatedBuilder(
-            animation: CartController.instance,
-            builder: (context, _) {
-              final count = CartController.instance.itemCount;
-              return CartAppBarAction(
-                itemCount: count,
-                tooltip: 'Food cart ($count)',
-                onPressed: () => context.push(AppRoutes.foodCart),
-                icon: Icons.shopping_cart_rounded,
-              );
-            },
-          ),
-        ],
-      ),
+    return AppScaffold(
+      title: 'Food',
+      showBackButton: true,
+      actions: [
+        AnimatedBuilder(
+          animation: CartController.instance,
+          builder: (context, _) {
+            final count = CartController.instance.itemCount;
+            return CartAppBarAction(
+              itemCount: count,
+              tooltip: 'Food cart ($count)',
+              onPressed: () => context.push(AppRoutes.foodCart),
+              icon: Icons.shopping_cart_rounded,
+            );
+          },
+        ),
+      ],
       body: FutureBuilder<_FoodHomeData>(
         future: _homeFuture,
         builder: (context, snapshot) {
