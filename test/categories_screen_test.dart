@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:chowflow/screens/categories.dart';
 import 'package:chowflow/services/food/models/category.dart';
 import 'package:chowflow/services/food/presentation/widgets/categories_section.dart';
@@ -6,6 +7,59 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  testWidgets(
+    'service photo cards render a real photo when photoUrl is set, a drawn '
+    'placeholder when it is not, and never crash either way',
+    (tester) async {
+      await tester.pumpWidget(
+        const MaterialApp(home: CategoriesScreen(showBackButton: false)),
+      );
+      // Not pumpAndSettle: a real photoUrl would leave CachedNetworkImage's
+      // network/retry timers running and hang pumpAndSettle -- a single
+      // pump is enough to assert which background branch was built.
+      await tester.pump();
+
+      // Food and Grocery both have a real `photoUrl` (see
+      // ServiceRegistry.modules) -- their cards render the photo path.
+      for (final key in ['services-food', 'services-grocery']) {
+        expect(
+          find.descendant(
+            of: find.byKey(Key(key)),
+            matching: find.byType(CachedNetworkImage),
+          ),
+          findsOneWidget,
+        );
+      }
+
+      // The "Delivery" coming-soon category has no `photoUrl` -- its card
+      // falls back to the locally drawn accent-gradient + icon-watermark
+      // placeholder, not a photo. It's the 5th of 7 (now taller, 148px
+      // photo-card-height) list items, so it isn't built until scrolled
+      // into view.
+      final deliveryCard = find.byKey(
+        const Key('services-coming-soon-delivery'),
+      );
+      await tester.scrollUntilVisible(deliveryCard, 200);
+      await tester.pump();
+      expect(
+        find.descendant(
+          of: deliveryCard,
+          matching: find.byType(CachedNetworkImage),
+        ),
+        findsNothing,
+      );
+      expect(
+        find.descendant(
+          of: deliveryCard,
+          matching: find.byIcon(Icons.local_shipping_outlined),
+        ),
+        findsOneWidget,
+      );
+
+      expect(tester.takeException(), isNull);
+    },
+  );
+
   testWidgets('standalone category placeholder renders from one file', (
     tester,
   ) async {

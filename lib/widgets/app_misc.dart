@@ -67,10 +67,11 @@ class NetworkAvatar extends StatelessWidget {
 }
 
 /// The one place a per-service accent color is allowed to appear outside a
-/// button: a fixed 48x48 rounded chip holding an icon. Cards, list rows,
-/// and section headers must stay on the neutral tokens and use this chip
-/// (with a [ZivoServiceColors] accent, or an explicit override) instead of
-/// tinting their own background/border.
+/// button: a fixed 48x48 rounded chip holding an icon, or its photo
+/// counterpart [ServicePhotoChip]. Cards, list rows, and section headers
+/// must stay on the neutral tokens and use one of these chips (with a
+/// [ZivoServiceColors] accent, or an explicit override) instead of tinting
+/// their own background/border.
 class ServiceIconChip extends StatelessWidget {
   const ServiceIconChip({
     super.key,
@@ -101,6 +102,44 @@ class ServiceIconChip extends StatelessWidget {
         borderRadius: BorderRadius.circular(borderRadius),
       ),
       child: Icon(icon, size: iconSize, color: foreground ?? palette.onAccent),
+    );
+  }
+}
+
+/// The photo counterpart of [ServiceIconChip]: same 48x48 circular slot, a
+/// cropped photo instead of an icon, ringed in the per-service accent so it
+/// reads as the same category-chip language.
+class ServicePhotoChip extends StatelessWidget {
+  const ServicePhotoChip({
+    super.key,
+    required this.imageUrl,
+    this.ringColor,
+    this.size = ServiceIconChip.size,
+  });
+
+  final String imageUrl;
+  final Color? ringColor;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = context.serviceColors;
+    const ringWidth = 2.0;
+    return Container(
+      width: size,
+      height: size,
+      padding: const EdgeInsets.all(ringWidth),
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.all(
+          color: ringColor ?? palette.accent,
+          width: ringWidth,
+        ),
+      ),
+      child: NetworkAvatar(
+        imageUrl: imageUrl,
+        radius: (size - ringWidth * 4) / 2,
+      ),
     );
   }
 }

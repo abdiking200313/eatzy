@@ -206,7 +206,7 @@ class SupabasePharmacyStoreRepository implements PharmacyStoreRepository {
 
     var builder = _client
         .from('pharmacy_stores')
-        .select('id, name, address')
+        .select('id, name, address, image_url')
         .eq('is_active', true);
 
     if (hasSearch) {

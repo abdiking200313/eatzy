@@ -168,8 +168,8 @@ class _ActivityRow extends StatelessWidget {
           children: [
             ServiceIconChip(
               icon: module.icon,
-              background: colors.soft,
-              foreground: colors.accent,
+              background: colors.accent,
+              foreground: colors.onAccent,
             ),
             const SizedBox(width: TwSpacing.x4),
             Expanded(

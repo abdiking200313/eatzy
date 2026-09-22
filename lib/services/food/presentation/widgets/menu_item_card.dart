@@ -6,6 +6,7 @@ import '../../../../platform/localization/app_money.dart';
 import '../../../../widgets/add_to_cart_button.dart';
 import '../../../../widgets/app_cards.dart';
 import '../../models/restaurant_menu.dart';
+import '../menu_item_details_screen.dart';
 
 class MenuItemCard extends StatelessWidget {
   const MenuItemCard({
@@ -26,12 +27,18 @@ class MenuItemCard extends StatelessWidget {
       borderColor: TwColors.border,
       borderRadius: TwRadius.xl,
       padding: EdgeInsets.zero,
+      onTap: () => Navigator.of(context).push(
+        MaterialPageRoute<void>(
+          builder: (_) =>
+              MenuItemDetailsScreen(item: item, onAddToCart: onAddToCart),
+        ),
+      ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(
             width: 112,
-            height: 148,
+            height: 112,
             child: _MenuItemImage(imageUrl: item.imageUrl),
           ),
           Expanded(
@@ -83,12 +90,12 @@ class _MenuItemImage extends StatelessWidget {
   Widget build(BuildContext context) {
     final trimmedUrl = imageUrl.trim();
 
-    // Decode at roughly the rendered 112x148 box scaled for device pixel
+    // Decode at roughly the rendered 112x112 box scaled for device pixel
     // density. Capped at 3x since a wider cap buys no visible sharpness on
     // a thumbnail this small while still inflating decode memory.
     final cacheScale = MediaQuery.of(context).devicePixelRatio.clamp(1.0, 3.0);
     final cacheWidth = (112 * cacheScale).round();
-    final cacheHeight = (148 * cacheScale).round();
+    final cacheHeight = (112 * cacheScale).round();
     return trimmedUrl.isEmpty
         ? const _MenuImageFallback()
         : CachedNetworkImage(

@@ -6,17 +6,22 @@ class PharmacyStore {
     required this.id,
     required this.name,
     required this.address,
+    this.imageUrl,
   });
 
   final String id;
   final String name;
   final String address;
 
+  /// Store photo (`pharmacy_stores.image_url`). `null` means no photo.
+  final String? imageUrl;
+
   factory PharmacyStore.fromMap(Map<String, dynamic> map) {
     return PharmacyStore(
       id: _requiredString(map, 'id'),
       name: _requiredString(map, 'name'),
       address: _optionalString(map, 'address'),
+      imageUrl: _optionalNullableString(map, 'image_url'),
     );
   }
 }
@@ -31,4 +36,9 @@ String _requiredString(Map<String, dynamic> map, String key) {
 
 String _optionalString(Map<String, dynamic> map, String key) {
   return map[key]?.toString().trim() ?? '';
+}
+
+String? _optionalNullableString(Map<String, dynamic> map, String key) {
+  final value = map[key]?.toString().trim();
+  return value == null || value.isEmpty ? null : value;
 }

@@ -18,6 +18,11 @@ import 'widgets/menu_item_card.dart';
 typedef RestaurantMenuLoader =
     Future<RestaurantMenu> Function(String restaurantId);
 
+/// Fixed height of the pinned category-chip bar (`_CategoryHeaderDelegate`'s
+/// `minExtent`/`maxExtent`) — shared with `_RestaurantScreenState`'s
+/// scroll-position math so the two stay in sync.
+const _kCategoryHeaderExtent = 66.0;
+
 class RestaurantScreen extends StatefulWidget {
   const RestaurantScreen({
     super.key,
@@ -38,19 +43,62 @@ class RestaurantScreen extends StatefulWidget {
 
 class _RestaurantScreenState extends State<RestaurantScreen> {
   final _sectionKeys = <String, GlobalKey>{};
+  final _scrollController = ScrollController();
 
   late Future<RestaurantMenu> _menuFuture;
   late Future<List<RestaurantLocation>> _locationsFuture;
   String? _selectedCategoryId;
 
-  RestaurantMenuLoader get _menuLoader =>
-      widget.menuLoader ?? RestaurantMenuRepository().fetchMenu;
+  // The pinned category chip bar sits right below the collapsed app bar
+  // (`kToolbarHeight`, since `_RestaurantAppBar` is `pinned: true`) once
+  // scrolled past its `expandedHeight` hero. A section counts as "current"
+  // once its heading has scrolled up to (or past) that line, matching what
+  // a user reading top-to-bottom would call the category they're looking
+  // at — not the strict top-of-viewport, which would flip a beat too late.
+  double get _sectionThreshold =>
+      MediaQuery.of(context).padding.top +
+      kToolbarHeight +
+      _kCategoryHeaderExtent;
 
   @override
   void initState() {
     super.initState();
     _menuFuture = _menuLoader(widget.restaurantId);
     _locationsFuture = _loadLocations();
+    _scrollController.addListener(_syncSelectedCategoryFromScroll);
+  }
+
+  void _syncSelectedCategoryFromScroll() {
+    if (_sectionKeys.isEmpty) {
+      return;
+    }
+    final threshold = _sectionThreshold;
+    String? currentId;
+    for (final entry in _sectionKeys.entries) {
+      final renderObject = entry.value.currentContext?.findRenderObject();
+      if (renderObject is! RenderBox || !renderObject.attached) {
+        continue;
+      }
+      final top = renderObject.localToGlobal(Offset.zero).dy;
+      if (top <= threshold) {
+        currentId = entry.key;
+      } else {
+        break;
+      }
+    }
+    if (currentId != null && currentId != _selectedCategoryId) {
+      setState(() => _selectedCategoryId = currentId);
+    }
+  }
+
+  RestaurantMenuLoader get _menuLoader =>
+      widget.menuLoader ?? RestaurantMenuRepository().fetchMenu;
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_syncSelectedCategoryFromScroll);
+    _scrollController.dispose();
+    super.dispose();
   }
 
   Future<List<RestaurantLocation>> _loadLocations() async {
@@ -191,6 +239,7 @@ class _RestaurantScreenState extends State<RestaurantScreen> {
             menu: snapshot.requireData,
             locationsFuture: _locationsFuture,
             selectedCategoryId: _selectedCategoryId,
+            scrollController: _scrollController,
             sectionKeyFor: (categoryId) =>
                 _sectionKeys.putIfAbsent(categoryId, GlobalKey.new),
             onCategorySelected: _selectCategory,
@@ -224,6 +273,7 @@ class _RestaurantMenuView extends StatelessWidget {
     required this.menu,
     required this.locationsFuture,
     required this.selectedCategoryId,
+    required this.scrollController,
     required this.sectionKeyFor,
     required this.onCategorySelected,
     required this.onAddToCart,
@@ -232,6 +282,7 @@ class _RestaurantMenuView extends StatelessWidget {
   final RestaurantMenu menu;
   final Future<List<RestaurantLocation>> locationsFuture;
   final String? selectedCategoryId;
+  final ScrollController scrollController;
   final GlobalKey Function(String categoryId) sectionKeyFor;
   final ValueChanged<MenuCategory> onCategorySelected;
   final ValueChanged<MenuItem> onAddToCart;
@@ -239,6 +290,7 @@ class _RestaurantMenuView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return CustomScrollView(
+      controller: scrollController,
       slivers: [
         _RestaurantAppBar(menu: menu),
         SliverToBoxAdapter(
@@ -464,6 +516,12 @@ class _RestaurantHero extends StatelessWidget {
     return Stack(
       fit: StackFit.expand,
       children: [
+        // A plain white base under the photo: a logo/photo with transparent
+        // pixels (common for uploaded restaurant logos) would otherwise
+        // reveal whatever sits behind this in the widget tree — previously
+        // the app bar's own accent color, which read as a stray red tint
+        // around/through the image rather than a clean background.
+        const ColoredBox(color: TwColors.card),
         image,
         DecoratedBox(
           decoration: BoxDecoration(
@@ -491,11 +549,11 @@ class _RestaurantHeroFallback extends StatelessWidget {
   Widget build(BuildContext context) {
     final palette = context.serviceColors;
     return ColoredBox(
-      color: palette.accent,
+      color: TwColors.card,
       child: Center(
         child: showLoader
-            ? CircularProgressIndicator(color: palette.onAccent)
-            : Icon(Icons.restaurant_rounded, color: palette.onAccent, size: 72),
+            ? CircularProgressIndicator(color: palette.accent)
+            : Icon(Icons.restaurant_rounded, color: palette.accent, size: 72),
       ),
     );
   }
@@ -513,10 +571,10 @@ class _CategoryHeaderDelegate extends SliverPersistentHeaderDelegate {
   final ValueChanged<MenuCategory> onSelected;
 
   @override
-  double get minExtent => 66;
+  double get minExtent => _kCategoryHeaderExtent;
 
   @override
-  double get maxExtent => 66;
+  double get maxExtent => _kCategoryHeaderExtent;
 
   @override
   Widget build(

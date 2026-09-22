@@ -1,7 +1,7 @@
 import 'package:chowflow/config/theme.dart';
 import 'package:chowflow/app/service_module.dart';
 import 'package:chowflow/features/super_app/presentation/super_app_home_screen.dart';
-import 'package:chowflow/services/food/models/restaurant.dart';
+import 'package:chowflow/platform/discovery/store_listing.dart';
 import 'package:chowflow/platform/activity/models/activity_item.dart';
 import 'package:chowflow/platform/activity/presentation/activity_controller.dart';
 import 'package:chowflow/widgets/app_misc.dart';
@@ -9,7 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 
-Future<List<Restaurant>> _noRestaurants() async => const <Restaurant>[];
+Future<List<StoreListing>> _noStores() async => const <StoreListing>[];
 
 void main() {
   testWidgets('super-app home exposes every service and Somalia locale', (
@@ -21,7 +21,7 @@ void main() {
         GoRoute(
           path: '/',
           builder: (_, _) =>
-              const SuperAppHomeScreen(restaurantLoader: _noRestaurants),
+              const SuperAppHomeScreen(storeListingLoader: _noStores),
         ),
         for (final path in const ['/food', '/grocery', '/pharmacy'])
           GoRoute(
@@ -48,10 +48,13 @@ void main() {
     // chip, so the card fill itself is the neutral token, never the
     // per-service tinted `ServiceThemes.grocery.card`.
     expect(groceryCard.color, TwColors.card);
+    // Grocery now has a real photo (`ServiceRegistry.modules`), so its tile
+    // renders the photo chip, not the icon chip — see item 1 of the
+    // 2026-09-22 category-photo follow-up.
     expect(
       find.descendant(
         of: find.byKey(const Key('service-grocery')),
-        matching: find.byType(ServiceIconChip),
+        matching: find.byType(ServicePhotoChip),
       ),
       findsOneWidget,
     );
@@ -71,7 +74,7 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         theme: buildAppTheme(),
-        home: const SuperAppHomeScreen(restaurantLoader: _noRestaurants),
+        home: const SuperAppHomeScreen(storeListingLoader: _noStores),
       ),
     );
     await tester.pump();
@@ -111,6 +114,51 @@ void main() {
     expect(find.text('Soon'), findsNWidgets(4));
   });
 
+  testWidgets('coming-soon tiles are grayscale; real service tiles are not', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: buildAppTheme(),
+        home: const SuperAppHomeScreen(storeListingLoader: _noStores),
+      ),
+    );
+    await tester.pump();
+
+    // Coming-soon tiles wrap their icon/photo chip in a ColorFiltered
+    // (grayscale) matrix, not just carrying the "Soon" badge.
+    expect(
+      find.descendant(
+        of: find.byKey(const Key('coming-soon-deals')),
+        matching: find.byType(ColorFiltered),
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(
+        of: find.byKey(const Key('coming-soon-electronics')),
+        matching: find.byType(ColorFiltered),
+      ),
+      findsOneWidget,
+    );
+
+    // A real, live service tile stays full color.
+    expect(
+      find.descendant(
+        of: find.byKey(const Key('service-food')),
+        matching: find.byType(ColorFiltered),
+      ),
+      findsNothing,
+    );
+    expect(
+      find.descendant(
+        of: find.byKey(const Key('service-grocery')),
+        matching: find.byType(ColorFiltered),
+      ),
+      findsNothing,
+    );
+  });
+
   testWidgets('coming-soon tile shows a snackbar instead of navigating', (
     tester,
   ) async {
@@ -120,7 +168,7 @@ void main() {
         GoRoute(
           path: '/',
           builder: (_, _) =>
-              const SuperAppHomeScreen(restaurantLoader: _noRestaurants),
+              const SuperAppHomeScreen(storeListingLoader: _noStores),
         ),
         GoRoute(
           path: '/services',
@@ -157,7 +205,7 @@ void main() {
             size: Size(320, 640),
             textScaler: TextScaler.linear(1.4),
           ),
-          child: const SuperAppHomeScreen(restaurantLoader: _noRestaurants),
+          child: const SuperAppHomeScreen(storeListingLoader: _noStores),
         ),
       ),
     );
@@ -186,7 +234,7 @@ void main() {
         theme: buildAppTheme(),
         home: SuperAppHomeScreen(
           activityController: controller,
-          restaurantLoader: _noRestaurants,
+          storeListingLoader: _noStores,
         ),
       ),
     );
@@ -239,7 +287,7 @@ void main() {
           theme: buildAppTheme(),
           home: SuperAppHomeScreen(
             activityController: controller,
-            restaurantLoader: _noRestaurants,
+            storeListingLoader: _noStores,
           ),
         ),
       );

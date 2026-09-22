@@ -30,12 +30,7 @@ final Map<String, String> _deepLinkOnlyRoutes = {
 
   // Standalone screen also reachable as a bottom-nav tab inside
   // MainAppScreen (an IndexedStack swap, not a router push) -- the path
-  // itself has no in-app link, kept for direct/web URL access. ExploreScreen
-  // also renders the identical ServiceRegistry.modules list CategoriesScreen
-  // does, in a different card style -- flagged for a future human
-  // consolidation decision, not resolved by issue #71.
-  AppRoutes.explore:
-      'reachable as the Explore bottom-nav tab, not a route push',
+  // itself has no in-app link, kept for direct/web URL access.
   AppRoutes.profile:
       'reachable as the Profile bottom-nav tab, not a route push',
 

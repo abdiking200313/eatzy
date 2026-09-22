@@ -27,12 +27,16 @@ class GroceryStore {
     required this.name,
     required this.area,
     required this.products,
+    this.imageUrl,
   });
 
   final String id;
   final String name;
   final String area;
   final List<GroceryProduct> products;
+
+  /// Store photo (`grocery_stores.image_url`). `null` means no photo.
+  final String? imageUrl;
 
   factory GroceryStore.fromMap(
     Map<String, dynamic> map, {
@@ -43,6 +47,7 @@ class GroceryStore {
       name: _requiredString(map, 'name'),
       area: _requiredString(map, 'area'),
       products: List.unmodifiable(products),
+      imageUrl: map['image_url']?.toString(),
     );
   }
 }

@@ -15,6 +15,7 @@ class ServiceDescriptor {
     required this.description,
     required this.entryRoute,
     required this.icon,
+    this.photoUrl,
   });
 
   final ServiceId id;
@@ -22,6 +23,10 @@ class ServiceDescriptor {
   final String description;
   final String entryRoute;
   final IconData icon;
+
+  /// When set, the home grid shows this photo (in a [ServicePhotoChip])
+  /// instead of [icon].
+  final String? photoUrl;
 }
 
 /// A category announced on the home grid and the Services list before any
@@ -35,15 +40,23 @@ class ComingSoonCategory {
     required this.title,
     required this.description,
     required this.icon,
+    this.photoUrl,
   });
 
   final String id;
   final String title;
   final String description;
   final IconData icon;
+
+  /// When set, the home grid shows this photo (in a [ServicePhotoChip])
+  /// instead of [icon].
+  final String? photoUrl;
 }
 
 abstract final class ServiceRegistry {
+  static const _iconBucketUrl =
+      'https://jzubookmbrtslocuzepe.supabase.co/storage/v1/object/public/product_icons';
+
   // Order is the display order on the home grid and the Services list.
   static const modules = <ServiceDescriptor>[
     ServiceDescriptor(
@@ -52,6 +65,7 @@ abstract final class ServiceRegistry {
       description: 'Everyday essentials delivered',
       entryRoute: AppRoutes.grocery,
       icon: Icons.local_grocery_store_outlined,
+      photoUrl: '$_iconBucketUrl/service-grocery.png',
     ),
     ServiceDescriptor(
       id: ServiceId.food,
@@ -59,6 +73,7 @@ abstract final class ServiceRegistry {
       description: 'Meals from nearby restaurants',
       entryRoute: AppRoutes.food,
       icon: Icons.restaurant_outlined,
+      photoUrl: '$_iconBucketUrl/service-food.jpg',
     ),
     ServiceDescriptor(
       id: ServiceId.pharmacy,
@@ -66,6 +81,7 @@ abstract final class ServiceRegistry {
       description: 'Over-the-counter health essentials',
       entryRoute: AppRoutes.pharmacy,
       icon: Icons.local_pharmacy_outlined,
+      photoUrl: '$_iconBucketUrl/service-pharmacy.jpg',
     ),
   ];
 
@@ -76,6 +92,7 @@ abstract final class ServiceRegistry {
       title: 'Fresh Meat',
       description: 'Fresh cuts from local butchers',
       icon: Icons.kebab_dining_outlined,
+      photoUrl: '$_iconBucketUrl/service-fresh-meat.jpg',
     ),
     ComingSoonCategory(
       id: 'delivery',

@@ -157,7 +157,7 @@ class SupabaseGroceryCatalogRepository
     final results = await Future.wait<dynamic>([
       _client
           .from('grocery_stores')
-          .select('id, name, area')
+          .select('id, name, area, image_url')
           .eq('is_active', true)
           .order('name')
           .limit(maxStores),
@@ -199,7 +199,7 @@ class SupabaseGroceryCatalogRepository
 
     final storeRow = await _client
         .from('grocery_stores')
-        .select('id, name, area')
+        .select('id, name, area, image_url')
         .eq('id', storeId)
         .eq('is_active', true)
         .maybeSingle();

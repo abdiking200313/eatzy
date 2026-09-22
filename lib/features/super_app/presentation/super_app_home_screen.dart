@@ -1,14 +1,13 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../app/app_routes.dart';
 import '../../../app/service_module.dart';
 import '../../../config/theme.dart';
-import '../../../services/food/data/restaurant_repository.dart';
-import '../../../services/food/models/restaurant.dart';
 import '../../../platform/activity/models/activity_item.dart';
 import '../../../platform/activity/presentation/activity_controller.dart';
+import '../../../platform/discovery/store_listing.dart';
+import '../../../platform/discovery/store_listing_repository.dart';
 import '../../../platform/localization/app_money.dart';
 import '../../../widgets/app_misc.dart';
 import '../../../widgets/app_cards.dart';
@@ -17,22 +16,23 @@ class SuperAppHomeScreen extends StatefulWidget {
   const SuperAppHomeScreen({
     super.key,
     this.activityController,
-    this.restaurantLoader,
+    this.storeListingLoader,
   });
 
   final ActivityController? activityController;
-  final Future<List<Restaurant>> Function()? restaurantLoader;
+  final Future<List<StoreListing>> Function()? storeListingLoader;
 
   @override
   State<SuperAppHomeScreen> createState() => _SuperAppHomeScreenState();
 }
 
 class _SuperAppHomeScreenState extends State<SuperAppHomeScreen> {
-  late final Future<List<Restaurant>> _restaurantsFuture = _loadRestaurants();
+  late final Future<List<StoreListing>> _storesFuture = _loadStores();
 
-  Future<List<Restaurant>> _loadRestaurants() async {
+  Future<List<StoreListing>> _loadStores() async {
     final loader =
-        widget.restaurantLoader ?? RestaurantRepository().fetchRestaurants;
+        widget.storeListingLoader ??
+        (() => StoreListingRepository().fetchStores(limit: 10));
     return loader();
   }
 
@@ -50,7 +50,7 @@ class _SuperAppHomeScreenState extends State<SuperAppHomeScreen> {
         padding: const EdgeInsets.only(bottom: TwSpacing.x8),
         children: [
           _HomeHeader(
-            onSearch: () => context.push(AppRoutes.foodExplore),
+            onSearch: () => context.go(AppRoutes.explore),
             onNotifications: () {},
             onSettings: () => context.push(AppRoutes.settings),
           ),
@@ -64,9 +64,7 @@ class _SuperAppHomeScreenState extends State<SuperAppHomeScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _PromoBanner(
-                  onExplore: () => context.push(AppRoutes.foodExplore),
-                ),
+                _PromoBanner(onExplore: () => context.go(AppRoutes.explore)),
                 const SizedBox(height: TwSpacing.x8),
                 _SectionHeader(
                   title: 'Categories',
@@ -81,15 +79,15 @@ class _SuperAppHomeScreenState extends State<SuperAppHomeScreen> {
                 ),
                 const SizedBox(height: TwSpacing.x8),
                 _SectionHeader(
-                  title: 'Popular Restaurants',
+                  title: 'Popular Stores',
                   actionLabel: 'View all',
-                  onPressed: () => context.push(AppRoutes.foodExplore),
+                  onPressed: () => context.go(AppRoutes.explore),
                 ),
                 const SizedBox(height: TwSpacing.x3),
               ],
             ),
           ),
-          _PopularRestaurants(future: _restaurantsFuture),
+          _PopularStores(future: _storesFuture),
           _RecentActivitySection(controller: controller),
         ],
       ),
@@ -353,6 +351,7 @@ class _ServiceGrid extends StatelessWidget {
           return _CategoryTile(
             tileKey: Key('service-${module.id.name}'),
             icon: module.icon,
+            photoUrl: module.photoUrl,
             label: module.title,
             background: colors.soft,
             foreground: colors.accent,
@@ -369,6 +368,7 @@ class _ServiceGrid extends StatelessWidget {
           return _CategoryTile(
             tileKey: Key('coming-soon-${category.id}'),
             icon: category.icon,
+            photoUrl: category.photoUrl,
             label: category.title,
             background: platform.soft,
             foreground: platform.accent,
@@ -394,6 +394,7 @@ class _CategoryTile extends StatelessWidget {
   const _CategoryTile({
     required this.tileKey,
     required this.icon,
+    this.photoUrl,
     required this.label,
     required this.background,
     required this.foreground,
@@ -405,6 +406,9 @@ class _CategoryTile extends StatelessWidget {
   /// the white-card rule inspect directly.
   final Key tileKey;
   final IconData icon;
+
+  /// When set, shown (via [ServicePhotoChip]) instead of [icon].
+  final String? photoUrl;
   final String label;
   final Color background;
   final Color foreground;
@@ -425,12 +429,23 @@ class _CategoryTile extends StatelessWidget {
         shadowColor: TwColors.slate900.withOpacityValue(0.1),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(TwRadius.xl),
-          side: const BorderSide(color: TwColors.border),
+          // A neutral warm gray (rather than the app's usual blue-tinted
+          // `TwColors.border`) for coming-soon tiles, so the card outline
+          // reads as disabled along with the desaturated chip and muted
+          // label rather than just the small "Soon" badge.
+          side: BorderSide(
+            color: comingSoon ? TwColors.stone300 : TwColors.border,
+          ),
         ),
         clipBehavior: Clip.antiAlias,
         child: InkWell(
           onTap: onTap,
           child: Stack(
+            // Stack defaults non-positioned children to topStart; without
+            // this the content Padding below (sized to its own content, not
+            // stretched) sat pinned to the top of the tile's full height
+            // instead of centered in it.
+            alignment: Alignment.center,
             children: [
               Padding(
                 padding: const EdgeInsets.symmetric(
@@ -438,13 +453,22 @@ class _CategoryTile extends StatelessWidget {
                   horizontal: TwSpacing.x1,
                 ),
                 child: Column(
+                  mainAxisSize: MainAxisSize.min,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    ServiceIconChip(
-                      icon: icon,
-                      background: background,
-                      foreground: foreground,
-                      borderRadius: TwRadius.full,
+                    _MaybeGrayscale(
+                      grayscale: comingSoon,
+                      child: photoUrl == null
+                          ? ServiceIconChip(
+                              icon: icon,
+                              background: background,
+                              foreground: foreground,
+                              borderRadius: TwRadius.full,
+                            )
+                          : ServicePhotoChip(
+                              imageUrl: photoUrl!,
+                              ringColor: foreground,
+                            ),
                     ),
                     const SizedBox(height: TwSpacing.x1),
                     // Four narrow columns: shrink a long label ("Electronics")
@@ -455,7 +479,10 @@ class _CategoryTile extends StatelessWidget {
                         label,
                         maxLines: 1,
                         textAlign: TextAlign.center,
-                        style: TwText.fontBoldSm.copyWith(fontSize: 12),
+                        style: TwText.fontBoldSm.copyWith(
+                          fontSize: 12,
+                          color: comingSoon ? TwColors.textMuted : null,
+                        ),
                       ),
                     ),
                   ],
@@ -471,6 +498,35 @@ class _CategoryTile extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Desaturates [child] (the icon/photo chip) when [grayscale] is true, so a
+/// coming-soon tile's whole chip reads as disabled rather than just its
+/// "Soon" badge.
+class _MaybeGrayscale extends StatelessWidget {
+  const _MaybeGrayscale({required this.grayscale, required this.child});
+
+  final bool grayscale;
+  final Widget child;
+
+  // Standard luminance-weighted saturation-0 matrix.
+  static const List<double> _grayscaleMatrix = <double>[
+    0.2126, 0.7152, 0.0722, 0, 0, //
+    0.2126, 0.7152, 0.0722, 0, 0, //
+    0.2126, 0.7152, 0.0722, 0, 0, //
+    0, 0, 0, 1, 0, //
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    if (!grayscale) {
+      return child;
+    }
+    return ColorFiltered(
+      colorFilter: const ColorFilter.matrix(_grayscaleMatrix),
+      child: child,
     );
   }
 }
@@ -503,114 +559,54 @@ class _SoonBadge extends StatelessWidget {
   }
 }
 
-class _PopularRestaurants extends StatelessWidget {
-  const _PopularRestaurants({required this.future});
+class _PopularStores extends StatelessWidget {
+  const _PopularStores({required this.future});
 
-  final Future<List<Restaurant>> future;
+  final Future<List<StoreListing>> future;
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<List<Restaurant>>(
+    return FutureBuilder<List<StoreListing>>(
       future: future,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const SizedBox(
-            height: 172,
+            height: 196,
             child: Center(child: CircularProgressIndicator()),
           );
         }
-        final restaurants = snapshot.data ?? const <Restaurant>[];
-        if (snapshot.hasError || restaurants.isEmpty) {
+        final stores = snapshot.data ?? const <StoreListing>[];
+        if (snapshot.hasError || stores.isEmpty) {
           return const SizedBox.shrink();
         }
         return SizedBox(
-          height: 172,
+          height: 196,
           child: SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: TwSpacing.x5),
             child: Row(
               children: [
-                for (final restaurant in restaurants.take(6))
+                for (final store in stores.take(6))
                   Padding(
                     padding: const EdgeInsets.only(right: TwSpacing.x3),
-                    child: _PopularRestaurantCard(restaurant: restaurant),
+                    child: SizedBox(
+                      width: 150,
+                      child: StoreListCard(
+                        name: store.name,
+                        subtitle: store.subtitle,
+                        imageUrl: store.imageUrl,
+                        accentColor: ServiceThemes.forId(
+                          store.serviceId,
+                        ).accent,
+                        onTap: () => context.push(store.route),
+                      ),
+                    ),
                   ),
               ],
             ),
           ),
         );
       },
-    );
-  }
-}
-
-class _PopularRestaurantCard extends StatelessWidget {
-  const _PopularRestaurantCard({required this.restaurant});
-
-  final Restaurant restaurant;
-
-  @override
-  Widget build(BuildContext context) {
-    final logoUrl = restaurant.logoUrl.trim();
-    // Decode at roughly the rendered 140x88 box (the card's fixed width
-    // and image height) scaled for device pixel density. Capped at 3x
-    // since a wider cap buys no visible sharpness on a thumbnail this
-    // small while still inflating decode memory.
-    final cacheScale = MediaQuery.of(context).devicePixelRatio.clamp(1.0, 3.0);
-    final cacheWidth = (140 * cacheScale).round();
-    final cacheHeight = (88 * cacheScale).round();
-    return SizedBox(
-      width: 140,
-      child: OutlinedCard(
-        padding: EdgeInsets.zero,
-        borderRadius: TwRadius.xl,
-        onTap: () => context.push(AppRoutes.restaurantDetails(restaurant.id)),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ClipRRect(
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(TwRadius.xl),
-              ),
-              child: SizedBox(
-                height: 88,
-                width: double.infinity,
-                child: logoUrl.isEmpty
-                    ? const ColoredBox(
-                        color: TwColors.primarySoft,
-                        child: Icon(
-                          Icons.storefront_outlined,
-                          color: TwColors.primary,
-                        ),
-                      )
-                    : CachedNetworkImage(
-                        imageUrl: logoUrl,
-                        fit: BoxFit.cover,
-                        memCacheWidth: cacheWidth,
-                        memCacheHeight: cacheHeight,
-                        errorWidget: (_, _, _) => const ColoredBox(
-                          color: TwColors.primarySoft,
-                          child: Icon(
-                            Icons.storefront_outlined,
-                            color: TwColors.primary,
-                          ),
-                        ),
-                      ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(TwSpacing.x2),
-              child: Text(
-                restaurant.name,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TwText.fontBoldSm,
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }
