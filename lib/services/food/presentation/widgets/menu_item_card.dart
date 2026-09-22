@@ -33,49 +33,50 @@ class MenuItemCard extends StatelessWidget {
               MenuItemDetailsScreen(item: item, onAddToCart: onAddToCart),
         ),
       ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 112,
-            height: 112,
-            child: _MenuItemImage(imageUrl: item.imageUrl),
-          ),
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.all(TwSpacing.x4),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(item.name, style: TwText.fontBoldBase),
-                  if (item.description.trim().isNotEmpty) ...[
-                    const SizedBox(height: TwSpacing.x1),
-                    Text(item.description, style: TwText.textSm),
-                  ],
-                  const SizedBox(height: TwSpacing.rhythmDefault),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          AppMoney.formatCents(item.price),
-                          style: TwText.fontBoldBase.copyWith(
-                            color: TwColors.primary,
+      child: IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            SizedBox(
+              width: 112,
+              child: _MenuItemImage(imageUrl: item.imageUrl),
+            ),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(TwSpacing.x4),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(item.name, style: TwText.fontBoldBase),
+                    if (item.description.trim().isNotEmpty) ...[
+                      const SizedBox(height: TwSpacing.x1),
+                      Text(item.description, style: TwText.textSm),
+                    ],
+                    const SizedBox(height: TwSpacing.rhythmDefault),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            AppMoney.formatCents(item.price),
+                            style: TwText.fontBoldBase.copyWith(
+                              color: TwColors.primary,
+                            ),
                           ),
                         ),
-                      ),
-                      AddToCartButton(
-                        key: ValueKey('add-to-cart-${item.id}'),
-                        tooltip: 'Add ${item.name} to cart',
-                        onPressed: onAddToCart,
-                      ),
-                    ],
-                  ),
-                ],
+                        AddToCartButton(
+                          key: ValueKey('add-to-cart-${item.id}'),
+                          tooltip: 'Add ${item.name} to cart',
+                          onPressed: onAddToCart,
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
