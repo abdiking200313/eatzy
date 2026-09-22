@@ -9,6 +9,11 @@ upstream_concept: 00-Index
 
 **Updated 2026-09-22 (board worker), see [[Status Log]] 2026-09-22 for full detail.** **Source of truth is always a live `list_issues`/`gh issue list --repo abdiking200313/eatzy --state open` call** — re-check before relying on this for anything that matters.
 
+## Update, 2026-09-22 (board worker, 4-issue run) — #249/#250/#251/#252 all processed and merged
+
+- All 4 concrete `todo` issues from the owner's part-3 filing batch (same day) implemented and merged: #249→PR #253, #250→PR #256 (plus follow-up PR #257 for a route-wiring gap #250's dispatch correctly left out of its file scope), #251→PR #255, #252→PR #254. Full detail, including two new process gotchas (a curl/GitHub-substring sandbox block one dispatch couldn't work around, and a shared-scratchpad file collision between two worktree-isolated parallel dispatches), in [[Status Log]] 2026-09-22 "board worker — 4 issues processed".
+- Queue back down to just tracking-only **#29/#52** in `todo`, `waiting-on-you` empty. 6 open issues total, same shape as every prior "nothing eligible" run: #29/#52 (tracking), #32/#55/#222 (`needs-approval`, off-limits), #11 (unlabeled Addresses-screen bug, still outside the board worker's protocol).
+
 ## Update, 2026-09-22 (2nd run) — nothing eligible, queue unchanged
 
 - Same as the 2026-09-22 1st run's end state (PR #246): only tracking-only **#29/#52** in `todo`, `waiting-on-you` empty. Still 6 open issues total: #29/#52 (tracking), #32/#55/#222 (`needs-approval`, off-limits), #11 (unlabeled Addresses-screen bug, still outside the board worker's protocol). No new commits to `master` since PR #246 merged. Nothing implemented.
