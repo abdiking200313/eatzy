@@ -7,7 +7,11 @@ upstream_concept: 00-Index
 
 # Open Tasks
 
-**Updated 2026-09-22 (board worker), see [[Status Log]] 2026-09-22 for full detail.** **Source of truth is always a live `list_issues`/`gh issue list --repo abdiking200313/eatzy --state open` call** — re-check before relying on this for anything that matters.
+**Updated 2026-09-23 (board worker), see [[Status Log]] 2026-09-22 for full detail on the last real work.** **Source of truth is always a live `list_issues`/`gh issue list --repo abdiking200313/eatzy --state open` call** — re-check before relying on this for anything that matters.
+
+## Update, 2026-09-23 — nothing eligible, queue unchanged
+
+- Same as every run since 2026-09-22's 4-issue batch: only tracking-only **#29/#52** in `todo`, `waiting-on-you` empty. No new commits to `master` since PR #258 (vault update) merged — `git log origin/master -1` still shows that commit. Nothing implemented this run.
 
 ## Update, 2026-09-22 (board worker, 4-issue run) — #249/#250/#251/#252 all processed and merged
 
