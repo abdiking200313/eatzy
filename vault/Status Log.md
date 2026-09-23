@@ -8,6 +8,11 @@ Reverse-chronological. Each session/major chunk of work gets an entry.
 
 ---
 
+## 2026-09-23 (board worker — nothing eligible, queue unchanged)
+
+- `list_issues` for `todo`/`waiting-on-you` returned only the same tracking-only pair, **#29/#52**. `waiting-on-you` empty. `master` gained one new commit (`6138472`, "Update vault: board worker 2026-09-23 run — nothing eligible (#259)") since the prior run's check — that was itself an earlier board-worker run today, not new work; this run's `list_issues` result is identical to that run's.
+- Nothing implemented this run.
+
 ## 2026-09-22 (board worker — 4 issues processed and merged, one follow-up gap closed same run)
 
 - Picked up all 4 concrete `todo` issues from part 3's filing batch: **#249** (Food home screen plain-`AppScaffold` header) → PR #253, **#250** (grocery/pharmacy store-screen photo hero parity) → PR #256, **#251** (menu item card photo height tracking card height) → PR #255, **#252** (restaurant hero `BoxFit.cover`→`contain`) → PR #254. All 4 dispatched in parallel as `ui-agent` (`isolation: "worktree"`) since their files are fully disjoint (`food_home_screen.dart`; `grocery_store_screen.dart`+`pharmacy_catalog_screen.dart`+`pharmacy_store_list_screen.dart`; `menu_item_card.dart`; `restaurant_screen.dart`) — no conflicts, each self-rebased onto the others' concurrent merges. All 4 merged same run, all closed via `Closes #`.
