@@ -57,7 +57,6 @@ final List<({String name, String path})> _registeredRoutes = [
   (name: 'explore', path: AppRoutes.explore),
   (name: 'activity', path: AppRoutes.activity),
   (name: 'profile', path: AppRoutes.profile),
-  (name: 'editProfile', path: AppRoutes.editProfile),
   (name: 'addresses', path: AppRoutes.addresses),
   (name: 'settings', path: AppRoutes.settings),
   (name: 'resetPassword', path: AppRoutes.resetPassword),

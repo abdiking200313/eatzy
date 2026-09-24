@@ -135,4 +135,131 @@ void main() {
       expect(requestSent, isFalse);
     });
   });
+
+  group('SupabaseProfileRepository.updateProfile', () {
+    Map<String, dynamic> rowJson({
+      String firstName = 'Amina',
+      String lastName = 'Noor',
+      String phone = '+252 61 234 5678',
+      String? dob,
+    }) => {
+      'id': 'customer-1',
+      'firstname': firstName,
+      'lastname': lastName,
+      'phone': phone,
+      'avatar_url': null,
+      'dob': dob,
+    };
+
+    test('POSTs to the update_own_profile RPC with only the provided '
+        'field, omitting the others entirely', () async {
+      http.Request? capturedRequest;
+
+      final client = await _signedInClient(
+        userId: 'customer-1',
+        httpClient: MockClient((request) async {
+          capturedRequest = request;
+          return http.Response(
+            jsonEncode(rowJson()),
+            200,
+            headers: {'content-type': 'application/json'},
+            request: request,
+          );
+        }),
+      );
+      final repository = SupabaseProfileRepository(client: client);
+
+      await repository.updateProfile(firstName: 'Amina');
+
+      expect(capturedRequest, isNotNull);
+      expect(capturedRequest!.method, 'POST');
+      expect(
+        capturedRequest!.url.toString(),
+        'https://example.supabase.co/rest/v1/rpc/update_own_profile',
+      );
+      final body = jsonDecode(capturedRequest!.body) as Map<String, dynamic>;
+      expect(body, {'p_firstname': 'Amina'});
+    });
+
+    test('formats dob as yyyy-MM-dd and sends it alongside other provided '
+        'fields, still omitting phone', () async {
+      http.Request? capturedRequest;
+
+      final client = await _signedInClient(
+        userId: 'customer-1',
+        httpClient: MockClient((request) async {
+          capturedRequest = request;
+          return http.Response(
+            jsonEncode(rowJson(dob: '1995-06-15')),
+            200,
+            headers: {'content-type': 'application/json'},
+            request: request,
+          );
+        }),
+      );
+      final repository = SupabaseProfileRepository(client: client);
+
+      await repository.updateProfile(
+        firstName: 'Amina',
+        lastName: 'Noor',
+        dob: DateTime(1995, 6, 15),
+      );
+
+      final body = jsonDecode(capturedRequest!.body) as Map<String, dynamic>;
+      expect(body, {
+        'p_firstname': 'Amina',
+        'p_lastname': 'Noor',
+        'p_dob': '1995-06-15',
+      });
+    });
+
+    test(
+      'parses the returned row, including dob, into a CustomerProfile',
+      () async {
+        final client = await _signedInClient(
+          userId: 'customer-1',
+          httpClient: MockClient((request) async {
+            return http.Response(
+              jsonEncode(rowJson(dob: '1995-06-15')),
+              200,
+              headers: {'content-type': 'application/json'},
+              request: request,
+            );
+          }),
+        );
+        final repository = SupabaseProfileRepository(client: client);
+
+        final profile = await repository.updateProfile(
+          dob: DateTime(1995, 6, 15),
+        );
+
+        expect(profile.id, 'customer-1');
+        expect(profile.firstName, 'Amina');
+        expect(profile.lastName, 'Noor');
+        expect(profile.phone, '+252 61 234 5678');
+        expect(profile.dob, DateTime(1995, 6, 15));
+      },
+    );
+
+    test('throws a StateError instead of calling the RPC when no user is '
+        'signed in', () async {
+      var requestSent = false;
+      final client = SupabaseClient(
+        'https://example.supabase.co',
+        'test-publishable-key',
+        authOptions: _testAuthOptions,
+        httpClient: MockClient((request) async {
+          requestSent = true;
+          return http.Response('null', 200);
+        }),
+      );
+      final repository = SupabaseProfileRepository(client: client);
+
+      await expectLater(
+        repository.updateProfile(firstName: 'Amina'),
+        throwsA(isA<StateError>()),
+      );
+      expect(requestSent, isFalse);
+    });
+  });
 }

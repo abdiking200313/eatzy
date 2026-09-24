@@ -210,6 +210,10 @@ void main() {
       final response = await service.signUpWithEmailPassword(
         'new@example.com',
         'a-strong-password',
+        firstName: 'Jane',
+        lastName: 'Doe',
+        phone: '+15551234567',
+        dob: DateTime(1995, 6, 15),
       );
 
       expect(response.session, isNotNull);
@@ -224,6 +228,46 @@ void main() {
       expect(body['password'], 'a-strong-password');
     },
   );
+
+  test('signUpWithEmailPassword forwards first/last name, phone, and dob as '
+      'signup metadata', () async {
+    http.Request? capturedRequest;
+    final mockClient = MockClient((request) async {
+      capturedRequest = request;
+      return http.Response(
+        jsonEncode(
+          _sessionJson(userId: 'new-user-id', email: 'new@example.com'),
+        ),
+        200,
+      );
+    });
+    final client = SupabaseClient(
+      'https://example.supabase.co',
+      'test-publishable-key',
+      authOptions: _testAuthOptions,
+      httpClient: mockClient,
+    );
+    final service = AuthService(client: client);
+
+    await service.signUpWithEmailPassword(
+      'new@example.com',
+      'a-strong-password',
+      firstName: 'Jane',
+      lastName: 'Doe',
+      phone: '+15551234567',
+      dob: DateTime(1995, 6, 15),
+    );
+
+    expect(capturedRequest, isNotNull);
+    final body = jsonDecode(capturedRequest!.body) as Map<String, dynamic>;
+    final data = body['data'] as Map<String, dynamic>;
+    expect(data, {
+      'firstname': 'Jane',
+      'lastname': 'Doe',
+      'phone': '+15551234567',
+      'dob': '1995-06-15',
+    });
+  });
 
   test(
     'signUpWithEmailPassword throws AuthApiException for a duplicate email',
@@ -249,6 +293,10 @@ void main() {
         () => service.signUpWithEmailPassword(
           'existing@example.com',
           'a-strong-password',
+          firstName: 'Jane',
+          lastName: 'Doe',
+          phone: '+15551234567',
+          dob: DateTime(1995, 6, 15),
         ),
         throwsA(
           isA<AuthApiException>()

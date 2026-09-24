@@ -8,6 +8,21 @@ Reverse-chronological. Each session/major chunk of work gets an entry.
 
 ---
 
+## 2026-09-24 (owner-requested, interactive: profile editing moved into Settings)
+
+- Settings → Account now has Name / Phone / Date of Birth / Email rows, each editing one field in a bottom sheet (`EditFieldSheet`; DOB opens a date picker). `EditProfileScreen`, its route and the Profile tab's edit button are deleted. Email changes go through `auth.updateUser` + Supabase's confirmation link. See [[Decisions Log]] 2026-09-24.
+- Found live: `profiles` has only a SELECT policy, so the old direct `.update()` silently saved nothing in production. New `SECURITY DEFINER` RPC `update_own_profile` (migration `20260924000000`) does per-field updates with server-side validation — deliberately not an owner UPDATE policy, since `authenticated` holds column UPDATE grants on `role`/`id`/`deleted_at`. **Migration not yet applied live** (awaiting owner OK).
+- Fixed per owner decisions (see [[Decisions Log]] 2026-09-24): `20260924010000_fix_delete_own_account_anonymize.sql` (deletion never worked live because of `phone = null` vs NOT NULL; now scrubs profile + `auth.users` email/metadata, bans login, kills sessions, backfills already-deleted rows; helper lives in the unexposed `private` schema) and `20260924020000_tighten_public_table_grants.sql` (every-table audit: removes the default anon/authenticated grants incl. TRUNCATE, which RLS doesn't cover; keeps exactly what the RLS policies and app use). Settings no longer reports "delete failed" when only the post-delete sign-out errors.
+- All three 2026-09-24 migrations were **applied live by the owner** in the SQL editor. Claude Code's auto-mode check blocked the live write even with an allow rule, so production changes need the owner. Verified read-only: the RPC is authenticated-only; `private.anonymize_account` isn't callable by clients; `authenticated` can't UPDATE `profiles`/`role`; no TRUNCATE for the API roles; the catalog is still anon-readable; merchant/address writes still work; the pre-existing deleted account is fully scrubbed. The `schema_migrations` rows for these three versions still needed inserting at the time of writing.
+- Full suite 538/538. The QA agent caught a crash on sheet save (controllers disposed during the close animation); fixed by having the sheet own its controllers.
+
+## 2026-09-23, part 2 (owner-requested, interactive: required name/phone/DOB fields at registration)
+
+- `RegisterScreen` now requires First name, Last name, Phone, and DOB (date picker) alongside email/password; phone gets client-side format validation only (no OTP). `AppTextField` gained backward-compatible `readOnly`/`onTap` params for the date picker.
+- `AuthService.signUpWithEmailPassword` signature changed (breaking): now takes required named `firstName`/`lastName`/`phone`/`dob`, forwarded to `supabase.auth.signUp`'s `data:` metadata (`dob` as `'yyyy-MM-dd'`).
+- New migration `20260923000000_add_profile_dob_and_signup_metadata.sql` adds nullable `profiles.dob` and updates `handle_new_user()` to populate `firstname`/`lastname`/`phone`/`dob` from that signup metadata instead of hardcoded `''` placeholders. **Applied live 2026-09-24** (owner-approved) via the Management API query endpoint and recorded in `supabase_migrations.schema_migrations` as `20260923000000` — same manual path as 2026-09-22 part 3, since `db push` is still blocked by the history mismatch.
+- Built via `/build` (ui/logic/supabase/qa agents in parallel). Full suite 497/497 after qa-agent fixed the one call site broken by the signature change and added coverage for the new validation + metadata forwarding.
+
 ## 2026-09-23 (board worker — nothing eligible, queue unchanged, 3 runs today)
 
 - All three runs today: `list_issues` for `todo`/`waiting-on-you` returned only the same tracking-only pair, **#29/#52**. `waiting-on-you` empty. Each run's only new `master` commit since the prior run was that prior run's own vault-update PR (#259, then #260) — never new work.

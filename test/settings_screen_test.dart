@@ -51,20 +51,28 @@ Map<String, dynamic> _sessionJson({
 /// A signed-in [AuthService] backed by a mocked Supabase client, so
 /// `getCurrentUserId()`/`getCurrentUserEmail()` return real values without
 /// any network access.
+///
+/// Passing [httpClient] overrides the default handler (which just replies
+/// to every request with a fresh session) -- the Email-sheet tests below
+/// need a handler that also answers the `PUT /auth/v1/user` request
+/// `AuthService.updateEmail` sends.
 Future<AuthService> _signedInAuthService({
   required String userId,
   required String email,
+  http.Client? httpClient,
 }) async {
   final client = SupabaseClient(
     'https://example.supabase.co',
     'test-publishable-key',
     authOptions: _testAuthOptions,
-    httpClient: MockClient((request) async {
-      return http.Response(
-        jsonEncode(_sessionJson(userId: userId, email: email)),
-        200,
-      );
-    }),
+    httpClient:
+        httpClient ??
+        MockClient((request) async {
+          return http.Response(
+            jsonEncode(_sessionJson(userId: userId, email: email)),
+            200,
+          );
+        }),
   );
   final service = AuthService(client: client);
   await service.signInWithEmailPassword(email, 'a-strong-password');
@@ -72,26 +80,69 @@ Future<AuthService> _signedInAuthService({
 }
 
 class _FakeProfileRepository implements ProfileRepository {
-  _FakeProfileRepository(this.profile, {this.deleteAccountError});
+  _FakeProfileRepository(
+    this.profile, {
+    this.deleteAccountError,
+    this.updateError,
+  });
 
-  final CustomerProfile? profile;
+  CustomerProfile? profile;
 
   /// When non-null, [deleteAccount] throws this instead of succeeding, so
   /// the failure-path snackbar behavior can be exercised without a real
   /// backend error.
   final Object? deleteAccountError;
 
+  /// When non-null, [updateProfile] throws this instead of succeeding.
+  final Object? updateError;
+
   bool deleteAccountCalled = false;
+
+  /// One entry per [updateProfile] call, recording exactly which fields
+  /// were sent (a `null` entry means that field was left out of the call,
+  /// matching the real RPC's "only send what changed" contract).
+  final List<
+    ({String? firstName, String? lastName, String? phone, DateTime? dob})
+  >
+  updateCalls = [];
 
   @override
   Future<CustomerProfile?> fetchCurrentProfile() async => profile;
 
   @override
   Future<CustomerProfile> updateProfile({
-    required String firstName,
-    required String lastName,
-    required String phone,
-  }) async => throw UnimplementedError('not exercised by this test');
+    String? firstName,
+    String? lastName,
+    String? phone,
+    DateTime? dob,
+  }) async {
+    updateCalls.add((
+      firstName: firstName,
+      lastName: lastName,
+      phone: phone,
+      dob: dob,
+    ));
+    if (updateError != null) {
+      throw updateError!;
+    }
+    final current =
+        profile ??
+        const CustomerProfile(
+          id: 'customer-1',
+          firstName: '',
+          lastName: '',
+          phone: '',
+        );
+    final updated = CustomerProfile(
+      id: current.id,
+      firstName: firstName ?? current.firstName,
+      lastName: lastName ?? current.lastName,
+      phone: phone ?? current.phone,
+      dob: dob ?? current.dob,
+    );
+    profile = updated;
+    return updated;
+  }
 
   @override
   Future<void> deleteAccount() async {
@@ -142,7 +193,8 @@ Widget _pumpableSettingsScreen({
 
 void main() {
   testWidgets(
-    'shows the signed-in user\'s real email and phone, not placeholders',
+    'shows the signed-in user\'s real name, phone, date of birth, and '
+    'email, not placeholders',
     (tester) async {
       final authService = await _signedInAuthService(
         userId: 'customer-1',
@@ -160,6 +212,7 @@ void main() {
                 firstName: 'Amina',
                 lastName: 'Noor',
                 phone: '+252 61 111 2222',
+                dob: DateTime(1995, 6, 15),
               ),
             ),
             notificationPreferencesStorage:
@@ -169,43 +222,51 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('amina@zivo.app'), findsOneWidget);
+      expect(find.text('Amina Noor'), findsOneWidget);
       expect(find.text('+252 61 111 2222'), findsOneWidget);
+      // Formatted the same way SettingsScreen's `_dobSubtitle` does.
+      expect(find.text('Jun 15, 1995'), findsOneWidget);
+      expect(find.text('amina@zivo.app'), findsOneWidget);
       expect(find.text('user@example.com'), findsNothing);
       expect(find.text('+1 234 567 8900'), findsNothing);
     },
   );
 
-  testWidgets('shows honest fallback text when there is no phone on file', (
-    tester,
-  ) async {
-    final authService = await _signedInAuthService(
-      userId: 'customer-2',
-      email: 'no-phone@zivo.app',
-    );
+  testWidgets(
+    'shows honest fallback text for a phone number and date of birth that '
+    'are not on file',
+    (tester) async {
+      final authService = await _signedInAuthService(
+        userId: 'customer-2',
+        email: 'no-phone@zivo.app',
+      );
 
-    await tester.pumpWidget(
-      MaterialApp(
-        theme: buildAppTheme(),
-        home: SettingsScreen(
-          authService: authService,
-          profileRepository: _FakeProfileRepository(
-            CustomerProfile(
-              id: 'customer-2',
-              firstName: 'Sam',
-              lastName: '',
-              phone: '',
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: buildAppTheme(),
+          home: SettingsScreen(
+            authService: authService,
+            profileRepository: _FakeProfileRepository(
+              CustomerProfile(
+                id: 'customer-2',
+                firstName: 'Sam',
+                lastName: '',
+                phone: '',
+              ),
             ),
+            notificationPreferencesStorage:
+                MemoryNotificationPreferencesStorage(),
           ),
-          notificationPreferencesStorage:
-              MemoryNotificationPreferencesStorage(),
         ),
-      ),
-    );
-    await tester.pumpAndSettle();
+      );
+      await tester.pumpAndSettle();
 
-    expect(find.text('Not added yet'), findsOneWidget);
-  });
+      // Name still has a value ('Sam'), but phone and date of birth are both
+      // empty/null on this profile, so the fallback shows for each of them.
+      expect(find.text('Sam'), findsOneWidget);
+      expect(find.text('Not added yet'), findsNWidgets(2));
+    },
+  );
 
   testWidgets(
     'dead nav rows (Language/Currency/Theme) are honest placeholders with '
@@ -240,10 +301,12 @@ void main() {
       // Privacy Policy and Terms & Conditions now navigate to real screens
       // (issue #37).
       expect(find.text('Coming soon'), findsNWidgets(3));
-      // The real destinations (Phone Number, Change Password, About Us,
-      // Privacy Policy, Terms & Conditions) should render the "this row
-      // navigates" chevron.
-      expect(find.byIcon(Icons.arrow_forward_ios), findsNWidgets(5));
+      // The real destinations (Name, Phone Number, Date of Birth, Email
+      // Address, Change Password, About Us, Privacy Policy, Terms &
+      // Conditions) should render the "this row navigates" chevron —
+      // profile editing moved into Settings, so Name/Date of Birth/Email
+      // are now real destinations too (issue #13).
+      expect(find.byIcon(Icons.arrow_forward_ios), findsNWidgets(8));
 
       expect(tester.takeException(), isNull);
     },
@@ -714,6 +777,247 @@ void main() {
       expect(find.textContaining('Could not delete account'), findsOneWidget);
       expect(authService.getCurrentUserId(), isNotNull);
       expect(find.text('Login destination'), findsNothing);
+    },
+  );
+
+  testWidgets(
+    'an empty first name in the Name sheet shows an inline error and does '
+    'not call the repository',
+    (tester) async {
+      final authService = await _signedInAuthService(
+        userId: 'customer-15',
+        email: 'user15@zivo.app',
+      );
+      final repository = _FakeProfileRepository(
+        const CustomerProfile(
+          id: 'customer-15',
+          firstName: 'Amina',
+          lastName: 'Noor',
+          phone: '+252 61 000 0000',
+        ),
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: buildAppTheme(),
+          home: SettingsScreen(
+            authService: authService,
+            profileRepository: repository,
+            notificationPreferencesStorage:
+                MemoryNotificationPreferencesStorage(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.ensureVisible(find.text('Name'));
+      await tester.tap(find.text('Name'));
+      await tester.pumpAndSettle();
+
+      await tester.enterText(find.widgetWithText(TextField, 'Amina').first, '');
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Enter your first name.'), findsOneWidget);
+      expect(repository.updateCalls, isEmpty);
+    },
+  );
+
+  // Regression: a successful save pops the sheet, and its fields must not
+  // be bound to disposed controllers during the close animation.
+  testWidgets(
+    'tapping Name opens the edit sheet prefilled with the current name, and '
+    'saving updates the row and shows a confirmation',
+    (tester) async {
+      final authService = await _signedInAuthService(
+        userId: 'customer-14',
+        email: 'user14@zivo.app',
+      );
+      final repository = _FakeProfileRepository(
+        const CustomerProfile(
+          id: 'customer-14',
+          firstName: 'Amina',
+          lastName: 'Noor',
+          phone: '+252 61 000 0000',
+        ),
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: buildAppTheme(),
+          home: SettingsScreen(
+            authService: authService,
+            profileRepository: repository,
+            notificationPreferencesStorage:
+                MemoryNotificationPreferencesStorage(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.ensureVisible(find.text('Name'));
+      await tester.tap(find.text('Name'));
+      await tester.pumpAndSettle();
+
+      // Prefilled with the current first/last name.
+      expect(find.text('Amina'), findsOneWidget);
+      expect(find.text('Noor'), findsOneWidget);
+
+      await tester.enterText(
+        find.widgetWithText(TextField, 'Noor').first,
+        'Hassan',
+      );
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+
+      expect(repository.updateCalls, hasLength(1));
+      expect(repository.updateCalls.single.firstName, 'Amina');
+      expect(repository.updateCalls.single.lastName, 'Hassan');
+      // Phone/DOB weren't part of this edit, so they must stay untouched.
+      expect(repository.updateCalls.single.phone, isNull);
+      expect(repository.updateCalls.single.dob, isNull);
+
+      expect(find.text('Amina Hassan'), findsOneWidget);
+      expect(find.text('Profile updated'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'a repository failure while saving the Name sheet surfaces the generic '
+    'save-failure message instead of silently doing nothing',
+    (tester) async {
+      final authService = await _signedInAuthService(
+        userId: 'customer-17',
+        email: 'user17@zivo.app',
+      );
+      final repository = _FakeProfileRepository(
+        const CustomerProfile(
+          id: 'customer-17',
+          firstName: 'Amina',
+          lastName: 'Noor',
+          phone: '+252 61 000 0000',
+        ),
+        updateError: StateError('network down'),
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: buildAppTheme(),
+          home: SettingsScreen(
+            authService: authService,
+            profileRepository: repository,
+            notificationPreferencesStorage:
+                MemoryNotificationPreferencesStorage(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.ensureVisible(find.text('Name'));
+      await tester.tap(find.text('Name'));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+
+      expect(repository.updateCalls, hasLength(1));
+      expect(
+        find.text('Could not save your profile. Please try again.'),
+        findsOneWidget,
+      );
+      // The sheet stays open (no result popped) so nothing on the row
+      // behind it should have changed.
+      expect(find.text('Amina Noor'), findsOneWidget);
+    },
+  );
+
+  // See the NOTE above 'tapping Name opens the edit sheet...': a successful
+  // save here also pops the sheet through the same
+  // dispose-before-close-transition race in `_editEmail`, so this is
+  // skipped for the same reason.
+  testWidgets(
+    'saving a new email address in the Email sheet shows the confirm-inbox '
+    'message instead of updating the profile row directly',
+    (tester) async {
+      const userId = 'customer-16';
+      const currentEmail = 'current@zivo.app';
+      const newEmail = 'new@zivo.app';
+      http.Request? capturedUpdateRequest;
+
+      final authService = await _signedInAuthService(
+        userId: userId,
+        email: currentEmail,
+        httpClient: MockClient((request) async {
+          if (request.url.path == '/auth/v1/user') {
+            capturedUpdateRequest = request;
+            return http.Response(
+              jsonEncode({
+                'id': userId,
+                'aud': 'authenticated',
+                'email': newEmail,
+                'app_metadata': <String, dynamic>{},
+                'user_metadata': <String, dynamic>{},
+                'created_at': DateTime.now().toIso8601String(),
+              }),
+              200,
+            );
+          }
+          return http.Response(
+            jsonEncode(_sessionJson(userId: userId, email: currentEmail)),
+            200,
+          );
+        }),
+      );
+      final repository = _FakeProfileRepository(
+        const CustomerProfile(
+          id: userId,
+          firstName: 'Amina',
+          lastName: 'Noor',
+          phone: '+252 61 000 0000',
+        ),
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: buildAppTheme(),
+          home: SettingsScreen(
+            authService: authService,
+            profileRepository: repository,
+            notificationPreferencesStorage:
+                MemoryNotificationPreferencesStorage(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.ensureVisible(find.text('Email Address'));
+      await tester.tap(find.text('Email Address'));
+      await tester.pumpAndSettle();
+
+      // Matches both the settings row behind the sheet and the sheet's
+      // prefilled field.
+      expect(find.text(currentEmail), findsWidgets);
+
+      await tester.enterText(
+        find.widgetWithText(TextField, currentEmail).first,
+        newEmail,
+      );
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+
+      expect(capturedUpdateRequest, isNotNull);
+      expect(capturedUpdateRequest!.method, 'PUT');
+      final body =
+          jsonDecode(capturedUpdateRequest!.body) as Map<String, dynamic>;
+      expect(body['email'], newEmail);
+
+      // The address only takes effect once the confirmation link is
+      // tapped, so the profile repository is never touched by this flow.
+      expect(repository.updateCalls, isEmpty);
+      expect(
+        find.text('Check your new inbox to confirm your email change.'),
+        findsOneWidget,
+      );
     },
   );
 }

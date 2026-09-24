@@ -5,23 +5,27 @@ import '../models/customer_profile.dart';
 abstract interface class ProfileRepository {
   Future<CustomerProfile?> fetchCurrentProfile();
 
-  /// Writes [firstName], [lastName], and [phone] to the current
-  /// authenticated user's own `profiles` row and returns the row as saved.
+  /// Writes any of [firstName], [lastName], [phone], or [dob] — whichever
+  /// are non-null — to the current authenticated user's own `profiles` row
+  /// and returns the row as saved. A `null` argument leaves that column
+  /// unchanged; this lets callers update a single field at a time (see
+  /// `ProfileEditController.updateName`/`updatePhone`/`updateDob`) without
+  /// re-sending the others.
   ///
-  /// Scoped to the signed-in user only — implementations must derive the
-  /// target row from the active session (never from a caller-supplied id),
-  /// matching [fetchCurrentProfile] and relying on the same
-  /// `"Profiles are editable by owner"` row-level-security policy
-  /// (`supabase/schema.sql`) as a second line of defense.
-  ///
-  /// [phone] may be empty, which is stored as `null` (the column is
-  /// nullable); [firstName] and [lastName] must be non-empty since the
-  /// column is `not null` — callers are expected to validate before calling
-  /// (see `ProfileEditController`).
+  /// `public.profiles` has row-level security with only a `SELECT` policy —
+  /// there is no `UPDATE` policy a direct `.update()` call could satisfy.
+  /// Implementations must instead call the `update_own_profile` `security
+  /// definer` RPC, which derives the target row from `auth.uid()`
+  /// server-side (never from a caller-supplied id, matching
+  /// [fetchCurrentProfile]) and re-validates the input, raising on anything
+  /// invalid rather than trusting the client. Callers are still expected to
+  /// validate before calling for fast, field-specific error messages (see
+  /// `ProfileEditController`), but the server check is the real guarantee.
   Future<CustomerProfile> updateProfile({
-    required String firstName,
-    required String lastName,
-    required String phone,
+    String? firstName,
+    String? lastName,
+    String? phone,
+    DateTime? dob,
   });
 
   /// Permanently deletes (anonymizes) the current authenticated user's own
@@ -54,7 +58,7 @@ class SupabaseProfileRepository implements ProfileRepository {
 
     final row = await _client
         .from('profiles')
-        .select('id, firstname, lastname, phone, avatar_url')
+        .select('id, firstname, lastname, phone, avatar_url, dob')
         .eq('id', profileId)
         .maybeSingle();
     if (row == null) {
@@ -65,28 +69,26 @@ class SupabaseProfileRepository implements ProfileRepository {
 
   @override
   Future<CustomerProfile> updateProfile({
-    required String firstName,
-    required String lastName,
-    required String phone,
+    String? firstName,
+    String? lastName,
+    String? phone,
+    DateTime? dob,
   }) async {
     final profileId = _client.auth.currentUser?.id;
     if (profileId == null) {
       throw StateError('Sign in before updating a customer profile.');
     }
 
-    final trimmedPhone = phone.trim();
     final row = await _client
-        .from('profiles')
-        .update({
-          'firstname': firstName.trim(),
-          'lastname': lastName.trim(),
-          'phone': trimmedPhone.isEmpty ? null : trimmedPhone,
-        })
-        // Scopes the write to the signed-in user's own row — never trust an
-        // id from the caller. RLS ("Profiles are editable by owner") backs
-        // this up independently.
-        .eq('id', profileId)
-        .select('id, firstname, lastname, phone, avatar_url')
+        .rpc<PostgrestMap>(
+          'update_own_profile',
+          params: {
+            'p_firstname': ?firstName,
+            'p_lastname': ?lastName,
+            'p_phone': ?phone,
+            'p_dob': ?dob?.toIso8601String().split('T').first,
+          },
+        )
         .single();
     return CustomerProfile.fromMap(Map<String, dynamic>.from(row));
   }

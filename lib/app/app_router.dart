@@ -16,7 +16,6 @@ import '../features/merchant/shell/presentation/merchant_shell.dart';
 import '../features/onboarding/data/onboarding_preferences.dart';
 import '../features/onboarding/presentation/welcome_screen.dart';
 import '../features/orders/presentation/track_order_screen.dart';
-import '../features/profile/presentation/edit_profile_screen.dart';
 import '../features/profile/presentation/profile_screen.dart';
 import '../features/settings/presentation/settings_screen.dart';
 import '../features/super_app/presentation/super_app_home_screen.dart';
@@ -152,7 +151,6 @@ class AppRouter {
   // above needed to move into the shell.
   static const Map<String, Widget> _standaloneProtectedPages = {
     AppRoutes.services: CategoriesScreen(),
-    AppRoutes.editProfile: EditProfileScreen(),
     AppRoutes.addresses: AddressesScreen(),
     AppRoutes.settings: SettingsScreen(),
     // Reachable both from Settings (normal session) and by tapping a

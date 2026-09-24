@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 
 import '../../../app/app_routes.dart';
 import '../../../config/theme.dart';
@@ -24,26 +25,59 @@ class RegisterScreen extends StatefulWidget {
 class _RegisterScreenState extends State<RegisterScreen> {
   // AuthService keeps the screen separate from the low-level Supabase calls.
   AuthService get _authService => widget.authService ?? AuthService();
+  final TextEditingController _firstNameController = TextEditingController();
+  final TextEditingController _lastNameController = TextEditingController();
+  final TextEditingController _phoneController = TextEditingController();
+  final TextEditingController _dobController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController =
       TextEditingController();
+  DateTime? _dob;
   bool _isLoading = false;
 
   @override
   void dispose() {
+    _firstNameController.dispose();
+    _lastNameController.dispose();
+    _phoneController.dispose();
+    _dobController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     super.dispose();
   }
 
+  Future<void> _pickDob() async {
+    final now = DateTime.now();
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _dob ?? DateTime(now.year - 18, now.month, now.day),
+      firstDate: DateTime(now.year - 120, now.month, now.day),
+      lastDate: now,
+    );
+    if (picked == null) return;
+    setState(() {
+      _dob = picked;
+      _dobController.text = DateFormat('MMM d, yyyy').format(picked);
+    });
+  }
+
   Future<void> _register() async {
+    final firstName = _firstNameController.text.trim();
+    final lastName = _lastNameController.text.trim();
+    final phone = _phoneController.text.trim();
     final email = _emailController.text.trim();
     final password = _passwordController.text;
     final confirmPassword = _confirmPasswordController.text;
 
-    if (email.isEmpty || password.isEmpty || confirmPassword.isEmpty) {
+    if (firstName.isEmpty ||
+        lastName.isEmpty ||
+        phone.isEmpty ||
+        _dob == null ||
+        email.isEmpty ||
+        password.isEmpty ||
+        confirmPassword.isEmpty) {
       _showMessage('Please fill in every field.');
       return;
     }
@@ -59,6 +93,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
       _showMessage('Please enter a valid email address.');
       return;
     }
+    final phoneRegex = RegExp(r'^\+?[0-9\s-]{7,15}$');
+    if (!phoneRegex.hasMatch(phone)) {
+      _showMessage('Please enter a valid phone number.');
+      return;
+    }
     if (password != confirmPassword) {
       _showMessage('Passwords do not match.');
       return;
@@ -69,6 +108,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
       final response = await _authService.signUpWithEmailPassword(
         email,
         password,
+        firstName: firstName,
+        lastName: lastName,
+        phone: phone,
+        dob: _dob!,
       );
       if (!mounted) return;
 
@@ -171,6 +214,45 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               style: TwText.textSm,
                             ),
                             const SizedBox(height: TwSpacing.rhythmSection),
+                            AppTextField(
+                              controller: _firstNameController,
+                              label: 'First name',
+                              hint: 'Jane',
+                              prefixIcon: Icons.person_outline_rounded,
+                              textInputAction: TextInputAction.next,
+                              autofillHints: const [AutofillHints.givenName],
+                            ),
+                            const SizedBox(height: TwSpacing.rhythmDefault),
+                            AppTextField(
+                              controller: _lastNameController,
+                              label: 'Last name',
+                              hint: 'Doe',
+                              prefixIcon: Icons.person_outline_rounded,
+                              textInputAction: TextInputAction.next,
+                              autofillHints: const [AutofillHints.familyName],
+                            ),
+                            const SizedBox(height: TwSpacing.rhythmDefault),
+                            AppTextField(
+                              controller: _phoneController,
+                              label: 'Phone number',
+                              hint: '+1 555 123 4567',
+                              keyboardType: TextInputType.phone,
+                              prefixIcon: Icons.phone_outlined,
+                              textInputAction: TextInputAction.next,
+                              autofillHints: const [
+                                AutofillHints.telephoneNumber,
+                              ],
+                            ),
+                            const SizedBox(height: TwSpacing.rhythmDefault),
+                            AppTextField(
+                              controller: _dobController,
+                              label: 'Date of birth',
+                              hint: 'Select your date of birth',
+                              prefixIcon: Icons.cake_outlined,
+                              readOnly: true,
+                              onTap: _pickDob,
+                            ),
+                            const SizedBox(height: TwSpacing.rhythmDefault),
                             AppTextField(
                               controller: _emailController,
                               label: 'Email address',

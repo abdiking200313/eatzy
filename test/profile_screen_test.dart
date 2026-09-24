@@ -35,7 +35,9 @@ void main() {
     expect(find.text('+252 61 234 5678'), findsOneWidget);
     expect(find.text('Addresses'), findsOneWidget);
     expect(find.text('Logout'), findsOneWidget);
-    expect(find.byIcon(Icons.edit_outlined), findsOneWidget);
+    // Profile editing moved into Settings (Name/Phone/Date of Birth/Email
+    // sheets); the standalone edit-profile entry point no longer exists here.
+    expect(find.byIcon(Icons.edit_outlined), findsNothing);
 
     expect(find.text('Gold Member'), findsNothing);
     expect(find.text('Activity'), findsNothing);
@@ -152,9 +154,10 @@ class _ProfileRepository implements ProfileRepository {
 
   @override
   Future<CustomerProfile> updateProfile({
-    required String firstName,
-    required String lastName,
-    required String phone,
+    String? firstName,
+    String? lastName,
+    String? phone,
+    DateTime? dob,
   }) async => throw UnimplementedError('not exercised by this test');
 
   @override
@@ -172,9 +175,10 @@ class _ThrowingProfileRepository implements ProfileRepository {
 
   @override
   Future<CustomerProfile> updateProfile({
-    required String firstName,
-    required String lastName,
-    required String phone,
+    String? firstName,
+    String? lastName,
+    String? phone,
+    DateTime? dob,
   }) async => throw error;
 
   @override

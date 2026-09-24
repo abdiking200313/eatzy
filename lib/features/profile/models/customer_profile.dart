@@ -5,6 +5,7 @@ class CustomerProfile {
     required this.lastName,
     required this.phone,
     this.avatarUrl,
+    this.dob,
   });
 
   final String id;
@@ -12,6 +13,7 @@ class CustomerProfile {
   final String lastName;
   final String phone;
   final String? avatarUrl;
+  final DateTime? dob;
 
   String get displayName {
     final name = [firstName, lastName].join(' ').trim();
@@ -25,6 +27,7 @@ class CustomerProfile {
       lastName: _optionalString(map, 'lastname') ?? '',
       phone: _optionalString(map, 'phone') ?? '',
       avatarUrl: _optionalString(map, 'avatar_url'),
+      dob: DateTime.tryParse(map['dob']?.toString() ?? ''),
     );
   }
 }

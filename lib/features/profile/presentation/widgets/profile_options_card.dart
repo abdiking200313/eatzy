@@ -6,9 +6,19 @@ import '../../../../widgets/app_cards.dart';
 import '../models/profile_models.dart';
 
 class ProfileOptionsCard extends StatelessWidget {
-  const ProfileOptionsCard({super.key, required this.options});
+  const ProfileOptionsCard({
+    super.key,
+    required this.options,
+    this.onOptionTap,
+  });
 
   final List<ProfileOption> options;
+
+  /// Overrides each tile's default `context.push(option.route)` navigation
+  /// when set, letting a caller react after returning from the pushed
+  /// route — e.g. `ProfileScreen` reloading the profile header after a trip
+  /// through Settings' profile-edit sheets.
+  final void Function(BuildContext context, ProfileOption option)? onOptionTap;
 
   @override
   Widget build(BuildContext context) {
@@ -17,7 +27,7 @@ class ProfileOptionsCard extends StatelessWidget {
       child: Column(
         children: [
           for (final option in options) ...[
-            _ProfileOptionTile(option: option),
+            _ProfileOptionTile(option: option, onOptionTap: onOptionTap),
             if (option != options.last) const Divider(),
           ],
         ],
@@ -48,11 +58,13 @@ class _ProfileOptionTile extends StatelessWidget {
   const _ProfileOptionTile({
     required this.option,
     this.onTap,
+    this.onOptionTap,
     this.isDestructive = false,
   });
 
   final ProfileOption option;
   final VoidCallback? onTap;
+  final void Function(BuildContext context, ProfileOption option)? onOptionTap;
   final bool isDestructive;
 
   @override
@@ -100,7 +112,11 @@ class _ProfileOptionTile extends StatelessWidget {
       ),
       onTap:
           onTap ??
-          (option.route == null ? null : () => context.push(option.route!)),
+          (option.route == null
+              ? null
+              : () => onOptionTap != null
+                    ? onOptionTap!(context, option)
+                    : context.push(option.route!)),
     );
   }
 }

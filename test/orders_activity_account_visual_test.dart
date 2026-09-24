@@ -161,9 +161,10 @@ class _FakeProfileRepository implements ProfileRepository {
 
   @override
   Future<CustomerProfile> updateProfile({
-    required String firstName,
-    required String lastName,
-    required String phone,
+    String? firstName,
+    String? lastName,
+    String? phone,
+    DateTime? dob,
   }) async => throw UnimplementedError('not exercised by this test');
 
   @override
