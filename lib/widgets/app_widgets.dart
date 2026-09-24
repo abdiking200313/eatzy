@@ -11,6 +11,8 @@ class AppTextField extends StatefulWidget {
   final TextInputAction? textInputAction;
   final Iterable<String>? autofillHints;
   final ValueChanged<String>? onSubmitted;
+  final bool readOnly;
+  final VoidCallback? onTap;
 
   const AppTextField({
     super.key,
@@ -23,6 +25,8 @@ class AppTextField extends StatefulWidget {
     this.textInputAction,
     this.autofillHints,
     this.onSubmitted,
+    this.readOnly = false,
+    this.onTap,
   });
 
   @override
@@ -57,6 +61,8 @@ class _AppTextFieldState extends State<AppTextField> {
       textInputAction: widget.textInputAction,
       autofillHints: widget.autofillHints,
       onSubmitted: widget.onSubmitted,
+      readOnly: widget.readOnly,
+      onTap: widget.onTap,
       decoration: InputDecoration(
         labelText: widget.label,
         hintText: widget.hint,

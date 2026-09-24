@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../app/app_routes.dart';
@@ -11,8 +12,10 @@ import '../../auth/data/auth_error_message.dart';
 import '../../auth/data/auth_service.dart';
 import '../../profile/data/profile_repository.dart';
 import '../../profile/models/customer_profile.dart';
+import '../../profile/presentation/profile_edit_controller.dart';
 import '../data/notification_preferences_repository.dart';
 import 'widgets/about_zivo_sheet.dart';
+import 'widgets/edit_field_sheet.dart';
 import 'widgets/setting_card.dart';
 import 'widgets/toggle_card.dart';
 
@@ -39,8 +42,15 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   NotificationPreferences _preferences = NotificationPreferences.defaults;
-  late final Future<CustomerProfile?> _profileFuture;
+  CustomerProfile? _profile;
+  bool _profileLoading = true;
   String? _email;
+
+  late final ProfileEditController _profileEditController =
+      ProfileEditController(
+        profileRepository: widget.profileRepository,
+        authService: widget.authService,
+      );
 
   AuthService get _authService => widget.authService ?? AuthService();
 
@@ -59,8 +69,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
   void initState() {
     super.initState();
     _email = _readCurrentUserEmail();
-    _profileFuture = _loadProfile();
+    _loadProfile();
     _loadPreferences();
+  }
+
+  @override
+  void dispose() {
+    _profileEditController.dispose();
+    super.dispose();
   }
 
   // AuthService()'s default constructor reaches for Supabase.instance.client,
@@ -84,12 +100,173 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
-  Future<CustomerProfile?> _loadProfile() async {
+  Future<void> _loadProfile() async {
+    CustomerProfile? profile;
     try {
-      return await _profileRepository.fetchCurrentProfile();
+      profile = await _profileRepository.fetchCurrentProfile();
     } on Object {
-      return null;
+      profile = null;
     }
+    if (!mounted) return;
+    setState(() {
+      _profile = profile;
+      _profileLoading = false;
+    });
+  }
+
+  /// Applies a successful [ProfileEditResult] from one of the Name / Phone
+  /// Number / Date of Birth sheets: updates the displayed profile in place
+  /// and shows the standard confirmation `SnackBar`. A `null`/unsuccessful
+  /// result (sheet dismissed without saving, or save failed) is a no-op —
+  /// [EditFieldSheet] only pops itself with a result on success.
+  void _applyProfileEditResult(ProfileEditResult? result) {
+    if (!mounted || result == null || !result.isSuccess) return;
+    setState(() {
+      if (result.profile != null) _profile = result.profile;
+    });
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Profile updated')));
+  }
+
+  Future<void> _editName() async {
+    final result = await showModalBottomSheet<ProfileEditResult>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (sheetContext) => EditFieldSheet(
+        title: 'Edit name',
+        controller: _profileEditController,
+        fields: [
+          EditFieldSpec(
+            initialValue: _profile?.firstName ?? '',
+            label: 'First name',
+            textCapitalization: TextCapitalization.words,
+            prefixIcon: Icons.person_outline,
+            errorMessages: const ['Enter your first name.'],
+          ),
+          EditFieldSpec(
+            initialValue: _profile?.lastName ?? '',
+            label: 'Last name',
+            textCapitalization: TextCapitalization.words,
+            prefixIcon: Icons.person_outline,
+            errorMessages: const ['Enter your last name.'],
+          ),
+        ],
+        onSave: (values) => _profileEditController.updateName(
+          firstName: values[0],
+          lastName: values[1],
+        ),
+      ),
+    );
+    _applyProfileEditResult(result);
+  }
+
+  Future<void> _editPhone() async {
+    final result = await showModalBottomSheet<ProfileEditResult>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (sheetContext) => EditFieldSheet(
+        title: 'Edit phone number',
+        controller: _profileEditController,
+        fields: [
+          EditFieldSpec(
+            initialValue: _profile?.phone ?? '',
+            label: 'Phone number',
+            hintText: '+252 …',
+            keyboardType: TextInputType.phone,
+            prefixIcon: Icons.phone_outlined,
+            errorMessages: const [
+              'Enter your phone number.',
+              'Please enter a valid phone number.',
+            ],
+          ),
+        ],
+        onSave: (values) => _profileEditController.updatePhone(values[0]),
+      ),
+    );
+    _applyProfileEditResult(result);
+  }
+
+  Future<void> _editEmail() async {
+    final result = await showModalBottomSheet<ProfileEditResult>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (sheetContext) => EditFieldSheet(
+        title: 'Edit email address',
+        controller: _profileEditController,
+        helperText:
+            "We'll send a confirmation link to your new email address. "
+            "The change only applies once you confirm it.",
+        fields: [
+          EditFieldSpec(
+            initialValue: _email ?? '',
+            label: 'Email address',
+            keyboardType: TextInputType.emailAddress,
+            prefixIcon: Icons.email_outlined,
+            errorMessages: const [
+              'Enter your email address.',
+              'Please enter a valid email address.',
+              "That's already your email address.",
+            ],
+          ),
+        ],
+        onSave: (values) => _profileEditController.updateEmail(values[0]),
+      ),
+    );
+    if (!mounted || result == null || !result.isSuccess) return;
+    // updateEmail's contract leaves `profile` null on success -- the change
+    // only takes effect once the user confirms via the emailed link, so
+    // there is nothing yet to merge into `_profile`/`_email`.
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Check your new inbox to confirm your email change.'),
+      ),
+    );
+  }
+
+  Future<void> _editDob() async {
+    final now = DateTime.now();
+    final eighteenYearsAgo = DateTime(now.year - 18, now.month, now.day);
+    final picked = await showDatePicker(
+      context: context,
+      firstDate: DateTime(now.year - 120, now.month, now.day),
+      lastDate: now,
+      initialDate: _profile?.dob ?? eighteenYearsAgo,
+    );
+    if (picked == null || !mounted) return;
+    final result = await _profileEditController.updateDob(picked);
+    if (!mounted) return;
+    if (result.isSuccess) {
+      _applyProfileEditResult(result);
+      return;
+    }
+    final message = result.errors.isNotEmpty
+        ? result.errors.first
+        : (_profileEditController.submissionError ??
+              'Could not save your profile. Please try again.');
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  /// `CustomerProfile.displayName` always falls back to 'Zivo customer'
+  /// rather than an empty string, which is right for `ProfileHeader` but
+  /// would misleadingly imply a name was saved on this row -- so this row
+  /// checks the underlying first/last name directly instead.
+  static String _nameSubtitle(CustomerProfile? profile) {
+    final hasName =
+        (profile?.firstName.isNotEmpty ?? false) ||
+        (profile?.lastName.isNotEmpty ?? false);
+    return hasName ? profile!.displayName : 'Not added yet';
+  }
+
+  static String _dobSubtitle(DateTime? dob) {
+    return dob == null
+        ? 'Not added yet'
+        : DateFormat('MMM d, yyyy').format(dob);
   }
 
   Future<void> _loadPreferences() async {
@@ -203,10 +380,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     try {
       await _profileRepository.deleteAccount();
-      // The account's PII is now wiped server-side; sign out immediately so
-      // the local session can't keep operating against the emptied profile
-      // (see ProfileRepository.deleteAccount's doc comment).
-      await _authService.signOut();
+      // The server already revoked every session, so a failing sign-out call
+      // must not be reported as a failed deletion; still clear locally.
+      try {
+        await _authService.signOut();
+      } on Object {
+        // Local session is cleared by signOut even when the server rejects it.
+      }
       if (mounted) context.go(AppRoutes.login);
     } catch (error) {
       if (!mounted) return;
@@ -284,41 +464,45 @@ class _SettingsScreenState extends State<SettingsScreen> {
               padding: EdgeInsets.zero,
               child: Column(
                 children: [
-                  // Shows the real signed-in email instead of the old
-                  // hardcoded placeholder. Stays inert (no chevron/onTap):
-                  // the profile-edit flow added by issue #13 only edits
-                  // name/phone, not the auth email, so there is nowhere
-                  // honest to send this tap yet.
+                  SettingCard(
+                    title: 'Name',
+                    subtitle: _profileLoading
+                        ? 'Loading…'
+                        : _nameSubtitle(_profile),
+                    icon: Icons.person_outline,
+                    onTap: _editName,
+                  ),
+                  const Divider(height: 1),
+                  SettingCard(
+                    title: 'Phone Number',
+                    subtitle: _profileLoading
+                        ? 'Loading…'
+                        : ((_profile?.phone.isNotEmpty ?? false)
+                              ? _profile!.phone
+                              : 'Not added yet'),
+                    icon: Icons.phone_outlined,
+                    onTap: _editPhone,
+                  ),
+                  const Divider(height: 1),
+                  SettingCard(
+                    title: 'Date of Birth',
+                    subtitle: _profileLoading
+                        ? 'Loading…'
+                        : _dobSubtitle(_profile?.dob),
+                    icon: Icons.cake_outlined,
+                    onTap: _editDob,
+                  ),
+                  const Divider(height: 1),
+                  // Now honestly navigable: unlike before issue #13's
+                  // Settings migration, an editable email flow exists
+                  // (`_editEmail`) so this row no longer has to stay inert.
                   SettingCard(
                     title: 'Email Address',
                     subtitle: (_email?.isNotEmpty ?? false)
                         ? _email!
                         : 'Not available',
                     icon: Icons.email_outlined,
-                  ),
-                  const Divider(height: 1),
-                  FutureBuilder<CustomerProfile?>(
-                    future: _profileFuture,
-                    builder: (context, snapshot) {
-                      final phone = snapshot.data?.phone;
-                      final isLoading =
-                          snapshot.connectionState == ConnectionState.waiting;
-                      final subtitle = isLoading
-                          ? 'Loading…'
-                          : ((phone?.isNotEmpty ?? false)
-                                ? phone!
-                                : 'Not added yet');
-                      return SettingCard(
-                        title: 'Phone Number',
-                        subtitle: subtitle,
-                        icon: Icons.phone_outlined,
-                        // A real profile-edit flow now exists on master
-                        // (issue #13) and lets the signed-in user change
-                        // their phone number, so this row can honestly
-                        // navigate there instead of staying inert.
-                        onTap: () => context.push(AppRoutes.editProfile),
-                      );
-                    },
+                    onTap: _editEmail,
                   ),
                   const Divider(height: 1),
                   SettingCard(

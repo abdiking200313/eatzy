@@ -26,9 +26,25 @@ class AuthService {
   //sign up with email password
   Future<AuthResponse> signUpWithEmailPassword(
     String email,
-    String password,
-  ) async {
-    return await _supabase.auth.signUp(email: email, password: password);
+    String password, {
+    required String firstName,
+    required String lastName,
+    required String phone,
+    required DateTime dob,
+  }) async {
+    return await _supabase.auth.signUp(
+      email: email,
+      password: password,
+      data: {
+        'firstname': firstName,
+        'lastname': lastName,
+        'phone': phone,
+        'dob': dob
+            .toIso8601String()
+            .split('T')
+            .first, // 'yyyy-MM-dd', matches a `date` column
+      },
+    );
   }
 
   //sign out
@@ -54,6 +70,15 @@ class AuthService {
     return await _supabase.auth.updateUser(
       UserAttributes(password: newPassword),
     );
+  }
+
+  // Starts an email change for the currently authenticated user. Supabase
+  // emails a confirmation link to the new address; the change only takes
+  // effect (and `getCurrentUserEmail`/`profiles` reflect it) once that link
+  // is tapped and confirmed -- this call succeeding does not mean the email
+  // has changed yet.
+  Future<UserResponse> updateEmail(String newEmail) async {
+    return await _supabase.auth.updateUser(UserAttributes(email: newEmail));
   }
 
   //current user
