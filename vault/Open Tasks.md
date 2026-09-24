@@ -7,7 +7,11 @@ upstream_concept: 00-Index
 
 # Open Tasks
 
-**Updated 2026-09-24, 2nd run (board worker), see [[Status Log]] 2026-09-22 for full detail on the last real work.** **Source of truth is always a live `list_issues`/`gh issue list --repo abdiking200313/eatzy --state open` call** — re-check before relying on this for anything that matters.
+**Updated 2026-09-24, 3rd run (board worker), see [[Status Log]] 2026-09-24 (profile editing / registration fields) for full detail on the last real work — both interactive, not this routine.** **Source of truth is always a live `list_issues`/`gh issue list --repo abdiking200313/eatzy --state open` call** — re-check before relying on this for anything that matters.
+
+## Update, 2026-09-24 (3rd run) — nothing eligible, queue unchanged
+
+- Same as the 2026-09-24 2nd run's end state (PR #263): only tracking-only **#29/#52** in `todo`, `waiting-on-you` empty. `master` gained one new interactive-session commit since PR #263 merged (`f5c841d`, "Merchant photo uploads, store logos, and grocery/pharmacy item pages") — not picked up, no open issue tracks it, consistent with the pattern of unrelated interactive commits noted on 2026-09-18/2026-09-20. Nothing implemented this run.
 
 ## Update, 2026-09-24 (2nd run) — nothing eligible, queue unchanged
 
