@@ -63,6 +63,7 @@ class GroceryProduct {
     required this.stockState,
     required this.availableQuantity,
     required this.icon,
+    this.imageUrl,
   });
 
   final String id;
@@ -77,6 +78,10 @@ class GroceryProduct {
   final GroceryStockState stockState;
   final double availableQuantity;
   final String icon;
+
+  /// Product photo (`grocery_products.image_url`), uploaded by the merchant.
+  /// `null` means no photo -- the UI falls back to [icon].
+  final String? imageUrl;
 
   double get quantityStep => pricingUnit == GroceryPricingUnit.each ? 1 : 0.5;
 
@@ -120,6 +125,7 @@ class GroceryProduct {
           : GroceryStockState.inStock,
       availableQuantity: availableQuantity,
       icon: _optionalString(map, 'icon', fallback: '🛒'),
+      imageUrl: _nullIfBlank(map['image_url']),
     );
   }
 
@@ -137,6 +143,7 @@ class GroceryProduct {
       'stock_state': stockState.name,
       'available_quantity': availableQuantity,
       'icon': icon,
+      'image_url': imageUrl,
     };
   }
 
@@ -155,6 +162,7 @@ class GroceryProduct {
       ),
       availableQuantity: _requiredDouble(json, 'available_quantity'),
       icon: _optionalString(json, 'icon', fallback: '🛒'),
+      imageUrl: _nullIfBlank(json['image_url']),
     );
   }
 }
@@ -390,4 +398,9 @@ int _requiredNonNegativeInt(Map<String, dynamic> map, String key) {
     throw FormatException('Invalid non-negative grocery integer: $key');
   }
   return parsed;
+}
+
+String? _nullIfBlank(Object? value) {
+  final trimmed = value?.toString().trim() ?? '';
+  return trimmed.isEmpty ? null : trimmed;
 }

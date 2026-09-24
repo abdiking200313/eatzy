@@ -84,8 +84,9 @@ class _ItemHero extends StatelessWidget {
   Widget build(BuildContext context) {
     final trimmedUrl = imageUrl.trim();
     final cacheScale = MediaQuery.of(context).devicePixelRatio.clamp(1.0, 3.0);
+    // Only the width is capped: capping both dimensions decodes to that
+    // exact box and squashes (stretches) any photo of a different shape.
     final cacheWidth = (MediaQuery.of(context).size.width * cacheScale).round();
-    final cacheHeight = (260 * cacheScale).round();
     return ColoredBox(
       color: TwColors.card,
       child: trimmedUrl.isEmpty
@@ -94,7 +95,6 @@ class _ItemHero extends StatelessWidget {
               imageUrl: trimmedUrl,
               fit: BoxFit.cover,
               memCacheWidth: cacheWidth,
-              memCacheHeight: cacheHeight,
               placeholder: (_, _) => const Center(
                 child: CircularProgressIndicator(strokeWidth: 2),
               ),

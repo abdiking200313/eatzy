@@ -280,15 +280,17 @@ class _CartItemImage extends StatelessWidget {
     // since a wider cap buys no visible sharpness on a thumbnail this
     // small while still inflating decode memory.
     final cacheScale = MediaQuery.of(context).devicePixelRatio.clamp(1.0, 3.0);
-    final cacheSize = (82 * cacheScale).round();
+    // Only the width is capped: capping both dimensions decodes to that
+    // exact box and squashes any photo that isn't already square. Doubled so
+    // a wide photo still decodes tall enough to cover-crop sharply.
+    final cacheWidth = (82 * 2 * cacheScale).round();
     return ClipRRect(
       borderRadius: BorderRadius.circular(12),
       child: CachedNetworkImage(
         imageUrl: imageUrl,
         width: 82,
         height: 82,
-        memCacheWidth: cacheSize,
-        memCacheHeight: cacheSize,
+        memCacheWidth: cacheWidth,
         fit: BoxFit.cover,
         placeholder: (_, _) => fallback,
         errorWidget: (_, _, _) => fallback,

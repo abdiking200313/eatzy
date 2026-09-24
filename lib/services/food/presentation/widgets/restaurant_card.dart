@@ -6,8 +6,8 @@ import '../../../../widgets/app_misc.dart';
 import '../../models/restaurant.dart';
 
 /// A tappable restaurant row on the restaurant-list screen, styled to match
-/// `GroceryStoreCard`/pharmacy's store rows (compact icon chip + text, no
-/// photo header) rather than a photo-forward card — kept in sync so the
+/// `GroceryStoreCard`/pharmacy's store rows (compact logo thumbnail + text,
+/// no photo header) rather than a photo-forward card — kept in sync so the
 /// three verticals' store-list screens read as one consistent pattern.
 class RestaurantCard extends StatelessWidget {
   const RestaurantCard({
@@ -21,7 +21,6 @@ class RestaurantCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final palette = context.serviceColors;
     return OutlinedCard(
       backgroundColor: TwColors.card,
       borderRadius: TwRadius.xl,
@@ -29,18 +28,11 @@ class RestaurantCard extends StatelessWidget {
       onTap: onPressed,
       child: Row(
         children: [
-          Container(
-            width: ServiceIconChip.size,
-            height: ServiceIconChip.size,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: palette.accent,
-              borderRadius: BorderRadius.circular(TwRadius.lg),
-            ),
-            child: Icon(
-              Icons.restaurant_rounded,
-              color: palette.onAccent,
-              size: 24,
+          PhotoThumbnail(
+            imageUrl: restaurant.logoUrl,
+            fallback: const ServiceIconChip(
+              icon: Icons.restaurant_rounded,
+              iconSize: 28,
             ),
           ),
           const SizedBox(width: TwSpacing.rhythmDefault),

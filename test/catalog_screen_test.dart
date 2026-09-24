@@ -214,6 +214,10 @@ void main() {
   testWidgets('adding an item through the form appends it to the list', (
     tester,
   ) async {
+    // Tall enough for the whole add-item sheet, photo field included.
+    tester.view.physicalSize = const Size(800, 1600);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
     final controller = MerchantCatalogController(
       repository: FakeMerchantCatalogRepository(),
       vertical: MerchantVertical.food,

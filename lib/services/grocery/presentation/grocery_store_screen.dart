@@ -11,6 +11,7 @@ import '../../../widgets/app_misc.dart';
 import '../../../widgets/app_scaffold.dart';
 import '../models/grocery_models.dart';
 import 'grocery_controller.dart';
+import 'grocery_product_details_screen.dart';
 import 'widgets/grocery_cart_badge_action.dart';
 import 'widgets/grocery_product_card.dart';
 
@@ -130,6 +131,7 @@ class _GroceryStoreScreenState extends State<GroceryStoreScreen> {
           searchController: _searchController,
           onSearchClear: _clearSearch,
           onAdd: _add,
+          onOpen: _openDetails,
           onRefresh: () => _controller.loadStore(store.id, forceRefresh: true),
           cartAction: GroceryCartBadgeAction(controller: _controller),
         ),
@@ -179,8 +181,23 @@ class _GroceryStoreScreenState extends State<GroceryStoreScreen> {
     );
   }
 
-  Future<void> _add(GroceryProduct product) async {
-    var result = _controller.addProduct(product);
+  void _openDetails(GroceryProduct product) {
+    final inCart = _controller.cart
+        .where((line) => line.product.id == product.id)
+        .fold<double>(0, (total, line) => total + line.quantity);
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => GroceryProductDetailsScreen(
+          product: product,
+          inCartQuantity: inCart,
+          onAddToCart: (steps) => _add(product, steps: steps),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _add(GroceryProduct product, {int steps = 1}) async {
+    var result = _controller.addProduct(product, steps: steps);
     if (result == GroceryAddResult.storeConflict) {
       final replace = await showDialog<bool>(
         context: context,
@@ -203,7 +220,11 @@ class _GroceryStoreScreenState extends State<GroceryStoreScreen> {
         ),
       );
       if (replace == true) {
-        result = _controller.addProduct(product, replaceStoreCart: true);
+        result = _controller.addProduct(
+          product,
+          replaceStoreCart: true,
+          steps: steps,
+        );
       }
     }
 
@@ -234,6 +255,7 @@ class _StoreView extends StatelessWidget {
     required this.searchController,
     required this.onSearchClear,
     required this.onAdd,
+    required this.onOpen,
     required this.onRefresh,
     required this.cartAction,
   });
@@ -243,6 +265,7 @@ class _StoreView extends StatelessWidget {
   final TextEditingController searchController;
   final VoidCallback onSearchClear;
   final ValueChanged<GroceryProduct> onAdd;
+  final ValueChanged<GroceryProduct> onOpen;
   final Future<void> Function() onRefresh;
   final Widget cartAction;
 
@@ -304,6 +327,7 @@ class _StoreView extends StatelessWidget {
                       return GroceryProductCard(
                         product: product,
                         onAdd: () => onAdd(product),
+                        onTap: () => onOpen(product),
                       );
                     },
                   ),
@@ -407,19 +431,19 @@ class _StoreHero extends StatelessWidget {
     final trimmedUrl = imageUrl.trim();
     // Mirrors `_RestaurantHero`'s decode-size reasoning: the hero fills the
     // SliverAppBar's expandedHeight at full screen width, so the screen
-    // width/expandedHeight are used as the practical decode bounds, scaled
+    // width is used as the practical decode bound, scaled
     // for device pixel density and capped at 3x since a wider cap buys no
     // visible sharpness while still inflating decode memory.
     final cacheScale = MediaQuery.of(context).devicePixelRatio.clamp(1.0, 3.0);
+    // Only the width is capped: capping both dimensions decodes to that
+    // exact box and squashes (stretches) any photo of a different shape.
     final cacheWidth = (MediaQuery.of(context).size.width * cacheScale).round();
-    final cacheHeight = (_kStoreHeroExtent * cacheScale).round();
     final image = trimmedUrl.isEmpty
         ? const _StoreHeroFallback()
         : CachedNetworkImage(
             imageUrl: trimmedUrl,
             fit: BoxFit.cover,
             memCacheWidth: cacheWidth,
-            memCacheHeight: cacheHeight,
             placeholder: (_, _) => const _StoreHeroFallback(showLoader: true),
             errorWidget: (_, _, _) => const _StoreHeroFallback(),
           );

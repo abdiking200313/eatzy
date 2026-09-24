@@ -10,6 +10,7 @@ class PharmacyProduct {
     required this.unitPrice,
     required this.stockQuantity,
     required this.saleType,
+    this.imageUrl,
   });
 
   final String id;
@@ -27,6 +28,10 @@ class PharmacyProduct {
   final int unitPrice;
   final int stockQuantity;
   final PharmacySaleType saleType;
+
+  /// Product photo (`pharmacy_products.image_url`), uploaded by the
+  /// merchant. `null` means no photo.
+  final String? imageUrl;
 
   bool get isOverTheCounter => saleType == PharmacySaleType.overTheCounter;
   bool get isAvailable => stockQuantity > 0;
@@ -65,6 +70,7 @@ class PharmacyProduct {
       unitPrice: unitPrice,
       stockQuantity: stockQuantity,
       saleType: saleType,
+      imageUrl: _nullIfBlank(map['image_url']),
     );
   }
 
@@ -81,6 +87,7 @@ class PharmacyProduct {
       'unit_price': unitPrice,
       'stock_quantity': stockQuantity,
       'sale_type': saleType.name,
+      'image_url': imageUrl,
     };
   }
 
@@ -96,6 +103,7 @@ class PharmacyProduct {
       saleType: PharmacySaleType.values.byName(
         _requiredString(json, 'sale_type'),
       ),
+      imageUrl: _nullIfBlank(json['image_url']),
     );
   }
 }
@@ -133,4 +141,9 @@ int _requiredInt(Map<String, dynamic> map, String key) {
     throw FormatException('Invalid pharmacy integer: $key');
   }
   return parsed;
+}
+
+String? _nullIfBlank(Object? value) {
+  final trimmed = value?.toString().trim() ?? '';
+  return trimmed.isEmpty ? null : trimmed;
 }

@@ -13,10 +13,14 @@ class GroceryProductCard extends StatelessWidget {
     super.key,
     required this.product,
     required this.onAdd,
+    this.onTap,
   });
 
   final GroceryProduct product;
   final VoidCallback onAdd;
+
+  /// Opens the product's details page.
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -42,22 +46,24 @@ class GroceryProductCard extends StatelessWidget {
     };
 
     // White card only (dimmed to neutral stone for the unavailable state);
-    // the per-service accent is confined to the 48px icon chip.
+    // the per-service accent is confined to the photo's fallback tile.
     return OutlinedCard(
       backgroundColor: product.isAvailable ? TwColors.card : TwColors.stone100,
       borderColor: product.isAvailable ? TwColors.border : TwColors.stone300,
+      onTap: onTap,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: ServiceIconChip.size,
-            height: ServiceIconChip.size,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: product.isAvailable ? palette.accent : TwColors.stone300,
-              borderRadius: BorderRadius.circular(TwRadius.lg),
+          PhotoThumbnail(
+            imageUrl: product.imageUrl,
+            fallback: Container(
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: product.isAvailable ? palette.accent : TwColors.stone300,
+                borderRadius: BorderRadius.circular(TwRadius.lg),
+              ),
+              child: Text(product.icon, style: const TextStyle(fontSize: 28)),
             ),
-            child: Text(product.icon, style: const TextStyle(fontSize: 24)),
           ),
           const SizedBox(width: TwSpacing.rhythmDefault),
           Expanded(

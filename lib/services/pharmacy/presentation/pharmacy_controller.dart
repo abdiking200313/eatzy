@@ -271,10 +271,15 @@ class PharmacyController extends ChangeNotifier with LoadableState {
   /// Pass `replaceStoreCart: true` (after user confirmation) to clear the
   /// existing cart and add [product] instead, keeping checkout scoped to a
   /// single pharmacy at a time (issue #141).
+  /// Adds [quantity] units of [product] -- all or nothing: if that would
+  /// exceed the stock, nothing is added and
+  /// [PharmacyCartAddResult.maximumStockReached] is returned.
   PharmacyCartAddResult addProduct(
     PharmacyProduct product, {
     bool replaceStoreCart = false,
+    int quantity = 1,
   }) {
+    assert(quantity >= 1, 'quantity must be at least 1');
     if (!product.isOverTheCounter) {
       return PharmacyCartAddResult.notOverTheCounter;
     }
@@ -294,18 +299,21 @@ class PharmacyController extends ChangeNotifier with LoadableState {
 
     final index = _indexOf(product.id);
     if (index == -1) {
-      _cartItems.add(PharmacyCartItem(product: product, quantity: 1));
+      if (quantity > product.stockQuantity) {
+        return PharmacyCartAddResult.maximumStockReached;
+      }
+      _cartItems.add(PharmacyCartItem(product: product, quantity: quantity));
       notifyListeners();
       unawaited(_persistCart());
       return PharmacyCartAddResult.added;
     }
 
     final item = _cartItems[index];
-    if (item.quantity >= product.stockQuantity) {
+    if (item.quantity + quantity > product.stockQuantity) {
       return PharmacyCartAddResult.maximumStockReached;
     }
 
-    _cartItems[index] = item.copyWith(quantity: item.quantity + 1);
+    _cartItems[index] = item.copyWith(quantity: item.quantity + quantity);
     notifyListeners();
     unawaited(_persistCart());
     return PharmacyCartAddResult.quantityIncreased;

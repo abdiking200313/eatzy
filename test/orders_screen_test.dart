@@ -52,6 +52,7 @@ class _NeverCompletingStoreRepository implements MerchantStoreRepository {
     required String name,
     required String location,
     String? description,
+    String? imageUrl,
   }) => throw UnimplementedError();
 
   @override

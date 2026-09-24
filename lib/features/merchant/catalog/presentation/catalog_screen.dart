@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../platform/localization/app_money.dart';
+import '../../shared/merchant_media_store.dart';
+import '../../shared/merchant_photo_field.dart';
 import '../../store/models/merchant_vertical.dart';
 import '../models/merchant_catalog_item.dart';
 import 'catalog_item_form.dart';
@@ -21,6 +23,8 @@ class CatalogScreen extends StatefulWidget {
     required this.storeId,
     required this.storeName,
     this.controller,
+    this.media,
+    this.photoPicker,
   });
 
   final MerchantVertical vertical;
@@ -29,6 +33,12 @@ class CatalogScreen extends StatefulWidget {
 
   /// Overridable for tests; defaults to a real Supabase-backed controller.
   final MerchantCatalogController? controller;
+
+  /// Overridable for tests; defaults to the Supabase `merchant_media` bucket.
+  final MerchantMediaStore? media;
+
+  /// Overridable for tests; defaults to [pickAndCropMerchantPhoto].
+  final MerchantPhotoPicker? photoPicker;
 
   @override
   State<CatalogScreen> createState() => _CatalogScreenState();
@@ -43,6 +53,8 @@ class _CatalogScreenState extends State<CatalogScreen> {
         storeId: widget.storeId,
       );
   late final bool _ownsController = widget.controller == null;
+  late final MerchantMediaStore _media =
+      widget.media ?? SupabaseMerchantMediaStore();
 
   @override
   void initState() {
@@ -74,6 +86,8 @@ class _CatalogScreenState extends State<CatalogScreen> {
         controller: _controller,
         vertical: widget.vertical,
         storeId: widget.storeId,
+        media: _media,
+        photoPicker: widget.photoPicker,
         initial: initial,
       ),
     );
@@ -97,8 +111,16 @@ class _CatalogScreenState extends State<CatalogScreen> {
         ],
       ),
     );
-    if (confirmed == true) {
-      await _controller.deleteItem(item);
+    if (confirmed != true) return;
+    final deleted = await _controller.deleteItem(item);
+    final imageUrl = item.imageUrl;
+    if (deleted && imageUrl != null) {
+      // Best-effort: a leftover file never blocks the merchant.
+      unawaited(
+        _media.deleteIfOwned(imageUrl).catchError((Object error) {
+          debugPrint('Could not delete photo for "${item.name}": $error');
+        }),
+      );
     }
   }
 

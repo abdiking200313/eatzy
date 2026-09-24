@@ -38,6 +38,7 @@ class FakeMerchantStoreRepository implements MerchantStoreRepository {
     required String name,
     required String location,
     String? description,
+    String? imageUrl,
   }) async {
     if (failureToThrow != null) throw failureToThrow!;
     final created = MerchantStore(
@@ -49,6 +50,7 @@ class FakeMerchantStoreRepository implements MerchantStoreRepository {
       description: vertical.storeSupportsDescription
           ? description?.trim()
           : null,
+      imageUrl: imageUrl,
     );
     _store = created;
     return created;

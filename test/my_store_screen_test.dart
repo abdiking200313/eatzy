@@ -29,6 +29,7 @@ class _NeverCompletingStoreRepository implements MerchantStoreRepository {
     required String name,
     required String location,
     String? description,
+    String? imageUrl,
   }) => throw UnimplementedError();
 
   @override
@@ -138,6 +139,10 @@ void main() {
   });
 
   testWidgets('editing and saving updates the store profile', (tester) async {
+    // Tall enough for the whole form, photo field included.
+    tester.view.physicalSize = const Size(800, 1600);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
     const store = MerchantStore(
       id: 'restaurant-1',
       vertical: MerchantVertical.food,

@@ -85,6 +85,31 @@ void main() {
     },
   );
 
+  testWidgets('tapping a product opens its details page, which adds the picked '
+      'weight to the cart', (tester) async {
+    final controller = buildController();
+    await tester.pumpWidget(buildApp(controller));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Bakaal Fresh'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Bananas'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Sold by weight, in 0.5 kg steps.'), findsOneWidget);
+    expect(find.text('0.5 kg'), findsOneWidget);
+    await tester.tap(find.byTooltip('Increase quantity'));
+    await tester.pump();
+    expect(find.text('1 kg'), findsOneWidget);
+
+    await tester.tap(find.text('Add to cart'));
+    await tester.pumpAndSettle();
+
+    final line = controller.cart.single;
+    expect(line.product.id, 'bakaal-bananas');
+    expect(line.quantity, 1.0);
+  });
+
   testWidgets('pulling to refresh reloads the grocery catalog', (tester) async {
     final repository = _CountingGroceryRepository();
     await tester.pumpWidget(

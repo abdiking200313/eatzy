@@ -65,7 +65,7 @@ class MerchantCatalogItem {
 
   final bool isAvailable;
 
-  /// `menu_items.image_url` only.
+  /// `image_url` on every vertical's item table.
   final String? imageUrl;
 
   /// `grocery_products.pricing_unit` only.
@@ -94,7 +94,7 @@ class MerchantCatalogItem {
       description: map['description'] as String?,
       priceCents: (map[vertical.itemPriceColumn] as num?)?.round() ?? 0,
       isAvailable: map[vertical.itemAvailableColumn] as bool? ?? false,
-      imageUrl: vertical.itemSupportsImage ? map['image_url'] as String? : null,
+      imageUrl: map['image_url'] as String?,
       pricingUnit: vertical == MerchantVertical.grocery
           ? GroceryPricingUnit.fromColumnValue(
               map['pricing_unit'] as String? ?? 'each',

@@ -12,6 +12,7 @@ import '../../../widgets/app_cards.dart';
 import '../../../widgets/app_misc.dart';
 import '../../../widgets/app_scaffold.dart';
 import '../models/pharmacy_product.dart';
+import 'pharmacy_product_details_screen.dart';
 import 'pharmacy_controller.dart';
 import 'widgets/pharmacy_cart_badge_action.dart';
 
@@ -301,6 +302,7 @@ class _PharmacyCatalogScreenState extends State<PharmacyCatalogScreen> {
                   child: _ProductCard(
                     product: product,
                     onAdd: () => _addProduct(product),
+                    onTap: () => _openDetails(product),
                   ),
                 );
               }, childCount: itemCount),
@@ -323,8 +325,23 @@ class _PharmacyCatalogScreenState extends State<PharmacyCatalogScreen> {
     return 'This pharmacy has no OTC products yet.';
   }
 
-  Future<void> _addProduct(PharmacyProduct product) async {
-    var result = _controller.addProduct(product);
+  void _openDetails(PharmacyProduct product) {
+    final inCart = _controller.cartItems
+        .where((item) => item.product.id == product.id)
+        .fold<int>(0, (total, item) => total + item.quantity);
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => PharmacyProductDetailsScreen(
+          product: product,
+          inCartQuantity: inCart,
+          onAddToCart: (quantity) => _addProduct(product, quantity: quantity),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _addProduct(PharmacyProduct product, {int quantity = 1}) async {
+    var result = _controller.addProduct(product, quantity: quantity);
 
     if (result == PharmacyCartAddResult.storeConflict) {
       final replaceCart = await showDialog<bool>(
@@ -354,7 +371,11 @@ class _PharmacyCatalogScreenState extends State<PharmacyCatalogScreen> {
       if (!mounted) {
         return;
       }
-      result = _controller.addProduct(product, replaceStoreCart: true);
+      result = _controller.addProduct(
+        product,
+        replaceStoreCart: true,
+        quantity: quantity,
+      );
     }
 
     if (!mounted) {
@@ -435,19 +456,19 @@ class _PharmacyHero extends StatelessWidget {
     final trimmedUrl = imageUrl.trim();
     // Mirrors `_RestaurantHero`'s decode-size reasoning: the hero fills the
     // SliverAppBar's expandedHeight at full screen width, so the screen
-    // width/expandedHeight are used as the practical decode bounds, scaled
+    // width is used as the practical decode bound, scaled
     // for device pixel density and capped at 3x since a wider cap buys no
     // visible sharpness while still inflating decode memory.
     final cacheScale = MediaQuery.of(context).devicePixelRatio.clamp(1.0, 3.0);
+    // Only the width is capped: capping both dimensions decodes to that
+    // exact box and squashes (stretches) any photo of a different shape.
     final cacheWidth = (MediaQuery.of(context).size.width * cacheScale).round();
-    final cacheHeight = (_kStoreHeroExtent * cacheScale).round();
     final image = trimmedUrl.isEmpty
         ? const _PharmacyHeroFallback()
         : CachedNetworkImage(
             imageUrl: trimmedUrl,
             fit: BoxFit.cover,
             memCacheWidth: cacheWidth,
-            memCacheHeight: cacheHeight,
             placeholder: (_, _) =>
                 const _PharmacyHeroFallback(showLoader: true),
             errorWidget: (_, _, _) => const _PharmacyHeroFallback(),
@@ -584,10 +605,17 @@ class _OtcNotice extends StatelessWidget {
 }
 
 class _ProductCard extends StatelessWidget {
-  const _ProductCard({required this.product, required this.onAdd});
+  const _ProductCard({
+    required this.product,
+    required this.onAdd,
+    required this.onTap,
+  });
 
   final PharmacyProduct product;
   final VoidCallback onAdd;
+
+  /// Opens the product's details page.
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -597,14 +625,21 @@ class _ProductCard extends StatelessWidget {
         ? 'Only ${product.stockQuantity} left'
         : 'In stock';
 
-    // White card only — the service accent is confined to the 48px icon
-    // chip, never the card fill or border.
+    // White card only — the service accent is confined to the photo's
+    // fallback tile, never the card fill or border.
     return OutlinedCard(
       padding: const EdgeInsets.all(TwSpacing.x4),
+      onTap: onTap,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const ServiceIconChip(icon: Icons.medication_outlined),
+          PhotoThumbnail(
+            imageUrl: product.imageUrl,
+            fallback: const ServiceIconChip(
+              icon: Icons.medication_outlined,
+              iconSize: 28,
+            ),
+          ),
           const SizedBox(width: TwSpacing.rhythmDefault),
           Expanded(
             child: Column(

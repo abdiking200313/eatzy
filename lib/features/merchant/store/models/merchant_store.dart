@@ -31,8 +31,9 @@ class MerchantStore {
   /// such column.
   final String? description;
 
-  /// `restaurants.logo_url` (see [MerchantVerticalConfig.storeImageColumn]).
-  /// `null` for grocery/pharmacy, which have no such column.
+  /// `restaurants.logo_url` / `grocery_stores.image_url` /
+  /// `pharmacy_stores.image_url` (see
+  /// [MerchantVerticalConfig.storeImageColumn]).
   final String? imageUrl;
 
   factory MerchantStore.fromMap(
@@ -48,9 +49,7 @@ class MerchantStore {
       description: vertical.storeSupportsDescription
           ? map['description'] as String?
           : null,
-      imageUrl: vertical.storeSupportsImage
-          ? map[vertical.storeImageColumn] as String?
-          : null,
+      imageUrl: map[vertical.storeImageColumn] as String?,
     );
   }
 

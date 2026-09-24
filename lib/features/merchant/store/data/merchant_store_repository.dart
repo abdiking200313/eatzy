@@ -34,6 +34,7 @@ abstract interface class MerchantStoreRepository {
     required String name,
     required String location,
     String? description,
+    String? imageUrl,
   });
 
   /// Updates the caller's own store. [store] identifies which row/vertical
@@ -72,7 +73,7 @@ class SupabaseMerchantStoreRepository implements MerchantStoreRepository {
     vertical.storeLocationColumn,
     vertical.storeActiveColumn,
     if (vertical.storeSupportsDescription) 'description',
-    if (vertical.storeSupportsImage) vertical.storeImageColumn,
+    vertical.storeImageColumn,
   ];
 
   @override
@@ -97,6 +98,7 @@ class SupabaseMerchantStoreRepository implements MerchantStoreRepository {
     required String name,
     required String location,
     String? description,
+    String? imageUrl,
   }) async {
     final trimmedName = name.trim();
     if (trimmedName.isEmpty) {
@@ -108,6 +110,7 @@ class SupabaseMerchantStoreRepository implements MerchantStoreRepository {
       'name': trimmedName,
       vertical.storeLocationColumn: location.trim(),
       if (vertical.storeSupportsDescription) 'description': description?.trim(),
+      vertical.storeImageColumn: _nullIfBlank(imageUrl),
     };
     if (!vertical.storeIdIsServerGenerated) {
       payload['id'] = generateMerchantSlugId(trimmedName);
@@ -142,8 +145,7 @@ class SupabaseMerchantStoreRepository implements MerchantStoreRepository {
       vertical.storeLocationColumn: location.trim(),
       vertical.storeActiveColumn: isOpen,
       if (vertical.storeSupportsDescription) 'description': description?.trim(),
-      if (vertical.storeSupportsImage)
-        vertical.storeImageColumn: imageUrl?.trim(),
+      vertical.storeImageColumn: _nullIfBlank(imageUrl),
     };
 
     final row = await _client
@@ -158,4 +160,9 @@ class SupabaseMerchantStoreRepository implements MerchantStoreRepository {
         .single();
     return MerchantStore.fromMap(row, vertical: vertical);
   }
+}
+
+String? _nullIfBlank(String? value) {
+  final trimmed = value?.trim() ?? '';
+  return trimmed.isEmpty ? null : trimmed;
 }

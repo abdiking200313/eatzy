@@ -211,6 +211,46 @@ void main() {
       expect(find.text('Out of stock'), findsOneWidget);
     });
 
+    testWidgets(
+      'tapping a product opens its details page, which adds the picked '
+      'quantity to the cart',
+      (tester) async {
+        final controller = buildPharmacyController();
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: PharmacyCatalogScreen(
+              storeId: SeededPharmacyRepository.defaultStoreId,
+              storeName: 'Pharmacy',
+              controller: controller,
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('Paracetamol'));
+        await tester.pumpAndSettle();
+
+        expect(
+          find.text('Everyday relief for mild pain and fever.'),
+          findsOneWidget,
+        );
+        expect(find.text('Pain relief'), findsOneWidget);
+        await tester.tap(find.byTooltip('Increase quantity'));
+        await tester.tap(find.byTooltip('Increase quantity'));
+        await tester.pump();
+        expect(find.text('3'), findsOneWidget);
+
+        await tester.tap(find.text('Add to cart'));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Pain relief'), findsWidgets); // back on the list
+        final line = controller.cartItems.single;
+        expect(line.product.id, 'pain-paracetamol');
+        expect(line.quantity, 3);
+      },
+    );
+
     testWidgets('pulling to refresh reloads the pharmacy catalog', (
       tester,
     ) async {

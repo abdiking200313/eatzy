@@ -64,7 +64,7 @@ class SupabaseMerchantCatalogRepository implements MerchantCatalogRepository {
     'description',
     vertical.itemPriceColumn,
     vertical.itemAvailableColumn,
-    if (vertical.itemSupportsImage) 'image_url',
+    'image_url',
     if (vertical == MerchantVertical.grocery) ...[
       'pricing_unit',
       'available_quantity',
@@ -104,7 +104,7 @@ class SupabaseMerchantCatalogRepository implements MerchantCatalogRepository {
       'description': item.description?.trim() ?? '',
       vertical.itemPriceColumn: item.priceCents,
       vertical.itemAvailableColumn: item.isAvailable,
-      if (vertical.itemSupportsImage) 'image_url': item.imageUrl?.trim(),
+      'image_url': _nullIfBlank(item.imageUrl),
     };
 
     if (vertical == MerchantVertical.grocery) {
@@ -218,4 +218,9 @@ class SupabaseMerchantCatalogRepository implements MerchantCatalogRepository {
       ),
     );
   }
+}
+
+String? _nullIfBlank(String? value) {
+  final trimmed = value?.trim() ?? '';
+  return trimmed.isEmpty ? null : trimmed;
 }

@@ -6,9 +6,8 @@ import '../../../../widgets/app_misc.dart';
 import '../../models/grocery_models.dart';
 
 /// A tappable grocery store row on the store-list screen, analogous to
-/// food's `RestaurantCard`. Grocery stores have no logo/hero image in the
-/// current schema, so this stays a compact text-only row rather than
-/// mirroring `RestaurantCard`'s image header.
+/// food's `RestaurantCard`: the store's photo as a square thumbnail (or a
+/// storefront icon when it has none) beside its name and area.
 class GroceryStoreCard extends StatelessWidget {
   const GroceryStoreCard({
     super.key,
@@ -21,7 +20,6 @@ class GroceryStoreCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final palette = context.serviceColors;
     final productCount = store.products.length;
     return OutlinedCard(
       backgroundColor: TwColors.card,
@@ -30,18 +28,11 @@ class GroceryStoreCard extends StatelessWidget {
       onTap: onPressed,
       child: Row(
         children: [
-          Container(
-            width: ServiceIconChip.size,
-            height: ServiceIconChip.size,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: palette.accent,
-              borderRadius: BorderRadius.circular(TwRadius.lg),
-            ),
-            child: Icon(
-              Icons.storefront_rounded,
-              color: palette.onAccent,
-              size: 24,
+          PhotoThumbnail(
+            imageUrl: store.imageUrl,
+            fallback: const ServiceIconChip(
+              icon: Icons.storefront_rounded,
+              iconSize: 28,
             ),
           ),
           const SizedBox(width: TwSpacing.rhythmDefault),

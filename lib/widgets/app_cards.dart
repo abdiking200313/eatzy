@@ -301,8 +301,9 @@ class _StoreListImage extends StatelessWidget {
     // wider cap buys no visible sharpness on a card image this small while
     // still inflating decode memory.
     final cacheScale = MediaQuery.of(context).devicePixelRatio.clamp(1.0, 3.0);
+    // Only the width is capped: capping both dimensions decodes to that
+    // exact box and squashes (stretches) any photo of a different shape.
     final cacheWidth = (MediaQuery.of(context).size.width * cacheScale).round();
-    final cacheHeight = (height * cacheScale).round();
     return SizedBox(
       height: height,
       width: double.infinity,
@@ -310,7 +311,6 @@ class _StoreListImage extends StatelessWidget {
         imageUrl: url,
         fit: BoxFit.cover,
         memCacheWidth: cacheWidth,
-        memCacheHeight: cacheHeight,
         placeholder: (context, url) => ColoredBox(
           color: accentColor.withOpacityValue(0.08),
           child: Center(

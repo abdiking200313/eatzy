@@ -78,16 +78,17 @@ extension MerchantVerticalConfig on MerchantVertical {
   /// Only `restaurants` has a `description` column.
   bool get storeSupportsDescription => this == MerchantVertical.food;
 
-  /// Only `restaurants` has an image column, and on the live table it is
+  /// The photo column on [storeTable]. On the live `restaurants` table it is
   /// `logo_url` (not `image_url`, which is what the stale `schema.sql` says
-  /// and what `menu_items` uses). `logo_url` is also what the customer app
-  /// reads for a restaurant's picture (`restaurant_repository.dart`), so a
-  /// merchant's image shows up for customers.
-  bool get storeSupportsImage => this == MerchantVertical.food;
-
-  /// The image column on [storeTable]; only meaningful when
-  /// [storeSupportsImage].
-  String get storeImageColumn => 'logo_url';
+  /// and what `menu_items` uses) -- also what the customer app reads for a
+  /// restaurant's picture (`restaurant_repository.dart`). Grocery and
+  /// pharmacy stores gained `image_url` in
+  /// `20260922020000_add_store_image_urls.sql`.
+  String get storeImageColumn => switch (this) {
+    MerchantVertical.food => 'logo_url',
+    MerchantVertical.grocery => 'image_url',
+    MerchantVertical.pharmacy => 'image_url',
+  };
 
   /// The store table's primary key: `restaurants.id` is a server-generated
   /// `uuid`; `grocery_stores.id` / `pharmacy_stores.id` are client-supplied
@@ -108,9 +109,6 @@ extension MerchantVerticalConfig on MerchantVertical {
     MerchantVertical.grocery => 'is_active',
     MerchantVertical.pharmacy => 'is_active',
   };
-
-  /// Only `menu_items` has an `image_url` column.
-  bool get itemSupportsImage => this == MerchantVertical.food;
 
   /// `menu_items.id` is a server-generated `uuid`; `grocery_products.id` /
   /// `pharmacy_products.id` are client-supplied `text` primary keys.

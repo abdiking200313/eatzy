@@ -53,6 +53,25 @@ void main() {
     expect(controller.total, 0);
   });
 
+  test('adds several units at once, all or nothing', () {
+    final paracetamol = controller.products.first; // 24 in stock
+
+    expect(
+      controller.addProduct(paracetamol, quantity: 20),
+      PharmacyCartAddResult.added,
+    );
+    expect(
+      controller.addProduct(paracetamol, quantity: 5),
+      PharmacyCartAddResult.maximumStockReached,
+    );
+    expect(controller.cartItems.single.quantity, 20);
+    expect(
+      controller.addProduct(paracetamol, quantity: 4),
+      PharmacyCartAddResult.quantityIncreased,
+    );
+    expect(controller.cartItems.single.quantity, 24);
+  });
+
   test('an unavailable OTC product cannot be added', () {
     final unavailable = controller.products.firstWhere(
       (product) => !product.isAvailable,

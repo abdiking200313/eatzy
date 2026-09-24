@@ -165,7 +165,8 @@ class SupabaseGroceryCatalogRepository
           .from('grocery_products')
           .select(
             'id, store_id, name, description, unit_price, pricing_unit, '
-            'quantity_step, available_quantity, low_stock_threshold, icon',
+            'quantity_step, available_quantity, low_stock_threshold, icon, '
+            'image_url',
           )
           .eq('is_active', true)
           .order('name')
@@ -211,7 +212,8 @@ class SupabaseGroceryCatalogRepository
         .from('grocery_products')
         .select(
           'id, store_id, name, description, unit_price, pricing_unit, '
-          'quantity_step, available_quantity, low_stock_threshold, icon',
+          'quantity_step, available_quantity, low_stock_threshold, icon, '
+          'image_url',
         )
         .eq('store_id', storeId)
         .eq('is_active', true)

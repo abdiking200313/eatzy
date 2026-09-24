@@ -59,6 +59,31 @@ void main() {
     expect(controller.cart.single.quantity, 3);
   });
 
+  test('adds several quantity steps at once, all or nothing', () {
+    final bananas = product('bakaal-bananas'); // 12 kg, 0.5 kg steps
+
+    expect(controller.addProduct(bananas, steps: 4), GroceryAddResult.added);
+    expect(controller.cart.single.quantity, 2);
+
+    expect(
+      controller.addProduct(bananas, steps: 21),
+      GroceryAddResult.stockLimitReached,
+    );
+    expect(controller.cart.single.quantity, 2);
+  });
+
+  test('a product photo URL survives the local cart snapshot', () {
+    final withPhoto = GroceryProduct.fromJson({
+      ...product('bakaal-bananas').toJson(),
+      'image_url': 'https://cdn.test/bananas.jpg',
+    });
+    expect(
+      GroceryProduct.fromJson(withPhoto.toJson()).imageUrl,
+      'https://cdn.test/bananas.jpg',
+    );
+    expect(product('bakaal-bananas').imageUrl, isNull);
+  });
+
   test('requires and records the selected substitution preference', () async {
     controller.addProduct(product('bakaal-rice'));
     const address = GroceryDeliveryAddress(

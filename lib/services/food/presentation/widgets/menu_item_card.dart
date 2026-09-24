@@ -95,15 +95,16 @@ class _MenuItemImage extends StatelessWidget {
     // density. Capped at 3x since a wider cap buys no visible sharpness on
     // a thumbnail this small while still inflating decode memory.
     final cacheScale = MediaQuery.of(context).devicePixelRatio.clamp(1.0, 3.0);
-    final cacheWidth = (112 * cacheScale).round();
-    final cacheHeight = (112 * cacheScale).round();
+    // Only the width is capped: capping both dimensions decodes to that
+    // exact box and squashes any photo that isn't already square. Doubled so
+    // a wide photo still decodes tall enough to cover-crop sharply.
+    final cacheWidth = (112 * 2 * cacheScale).round();
     return trimmedUrl.isEmpty
         ? const _MenuImageFallback()
         : CachedNetworkImage(
             imageUrl: trimmedUrl,
             fit: BoxFit.cover,
             memCacheWidth: cacheWidth,
-            memCacheHeight: cacheHeight,
             placeholder: (_, _) => const _MenuImageFallback(showLoader: true),
             errorWidget: (_, _, _) => const _MenuImageFallback(),
           );

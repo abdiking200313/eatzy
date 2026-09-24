@@ -315,13 +315,20 @@ class _StoreCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // White card only — the per-service accent is confined to the icon chip.
+    // White card only — the per-service accent is confined to the logo
+    // fallback tile.
     return OutlinedCard(
       onTap: onPressed,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const ServiceIconChip(icon: Icons.local_pharmacy_outlined),
+          PhotoThumbnail(
+            imageUrl: store.imageUrl,
+            fallback: const ServiceIconChip(
+              icon: Icons.local_pharmacy_outlined,
+              iconSize: 28,
+            ),
+          ),
           const SizedBox(width: TwSpacing.rhythmDefault),
           Expanded(
             child: Column(

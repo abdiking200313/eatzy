@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../catalog/presentation/catalog_screen.dart';
+import '../../shared/merchant_media_store.dart';
+import '../../shared/merchant_photo_field.dart';
 import '../models/merchant_store.dart';
 import '../models/merchant_vertical.dart';
 import 'merchant_store_controller.dart';
@@ -15,13 +17,25 @@ import 'merchant_store_controller.dart';
 /// `owner_id` -- see `merchant_store_repository.dart`'s header for the RLS
 /// this mirrors.
 class MyStoreScreen extends StatefulWidget {
-  const MyStoreScreen({super.key, required this.ownerId, this.controller});
+  const MyStoreScreen({
+    super.key,
+    required this.ownerId,
+    this.controller,
+    this.media,
+    this.photoPicker,
+  });
 
   /// The signed-in merchant's `profiles.id` (== `auth.uid()`).
   final String ownerId;
 
   /// Overridable for tests; defaults to a real Supabase-backed controller.
   final MerchantStoreController? controller;
+
+  /// Overridable for tests; defaults to the Supabase `merchant_media` bucket.
+  final MerchantMediaStore? media;
+
+  /// Overridable for tests; defaults to [pickAndCropMerchantPhoto].
+  final MerchantPhotoPicker? photoPicker;
 
   @override
   State<MyStoreScreen> createState() => _MyStoreScreenState();
@@ -32,6 +46,8 @@ class _MyStoreScreenState extends State<MyStoreScreen> {
       widget.controller ??
       MerchantStoreController.supabase(Supabase.instance.client);
   late final bool _ownsController = widget.controller == null;
+  late final MerchantMediaStore _media =
+      widget.media ?? SupabaseMerchantMediaStore();
 
   @override
   void initState() {
@@ -74,7 +90,12 @@ class _MyStoreScreenState extends State<MyStoreScreen> {
 
     final store = _controller.store;
     if (store == null) {
-      return _CreateStoreView(controller: _controller, ownerId: widget.ownerId);
+      return _CreateStoreView(
+        controller: _controller,
+        ownerId: widget.ownerId,
+        media: _media,
+        photoPicker: widget.photoPicker,
+      );
     }
 
     return _StoreForm(
@@ -82,6 +103,8 @@ class _MyStoreScreenState extends State<MyStoreScreen> {
       controller: _controller,
       store: store,
       ownerId: widget.ownerId,
+      media: _media,
+      photoPicker: widget.photoPicker,
     );
   }
 }
@@ -132,10 +155,17 @@ class _ErrorView extends StatelessWidget {
 /// `supabase/migrations/20260830130000_add_merchant_catalog_write_policies.sql`
 /// ("a profile with role 'merchant' ... may create a store and its items").
 class _CreateStoreView extends StatefulWidget {
-  const _CreateStoreView({required this.controller, required this.ownerId});
+  const _CreateStoreView({
+    required this.controller,
+    required this.ownerId,
+    required this.media,
+    this.photoPicker,
+  });
 
   final MerchantStoreController controller;
   final String ownerId;
+  final MerchantMediaStore media;
+  final MerchantPhotoPicker? photoPicker;
 
   @override
   State<_CreateStoreView> createState() => _CreateStoreViewState();
@@ -147,9 +177,15 @@ class _CreateStoreViewState extends State<_CreateStoreView> {
   final _locationController = TextEditingController();
   final _descriptionController = TextEditingController();
   MerchantVertical _vertical = MerchantVertical.food;
+  late final MerchantPhotoSession _photos = MerchantPhotoSession(
+    media: widget.media,
+  );
+  String? _imageUrl;
+  bool _isUploading = false;
 
   @override
   void dispose() {
+    _photos.discard();
     _nameController.dispose();
     _locationController.dispose();
     _descriptionController.dispose();
@@ -168,7 +204,9 @@ class _CreateStoreViewState extends State<_CreateStoreView> {
       description: _vertical.storeSupportsDescription
           ? _descriptionController.text
           : null,
+      imageUrl: _imageUrl,
     );
+    if (succeeded) _photos.commit(_imageUrl);
     if (succeeded && mounted) {
       ScaffoldMessenger.of(
         context,
@@ -248,6 +286,17 @@ class _CreateStoreViewState extends State<_CreateStoreView> {
                 ),
               ),
             ],
+            const SizedBox(height: 16),
+            MerchantPhotoField(
+              label: 'Store photo',
+              imageUrl: _imageUrl,
+              folder: MerchantMediaFolder.store,
+              session: _photos,
+              picker: widget.photoPicker,
+              onChanged: (url) => setState(() => _imageUrl = url),
+              onUploadingChanged: (value) =>
+                  setState(() => _isUploading = value),
+            ),
             if (controller.saveError != null) ...[
               const SizedBox(height: 12),
               Text(
@@ -257,7 +306,7 @@ class _CreateStoreViewState extends State<_CreateStoreView> {
             ],
             const SizedBox(height: 20),
             FilledButton(
-              onPressed: controller.isSaving ? null : _submit,
+              onPressed: controller.isSaving || _isUploading ? null : _submit,
               child: controller.isSaving
                   ? const SizedBox(
                       height: 20,
@@ -280,11 +329,15 @@ class _StoreForm extends StatefulWidget {
     required this.controller,
     required this.store,
     required this.ownerId,
+    required this.media,
+    this.photoPicker,
   });
 
   final MerchantStoreController controller;
   final MerchantStore store;
   final String ownerId;
+  final MerchantMediaStore media;
+  final MerchantPhotoPicker? photoPicker;
 
   @override
   State<_StoreForm> createState() => _StoreFormState();
@@ -295,7 +348,9 @@ class _StoreFormState extends State<_StoreForm> {
   late final TextEditingController _nameController;
   late final TextEditingController _locationController;
   late final TextEditingController _descriptionController;
-  late final TextEditingController _imageUrlController;
+  late final MerchantPhotoSession _photos;
+  String? _imageUrl;
+  bool _isUploading = false;
   late bool _isOpen;
 
   @override
@@ -307,7 +362,8 @@ class _StoreFormState extends State<_StoreForm> {
     _descriptionController = TextEditingController(
       text: store.description ?? '',
     );
-    _imageUrlController = TextEditingController(text: store.imageUrl ?? '');
+    _imageUrl = store.imageUrl;
+    _photos = MerchantPhotoSession(media: widget.media, savedUrl: _imageUrl);
     _isOpen = store.isOpen;
   }
 
@@ -316,7 +372,7 @@ class _StoreFormState extends State<_StoreForm> {
     _nameController.dispose();
     _locationController.dispose();
     _descriptionController.dispose();
-    _imageUrlController.dispose();
+    _photos.discard();
     super.dispose();
   }
 
@@ -333,8 +389,9 @@ class _StoreFormState extends State<_StoreForm> {
       description: vertical.storeSupportsDescription
           ? _descriptionController.text
           : null,
-      imageUrl: vertical.storeSupportsImage ? _imageUrlController.text : null,
+      imageUrl: _imageUrl,
     );
+    if (succeeded) _photos.commit(_imageUrl);
     if (succeeded && mounted) {
       ScaffoldMessenger.of(
         context,
@@ -409,19 +466,17 @@ class _StoreFormState extends State<_StoreForm> {
                 ),
               ),
             ],
-            if (vertical.storeSupportsImage) ...[
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: _imageUrlController,
-                decoration: const InputDecoration(
-                  labelText: 'Image URL',
-                  helperText:
-                      'A hosted image link (v1 simplification -- no in-app '
-                      'image upload yet).',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-            ],
+            const SizedBox(height: 16),
+            MerchantPhotoField(
+              label: 'Store photo',
+              imageUrl: _imageUrl,
+              folder: MerchantMediaFolder.store,
+              session: _photos,
+              picker: widget.photoPicker,
+              onChanged: (url) => setState(() => _imageUrl = url),
+              onUploadingChanged: (value) =>
+                  setState(() => _isUploading = value),
+            ),
             const SizedBox(height: 8),
             SwitchListTile(
               contentPadding: EdgeInsets.zero,
@@ -443,7 +498,7 @@ class _StoreFormState extends State<_StoreForm> {
             ],
             const SizedBox(height: 16),
             FilledButton(
-              onPressed: controller.isSaving ? null : _submit,
+              onPressed: controller.isSaving || _isUploading ? null : _submit,
               child: controller.isSaving
                   ? const SizedBox(
                       height: 20,

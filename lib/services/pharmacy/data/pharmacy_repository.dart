@@ -169,7 +169,7 @@ class SupabasePharmacyCatalogRepository
     var builder = _client
         .from('pharmacy_products')
         .select(
-          'id, name, description, unit_price, stock_quantity, sale_type, '
+          'id, name, description, unit_price, stock_quantity, sale_type, image_url, '
           'store_id, pharmacy_categories!inner(id, name)',
         )
         .eq('is_active', true)

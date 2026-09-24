@@ -62,6 +62,7 @@ class MerchantStoreController extends ChangeNotifier
     required String name,
     required String location,
     String? description,
+    String? imageUrl,
   }) {
     return runSave(
       mutate: () async {
@@ -71,6 +72,7 @@ class MerchantStoreController extends ChangeNotifier
           name: name,
           location: location,
           description: description,
+          imageUrl: imageUrl,
         );
       },
       onError: (error, stackTrace) {

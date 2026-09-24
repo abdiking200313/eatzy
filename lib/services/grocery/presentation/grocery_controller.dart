@@ -318,10 +318,15 @@ class GroceryController extends ChangeNotifier with LoadableState {
     }
   }
 
+  /// Adds [steps] quantity steps of [product] (one item, or 0.5 kg per
+  /// step) -- all or nothing: if that would exceed the available stock,
+  /// nothing is added and [GroceryAddResult.stockLimitReached] is returned.
   GroceryAddResult addProduct(
     GroceryProduct product, {
     bool replaceStoreCart = false,
+    int steps = 1,
   }) {
+    assert(steps >= 1, 'steps must be at least 1');
     if (!product.isAvailable) {
       return GroceryAddResult.unavailable;
     }
@@ -335,7 +340,8 @@ class GroceryController extends ChangeNotifier with LoadableState {
     }
 
     final existing = _cart[product.id];
-    final nextQuantity = (existing?.quantity ?? 0) + product.quantityStep;
+    final nextQuantity =
+        (existing?.quantity ?? 0) + product.quantityStep * steps;
     if (nextQuantity > product.availableQuantity) {
       return GroceryAddResult.stockLimitReached;
     }
