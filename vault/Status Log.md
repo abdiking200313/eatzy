@@ -23,10 +23,15 @@ Reverse-chronological. Each session/major chunk of work gets an entry.
 - New migration `20260923000000_add_profile_dob_and_signup_metadata.sql` adds nullable `profiles.dob` and updates `handle_new_user()` to populate `firstname`/`lastname`/`phone`/`dob` from that signup metadata instead of hardcoded `''` placeholders. **Applied live 2026-09-24** (owner-approved) via the Management API query endpoint and recorded in `supabase_migrations.schema_migrations` as `20260923000000` — same manual path as 2026-09-22 part 3, since `db push` is still blocked by the history mismatch.
 - Built via `/build` (ui/logic/supabase/qa agents in parallel). Full suite 497/497 after qa-agent fixed the one call site broken by the signature change and added coverage for the new validation + metadata forwarding.
 
-## 2026-09-23 (board worker — nothing eligible, queue unchanged, 3 runs today)
+## 2026-09-24 (board worker — nothing eligible, queue unchanged, 2 runs today)
 
-- All three runs today: `list_issues` for `todo`/`waiting-on-you` returned only the same tracking-only pair, **#29/#52**. `waiting-on-you` empty. Each run's only new `master` commit since the prior run was that prior run's own vault-update PR (#259, then #260) — never new work.
-- Nothing implemented in any of the three runs.
+- Both runs today: `list_issues` for `todo`/`waiting-on-you` returned only the same tracking-only pair, **#29/#52**. `waiting-on-you` empty. Full open-issue count still 6, unchanged since the 2026-09-23 4th run: #29/#52 (tracking), #32/#55/#222 (`needs-approval`, off-limits), #11 (unlabeled, still not board-worker-eligible). Each run's only new `master` commit since the prior run was that prior run's own vault-update PR (#262, then #263) — never new work.
+- Nothing implemented in either run.
+
+## 2026-09-23 (board worker — nothing eligible, queue unchanged, 4 runs today)
+
+- All four runs today: `list_issues` for `todo`/`waiting-on-you` returned only the same tracking-only pair, **#29/#52**. `waiting-on-you` empty. Each run's only new `master` commit since the prior run was that prior run's own vault-update PR (#259, then #260, then #261) — never new work.
+- Nothing implemented in any of the four runs.
 
 ## 2026-09-22 (board worker — 4 issues processed and merged, one follow-up gap closed same run)
 
