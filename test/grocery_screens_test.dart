@@ -10,9 +10,11 @@ import 'package:go_router/go_router.dart';
 import 'helpers/memory_cart_storage.dart';
 
 void main() {
-  GroceryController buildController() {
+  GroceryController buildController({
+    GroceryRepository repository = const SeededGroceryRepository(),
+  }) {
     return GroceryController(
-      repository: const SeededGroceryRepository(),
+      repository: repository,
       storage: MemoryCartStorage<GroceryCartLine>(),
     );
   }
@@ -37,19 +39,27 @@ void main() {
     return MaterialApp.router(routerConfig: router);
   }
 
-  testWidgets('the store list renders every seeded store by name', (
-    tester,
-  ) async {
-    await tester.pumpWidget(buildApp(buildController()));
-    await tester.pumpAndSettle();
+  testWidgets(
+    'the store list renders every seeded store by name, and searching '
+    'filters stores by name',
+    (tester) async {
+      await tester.pumpWidget(buildApp(buildController()));
+      await tester.pumpAndSettle();
 
-    expect(find.text('Bakaal Fresh'), findsOneWidget);
-    expect(find.text('Suuqa Hamar'), findsOneWidget);
-    // The old flattened feed showed every store's products up front; the
-    // store list should not.
-    expect(find.text('Bananas'), findsNothing);
-    expect(find.text('Eggs'), findsNothing);
-  });
+      expect(find.text('Bakaal Fresh'), findsOneWidget);
+      expect(find.text('Suuqa Hamar'), findsOneWidget);
+      // The old flattened feed showed every store's products up front; the
+      // store list should not.
+      expect(find.text('Bananas'), findsNothing);
+      expect(find.text('Eggs'), findsNothing);
+
+      await tester.enterText(find.byType(TextField), 'hamar');
+      await tester.pumpAndSettle();
+
+      expect(find.text('Suuqa Hamar'), findsOneWidget);
+      expect(find.text('Bakaal Fresh'), findsNothing);
+    },
+  );
 
   testWidgets(
     'tapping a store opens a catalog scoped to just that store, searchable '
@@ -75,16 +85,33 @@ void main() {
     },
   );
 
-  testWidgets('searching the store list filters stores by name', (
-    tester,
-  ) async {
-    await tester.pumpWidget(buildApp(buildController()));
+  testWidgets('pulling to refresh reloads the grocery catalog', (tester) async {
+    final repository = _CountingGroceryRepository();
+    await tester.pumpWidget(
+      MaterialApp(
+        home: GroceryScreen(
+          controller: buildController(repository: repository),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(repository.fetchCount, 1);
+
+    await tester.fling(find.byType(ListView), const Offset(0, 300), 1000);
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
     await tester.pumpAndSettle();
 
-    await tester.enterText(find.byType(TextField), 'hamar');
-    await tester.pumpAndSettle();
-
-    expect(find.text('Suuqa Hamar'), findsOneWidget);
-    expect(find.text('Bakaal Fresh'), findsNothing);
+    expect(repository.fetchCount, 2);
   });
+}
+
+class _CountingGroceryRepository implements GroceryRepository {
+  int fetchCount = 0;
+
+  @override
+  Future<List<GroceryStore>> fetchStores() async {
+    fetchCount++;
+    return const SeededGroceryRepository().fetchStores();
+  }
 }

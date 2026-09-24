@@ -44,6 +44,15 @@ The outer `eatzy/` folder (one level up from the repo, containing README.md, FEA
 
 `mcp__github__issue_write` with `method: "create"` does **not** add a comment when given an `issue_number` — it silently creates a brand-new top-level issue instead (found 2026-08-30, 14th board-worker run, created and had to close a stray issue #155 after this exact mistake). Use `mcp__github__add_issue_comment` (`owner`/`repo`/`issue_number`/`body`) to post a comment. `issue_write` is only for creating a new issue or updating an existing issue's own fields (title/body/labels/state) — never for comments.
 
+## Tests — where new cases go (consolidated 2026-09-24)
+
+The suite was trimmed from 77 to 64 test files; don't re-split it. Add to the existing file instead of creating a new one:
+- A 320x640 @1.4x no-overflow case for a redesigned screen → a row in `test/layout_test.dart` (unless that screen's own test file already has one, next to its fakes). List-virtualization and design-system widget checks live there too.
+- Cart or checkout behavior → `test/cart_screens_test.dart` / `test/checkout_screens_test.dart`. Behavior identical across verticals (empty-state browse, continue-to-checkout, double-tap submit guard) is table-driven there — add a case row for a new vertical, not a copy of the test.
+- Redirect rules, protected/registered routes, path builders → a row in the tables in `test/app_router_test.dart`.
+
+Per-file startup (~0.7s each) dominates suite time, not individual tests, so prefer fewer files over fewer assertions.
+
 ## Dependency versions
 
 38 packages have newer versions available as of the last check (including majors like `go_router` 13→17, `google_fonts` 6→8) — not urgent, deliberately deferred. Don't auto-upgrade without a reason; major bumps risk breaking changes.

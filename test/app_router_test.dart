@@ -1,468 +1,280 @@
 import 'package:chowflow/app/app_router.dart';
 import 'package:chowflow/app/app_routes.dart';
+import 'package:chowflow/app/not_found_screen.dart';
 import 'package:chowflow/app/service_module.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 
 void main() {
   group('AppRouter.resolveRedirect', () {
-    test('sends a restored session from welcome to the app', () {
-      final redirect = AppRouter.resolveRedirect(
-        isLoggedIn: true,
-        isProtected: false,
-        location: AppRoutes.welcome,
-      );
+    const merchantDashboardSubPath = '${AppRoutes.merchantDashboard}/orders';
 
-      expect(redirect, AppRoutes.mainApp);
-    });
-
-    test('sends a restored session away from register', () {
-      final redirect = AppRouter.resolveRedirect(
-        isLoggedIn: true,
-        isProtected: false,
-        location: AppRoutes.register,
-      );
-
-      expect(redirect, AppRoutes.mainApp);
-    });
-
-    test('sends a signed-out user to login for protected routes', () {
-      final redirect = AppRouter.resolveRedirect(
-        isLoggedIn: false,
-        isProtected: true,
-        location: AppRoutes.wallet,
-      );
-
-      expect(redirect, AppRoutes.login);
-    });
-
-    test('allows signed-out users to remain on welcome', () {
-      final redirect = AppRouter.resolveRedirect(
-        isLoggedIn: false,
-        isProtected: false,
-        location: AppRoutes.welcome,
-      );
-
-      expect(redirect, isNull);
-    });
-
-    test('allows signed-out users to reach forgot password', () {
-      final redirect = AppRouter.resolveRedirect(
-        isLoggedIn: false,
-        isProtected: false,
-        location: AppRoutes.forgotPassword,
-      );
-
-      expect(redirect, isNull);
-    });
-
-    test('sends an already-logged-in user away from forgot password', () {
-      final redirect = AppRouter.resolveRedirect(
-        isLoggedIn: true,
-        isProtected: false,
-        location: AppRoutes.forgotPassword,
-      );
-
-      expect(redirect, AppRoutes.mainApp);
-    });
-
-    test('sends a signed-out user to login for reset password', () {
-      final redirect = AppRouter.resolveRedirect(
-        isLoggedIn: false,
-        isProtected: true,
-        location: AppRoutes.resetPassword,
-      );
-
-      expect(redirect, AppRoutes.login);
-    });
-
-    test(
-      'allows a logged-in user (recovery or normal session) to reset password',
-      () {
-        final redirect = AppRouter.resolveRedirect(
-          isLoggedIn: true,
-          isProtected: true,
-          location: AppRoutes.resetPassword,
-        );
-
-        expect(redirect, isNull);
-      },
-    );
-  });
-
-  group('merchant dashboard routing (issue #232)', () {
-    test('a merchant/admin account restored on welcome lands on the '
-        'merchant dashboard, not the customer home', () {
-      final redirect = AppRouter.resolveRedirect(
-        isLoggedIn: true,
-        isProtected: false,
-        location: AppRoutes.welcome,
-        isMerchant: true,
-      );
-
-      expect(redirect, AppRoutes.merchantDashboard);
-    });
-
-    test('a merchant/admin account is also redirected away from login', () {
-      final redirect = AppRouter.resolveRedirect(
-        isLoggedIn: true,
-        isProtected: false,
-        location: AppRoutes.login,
-        isMerchant: true,
-      );
-
-      expect(redirect, AppRoutes.merchantDashboard);
-    });
-
-    test('a customer account (the default) still lands on the customer '
-        'home, unaffected', () {
-      final redirect = AppRouter.resolveRedirect(
-        isLoggedIn: true,
-        isProtected: false,
-        location: AppRoutes.welcome,
-      );
-
-      expect(redirect, AppRoutes.mainApp);
-    });
-
-    test('the merchant dashboard is a registered, protected route', () {
-      expect(AppRouter.hasRegisteredRoute(AppRoutes.merchantDashboard), isTrue);
-      expect(
-        AppRouter.isProtectedLocation(AppRoutes.merchantDashboard),
-        isTrue,
-      );
-    });
-
-    test(
-      'a signed-out visitor is sent to login, not the merchant dashboard',
-      () {
-        final redirect = AppRouter.resolveRedirect(
-          isLoggedIn: false,
-          isProtected: true,
-          location: AppRoutes.merchantDashboard,
-        );
-
-        expect(redirect, AppRoutes.login);
-      },
-    );
-  });
-
-  group('merchant/admin accounts are blocked from every customer route '
-      '(issue #236)', () {
-    test('a merchant/admin account is redirected away from a representative '
-        'sample of customer-facing routes', () {
-      for (final location in [
-        AppRoutes.mainApp,
-        AppRoutes.food,
-        AppRoutes.settings,
-        AppRoutes.wallet,
-        AppRoutes.grocery,
-        AppRoutes.pharmacy,
-        AppRoutes.profile,
-        AppRoutes.trackOrder,
-        AppRoutes.foodCheckout,
-      ]) {
-        final redirect = AppRouter.resolveRedirect(
-          isLoggedIn: true,
-          isProtected: AppRouter.isProtectedLocation(location),
-          location: location,
-          isMerchant: true,
-        );
-
-        expect(
-          redirect,
-          AppRoutes.merchantDashboard,
-          reason:
-              '$location should redirect a merchant/admin session to '
-              'the merchant dashboard',
-        );
-      }
-    });
-
-    test('a merchant/admin account can stay on the merchant dashboard '
-        'itself', () {
-      final redirect = AppRouter.resolveRedirect(
-        isLoggedIn: true,
-        isProtected: true,
-        location: AppRoutes.merchantDashboard,
-        isMerchant: true,
-      );
-
-      expect(redirect, isNull);
-    });
-
-    test('a merchant/admin account can stay on a sub-path under the '
-        'merchant dashboard', () {
-      final redirect = AppRouter.resolveRedirect(
-        isLoggedIn: true,
-        isProtected: true,
-        location: '${AppRoutes.merchantDashboard}/orders',
-        isMerchant: true,
-      );
-
-      expect(redirect, isNull);
-    });
-
-    test('a merchant/admin account can still complete a password reset '
-        '(recovery-session exemption)', () {
-      final redirect = AppRouter.resolveRedirect(
-        isLoggedIn: true,
-        isProtected: true,
-        location: AppRoutes.resetPassword,
-        isMerchant: true,
-      );
-
-      expect(redirect, isNull);
-    });
-
-    test("a customer account's navigation is completely unaffected by the "
-        'merchant blanket block', () {
-      for (final location in [
-        AppRoutes.mainApp,
-        AppRoutes.food,
-        AppRoutes.settings,
-        AppRoutes.wallet,
-        AppRoutes.grocery,
-        AppRoutes.pharmacy,
-        AppRoutes.profile,
+    const cases = <_RedirectCase>[
+      // Signed-in customers.
+      _RedirectCase(
+        'a restored session is sent from welcome to the app',
+        AppRoutes.welcome,
+        loggedIn: true,
+        expected: AppRoutes.mainApp,
+      ),
+      _RedirectCase(
+        'a restored session is sent away from register',
+        AppRoutes.register,
+        loggedIn: true,
+        expected: AppRoutes.mainApp,
+      ),
+      _RedirectCase(
+        'a logged-in user is sent away from forgot password',
+        AppRoutes.forgotPassword,
+        loggedIn: true,
+        expected: AppRoutes.mainApp,
+      ),
+      _RedirectCase(
+        'a logged-in user (recovery or normal session) can reset password',
         AppRoutes.resetPassword,
-      ]) {
-        final redirect = AppRouter.resolveRedirect(
-          isLoggedIn: true,
-          isProtected: AppRouter.isProtectedLocation(location),
-          location: location,
+        loggedIn: true,
+        expected: null,
+      ),
+      // Signed-out visitors.
+      _RedirectCase(
+        'a signed-out user is sent to login for protected routes',
+        AppRoutes.wallet,
+        expected: AppRoutes.login,
+      ),
+      _RedirectCase(
+        'a signed-out user may reach forgot password',
+        AppRoutes.forgotPassword,
+        expected: null,
+      ),
+      _RedirectCase(
+        'a signed-out user is sent to login for reset password',
+        AppRoutes.resetPassword,
+        expected: AppRoutes.login,
+      ),
+      _RedirectCase(
+        'a signed-out visitor is sent to login, not the merchant dashboard',
+        AppRoutes.merchantDashboard,
+        expected: AppRoutes.login,
+      ),
+      // Onboarding first-launch gating (issue #15).
+      _RedirectCase(
+        'a first-time signed-out visitor stays on welcome',
+        AppRoutes.welcome,
+        expected: null,
+      ),
+      _RedirectCase(
+        'a returning signed-out user goes from welcome straight to login',
+        AppRoutes.welcome,
+        seenOnboarding: true,
+        expected: AppRoutes.login,
+      ),
+      _RedirectCase(
+        'a returning signed-out user can reopen welcome on purpose (the '
+        'back button on login/register)',
+        AppRoutes.welcome,
+        seenOnboarding: true,
+        revisit: true,
+        expected: null,
+      ),
+      _RedirectCase(
+        'a signed-in user is sent to the app even with the revisit flag',
+        AppRoutes.welcome,
+        loggedIn: true,
+        seenOnboarding: true,
+        revisit: true,
+        expected: AppRoutes.mainApp,
+      ),
+      _RedirectCase(
+        'a returning signed-out user is not diverted away from login',
+        AppRoutes.login,
+        seenOnboarding: true,
+        expected: null,
+      ),
+      _RedirectCase(
+        'a returning but signed-in user goes to the app, not login',
+        AppRoutes.welcome,
+        loggedIn: true,
+        seenOnboarding: true,
+        expected: AppRoutes.mainApp,
+      ),
+      // Merchant dashboard routing (issues #232, #236).
+      _RedirectCase(
+        'a merchant/admin restored on welcome lands on the merchant dashboard',
+        AppRoutes.welcome,
+        loggedIn: true,
+        merchant: true,
+        expected: AppRoutes.merchantDashboard,
+      ),
+      _RedirectCase(
+        'a merchant/admin is redirected away from login',
+        AppRoutes.login,
+        loggedIn: true,
+        merchant: true,
+        expected: AppRoutes.merchantDashboard,
+      ),
+      _RedirectCase(
+        'a merchant/admin can stay on the merchant dashboard',
+        AppRoutes.merchantDashboard,
+        loggedIn: true,
+        merchant: true,
+        expected: null,
+      ),
+      _RedirectCase(
+        'a merchant/admin can stay on a merchant dashboard sub-path',
+        merchantDashboardSubPath,
+        loggedIn: true,
+        merchant: true,
+        expected: null,
+      ),
+      _RedirectCase(
+        'a merchant/admin can still complete a password reset '
+        '(recovery-session exemption)',
+        AppRoutes.resetPassword,
+        loggedIn: true,
+        merchant: true,
+        expected: null,
+      ),
+    ];
+
+    for (final c in cases) {
+      test(c.why, () {
+        expect(
+          AppRouter.resolveRedirect(
+            isLoggedIn: c.loggedIn,
+            isProtected: AppRouter.isProtectedLocation(c.location),
+            location: c.location,
+            isMerchant: c.merchant,
+            hasSeenOnboarding: c.seenOnboarding,
+            revisitWelcome: c.revisit,
+          ),
+          c.expected,
         );
+      });
+    }
+
+    const customerRoutes = [
+      AppRoutes.mainApp,
+      AppRoutes.food,
+      AppRoutes.settings,
+      AppRoutes.wallet,
+      AppRoutes.grocery,
+      AppRoutes.pharmacy,
+      AppRoutes.profile,
+      AppRoutes.trackOrder,
+      AppRoutes.foodCheckout,
+    ];
+
+    test('a merchant/admin is blocked from every customer route (#236), '
+        'while a customer session reaches all of them', () {
+      for (final location in customerRoutes) {
+        String? redirectFor({required bool merchant}) =>
+            AppRouter.resolveRedirect(
+              isLoggedIn: true,
+              isProtected: AppRouter.isProtectedLocation(location),
+              location: location,
+              isMerchant: merchant,
+            );
 
         expect(
-          redirect,
+          redirectFor(merchant: true),
+          AppRoutes.merchantDashboard,
+          reason: '$location should send a merchant to the dashboard',
+        );
+        expect(
+          redirectFor(merchant: false),
           isNull,
-          reason: '$location should remain reachable by a customer session',
+          reason: '$location should remain reachable by a customer',
         );
       }
     });
   });
 
-  group('onboarding first-launch gating (issue #15)', () {
-    test('keeps a first-time signed-out visitor on welcome', () {
-      final redirect = AppRouter.resolveRedirect(
-        isLoggedIn: false,
-        isProtected: false,
-        location: AppRoutes.welcome,
-      );
-
-      expect(redirect, isNull);
-    });
-
-    test('sends a returning signed-out user (already seen onboarding) from '
-        'welcome straight to login', () {
-      final redirect = AppRouter.resolveRedirect(
-        isLoggedIn: false,
-        isProtected: false,
-        location: AppRoutes.welcome,
-        hasSeenOnboarding: true,
-      );
-
-      expect(redirect, AppRoutes.login);
-    });
-
-    test('lets a returning signed-out user reopen welcome on purpose (the '
-        'back button on login/register)', () {
-      final redirect = AppRouter.resolveRedirect(
-        isLoggedIn: false,
-        isProtected: false,
-        location: AppRoutes.welcome,
-        hasSeenOnboarding: true,
-        revisitWelcome: true,
-      );
-
-      expect(redirect, isNull);
-    });
-
-    test('a signed-in user is still sent to the app even with the revisit '
-        'flag', () {
-      final redirect = AppRouter.resolveRedirect(
-        isLoggedIn: true,
-        isProtected: false,
-        location: AppRoutes.welcome,
-        hasSeenOnboarding: true,
-        revisitWelcome: true,
-      );
-
-      expect(redirect, AppRoutes.mainApp);
-    });
-
-    test('welcomeRevisit is recognized only from its own query flag', () {
-      expect(
-        AppRouter.isWelcomeRevisit(Uri.parse(AppRoutes.welcomeRevisit)),
-        isTrue,
-      );
-      expect(AppRouter.isWelcomeRevisit(Uri.parse(AppRoutes.welcome)), isFalse);
-      expect(
-        AppRouter.isWelcomeRevisit(
-          Uri.parse('${AppRoutes.welcome}?revisit=no'),
-        ),
-        isFalse,
-      );
-    });
-
-    test('does not divert a returning signed-out user away from login', () {
-      final redirect = AppRouter.resolveRedirect(
-        isLoggedIn: false,
-        isProtected: false,
-        location: AppRoutes.login,
-        hasSeenOnboarding: true,
-      );
-
-      expect(redirect, isNull);
-    });
-
-    test('a returning but already-signed-in user still goes to the app, '
-        'not login', () {
-      final redirect = AppRouter.resolveRedirect(
-        isLoggedIn: true,
-        isProtected: false,
-        location: AppRoutes.welcome,
-        hasSeenOnboarding: true,
-      );
-
-      expect(redirect, AppRoutes.mainApp);
-    });
-
-    test('there is no standalone onboarding route left to redirect through '
-        '(dead-end routes removed, see app_routes.dart)', () {
-      expect(AppRouter.hasRegisteredRoute('/onboarding/one'), isFalse);
-      expect(AppRouter.hasRegisteredRoute('/onboarding/two'), isFalse);
-      expect(AppRouter.hasRegisteredRoute('/onboarding/three'), isFalse);
-    });
+  test('isProtectedLocation gates every customer, service and merchant '
+      'route, but not the pre-sign-in auth routes', () {
+    final protected = [
+      // Bottom-nav shell tabs — each its own StatefulShellBranch (#67).
+      AppRoutes.mainApp,
+      AppRoutes.explore,
+      AppRoutes.activity,
+      AppRoutes.profile,
+      // Service subtrees.
+      AppRoutes.food,
+      AppRoutes.groceryCart,
+      AppRoutes.pharmacyCheckout,
+      AppRoutes.groceryStoreDetails('bakaal-fresh'),
+      AppRoutes.pharmacyStoreDetails('legacy-pharmacy'),
+      AppRoutes.trackOrder,
+      AppRoutes.trackOrderDetailsPath(serviceId: 'grocery', orderId: 'o-2'),
+      AppRoutes.wallet,
+      AppRoutes.resetPassword,
+      AppRoutes.merchantDashboard,
+    ];
+    for (final path in protected) {
+      expect(AppRouter.isProtectedLocation(path), isTrue, reason: path);
+    }
+    for (final path in [
+      AppRoutes.welcome,
+      AppRoutes.login,
+      AppRoutes.register,
+      AppRoutes.forgotPassword,
+    ]) {
+      expect(AppRouter.isProtectedLocation(path), isFalse, reason: path);
+    }
   });
 
-  group('restaurant routes', () {
-    test('builds a restaurant details path', () {
-      expect(
-        AppRoutes.restaurantDetails('restaurant-123'),
-        '/food/restaurants/restaurant-123',
-      );
-    });
-
-    test('recognizes restaurant details as a protected path', () {
-      expect(
-        AppRoutes.isRestaurantDetails('/restaurants/restaurant-123'),
-        isTrue,
-      );
-      expect(
-        AppRoutes.isRestaurantDetails('/food/restaurants/restaurant-123'),
-        isTrue,
-      );
-      expect(AppRoutes.isRestaurantDetails('/restaurants'), isFalse);
-    });
-  });
-
-  group('grocery store routes (issue #140)', () {
-    test('builds a grocery store details path', () {
-      expect(
-        AppRoutes.groceryStoreDetails('bakaal-fresh'),
-        '/grocery/stores/bakaal-fresh',
-      );
-    });
-
-    test('recognizes grocery store details by path prefix', () {
-      expect(
-        AppRoutes.isGroceryStoreDetails('/grocery/stores/bakaal-fresh'),
-        isTrue,
-      );
-      expect(AppRoutes.isGroceryStoreDetails('/grocery/cart'), isFalse);
-      expect(AppRoutes.isGroceryStoreDetails('/grocery'), isFalse);
-    });
-
-    test('groceryStores is deliberately not a registered route (path-prefix '
-        'only, see app_routes.dart)', () {
-      expect(AppRouter.hasRegisteredRoute(AppRoutes.groceryStores), isFalse);
-      // The parameterized route it is a prefix of IS registered.
-      expect(AppRouter.hasRegisteredRoute(AppRoutes.groceryStore), isTrue);
-    });
-
-    test('a grocery store details path is a protected route', () {
-      expect(
-        AppRouter.isProtectedLocation('/grocery/stores/bakaal-fresh'),
-        isTrue,
-      );
-    });
-  });
-
-  group('super-app routes', () {
-    test('recognizes every service subtree as protected', () {
-      for (final path in [
-        AppRoutes.food,
-        AppRoutes.groceryCart,
-        AppRoutes.pharmacyCheckout,
+  group('hasRegisteredRoute', () {
+    test('parameterized and dashboard routes are registered', () {
+      for (final route in [
+        AppRoutes.merchantDashboard,
+        AppRoutes.foodRestaurant,
+        AppRoutes.groceryStore,
+        AppRoutes.pharmacyStore,
+        AppRoutes.trackOrderDetails,
       ]) {
-        expect(
-          AppRouter.isProtectedLocation(path),
-          isTrue,
-          reason: '$path should require a signed-in customer',
-        );
+        expect(AppRouter.hasRegisteredRoute(route), isTrue, reason: route);
       }
     });
-  });
 
-  group('shell tab routes', () {
-    test('recognizes every bottom-nav tab as protected', () {
-      // These four paths are each their own StatefulShellBranch inside the
-      // persistent bottom-nav shell (see app_router.dart / issue #67) — they
-      // must stay gated the same way the old flat page map gated them.
-      for (final path in [
-        AppRoutes.mainApp,
-        AppRoutes.explore,
-        AppRoutes.activity,
-        AppRoutes.profile,
+    test('path-prefix-only constants, removed onboarding routes and unknown '
+        'paths are not registered (see app_routes.dart)', () {
+      for (final route in [
+        AppRoutes.foodRestaurants,
+        AppRoutes.groceryStores,
+        AppRoutes.pharmacyStores,
+        '/onboarding/one',
+        '/onboarding/two',
+        '/onboarding/three',
+        '/this-path-does-not-exist',
       ]) {
+        expect(AppRouter.hasRegisteredRoute(route), isFalse, reason: route);
+      }
+    });
+
+    test('every ServiceDescriptor.entryRoute resolves to a registered route '
+        '(issue #69)', () {
+      for (final module in ServiceRegistry.modules) {
         expect(
-          AppRouter.isProtectedLocation(path),
+          AppRouter.hasRegisteredRoute(module.entryRoute),
           isTrue,
-          reason: '$path should require a signed-in customer',
+          reason:
+              '${module.id} entryRoute "${module.entryRoute}" has no '
+              'matching GoRoute',
         );
       }
     });
-  });
-
-  group('password reset routes', () {
-    test('reset password is a protected route', () {
-      expect(AppRouter.isProtectedLocation(AppRoutes.resetPassword), isTrue);
-    });
-
-    test('forgot password is not a protected route', () {
-      expect(AppRouter.isProtectedLocation(AppRoutes.forgotPassword), isFalse);
-    });
-  });
-
-  group('route-string convention (issue #69)', () {
-    test(
-      'every ServiceDescriptor.entryRoute resolves to a registered route',
-      () {
-        for (final module in ServiceRegistry.modules) {
-          expect(
-            AppRouter.hasRegisteredRoute(module.entryRoute),
-            isTrue,
-            reason:
-                '${module.id} entryRoute "${module.entryRoute}" has no '
-                'matching GoRoute',
-          );
-        }
-      },
-    );
 
     test('every details_route the customer_activity SQL view can produce '
-        'resolves to a registered route', () {
+        'resolves to a registered route (issue #69)', () {
       // Mirrors the literal `details_route` values selected by the
       // `customer_activity` view as currently (re)defined in
       // supabase/migrations/20260815153920_remove_cleaning_vertical.sql
-      // (food/grocery/pharmacy branches; the earlier cleaning branch from
-      // 20260727152319_connect_super_app_services.sql was dropped by
-      // issue #50 and no longer exists in the live view definition).
-      // There is no SQL execution available from a Dart unit test, so
-      // this list is a manually kept mirror of that view's `select`
-      // branches — if a future migration changes, adds, or removes a
-      // `details_route` literal in customer_activity, update this list to
-      // match, in the same change.
+      // (food/grocery/pharmacy branches; the earlier cleaning branch was
+      // dropped by issue #50). There is no SQL execution available from a
+      // Dart unit test, so this list is a manually kept mirror of that
+      // view's `select` branches — if a future migration changes, adds, or
+      // removes a `details_route` literal in customer_activity, update this
+      // list to match, in the same change.
       const sqlViewDetailsRoutes = [
         AppRoutes.food,
         AppRoutes.grocery,
@@ -479,100 +291,96 @@ void main() {
         );
       }
     });
-
-    test('foodRestaurants is deliberately not a registered route (path-prefix '
-        'only, see app_routes.dart)', () {
-      expect(AppRouter.hasRegisteredRoute(AppRoutes.foodRestaurants), isFalse);
-      // The parameterized route it is a prefix of IS registered.
-      expect(AppRouter.hasRegisteredRoute(AppRoutes.foodRestaurant), isTrue);
-    });
-
-    test('pharmacyStores is deliberately not a registered route (path-prefix '
-        'only, mirrors foodRestaurants, see app_routes.dart)', () {
-      expect(AppRouter.hasRegisteredRoute(AppRoutes.pharmacyStores), isFalse);
-      // The parameterized route it is a prefix of IS registered.
-      expect(AppRouter.hasRegisteredRoute(AppRoutes.pharmacyStore), isTrue);
-    });
   });
 
-  group('pharmacy store routes (issue #141)', () {
-    test('builds a pharmacy store details path', () {
-      expect(
-        AppRoutes.pharmacyStoreDetails('legacy-pharmacy'),
-        '/pharmacy/stores/legacy-pharmacy',
-      );
-    });
+  test('path builders and predicates', () {
+    expect(
+      AppRoutes.restaurantDetails('restaurant-123'),
+      '/food/restaurants/restaurant-123',
+    );
+    expect(AppRoutes.isRestaurantDetails('/restaurants/r-1'), isTrue);
+    expect(AppRoutes.isRestaurantDetails('/food/restaurants/r-1'), isTrue);
+    expect(AppRoutes.isRestaurantDetails('/restaurants'), isFalse);
 
-    test('a pharmacy store details path requires a signed-in customer', () {
-      final path = AppRoutes.pharmacyStoreDetails('legacy-pharmacy');
-      expect(AppRouter.isProtectedLocation(path), isTrue);
-      expect(
-        AppRouter.resolveRedirect(
-          isLoggedIn: false,
-          isProtected: AppRouter.isProtectedLocation(path),
-          location: path,
-        ),
-        AppRoutes.login,
-      );
-    });
+    expect(
+      AppRoutes.groceryStoreDetails('bakaal-fresh'),
+      '/grocery/stores/bakaal-fresh',
+    );
+    expect(
+      AppRoutes.isGroceryStoreDetails('/grocery/stores/bakaal-fresh'),
+      isTrue,
+    );
+    expect(AppRoutes.isGroceryStoreDetails('/grocery/cart'), isFalse);
+    expect(AppRoutes.isGroceryStoreDetails('/grocery'), isFalse);
+
+    expect(
+      AppRoutes.pharmacyStoreDetails('legacy-pharmacy'),
+      '/pharmacy/stores/legacy-pharmacy',
+    );
+
+    final trackPath = AppRoutes.trackOrderDetailsPath(
+      serviceId: 'food',
+      orderId: 'order 1/2',
+    );
+    expect(trackPath, '/track-order/food/order%201%2F2');
+    expect(AppRoutes.isTrackOrderDetails(trackPath), isTrue);
+    expect(AppRoutes.isTrackOrderDetails(AppRoutes.trackOrder), isFalse);
+
+    expect(
+      AppRouter.isWelcomeRevisit(Uri.parse(AppRoutes.welcomeRevisit)),
+      isTrue,
+    );
+    expect(AppRouter.isWelcomeRevisit(Uri.parse(AppRoutes.welcome)), isFalse);
+    expect(
+      AppRouter.isWelcomeRevisit(Uri.parse('${AppRoutes.welcome}?revisit=no')),
+      isFalse,
+    );
   });
 
-  group('track order routes (issue #43)', () {
-    test('trackOrderDetails is a registered route', () {
-      expect(AppRouter.hasRegisteredRoute(AppRoutes.trackOrderDetails), isTrue);
-    });
-
-    test('trackOrderDetailsPath builds a URL-encoded id/service path', () {
-      expect(
-        AppRoutes.trackOrderDetailsPath(
-          serviceId: 'food',
-          orderId: 'order 1/2',
+  testWidgets('NotFoundScreen shows a message and a way back to a known route '
+      '(issue #40)', (tester) async {
+    final router = GoRouter(
+      initialLocation: '/this-path-does-not-exist',
+      routes: [
+        GoRoute(
+          path: AppRoutes.mainApp,
+          builder: (_, _) => const Scaffold(body: Text('home screen')),
         ),
-        '/track-order/food/order%201%2F2',
-      );
-    });
+      ],
+      errorBuilder: (_, _) => const NotFoundScreen(),
+    );
+    addTearDown(router.dispose);
 
-    test('isTrackOrderDetails recognizes a built path but not the bare '
-        'track-order route', () {
-      expect(
-        AppRoutes.isTrackOrderDetails(
-          AppRoutes.trackOrderDetailsPath(
-            serviceId: 'food',
-            orderId: 'order-1',
-          ),
-        ),
-        isTrue,
-      );
-      expect(AppRoutes.isTrackOrderDetails(AppRoutes.trackOrder), isFalse);
-    });
+    await tester.pumpWidget(MaterialApp.router(routerConfig: router));
+    await tester.pumpAndSettle();
 
-    test('a built trackOrderDetails path requires a signed-in customer', () {
-      final path = AppRoutes.trackOrderDetailsPath(
-        serviceId: 'grocery',
-        orderId: 'order-2',
-      );
-      expect(AppRouter.isProtectedLocation(path), isTrue);
-      expect(
-        AppRouter.resolveRedirect(
-          isLoggedIn: false,
-          isProtected: AppRouter.isProtectedLocation(path),
-          location: path,
-        ),
-        AppRoutes.login,
-      );
-    });
+    expect(find.text("We couldn't find that page"), findsOneWidget);
+    expect(find.text('home screen'), findsNothing);
 
-    test('the bare track-order route also requires a signed-in customer', () {
-      expect(AppRouter.isProtectedLocation(AppRoutes.trackOrder), isTrue);
-    });
+    await tester.tap(find.text('Go to home'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('home screen'), findsOneWidget);
+    expect(find.text("We couldn't find that page"), findsNothing);
+  });
+}
+
+class _RedirectCase {
+  const _RedirectCase(
+    this.why,
+    this.location, {
+    this.loggedIn = false,
+    this.merchant = false,
+    this.seenOnboarding = false,
+    this.revisit = false,
+    required this.expected,
   });
 
-  group('unknown routes (issue #40)', () {
-    test('an unregistered path is not a registered route', () {
-      expect(
-        AppRouter.hasRegisteredRoute('/this-path-does-not-exist'),
-        isFalse,
-      );
-    });
-  });
+  final String why;
+  final String location;
+  final bool loggedIn;
+  final bool merchant;
+  final bool seenOnboarding;
+  final bool revisit;
+  final String? expected;
 }
