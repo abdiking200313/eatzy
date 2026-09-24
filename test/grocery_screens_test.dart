@@ -129,6 +129,60 @@ void main() {
 
     expect(repository.fetchCount, 2);
   });
+
+  test(
+    'products parse their embedded category and survive a cart round-trip',
+    () {
+      final product = GroceryProduct.fromMap({
+        'id': 'p1',
+        'store_id': 's1',
+        'name': 'Bananas',
+        'unit_price': 150,
+        'pricing_unit': 'kilogram',
+        'quantity_step': 0.5,
+        'available_quantity': 10,
+        'low_stock_threshold': 3,
+        'grocery_categories': {'name': 'Fruits & vegetables', 'sort_order': 1},
+      });
+      expect(product.categoryName, 'Fruits & vegetables');
+      expect(product.categorySortOrder, 1);
+
+      final restored = GroceryProduct.fromJson(product.toJson());
+      expect(restored.categoryName, 'Fruits & vegetables');
+      expect(restored.categorySortOrder, 1);
+    },
+  );
+
+  test('groupByCategory orders sections by sort order, "Other" last', () {
+    GroceryProduct product(String name, String? category, int sortOrder) =>
+        GroceryProduct(
+          id: name,
+          storeId: 's1',
+          name: name,
+          description: '',
+          unitPrice: 100,
+          pricingUnit: GroceryPricingUnit.each,
+          stockState: GroceryStockState.inStock,
+          availableQuantity: 10,
+          icon: '🛒',
+          categoryName: category,
+          categorySortOrder: sortOrder,
+        );
+
+    final sections = groupByCategory([
+      product('Bread', 'Bread & bakery', 5),
+      product('Mystery box', null, 0),
+      product('Apples', 'Fruits & vegetables', 1),
+      product('Baguette', 'Bread & bakery', 5),
+    ]);
+
+    expect(sections.map((s) => s.name), [
+      'Fruits & vegetables',
+      'Bread & bakery',
+      'Other',
+    ]);
+    expect(sections[1].products.map((p) => p.name), ['Bread', 'Baguette']);
+  });
 }
 
 class _CountingGroceryRepository implements GroceryRepository {

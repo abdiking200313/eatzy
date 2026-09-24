@@ -244,10 +244,37 @@ class _GroceryStoreScreenState extends State<GroceryStoreScreen> {
   }
 }
 
+/// Groups [products] into category sections, like `RestaurantScreen`'s menu:
+/// sections ordered by `grocery_categories.sort_order` (then name), with
+/// uncategorised products last under "Other". Products keep their incoming
+/// order (by name, from the repository) within a section.
+@visibleForTesting
+List<({String name, List<GroceryProduct> products})> groupByCategory(
+  List<GroceryProduct> products,
+) {
+  final groups = <String?, List<GroceryProduct>>{};
+  for (final product in products) {
+    groups.putIfAbsent(product.categoryName, () => []).add(product);
+  }
+  final entries = groups.entries.toList()
+    ..sort((a, b) {
+      if (a.key == null || b.key == null) {
+        return (a.key == null ? 1 : 0) - (b.key == null ? 1 : 0);
+      }
+      final bySortOrder = a.value.first.categorySortOrder.compareTo(
+        b.value.first.categorySortOrder,
+      );
+      return bySortOrder != 0 ? bySortOrder : a.key!.compareTo(b.key!);
+    });
+  return [
+    for (final entry in entries)
+      (name: entry.key ?? 'Other', products: entry.value),
+  ];
+}
+
 /// The loaded-store body: a hero banner (mirrors `RestaurantScreen`'s
-/// `_RestaurantAppBar`) followed by the same area/notice/search header and
-/// flat product list this screen has always shown — only the top-of-screen
-/// chrome changes here (issue #250).
+/// `_RestaurantAppBar`) followed by the area/notice/search header and the
+/// store's products grouped into category sections.
 class _StoreView extends StatelessWidget {
   const _StoreView({
     required this.store,
@@ -272,6 +299,11 @@ class _StoreView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final showEmptyRow = products.isEmpty;
+    final sections = groupByCategory(products);
+    // A lone section (an uncategorised store, or a search that only matches
+    // one category) needs no header — the list then looks as it did before
+    // categories existed.
+    final showSectionHeaders = sections.length > 1;
 
     return RefreshIndicator(
       onRefresh: onRefresh,
@@ -305,33 +337,62 @@ class _StoreView extends StatelessWidget {
               ),
             ),
           ),
-          SliverPadding(
-            padding: const EdgeInsets.fromLTRB(
-              TwSpacing.x5,
-              0,
-              TwSpacing.x5,
-              TwSpacing.x8,
-            ),
-            sliver: showEmptyRow
-                ? SliverToBoxAdapter(
-                    child: _EmptyProducts(
-                      searchQuery: searchController.text.trim(),
-                    ),
-                  )
-                : SliverList.separated(
-                    itemCount: products.length,
-                    separatorBuilder: (_, _) =>
-                        const SizedBox(height: TwSpacing.x3),
-                    itemBuilder: (context, index) {
-                      final product = products[index];
-                      return GroceryProductCard(
-                        product: product,
-                        onAdd: () => onAdd(product),
-                        onTap: () => onOpen(product),
-                      );
-                    },
+          if (showEmptyRow)
+            SliverPadding(
+              padding: const EdgeInsets.symmetric(horizontal: TwSpacing.x5),
+              sliver: SliverToBoxAdapter(
+                child: _EmptyProducts(
+                  searchQuery: searchController.text.trim(),
+                ),
+              ),
+            )
+          else
+            for (final section in sections) ...[
+              if (!showSectionHeaders)
+                const SliverToBoxAdapter(child: SizedBox(height: TwSpacing.x3))
+              else
+                SliverPadding(
+                  padding: const EdgeInsets.fromLTRB(
+                    TwSpacing.x5,
+                    TwSpacing.x4,
+                    TwSpacing.x5,
+                    TwSpacing.x3,
                   ),
-          ),
+                  sliver: SliverToBoxAdapter(
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text(section.name, style: TwText.textXl),
+                        ),
+                        Text(
+                          '${section.products.length} '
+                          '${section.products.length == 1 ? 'item' : 'items'}',
+                          style: TwText.textXs.copyWith(
+                            color: TwColors.textMuted,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              SliverPadding(
+                padding: const EdgeInsets.symmetric(horizontal: TwSpacing.x5),
+                sliver: SliverList.separated(
+                  itemCount: section.products.length,
+                  separatorBuilder: (_, _) =>
+                      const SizedBox(height: TwSpacing.x3),
+                  itemBuilder: (context, index) {
+                    final product = section.products[index];
+                    return GroceryProductCard(
+                      product: product,
+                      onAdd: () => onAdd(product),
+                      onTap: () => onOpen(product),
+                    );
+                  },
+                ),
+              ),
+            ],
+          const SliverToBoxAdapter(child: SizedBox(height: TwSpacing.x8)),
         ],
       ),
     );
