@@ -8,6 +8,11 @@ Reverse-chronological. Each session/major chunk of work gets an entry.
 
 ---
 
+## 2026-09-25 (board worker — nothing eligible, queue unchanged, 4 runs today)
+
+- All four runs today: `list_issues` for `todo`/`waiting-on-you` returned only the same tracking-only pair, **#29/#52** (`updated_at` unchanged: 2026-08-17/2026-08-26). `waiting-on-you` empty. Each run's only new `master` commit since the prior run was that prior run's own vault-update PR (#269, then #270, then #271) — never new work.
+- Nothing implemented in any of the four runs.
+
 ## 2026-09-24 (owner-requested, interactive: profile editing moved into Settings)
 
 - Settings → Account now has Name / Phone / Date of Birth / Email rows, each editing one field in a bottom sheet (`EditFieldSheet`; DOB opens a date picker). `EditProfileScreen`, its route and the Profile tab's edit button are deleted. Email changes go through `auth.updateUser` + Supabase's confirmation link. See [[Decisions Log]] 2026-09-24.
