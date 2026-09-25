@@ -1,8 +1,6 @@
 import 'dart:async';
 
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 
 import '../../../app/app_routes.dart';
 import '../../../config/theme.dart';
@@ -11,20 +9,17 @@ import '../../../widgets/add_to_cart_button.dart';
 import '../../../widgets/app_cards.dart';
 import '../../../widgets/app_misc.dart';
 import '../../../widgets/app_scaffold.dart';
+import '../../../widgets/cart_app_bar_action.dart';
+import '../../../widgets/store_hero_app_bar.dart';
+import '../../../widgets/store_search_field.dart';
 import '../models/pharmacy_product.dart';
 import 'pharmacy_product_details_screen.dart';
 import 'pharmacy_controller.dart';
-import 'widgets/pharmacy_cart_badge_action.dart';
 
 /// How long to wait after the last keystroke before running a search query,
 /// so typing quickly doesn't fire a request per character. Mirrors
 /// `FoodHomeScreen`'s `_searchDebounce`.
 const Duration _searchDebounce = Duration(milliseconds: 400);
-
-/// Height of the hero banner's `SliverAppBar.expandedHeight` — matches
-/// `RestaurantScreen`'s `_RestaurantAppBar` so this screen reads visually
-/// consistent with food's per-restaurant screen (issue #250).
-const double _kStoreHeroExtent = 230;
 
 /// A single pharmacy's OTC product catalog — reached by picking a pharmacy
 /// on [PharmacyStoreListScreen] first, so browsing (and the cart it feeds)
@@ -178,14 +173,14 @@ class _PharmacyCatalogScreenState extends State<PharmacyCatalogScreen> {
     // The hero banner only appears once the catalog has something to show
     // (or at least isn't in its initial loading/error state) — mirrors
     // `RestaurantScreen`'s `_RestaurantLoading`/`_RestaurantError` not
-    // showing `_RestaurantHero` either. `PharmacyCatalogScreen` always knows
+    // showing `StoreHeroAppBar` either. `PharmacyCatalogScreen` always knows
     // the store's name/photo up front (passed in via [widget.storeName]/
     // [widget.storeImageUrl]), so this only gates on catalog state.
     if (_isLoading && _productCount == 0) {
       return AppScaffold(
         title: widget.storeName ?? 'Pharmacy',
         showBackButton: true,
-        actions: [PharmacyCartBadgeAction(controller: _controller)],
+        actions: [_cartAction()],
         body: const Center(child: CircularProgressIndicator()),
       );
     }
@@ -194,12 +189,23 @@ class _PharmacyCatalogScreenState extends State<PharmacyCatalogScreen> {
       return AppScaffold(
         title: widget.storeName ?? 'Pharmacy',
         showBackButton: true,
-        actions: [PharmacyCartBadgeAction(controller: _controller)],
+        actions: [_cartAction()],
         body: _CatalogError(message: _loadError!, onRetry: _retry),
       );
     }
 
     return Scaffold(body: _buildLoadedView());
+  }
+
+  Widget _cartAction() {
+    return CartBadgeAction(
+      key: const ValueKey('pharmacy-cart-action'),
+      listenable: _controller,
+      itemCount: () => _controller.itemCount,
+      icon: Icons.shopping_bag_rounded,
+      tooltip: (_) => 'Pharmacy cart',
+      route: AppRoutes.pharmacyCart,
+    );
   }
 
   Widget _buildLoadedView() {
@@ -220,10 +226,12 @@ class _PharmacyCatalogScreenState extends State<PharmacyCatalogScreen> {
       child: CustomScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
         slivers: [
-          _PharmacyAppBar(
-            storeName: widget.storeName ?? 'Pharmacy',
+          StoreHeroAppBar(
+            title: widget.storeName ?? 'Pharmacy',
             imageUrl: widget.storeImageUrl,
-            actions: [PharmacyCartBadgeAction(controller: _controller)],
+            fallbackIcon: Icons.storefront_rounded,
+            showBackButton: true,
+            actions: [_cartAction()],
           ),
           SliverPadding(
             padding: const EdgeInsets.all(TwSpacing.x5),
@@ -234,8 +242,9 @@ class _PharmacyCatalogScreenState extends State<PharmacyCatalogScreen> {
                     padding: const EdgeInsets.only(
                       bottom: TwSpacing.rhythmDefault,
                     ),
-                    child: _StoreSearchField(
+                    child: StoreSearchField(
                       controller: _searchController,
+                      hintText: 'Search this pharmacy...',
                       onChanged: _onSearchChanged,
                       onClear: _clearSearch,
                     ),
@@ -396,177 +405,6 @@ class _PharmacyCatalogScreenState extends State<PharmacyCatalogScreen> {
     };
 
     showCartSnackBar(context, message);
-  }
-}
-
-/// The pharmacy hero app bar — mirrors `RestaurantScreen`'s
-/// `_RestaurantAppBar`/`_RestaurantHero` so this screen reads visually
-/// consistent with food's per-restaurant screen (issue #250).
-class _PharmacyAppBar extends StatelessWidget {
-  const _PharmacyAppBar({
-    required this.storeName,
-    required this.imageUrl,
-    required this.actions,
-  });
-
-  final String storeName;
-  final String? imageUrl;
-  final List<Widget> actions;
-
-  @override
-  Widget build(BuildContext context) {
-    final palette = context.serviceColors;
-    return SliverAppBar(
-      pinned: true,
-      expandedHeight: _kStoreHeroExtent,
-      backgroundColor: palette.accent,
-      foregroundColor: palette.onAccent,
-      leading: IconButton(
-        tooltip: 'Back',
-        icon: const Icon(Icons.arrow_back_rounded),
-        onPressed: () {
-          if (context.canPop()) {
-            context.pop();
-          } else {
-            context.go(AppRoutes.mainApp);
-          }
-        },
-      ),
-      title: Text(
-        storeName,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: TwText.fontBoldBase.copyWith(color: palette.onAccent),
-      ),
-      actions: actions,
-      flexibleSpace: FlexibleSpaceBar(
-        background: _PharmacyHero(imageUrl: imageUrl ?? ''),
-      ),
-    );
-  }
-}
-
-class _PharmacyHero extends StatelessWidget {
-  const _PharmacyHero({required this.imageUrl});
-
-  final String imageUrl;
-
-  @override
-  Widget build(BuildContext context) {
-    final trimmedUrl = imageUrl.trim();
-    // Mirrors `_RestaurantHero`'s decode-size reasoning: the hero fills the
-    // SliverAppBar's expandedHeight at full screen width, so the screen
-    // width is used as the practical decode bound, scaled
-    // for device pixel density and capped at 3x since a wider cap buys no
-    // visible sharpness while still inflating decode memory.
-    final cacheScale = MediaQuery.of(context).devicePixelRatio.clamp(1.0, 3.0);
-    // Only the width is capped: capping both dimensions decodes to that
-    // exact box and squashes (stretches) any photo of a different shape.
-    final cacheWidth = (MediaQuery.of(context).size.width * cacheScale).round();
-    final image = trimmedUrl.isEmpty
-        ? const _PharmacyHeroFallback()
-        : CachedNetworkImage(
-            imageUrl: trimmedUrl,
-            fit: BoxFit.cover,
-            memCacheWidth: cacheWidth,
-            placeholder: (_, _) =>
-                const _PharmacyHeroFallback(showLoader: true),
-            errorWidget: (_, _, _) => const _PharmacyHeroFallback(),
-          );
-
-    return Stack(
-      fit: StackFit.expand,
-      children: [
-        // A plain white base under the photo, same as `_RestaurantHero`: a
-        // photo with transparent pixels would otherwise reveal whatever
-        // sits behind this in the widget tree — the app bar's own accent
-        // color — which would read as a stray color bleed-through around
-        // the image rather than a clean background.
-        const ColoredBox(color: TwColors.card),
-        image,
-        DecoratedBox(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [
-                TwColors.slate900.withOpacityValue(85 / 255),
-                TwColors.slate900.withOpacityValue(34 / 255),
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _PharmacyHeroFallback extends StatelessWidget {
-  const _PharmacyHeroFallback({this.showLoader = false});
-
-  final bool showLoader;
-
-  @override
-  Widget build(BuildContext context) {
-    final palette = context.serviceColors;
-    return ColoredBox(
-      color: TwColors.card,
-      child: Center(
-        child: showLoader
-            ? CircularProgressIndicator(color: palette.accent)
-            : Icon(Icons.storefront_rounded, color: palette.accent, size: 72),
-      ),
-    );
-  }
-}
-
-/// A pill-shaped search field scoped to this pharmacy's catalog, styled to
-/// match `FoodHomeScreen`'s restaurant search box.
-class _StoreSearchField extends StatelessWidget {
-  const _StoreSearchField({
-    required this.controller,
-    required this.onChanged,
-    required this.onClear,
-  });
-
-  final TextEditingController controller;
-  final ValueChanged<String> onChanged;
-  final VoidCallback onClear;
-
-  @override
-  Widget build(BuildContext context) {
-    return OutlinedCard(
-      backgroundColor: TwColors.card,
-      borderColor: TwColors.border,
-      borderRadius: 50,
-      child: Row(
-        children: [
-          const Icon(Icons.search, color: TwColors.textMuted),
-          const SizedBox(width: TwSpacing.x4),
-          Expanded(
-            child: TextField(
-              controller: controller,
-              onChanged: onChanged,
-              textInputAction: TextInputAction.search,
-              decoration: const InputDecoration(
-                isCollapsed: true,
-                border: InputBorder.none,
-                hintText: 'Search this pharmacy...',
-                hintStyle: TextStyle(color: TwColors.textMuted),
-              ),
-            ),
-          ),
-          if (controller.text.isNotEmpty)
-            GestureDetector(
-              onTap: onClear,
-              child: const Padding(
-                padding: EdgeInsets.only(left: TwSpacing.x2),
-                child: Icon(Icons.clear, size: 20, color: TwColors.textMuted),
-              ),
-            ),
-        ],
-      ),
-    );
   }
 }
 

@@ -7,10 +7,10 @@ import '../../../app/app_routes.dart';
 import '../../../config/theme.dart';
 import '../../../widgets/app_cards.dart';
 import '../../../widgets/app_scaffold.dart';
+import '../../../widgets/cart_app_bar_action.dart';
+import '../../../widgets/store_row_card.dart';
 import '../models/grocery_models.dart';
 import 'grocery_controller.dart';
-import 'widgets/grocery_cart_badge_action.dart';
-import 'widgets/grocery_store_card.dart';
 
 /// The grocery store list: pick a store first, then browse just that
 /// store's products — mirroring food's "restaurant list -> restaurant
@@ -114,7 +114,15 @@ class _GroceryScreenState extends State<GroceryScreen> {
     return AppScaffold(
       title: 'Groceries',
       showBackButton: true,
-      actions: [GroceryCartBadgeAction(controller: _controller)],
+      actions: [
+        CartBadgeAction(
+          listenable: _controller,
+          itemCount: () => _controller.itemCount,
+          icon: Icons.shopping_basket_rounded,
+          tooltip: (count) => 'Grocery cart ($count)',
+          route: AppRoutes.groceryCart,
+        ),
+      ],
       body: _body(),
     );
   }
@@ -189,11 +197,17 @@ class _GroceryScreenState extends State<GroceryScreen> {
           }
 
           final store = stores[index - 1];
+          final productCount = store.products.length;
           return Padding(
             padding: const EdgeInsets.only(bottom: TwSpacing.x3),
-            child: GroceryStoreCard(
-              store: store,
-              onPressed: () => _openStore(store),
+            child: StoreRowCard(
+              imageUrl: store.imageUrl,
+              fallbackIcon: Icons.storefront_rounded,
+              name: store.name,
+              subtitleLines: [store.area],
+              caption:
+                  '$productCount ${productCount == 1 ? 'product' : 'products'}',
+              onTap: () => _openStore(store),
             ),
           );
         },

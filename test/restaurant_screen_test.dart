@@ -230,4 +230,4 @@ void main() {
   });
 }
 
-void _doNothing() {}
+void _doNothing(int _) {}

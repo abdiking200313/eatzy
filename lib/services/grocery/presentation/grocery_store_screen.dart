@@ -1,24 +1,19 @@
 import 'dart:async';
 
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 
 import '../../../app/app_routes.dart';
 import '../../../config/theme.dart';
 import '../../../widgets/app_cards.dart';
 import '../../../widgets/app_misc.dart';
 import '../../../widgets/app_scaffold.dart';
+import '../../../widgets/cart_app_bar_action.dart';
+import '../../../widgets/store_hero_app_bar.dart';
+import '../../../widgets/store_search_field.dart';
 import '../models/grocery_models.dart';
 import 'grocery_controller.dart';
 import 'grocery_product_details_screen.dart';
-import 'widgets/grocery_cart_badge_action.dart';
 import 'widgets/grocery_product_card.dart';
-
-/// Height of the hero banner's `SliverAppBar.expandedHeight` — matches
-/// `RestaurantScreen`'s `_RestaurantAppBar` so this screen reads visually
-/// consistent with food's per-restaurant screen (issue #250).
-const double _kStoreHeroExtent = 230;
 
 /// A single store's product catalog — reached by tapping a store on
 /// [GroceryScreen] (the store list). Mirrors food's
@@ -121,7 +116,7 @@ class _GroceryStoreScreenState extends State<GroceryStoreScreen> {
     // it only appears once loading has actually succeeded — the loading,
     // error, and "not found" states fall back to the plain title bar every
     // other screen in the app uses, same as `RestaurantScreen`'s
-    // `_RestaurantLoading`/`_RestaurantError` not showing `_RestaurantHero`
+    // `_RestaurantLoading`/`_RestaurantError` not showing `StoreHeroAppBar`
     // either.
     if (store != null) {
       return Scaffold(
@@ -133,7 +128,7 @@ class _GroceryStoreScreenState extends State<GroceryStoreScreen> {
           onAdd: _add,
           onOpen: _openDetails,
           onRefresh: () => _controller.loadStore(store.id, forceRefresh: true),
-          cartAction: GroceryCartBadgeAction(controller: _controller),
+          cartAction: _cartAction(),
         ),
       );
     }
@@ -141,8 +136,18 @@ class _GroceryStoreScreenState extends State<GroceryStoreScreen> {
     return AppScaffold(
       title: 'Store',
       showBackButton: true,
-      actions: [GroceryCartBadgeAction(controller: _controller)],
+      actions: [_cartAction()],
       body: _loadingOrErrorBody(),
+    );
+  }
+
+  Widget _cartAction() {
+    return CartBadgeAction(
+      listenable: _controller,
+      itemCount: () => _controller.itemCount,
+      icon: Icons.shopping_basket_rounded,
+      tooltip: (count) => 'Grocery cart ($count)',
+      route: AppRoutes.groceryCart,
     );
   }
 
@@ -272,9 +277,9 @@ List<({String name, List<GroceryProduct> products})> groupByCategory(
   ];
 }
 
-/// The loaded-store body: a hero banner (mirrors `RestaurantScreen`'s
-/// `_RestaurantAppBar`) followed by the area/notice/search header and the
-/// store's products grouped into category sections.
+/// The loaded-store body: a hero banner (shared `StoreHeroAppBar`) followed
+/// by the area/notice/search header and the store's products grouped into
+/// category sections.
 class _StoreView extends StatelessWidget {
   const _StoreView({
     required this.store,
@@ -310,7 +315,13 @@ class _StoreView extends StatelessWidget {
       child: CustomScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
         slivers: [
-          _StoreAppBar(store: store, actions: [cartAction]),
+          StoreHeroAppBar(
+            title: store.name,
+            imageUrl: store.imageUrl,
+            fallbackIcon: Icons.storefront_rounded,
+            showBackButton: true,
+            actions: [cartAction],
+          ),
           SliverPadding(
             padding: const EdgeInsets.fromLTRB(
               TwSpacing.x5,
@@ -329,8 +340,9 @@ class _StoreView extends StatelessWidget {
                     style: TwText.textSm,
                   ),
                   const SizedBox(height: TwSpacing.x5),
-                  _StoreSearchField(
+                  StoreSearchField(
                     controller: searchController,
+                    hintText: 'Search products...',
                     onClear: onSearchClear,
                   ),
                 ],
@@ -394,162 +406,6 @@ class _StoreView extends StatelessWidget {
             ],
           const SliverToBoxAdapter(child: SizedBox(height: TwSpacing.x8)),
         ],
-      ),
-    );
-  }
-}
-
-/// The store's product search field, styled to match
-/// `PharmacyCatalogScreen`'s `_StoreSearchField`.
-class _StoreSearchField extends StatelessWidget {
-  const _StoreSearchField({required this.controller, required this.onClear});
-
-  final TextEditingController controller;
-  final VoidCallback onClear;
-
-  @override
-  Widget build(BuildContext context) {
-    return OutlinedCard(
-      backgroundColor: TwColors.card,
-      borderColor: TwColors.border,
-      borderRadius: 50,
-      child: Row(
-        children: [
-          const Icon(Icons.search, color: TwColors.textMuted),
-          const SizedBox(width: TwSpacing.x4),
-          Expanded(
-            child: TextField(
-              controller: controller,
-              textInputAction: TextInputAction.search,
-              decoration: const InputDecoration(
-                isCollapsed: true,
-                border: InputBorder.none,
-                hintText: 'Search products...',
-                hintStyle: TextStyle(color: TwColors.textMuted),
-              ),
-            ),
-          ),
-          if (controller.text.isNotEmpty)
-            GestureDetector(
-              onTap: onClear,
-              child: const Padding(
-                padding: EdgeInsets.only(left: TwSpacing.x2),
-                child: Icon(Icons.clear, size: 20, color: TwColors.textMuted),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-}
-
-class _StoreAppBar extends StatelessWidget {
-  const _StoreAppBar({required this.store, required this.actions});
-
-  final GroceryStore store;
-  final List<Widget> actions;
-
-  @override
-  Widget build(BuildContext context) {
-    final palette = context.serviceColors;
-    return SliverAppBar(
-      pinned: true,
-      expandedHeight: _kStoreHeroExtent,
-      backgroundColor: palette.accent,
-      foregroundColor: palette.onAccent,
-      leading: IconButton(
-        tooltip: 'Back',
-        icon: const Icon(Icons.arrow_back_rounded),
-        onPressed: () {
-          if (context.canPop()) {
-            context.pop();
-          } else {
-            context.go(AppRoutes.mainApp);
-          }
-        },
-      ),
-      title: Text(
-        store.name,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: TwText.fontBoldBase.copyWith(color: palette.onAccent),
-      ),
-      actions: actions,
-      flexibleSpace: FlexibleSpaceBar(
-        background: _StoreHero(imageUrl: store.imageUrl ?? ''),
-      ),
-    );
-  }
-}
-
-class _StoreHero extends StatelessWidget {
-  const _StoreHero({required this.imageUrl});
-
-  final String imageUrl;
-
-  @override
-  Widget build(BuildContext context) {
-    final trimmedUrl = imageUrl.trim();
-    // Mirrors `_RestaurantHero`'s decode-size reasoning: the hero fills the
-    // SliverAppBar's expandedHeight at full screen width, so the screen
-    // width is used as the practical decode bound, scaled
-    // for device pixel density and capped at 3x since a wider cap buys no
-    // visible sharpness while still inflating decode memory.
-    final cacheScale = MediaQuery.of(context).devicePixelRatio.clamp(1.0, 3.0);
-    // Only the width is capped: capping both dimensions decodes to that
-    // exact box and squashes (stretches) any photo of a different shape.
-    final cacheWidth = (MediaQuery.of(context).size.width * cacheScale).round();
-    final image = trimmedUrl.isEmpty
-        ? const _StoreHeroFallback()
-        : CachedNetworkImage(
-            imageUrl: trimmedUrl,
-            fit: BoxFit.cover,
-            memCacheWidth: cacheWidth,
-            placeholder: (_, _) => const _StoreHeroFallback(showLoader: true),
-            errorWidget: (_, _, _) => const _StoreHeroFallback(),
-          );
-
-    return Stack(
-      fit: StackFit.expand,
-      children: [
-        // A plain white base under the photo, same as `_RestaurantHero`: a
-        // photo with transparent pixels would otherwise reveal whatever
-        // sits behind this in the widget tree — the app bar's own accent
-        // color — which would read as a stray color bleed-through around
-        // the image rather than a clean background.
-        const ColoredBox(color: TwColors.card),
-        image,
-        DecoratedBox(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [
-                TwColors.slate900.withOpacityValue(85 / 255),
-                TwColors.slate900.withOpacityValue(34 / 255),
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _StoreHeroFallback extends StatelessWidget {
-  const _StoreHeroFallback({this.showLoader = false});
-
-  final bool showLoader;
-
-  @override
-  Widget build(BuildContext context) {
-    final palette = context.serviceColors;
-    return ColoredBox(
-      color: TwColors.card,
-      child: Center(
-        child: showLoader
-            ? CircularProgressIndicator(color: palette.accent)
-            : Icon(Icons.storefront_rounded, color: palette.accent, size: 72),
       ),
     );
   }

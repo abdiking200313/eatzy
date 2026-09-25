@@ -7,12 +7,12 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../app/app_routes.dart';
 import '../../../config/theme.dart';
 import '../../../widgets/app_cards.dart';
-import '../../../widgets/app_misc.dart';
 import '../../../widgets/app_scaffold.dart';
+import '../../../widgets/cart_app_bar_action.dart';
+import '../../../widgets/store_row_card.dart';
 import '../data/pharmacy_repository.dart';
 import '../models/pharmacy_store.dart';
 import 'pharmacy_controller.dart';
-import 'widgets/pharmacy_cart_badge_action.dart';
 
 typedef PharmacyStoreLoader = Future<List<PharmacyStore>> Function();
 
@@ -147,7 +147,16 @@ class _PharmacyStoreListScreenState extends State<PharmacyStoreListScreen> {
     return AppScaffold(
       title: 'Pharmacy',
       showBackButton: true,
-      actions: [PharmacyCartBadgeAction(controller: _controller)],
+      actions: [
+        CartBadgeAction(
+          key: const ValueKey('pharmacy-cart-action'),
+          listenable: _controller,
+          itemCount: () => _controller.itemCount,
+          icon: Icons.shopping_bag_rounded,
+          tooltip: (_) => 'Pharmacy cart',
+          route: AppRoutes.pharmacyCart,
+        ),
+      ],
       body: FutureBuilder<List<PharmacyStore>>(
         future: _storesFuture,
         builder: (context, snapshot) {
@@ -302,59 +311,13 @@ class _PharmacyStoreListScreenState extends State<PharmacyStoreListScreen> {
   Widget _buildStore(PharmacyStore store) {
     return Padding(
       padding: const EdgeInsets.only(bottom: TwSpacing.x4),
-      child: _StoreCard(store: store, onPressed: () => _openStore(store)),
-    );
-  }
-}
-
-class _StoreCard extends StatelessWidget {
-  const _StoreCard({required this.store, required this.onPressed});
-
-  final PharmacyStore store;
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    // White card only — the per-service accent is confined to the logo
-    // fallback tile.
-    return OutlinedCard(
-      onTap: onPressed,
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          PhotoThumbnail(
-            imageUrl: store.imageUrl,
-            fallback: const ServiceIconChip(
-              icon: Icons.local_pharmacy_outlined,
-              iconSize: 28,
-            ),
-          ),
-          const SizedBox(width: TwSpacing.rhythmDefault),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  store.name,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TwText.fontBoldBase,
-                ),
-                if (store.address.isNotEmpty) ...[
-                  const SizedBox(height: TwSpacing.rhythmTight),
-                  Text(
-                    store.address,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: TwText.textSm.copyWith(color: TwColors.textMuted),
-                  ),
-                ],
-              ],
-            ),
-          ),
-          const SizedBox(width: TwSpacing.x2),
-          const Icon(Icons.chevron_right_rounded, color: TwColors.textMuted),
-        ],
+      child: StoreRowCard(
+        imageUrl: store.imageUrl,
+        fallbackIcon: Icons.local_pharmacy_outlined,
+        name: store.name,
+        subtitleLines: [if (store.address.isNotEmpty) store.address],
+        subtitleMaxLines: 2,
+        onTap: () => _openStore(store),
       ),
     );
   }
