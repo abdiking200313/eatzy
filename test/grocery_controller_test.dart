@@ -5,6 +5,7 @@ import 'package:chowflow/platform/activity/presentation/activity_controller.dart
 import 'package:chowflow/services/grocery/data/grocery_repository.dart';
 import 'package:chowflow/services/grocery/models/grocery_models.dart';
 import 'package:chowflow/services/grocery/presentation/grocery_controller.dart';
+import 'package:chowflow/services/shared/models/delivery_details.dart';
 import 'package:chowflow/services/shared/data/rpc_helpers.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -86,16 +87,10 @@ void main() {
 
   test('requires and records the selected substitution preference', () async {
     controller.addProduct(product('bakaal-rice'));
-    const address = GroceryDeliveryAddress(
-      recipientName: 'Amina',
-      phone: '+252 61 234 5678',
-      street: 'Near Taleex Road',
-      district: 'Hodan',
-      city: 'Mogadishu',
-    );
+    const delivery = DeliveryDetails(note: 'Near Taleex Road');
 
     final missingPreference = await controller.confirmOrder(
-      address: address,
+      delivery: delivery,
       slot: GroceryController.deliverySlots.first,
       substitutionPreference: null,
     );
@@ -106,7 +101,7 @@ void main() {
     );
 
     final result = await controller.confirmOrder(
-      address: address,
+      delivery: delivery,
       slot: GroceryController.deliverySlots.first,
       substitutionPreference: GrocerySubstitutionPreference.contactMe,
       now: DateTime.utc(2026, 7, 27, 12),
@@ -119,33 +114,18 @@ void main() {
     );
     expect(activityController.items, hasLength(1));
     expect(activityController.items.single.serviceId, ServiceId.grocery);
-    expect(activityController.items.single.status, 'Demo confirmed');
+    expect(activityController.items.single.status, 'Confirmed');
     expect(controller.isEmpty, isTrue);
   });
 
-  test('checkout validates cart, Somalia address, slot, and preference', () {
-    const blankAddress = GroceryDeliveryAddress(
-      recipientName: '',
-      phone: '',
-      street: '',
-      district: '',
-      city: '',
-      country: 'Kenya',
-    );
-
+  test('checkout validates cart, slot, and preference — no address', () {
     final errors = controller.validateCheckout(
-      address: blankAddress,
       slot: null,
       substitutionPreference: null,
     );
 
     expect(errors, contains('Add at least one grocery item.'));
-    expect(errors, contains('Enter the recipient name.'));
-    expect(errors, contains('Enter a valid phone number.'));
-    expect(errors, contains('Enter a street or landmark.'));
-    expect(errors, contains('Enter a district.'));
-    expect(errors, contains('Enter a city.'));
-    expect(errors, contains('The MVP currently delivers within Somalia only.'));
+    expect(errors, hasLength(3));
     expect(errors, contains('Choose a delivery slot.'));
     expect(errors, contains('Choose a substitution preference.'));
   });
@@ -201,16 +181,10 @@ void main() {
         .firstWhere((product) => product.id == 'bakaal-rice');
     throwingController.addProduct(rice);
 
-    const address = GroceryDeliveryAddress(
-      recipientName: 'Amina',
-      phone: '+252 61 234 5678',
-      street: 'Near Taleex Road',
-      district: 'Hodan',
-      city: 'Mogadishu',
-    );
+    const delivery = DeliveryDetails(note: 'Near Taleex Road');
 
     final result = await throwingController.confirmOrder(
-      address: address,
+      delivery: delivery,
       slot: GroceryController.deliverySlots.first,
       substitutionPreference: GrocerySubstitutionPreference.contactMe,
       now: DateTime.utc(2026, 7, 27, 12),
@@ -250,16 +224,10 @@ void main() {
         .firstWhere((product) => product.id == 'bakaal-rice');
     elapsedSlotController.addProduct(rice);
 
-    const address = GroceryDeliveryAddress(
-      recipientName: 'Amina',
-      phone: '+252 61 234 5678',
-      street: 'Near Taleex Road',
-      district: 'Hodan',
-      city: 'Mogadishu',
-    );
+    const delivery = DeliveryDetails(note: 'Near Taleex Road');
 
     final result = await elapsedSlotController.confirmOrder(
-      address: address,
+      delivery: delivery,
       slot: GroceryController.deliverySlots.first,
       substitutionPreference: GrocerySubstitutionPreference.contactMe,
       now: DateTime.utc(2026, 7, 27, 20),
@@ -294,16 +262,10 @@ void main() {
         .firstWhere((product) => product.id == 'bakaal-rice');
     submittingController.addProduct(rice);
 
-    const address = GroceryDeliveryAddress(
-      recipientName: 'Amina',
-      phone: '+252 61 234 5678',
-      street: 'Near Taleex Road',
-      district: 'Hodan',
-      city: 'Mogadishu',
-    );
+    const delivery = DeliveryDetails(note: 'Near Taleex Road');
 
     final first = submittingController.confirmOrder(
-      address: address,
+      delivery: delivery,
       slot: GroceryController.deliverySlots.first,
       substitutionPreference: GrocerySubstitutionPreference.contactMe,
     );
@@ -313,7 +275,7 @@ void main() {
     // it must not reach the repository and must not disturb the cart or
     // submission state the first call owns.
     final second = await submittingController.confirmOrder(
-      address: address,
+      delivery: delivery,
       slot: GroceryController.deliverySlots.first,
       substitutionPreference: GrocerySubstitutionPreference.contactMe,
     );
@@ -342,17 +304,11 @@ void main() {
           .expand((store) => store.products)
           .firstWhere((product) => product.id == 'bakaal-rice');
 
-      const address = GroceryDeliveryAddress(
-        recipientName: 'Amina',
-        phone: '+252 61 234 5678',
-        street: 'Near Taleex Road',
-        district: 'Hodan',
-        city: 'Mogadishu',
-      );
+      const delivery = DeliveryDetails(note: 'Near Taleex Road');
 
       recordingController.addProduct(rice);
       await recordingController.confirmOrder(
-        address: address,
+        delivery: delivery,
         slot: GroceryController.deliverySlots.first,
         substitutionPreference: GrocerySubstitutionPreference.contactMe,
         idempotencyKey: 'attempt-key-1',
@@ -366,7 +322,7 @@ void main() {
       // de-duplication on.
       recordingController.addProduct(rice);
       await recordingController.confirmOrder(
-        address: address,
+        delivery: delivery,
         slot: GroceryController.deliverySlots.first,
         substitutionPreference: GrocerySubstitutionPreference.contactMe,
       );
@@ -404,16 +360,10 @@ void main() {
     final clientComputedTotal = serverPricedController.total;
     expect(clientComputedTotal, isNot(5250));
 
-    const address = GroceryDeliveryAddress(
-      recipientName: 'Amina',
-      phone: '+252 61 234 5678',
-      street: 'Near Taleex Road',
-      district: 'Hodan',
-      city: 'Mogadishu',
-    );
+    const delivery = DeliveryDetails(note: 'Near Taleex Road');
 
     final result = await serverPricedController.confirmOrder(
-      address: address,
+      delivery: delivery,
       slot: GroceryController.deliverySlots.first,
       substitutionPreference: GrocerySubstitutionPreference.contactMe,
     );

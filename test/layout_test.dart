@@ -118,10 +118,10 @@ void main() {
         );
 
         expect(find.text('Checkout'), findsOneWidget);
-        expect(find.text('Order Summary'), findsOneWidget);
-        // Cash-on-delivery is the only payment method at launch (issue #30);
-        // it must be visible in the summary, not silently implicit.
-        expect(find.text('Cash on delivery'), findsOneWidget);
+        expect(find.text('Order summary'), findsOneWidget);
+        // Every order is paid on delivery; that must be visible in the
+        // summary, not silently implicit.
+        expect(find.text('Pay on delivery'), findsOneWidget);
         expect(tester.takeException(), isNull);
       });
     });
@@ -188,9 +188,8 @@ void main() {
         );
 
         await scrollTo(tester, find.text('Delivery slot'));
-        await scrollTo(tester, find.text('Total (USD)'));
-        // Cash-on-delivery is the only payment method at launch (issue #30).
-        await scrollTo(tester, find.text('Cash on delivery'));
+        await scrollTo(tester, find.text('Total'));
+        await scrollTo(tester, find.text('Pay on delivery'));
         expect(tester.takeException(), isNull);
       });
     });
@@ -246,8 +245,7 @@ void main() {
         );
 
         await scrollTo(tester, find.text('Order summary'));
-        // Cash-on-delivery is the only payment method at launch (issue #30).
-        await scrollTo(tester, find.text('Cash on delivery'));
+        await scrollTo(tester, find.text('Pay on delivery'));
         expect(tester.takeException(), isNull);
       });
     });

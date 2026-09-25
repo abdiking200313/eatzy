@@ -47,6 +47,29 @@ void main() {
       expect(order.items.single.quantity, 2);
       expect(order.items.single.unitPriceCents, 250);
       expect(order.items.single.lineTotalCents, 500);
+      expect(order.deliveryLine, 'Main St, Hodan, Mogadishu');
+    });
+
+    test('deliveryLine skips blank parts: a note-only order shows just the '
+        'note, and an order with no note shows nothing', () {
+      MerchantOrder orderWith(String street) => MerchantOrder.fromMap({
+        'id': 'order-3',
+        'status': 'confirmed',
+        'created_at': '2026-09-25T12:00:00Z',
+        'subtotal': 1000,
+        'delivery_fee': 499,
+        'tax': 100,
+        'total': 1599,
+        'recipient_name': 'Amina',
+        'phone': '+252-61-000-0000',
+        'street': street,
+        'district': '',
+        'city': '',
+        'food_order_items': const <Map<String, Object>>[],
+      }, vertical: MerchantVertical.food);
+
+      expect(orderWith('Blue gate').deliveryLine, 'Blue gate');
+      expect(orderWith('').deliveryLine, isEmpty);
     });
 
     test('parses a grocery order with a fractional-quantity item', () {

@@ -2,21 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../app/app_routes.dart';
-import '../../../config/theme.dart';
-import '../../../platform/localization/app_money.dart';
-import '../../../widgets/app_cards.dart';
-import '../../../widgets/app_misc.dart';
-import '../../../widgets/app_scaffold.dart';
+import '../../../widgets/checkout_view.dart';
 import '../../shared/data/idempotency_key.dart';
-import '../models/pharmacy_checkout.dart';
+import '../../shared/models/delivery_details.dart';
 import 'pharmacy_controller.dart';
-
-/// Rounded outline border matching the app-wide input style (see
-/// `AppTextField` and the global `InputDecorationTheme` in
-/// `config/tailwind.dart`), instead of the sharp Material default corners.
-final _addressFieldBorder = OutlineInputBorder(
-  borderRadius: BorderRadius.circular(TwRadius.xl),
-);
 
 class PharmacyCheckoutScreen extends StatefulWidget {
   const PharmacyCheckoutScreen({super.key, this.controller});
@@ -28,12 +17,7 @@ class PharmacyCheckoutScreen extends StatefulWidget {
 }
 
 class _PharmacyCheckoutScreenState extends State<PharmacyCheckoutScreen> {
-  late final TextEditingController _nameController;
-  late final TextEditingController _phoneController;
-  late final TextEditingController _cityController;
-  late final TextEditingController _districtController;
-  late final TextEditingController _addressController;
-  late final TextEditingController _instructionsController;
+  final _noteController = TextEditingController();
 
   Map<String, String> _errors = const {};
 
@@ -48,24 +32,8 @@ class _PharmacyCheckoutScreenState extends State<PharmacyCheckoutScreen> {
       widget.controller ?? PharmacyController.instance;
 
   @override
-  void initState() {
-    super.initState();
-    _nameController = TextEditingController();
-    _phoneController = TextEditingController();
-    _cityController = TextEditingController(text: 'Mogadishu');
-    _districtController = TextEditingController();
-    _addressController = TextEditingController();
-    _instructionsController = TextEditingController();
-  }
-
-  @override
   void dispose() {
-    _nameController.dispose();
-    _phoneController.dispose();
-    _cityController.dispose();
-    _districtController.dispose();
-    _addressController.dispose();
-    _instructionsController.dispose();
+    _noteController.dispose();
     super.dispose();
   }
 
@@ -73,299 +41,49 @@ class _PharmacyCheckoutScreenState extends State<PharmacyCheckoutScreen> {
   Widget build(BuildContext context) {
     return AnimatedBuilder(
       animation: _controller,
-      builder: (context, _) {
-        return AppScaffold(
-          title: 'Pharmacy checkout',
-          showBackButton: true,
-          body: _controller.isCartEmpty
-              ? const _EmptyCheckout()
-              : ListView(
-                  padding: const EdgeInsets.all(TwSpacing.x5),
-                  children: [
-                    const _DemoNotice(),
-                    const SizedBox(height: TwSpacing.x5),
-                    Text('Delivery address', style: TwText.textXl),
-                    const SizedBox(height: TwSpacing.x3),
-                    TextFormField(
-                      initialValue: PharmacyCheckoutDetails.country,
-                      readOnly: true,
-                      decoration: InputDecoration(
-                        labelText: 'Country',
-                        prefixIcon: const Icon(Icons.public),
-                        border: _addressFieldBorder,
-                      ),
-                    ),
-                    const SizedBox(height: TwSpacing.x3),
-                    _CheckoutField(
-                      key: const ValueKey('pharmacy-customer-name'),
-                      controller: _nameController,
-                      label: 'Customer name',
-                      icon: Icons.person_outline,
-                      errorText: _errors['recipientName'],
-                    ),
-                    const SizedBox(height: TwSpacing.x3),
-                    _CheckoutField(
-                      key: const ValueKey('pharmacy-phone'),
-                      controller: _phoneController,
-                      label: 'Phone number',
-                      icon: Icons.phone_outlined,
-                      keyboardType: TextInputType.phone,
-                      errorText: _errors['phone'],
-                    ),
-                    const SizedBox(height: TwSpacing.x3),
-                    _CheckoutField(
-                      key: const ValueKey('pharmacy-city'),
-                      controller: _cityController,
-                      label: 'City',
-                      icon: Icons.location_city_outlined,
-                      errorText: _errors['city'],
-                    ),
-                    const SizedBox(height: TwSpacing.x3),
-                    _CheckoutField(
-                      key: const ValueKey('pharmacy-district'),
-                      controller: _districtController,
-                      label: 'District',
-                      icon: Icons.map_outlined,
-                      errorText: _errors['district'],
-                    ),
-                    const SizedBox(height: TwSpacing.x3),
-                    _CheckoutField(
-                      key: const ValueKey('pharmacy-address'),
-                      controller: _addressController,
-                      label: 'Street, building or landmark',
-                      icon: Icons.home_outlined,
-                      errorText: _errors['street'],
-                    ),
-                    const SizedBox(height: TwSpacing.x3),
-                    _CheckoutField(
-                      controller: _instructionsController,
-                      label: 'Delivery instructions (optional)',
-                      icon: Icons.notes_outlined,
-                      maxLines: 3,
-                    ),
-                    if (_errors['cart'] != null ||
-                        _errors['stock'] != null ||
-                        _errors['order'] != null) ...[
-                      const SizedBox(height: TwSpacing.x3),
-                      Text(
-                        _errors['cart'] ??
-                            _errors['stock'] ??
-                            _errors['order']!,
-                        style: TwText.textSm.copyWith(color: TwColors.error),
-                      ),
-                    ],
-                    const SizedBox(height: TwSpacing.x5),
-                    _CheckoutSummary(controller: _controller),
-                    const SizedBox(height: TwSpacing.x5),
-                    GradientActionButton(
-                      label: _controller.isSubmitting
-                          ? 'Saving order...'
-                          : 'Confirm demo order · '
-                                '${AppMoney.formatCents(_controller.total)}',
-                      icon: const Icon(Icons.check, color: Colors.white),
-                      onPressed: _controller.isSubmitting ? null : _submit,
-                    ),
-                    const SizedBox(height: TwSpacing.x8),
-                  ],
-                ),
-        );
-      },
-    );
-  }
-
-  PharmacyCheckoutDetails _details() {
-    return PharmacyCheckoutDetails(
-      recipientName: _nameController.text,
-      phone: _phoneController.text,
-      city: _cityController.text,
-      district: _districtController.text,
-      street: _addressController.text,
-      deliveryInstructions: _instructionsController.text,
+      builder: (context, _) => CheckoutView(
+        title: 'Checkout',
+        isEmpty: _controller.isCartEmpty,
+        emptyMessage: 'Your pharmacy cart is empty',
+        browseLabel: 'Browse OTC products',
+        onBrowse: () => context.go(AppRoutes.pharmacy),
+        noteController: _noteController,
+        itemLines: [
+          for (final item in _controller.cartItems)
+            CheckoutLine('${item.product.name} ×${item.quantity}', item.total),
+        ],
+        feeLines: [
+          CheckoutLine('Subtotal', _controller.subtotal),
+          const CheckoutLine('Delivery fee', PharmacyController.deliveryFee),
+        ],
+        total: _controller.total,
+        isSubmitting: _controller.isSubmitting,
+        errorText: _errors['cart'] ?? _errors['stock'] ?? _errors['order'],
+        onSubmit: _submit,
+      ),
     );
   }
 
   Future<void> _submit() async {
     final result = await _controller.placeDemoOrder(
-      _details(),
+      delivery: DeliveryDetails(note: _noteController.text),
       idempotencyKey: _idempotencyKey,
     );
-    if (!result.isSuccess) {
-      setState(() => _errors = result.validation.errors);
-      return;
-    }
-
-    setState(() => _errors = const {});
     if (!mounted) {
       return;
     }
+    setState(() => _errors = result.validation.errors);
+    if (!result.isSuccess) {
+      return;
+    }
 
-    await showDialog<void>(
-      context: context,
-      barrierDismissible: false,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Order confirmed'),
-        content: Text(result.message),
-        actions: [
-          FilledButton(
-            onPressed: () {
-              Navigator.of(dialogContext).pop();
-              context.go(AppRoutes.activity);
-            },
-            child: const Text('View activity'),
-          ),
-        ],
-      ),
+    await showOrderPlacedDialog(
+      context,
+      orderId: result.orderId!,
+      message: result.message,
     );
-  }
-}
-
-class _CheckoutField extends StatelessWidget {
-  const _CheckoutField({
-    super.key,
-    required this.controller,
-    required this.label,
-    required this.icon,
-    this.keyboardType,
-    this.errorText,
-    this.maxLines = 1,
-  });
-
-  final TextEditingController controller;
-  final String label;
-  final IconData icon;
-  final TextInputType? keyboardType;
-  final String? errorText;
-  final int maxLines;
-
-  @override
-  Widget build(BuildContext context) {
-    return TextField(
-      controller: controller,
-      keyboardType: keyboardType,
-      maxLines: maxLines,
-      decoration: InputDecoration(
-        labelText: label,
-        prefixIcon: Icon(icon),
-        errorText: errorText,
-        border: _addressFieldBorder,
-        alignLabelWithHint: maxLines > 1,
-      ),
-    );
-  }
-}
-
-class _DemoNotice extends StatelessWidget {
-  const _DemoNotice();
-
-  @override
-  Widget build(BuildContext context) {
-    // White card only — the service accent is confined to the icon chip.
-    return OutlinedCard(
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const ServiceIconChip(icon: Icons.science_outlined),
-          const SizedBox(width: TwSpacing.rhythmDefault),
-          Expanded(
-            child: Text(
-              'Interactive preview only. This confirms a demo OTC order; '
-              'no payment is processed and no pharmacy receives it.',
-              style: TwText.textSm,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _CheckoutSummary extends StatelessWidget {
-  const _CheckoutSummary({required this.controller});
-
-  final PharmacyController controller;
-
-  @override
-  Widget build(BuildContext context) {
-    // White card only — a plain OutlinedCard already uses the neutral
-    // fill/border tokens.
-    return OutlinedCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('Order summary', style: TwText.fontBoldBase),
-          const SizedBox(height: TwSpacing.x3),
-          Text(
-            '${controller.itemCount} OTC '
-            '${controller.itemCount == 1 ? 'item' : 'items'}',
-            style: TwText.textSm,
-          ),
-          const SizedBox(height: TwSpacing.x2),
-          Text(
-            'Delivery: ${AppMoney.formatCents(PharmacyController.deliveryFee)}',
-            style: TwText.textSm,
-          ),
-          const Divider(height: TwSpacing.x6),
-          Row(
-            children: [
-              Expanded(child: Text('Total', style: TwText.fontBoldBase)),
-              Text(
-                AppMoney.formatCents(controller.total),
-                style: TwText.fontBoldBase.copyWith(color: TwColors.primary),
-              ),
-            ],
-          ),
-          const SizedBox(height: TwSpacing.x2),
-          // Cash-on-delivery is the only payment method at launch (issue
-          // #30) — a plain summary line, not a picker, since there is
-          // nothing to choose yet. Both sides are `Flexible` (rather than a
-          // fixed-width value) so this can never overflow a narrow,
-          // large-text screen — it ellipsizes instead.
-          Row(
-            children: [
-              Expanded(child: Text('Payment method', style: TwText.textSm)),
-              const SizedBox(width: TwSpacing.x3),
-              Flexible(
-                child: Text(
-                  'Cash on delivery',
-                  style: TwText.textSm,
-                  overflow: TextOverflow.ellipsis,
-                  textAlign: TextAlign.right,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _EmptyCheckout extends StatelessWidget {
-  const _EmptyCheckout();
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(TwSpacing.x8),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(
-              Icons.remove_shopping_cart_outlined,
-              color: TwColors.textMuted,
-              size: 52,
-            ),
-            const SizedBox(height: TwSpacing.x4),
-            Text('Your pharmacy cart is empty', style: TwText.textXl),
-            const SizedBox(height: TwSpacing.x4),
-            TextButton(
-              onPressed: () => context.go(AppRoutes.pharmacy),
-              child: const Text('Browse OTC products'),
-            ),
-          ],
-        ),
-      ),
-    );
+    if (mounted) {
+      context.go(AppRoutes.activity);
+    }
   }
 }

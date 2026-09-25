@@ -189,7 +189,7 @@ class _CartLineRow extends StatelessWidget {
         SizedBox(
           width: 52,
           child: Text(
-            _quantityLabel(line),
+            line.quantityLabel,
             textAlign: TextAlign.center,
             style: TwText.fontBoldSm,
           ),
@@ -209,13 +209,6 @@ class _CartLineRow extends StatelessWidget {
         ),
       ],
     );
-  }
-
-  String _quantityLabel(GroceryCartLine line) {
-    if (line.product.pricingUnit == GroceryPricingUnit.kilogram) {
-      return '${line.quantity.toStringAsFixed(1)} kg';
-    }
-    return line.quantity.toInt().toString();
   }
 }
 

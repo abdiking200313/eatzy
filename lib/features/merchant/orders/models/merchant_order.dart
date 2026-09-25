@@ -97,6 +97,15 @@ class MerchantOrder {
   final String district;
   final String city;
 
+  /// Whatever location text the order carries, blanks skipped. Since
+  /// 2026-09-25 checkout only sends an optional note (stored as the
+  /// street), so this is often just that note, or empty.
+  String get deliveryLine => [
+    street,
+    district,
+    city,
+  ].map((part) => part.trim()).where((part) => part.isNotEmpty).join(', ');
+
   /// `grocery_orders.delivery_slot_label` only.
   final String? deliverySlotLabel;
 

@@ -5,20 +5,16 @@ import 'package:go_router/go_router.dart';
 
 import '../../../app/app_routes.dart';
 import '../../../config/theme.dart';
-import '../../../platform/localization/app_money.dart';
-import '../../../widgets/app_cards.dart';
 import '../../../widgets/app_scaffold.dart';
+import '../../../widgets/checkout_view.dart';
 import '../../shared/data/idempotency_key.dart';
+import '../../shared/models/delivery_details.dart';
 import '../models/grocery_models.dart';
 import 'grocery_controller.dart';
 
-/// Rounded outline border matching the app-wide input style (see
-/// `AppTextField` and the global `InputDecorationTheme` in
-/// `config/tailwind.dart`), instead of the sharp Material default corners.
-final _addressFieldBorder = OutlineInputBorder(
-  borderRadius: BorderRadius.circular(TwRadius.xl),
-);
-
+/// Checkout for every grocery-engine store (Grocery, Fresh Meat,
+/// Electronics): the shared [CheckoutView] plus grocery's own delivery-slot
+/// and substitution-preference sections.
 class GroceryCheckoutScreen extends StatefulWidget {
   const GroceryCheckoutScreen({super.key, this.controller});
 
@@ -29,15 +25,14 @@ class GroceryCheckoutScreen extends StatefulWidget {
 }
 
 class _GroceryCheckoutScreenState extends State<GroceryCheckoutScreen> {
-  final _recipientController = TextEditingController();
-  final _phoneController = TextEditingController();
-  final _streetController = TextEditingController();
-  final _districtController = TextEditingController();
-  final _cityController = TextEditingController(text: 'Mogadishu');
+  static const _slotError = 'Choose a delivery slot.';
+  static const _substitutionError = 'Choose a substitution preference.';
+
+  final _noteController = TextEditingController();
 
   GroceryDeliverySlot? _slot;
   GrocerySubstitutionPreference? _substitutionPreference;
-  Map<String, String> _errors = const {};
+  List<String> _errors = const [];
 
   /// Identifies this checkout attempt (issue #59): generated once when this
   /// screen is first built and reused for every retry on this same visit,
@@ -45,39 +40,6 @@ class _GroceryCheckoutScreenState extends State<GroceryCheckoutScreen> {
   /// order server-side instead of creating a duplicate. A fresh visit to
   /// checkout (a new instance of this screen) gets a fresh key.
   final String _idempotencyKey = generateIdempotencyKey();
-
-  // Maps the controller's field-specific validation messages onto the
-  // field key each message is about, so each can be shown inline below
-  // its own field (matching the pharmacy checkout pattern) without
-  // changing the underlying validation rules in [GroceryController].
-  // Errors with no matching field (cart-empty, non-Somalia country, or a
-  // save failure) fall back to the 'general' key and stay shown as a
-  // banner, since there is no single field to attach them to.
-  static const Map<String, String> _fieldErrorMessages = {
-    'recipientName': 'Enter the recipient name.',
-    'phone': 'Enter a valid phone number.',
-    'street': 'Enter a street or landmark.',
-    'district': 'Enter a district.',
-    'city': 'Enter a city.',
-    'slot': 'Choose a delivery slot.',
-    'substitutionPreference': 'Choose a substitution preference.',
-  };
-
-  Map<String, String> _fieldErrorsFrom(List<String> errors) {
-    final result = <String, String>{};
-    for (final entry in _fieldErrorMessages.entries) {
-      if (errors.contains(entry.value)) {
-        result[entry.key] = entry.value;
-      }
-    }
-    final generalErrors = errors
-        .where((error) => !_fieldErrorMessages.values.contains(error))
-        .toList();
-    if (generalErrors.isNotEmpty) {
-      result['general'] = generalErrors.first;
-    }
-    return result;
-  }
 
   GroceryController get _controller =>
       widget.controller ?? GroceryController.instance;
@@ -90,128 +52,50 @@ class _GroceryCheckoutScreenState extends State<GroceryCheckoutScreen> {
 
   @override
   void dispose() {
-    _recipientController.dispose();
-    _phoneController.dispose();
-    _streetController.dispose();
-    _districtController.dispose();
-    _cityController.dispose();
+    _noteController.dispose();
     super.dispose();
   }
+
+  /// The first error that isn't shown inline under its own section.
+  String? get _generalError => _errors
+      .where((error) => error != _slotError && error != _substitutionError)
+      .firstOrNull;
 
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
       animation: _controller,
-      builder: (context, _) => AppScaffold(
-        title: 'Grocery checkout',
-        showBackButton: true,
-        body: _controller.isEmpty
-            ? _EmptyCheckout(onBrowse: () => context.go(AppRoutes.grocery))
-            : _checkoutBody(),
-        bottomNavigationBar: _controller.isEmpty
-            ? null
-            : SafeArea(
-                minimum: const EdgeInsets.all(TwSpacing.x4),
-                child: GradientActionButton(
-                  label: _controller.isSubmitting
-                      ? 'Saving order...'
-                      : 'Confirm demo order • '
-                            '${AppMoney.formatCents(_controller.total)}',
-                  onPressed: _controller.isSubmitting ? null : _confirm,
-                  icon: const Icon(
-                    Icons.check_circle_outline,
-                    color: TwColors.onPrimary,
-                  ),
-                ),
-              ),
+      builder: (context, _) => CheckoutView(
+        title: 'Checkout',
+        isEmpty: _controller.isEmpty,
+        emptyMessage: 'Your cart is empty',
+        browseLabel: 'Browse stores',
+        onBrowse: () => context.go(AppRoutes.grocery),
+        noteController: _noteController,
+        itemLines: [
+          for (final line in _controller.cart)
+            CheckoutLine(
+              '${line.product.name} ×${line.quantityLabel}',
+              line.total,
+            ),
+        ],
+        feeLines: [
+          CheckoutLine('Subtotal', _controller.subtotal),
+          CheckoutLine('Delivery fee', _controller.deliveryFee),
+        ],
+        total: _controller.total,
+        isSubmitting: _controller.isSubmitting,
+        errorText: _generalError,
+        onSubmit: _confirm,
+        extraSections: [_slotSection(), _substitutionSection()],
       ),
     );
   }
 
-  Widget _checkoutBody() {
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(
-        TwSpacing.x5,
-        TwSpacing.x2,
-        TwSpacing.x5,
-        TwSpacing.x8,
-      ),
+  Widget _slotSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        OutlinedCard(
-          backgroundColor: TwColors.errorSoft,
-          borderColor: TwColors.error,
-          child: Text(
-            'Demo checkout only. No payment is taken and no real grocery '
-            'order is sent to a store.',
-            style: TwText.fontBoldSm.copyWith(color: TwColors.error),
-          ),
-        ),
-        const SizedBox(height: TwSpacing.x6),
-        const SectionTitle('Delivery address'),
-        const SizedBox(height: TwSpacing.x3),
-        TextField(
-          controller: _recipientController,
-          decoration: InputDecoration(
-            labelText: 'Recipient name',
-            border: _addressFieldBorder,
-            errorText: _errors['recipientName'],
-          ),
-        ),
-        const SizedBox(height: TwSpacing.x3),
-        TextField(
-          controller: _phoneController,
-          keyboardType: TextInputType.phone,
-          decoration: InputDecoration(
-            labelText: 'Phone number',
-            hintText: '+252 …',
-            border: _addressFieldBorder,
-            errorText: _errors['phone'],
-          ),
-        ),
-        const SizedBox(height: TwSpacing.x3),
-        TextField(
-          controller: _streetController,
-          decoration: InputDecoration(
-            labelText: 'Street or landmark',
-            border: _addressFieldBorder,
-            errorText: _errors['street'],
-          ),
-        ),
-        const SizedBox(height: TwSpacing.x3),
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: TextField(
-                controller: _districtController,
-                decoration: InputDecoration(
-                  labelText: 'District',
-                  border: _addressFieldBorder,
-                  errorText: _errors['district'],
-                ),
-              ),
-            ),
-            const SizedBox(width: TwSpacing.x3),
-            Expanded(
-              child: TextField(
-                controller: _cityController,
-                decoration: InputDecoration(
-                  labelText: 'City',
-                  border: _addressFieldBorder,
-                  errorText: _errors['city'],
-                ),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: TwSpacing.x3),
-        const ListTile(
-          contentPadding: EdgeInsets.zero,
-          leading: Icon(Icons.flag_outlined),
-          title: Text('Somalia'),
-          subtitle: Text('The MVP is configured for delivery in Somalia.'),
-        ),
-        const SizedBox(height: TwSpacing.x6),
         const SectionTitle('Delivery slot'),
         const SizedBox(height: TwSpacing.x3),
         RadioGroup<GroceryDeliverySlot>(
@@ -229,12 +113,22 @@ class _GroceryCheckoutScreenState extends State<GroceryCheckoutScreen> {
             ],
           ),
         ),
-        if (_errors['slot'] case final error?)
-          Text(error, style: TwText.textSm.copyWith(color: TwColors.error)),
-        const SizedBox(height: TwSpacing.x6),
+        if (_errors.contains(_slotError))
+          Text(
+            _slotError,
+            style: TwText.textSm.copyWith(color: TwColors.error),
+          ),
+      ],
+    );
+  }
+
+  Widget _substitutionSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
         const SectionTitle('If an item becomes unavailable'),
         const SizedBox(height: TwSpacing.x2),
-        Text('Choose one option before confirming.', style: TwText.textSm),
+        Text('Choose one option before ordering.', style: TwText.textSm),
         RadioGroup<GrocerySubstitutionPreference>(
           groupValue: _substitutionPreference,
           onChanged: (value) {
@@ -252,151 +146,33 @@ class _GroceryCheckoutScreenState extends State<GroceryCheckoutScreen> {
             ],
           ),
         ),
-        if (_errors['substitutionPreference'] case final error?)
-          Text(error, style: TwText.textSm.copyWith(color: TwColors.error)),
-        if (_errors['general'] case final error?) ...[
-          const SizedBox(height: TwSpacing.x3),
-          Text(error, style: TwText.textSm.copyWith(color: TwColors.error)),
-        ],
-        const SizedBox(height: TwSpacing.x6),
-        // White card only — a plain OutlinedCard already uses the neutral
-        // fill/border tokens.
-        OutlinedCard(
-          child: Column(
-            children: [
-              _SummaryRow(label: 'Subtotal', amount: _controller.subtotal),
-              const SizedBox(height: TwSpacing.x2),
-              _SummaryRow(label: 'Delivery', amount: _controller.deliveryFee),
-              const Divider(height: TwSpacing.x6),
-              _SummaryRow(
-                label: 'Total (USD)',
-                amount: _controller.total,
-                emphasized: true,
-              ),
-              const Divider(height: TwSpacing.x6),
-              // Cash-on-delivery is the only payment method at launch (issue
-              // #30) — a plain summary line, not a picker, since there is
-              // nothing to choose yet. Both sides are `Flexible` (rather
-              // than a fixed-width value) so this can never overflow a
-              // narrow, large-text screen — it ellipsizes instead.
-              Row(
-                children: [
-                  Expanded(child: Text('Payment method', style: TwText.textSm)),
-                  const SizedBox(width: TwSpacing.x3),
-                  Flexible(
-                    child: Text(
-                      'Cash on delivery',
-                      style: TwText.textSm,
-                      overflow: TextOverflow.ellipsis,
-                      textAlign: TextAlign.right,
-                    ),
-                  ),
-                ],
-              ),
-            ],
+        if (_errors.contains(_substitutionError))
+          Text(
+            _substitutionError,
+            style: TwText.textSm.copyWith(color: TwColors.error),
           ),
-        ),
       ],
     );
   }
 
   Future<void> _confirm() async {
     final result = await _controller.confirmOrder(
-      address: GroceryDeliveryAddress(
-        recipientName: _recipientController.text,
-        phone: _phoneController.text,
-        street: _streetController.text,
-        district: _districtController.text,
-        city: _cityController.text,
-      ),
+      delivery: DeliveryDetails(note: _noteController.text),
       slot: _slot,
       substitutionPreference: _substitutionPreference,
       idempotencyKey: _idempotencyKey,
     );
-    if (!result.isSuccess) {
-      setState(() => _errors = _fieldErrorsFrom(result.errors));
-      return;
-    }
-
-    setState(() => _errors = const {});
     if (!mounted) {
       return;
     }
-    await showDialog<void>(
-      context: context,
-      barrierDismissible: false,
-      builder: (dialogContext) => AlertDialog(
-        icon: const Icon(
-          Icons.check_circle,
-          color: TwColors.tertiary,
-          size: 44,
-        ),
-        title: const Text('Order confirmed'),
-        content: Text(
-          'Your grocery activity was saved in this prototype. '
-          'No payment was taken and no order was sent.\n\n'
-          'Reference: ${result.confirmation!.orderId}',
-        ),
-        actions: [
-          FilledButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Done'),
-          ),
-        ],
-      ),
-    );
+    setState(() => _errors = result.errors);
+    if (!result.isSuccess) {
+      return;
+    }
+
+    await showOrderPlacedDialog(context, orderId: result.confirmation!.orderId);
     if (mounted) {
       context.go(AppRoutes.activity);
     }
-  }
-}
-
-class _EmptyCheckout extends StatelessWidget {
-  const _EmptyCheckout({required this.onBrowse});
-
-  final VoidCallback onBrowse;
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(TwSpacing.x6),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text('Your grocery cart is empty.', style: TwText.textXl),
-            const SizedBox(height: TwSpacing.x5),
-            PrimaryButton(
-              label: 'Browse groceries',
-              fullWidth: false,
-              onPressed: onBrowse,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _SummaryRow extends StatelessWidget {
-  const _SummaryRow({
-    required this.label,
-    required this.amount,
-    this.emphasized = false,
-  });
-
-  final String label;
-  final int amount;
-  final bool emphasized;
-
-  @override
-  Widget build(BuildContext context) {
-    final style = emphasized ? TwText.fontBoldBase : TwText.textSm;
-    return Row(
-      children: [
-        Expanded(child: Text(label, style: style)),
-        Text(AppMoney.formatCents(amount), style: style),
-      ],
-    );
   }
 }

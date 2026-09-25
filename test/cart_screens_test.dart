@@ -66,7 +66,7 @@ void main() {
       expect(find.text('Your cart is empty'), findsOneWidget);
     });
 
-    testWidgets('checkout records a demo order without processing payment', (
+    testWidgets('checkout places an order that is paid on delivery', (
       tester,
     ) async {
       final controller = CartController(storage: MemoryCartStorage());
@@ -96,38 +96,14 @@ void main() {
         MaterialApp.router(theme: buildAppTheme(), routerConfig: router),
       );
 
-      expect(find.text('Classic Burger'), findsOneWidget);
+      expect(find.text('Classic Burger ×1'), findsOneWidget);
       expect(find.text(r'$15.99'), findsOneWidget);
+      expect(find.text('Pay on delivery'), findsOneWidget);
 
-      await tester.scrollUntilVisible(
-        find.byKey(const ValueKey('food-recipient-name')),
-        300,
-        scrollable: find.byType(Scrollable).first,
-      );
-      await tester.enterText(
-        find.byKey(const ValueKey('food-recipient-name')),
-        'Amina Yusuf',
-      );
-      await tester.enterText(
-        find.byKey(const ValueKey('food-phone')),
-        '+252611234567',
-      );
-      await tester.enterText(
-        find.byKey(const ValueKey('food-street')),
-        'Maka Al-Mukarama Road',
-      );
-      await tester.enterText(
-        find.byKey(const ValueKey('food-district')),
-        'Hodan',
-      );
+      await tester.tap(find.byKey(const Key('checkout-place-order')));
       await tester.pumpAndSettle();
-
-      await tester.scrollUntilVisible(
-        find.text('Place order'),
-        300,
-        scrollable: find.byType(Scrollable).first,
-      );
-      await tester.tap(find.text('Place order'));
+      expect(find.text('Order placed'), findsOneWidget);
+      await tester.tap(find.text('View activity'));
       await tester.pumpAndSettle();
 
       expect(find.text('Activity destination'), findsOneWidget);
@@ -391,7 +367,7 @@ void main() {
         emptyTitle: 'Your grocery cart is empty',
         browseLabel: 'Browse groceries',
         continueButton: find.textContaining('Continue •'),
-        checkoutTitle: 'Grocery checkout',
+        checkoutTitle: 'Checkout',
         build: ({required fillCart}) async {
           final controller = await buildLoadedGroceryController();
           if (fillCart) {
@@ -415,7 +391,7 @@ void main() {
         emptyTitle: 'Your pharmacy cart is empty',
         browseLabel: 'Browse pharmacy',
         continueButton: find.text('Continue to checkout'),
-        checkoutTitle: 'Pharmacy checkout',
+        checkoutTitle: 'Checkout',
         build: ({required fillCart}) async {
           final controller = await buildLoadedPharmacyController();
           if (fillCart) controller.addProduct(controller.products.first);

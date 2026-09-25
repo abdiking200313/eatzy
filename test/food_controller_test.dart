@@ -7,17 +7,12 @@ import 'package:chowflow/services/food/data/food_repository.dart';
 import 'package:chowflow/services/food/models/food_models.dart';
 import 'package:chowflow/services/food/presentation/food_controller.dart';
 import 'package:chowflow/services/shared/data/rpc_helpers.dart';
+import 'package:chowflow/services/shared/models/delivery_details.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'helpers/memory_cart_storage.dart';
 
-const _testAddress = FoodDeliveryAddress(
-  recipientName: 'Amina Yusuf',
-  phone: '+252 61 234 5678',
-  street: 'Maka Al-Mukarama Road',
-  district: 'Hodan',
-  city: 'Mogadishu',
-);
+const _testDelivery = DeliveryDetails(note: 'Near the mosque, blue gate');
 
 void main() {
   late CartController cartController;
@@ -49,7 +44,7 @@ void main() {
       activityController: activityController,
     );
 
-    final result = await controller.confirmOrder(_testAddress);
+    final result = await controller.confirmOrder(delivery: _testDelivery);
 
     expect(result.isSuccess, isFalse);
     expect(controller.isSubmitting, isFalse);
@@ -66,7 +61,7 @@ void main() {
         activityController: activityController,
       );
 
-      final result = await controller.confirmOrder(_testAddress);
+      final result = await controller.confirmOrder(delivery: _testDelivery);
 
       expect(result.isSuccess, isTrue);
       expect(result.orderId, 'food-test-order');
@@ -85,7 +80,7 @@ void main() {
       activityController: activityController,
     );
 
-    final result = await controller.confirmOrder(_testAddress);
+    final result = await controller.confirmOrder(delivery: _testDelivery);
 
     expect(result.isSuccess, isFalse);
     expect(
@@ -108,13 +103,13 @@ void main() {
       activityController: activityController,
     );
 
-    final first = controller.confirmOrder(_testAddress);
+    final first = controller.confirmOrder(delivery: _testDelivery);
     expect(controller.isSubmitting, isTrue);
 
     // A second call while the first is still in flight must be a no-op:
     // it must not reach the repository and must not disturb the cart or
     // submission state the first call owns.
-    final second = await controller.confirmOrder(_testAddress);
+    final second = await controller.confirmOrder(delivery: _testDelivery);
     expect(second.isSuccess, isFalse);
     expect(repository.callCount, 1);
 
@@ -139,7 +134,7 @@ void main() {
       );
 
       await controller.confirmOrder(
-        _testAddress,
+        delivery: _testDelivery,
         idempotencyKey: 'attempt-key-1',
       );
 
@@ -150,7 +145,7 @@ void main() {
       // generated for it, so the RPC always has one to key its own
       // de-duplication on.
       await addBurger();
-      await controller.confirmOrder(_testAddress);
+      await controller.confirmOrder(delivery: _testDelivery);
 
       expect(repository.lastRequest!.idempotencyKey, isNotNull);
       expect(repository.lastRequest!.idempotencyKey, isNotEmpty);
@@ -179,7 +174,7 @@ void main() {
       activityController: activityController,
     );
 
-    final result = await controller.confirmOrder(_testAddress);
+    final result = await controller.confirmOrder(delivery: _testDelivery);
 
     expect(result.isSuccess, isTrue);
     expect(activityController.items.single.amount, 9299);

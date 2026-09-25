@@ -12,6 +12,7 @@ import '../../shared/data/cart_storage.dart';
 import '../../shared/data/idempotency_key.dart';
 import '../../shared/data/rpc_helpers.dart';
 import '../../shared/presentation/confirm_order_flow.dart';
+import '../../shared/models/delivery_details.dart';
 import '../../shared/presentation/loadable_state_mixin.dart';
 import '../data/grocery_repository.dart';
 import '../models/grocery_models.dart';
@@ -416,31 +417,12 @@ class GroceryController extends ChangeNotifier with LoadableState {
   }
 
   List<String> validateCheckout({
-    required GroceryDeliveryAddress address,
     required GroceryDeliverySlot? slot,
     required GrocerySubstitutionPreference? substitutionPreference,
   }) {
     final errors = <String>[];
     if (_cart.isEmpty) {
       errors.add('Add at least one grocery item.');
-    }
-    if (address.recipientName.trim().isEmpty) {
-      errors.add('Enter the recipient name.');
-    }
-    if (address.phone.trim().length < 7) {
-      errors.add('Enter a valid phone number.');
-    }
-    if (address.street.trim().isEmpty) {
-      errors.add('Enter a street or landmark.');
-    }
-    if (address.district.trim().isEmpty) {
-      errors.add('Enter a district.');
-    }
-    if (address.city.trim().isEmpty) {
-      errors.add('Enter a city.');
-    }
-    if (address.country.trim().toLowerCase() != 'somalia') {
-      errors.add('The MVP currently delivers within Somalia only.');
     }
     if (slot == null) {
       errors.add('Choose a delivery slot.');
@@ -451,7 +433,7 @@ class GroceryController extends ChangeNotifier with LoadableState {
     return errors;
   }
 
-  /// Validates the cart/address/slot/preference and, once valid, places the
+  /// Validates the cart/slot/preference and, once valid, places the
   /// order through the shared [confirmDemoOrder] flow, records activity,
   /// and clears the cart.
   ///
@@ -470,7 +452,7 @@ class GroceryController extends ChangeNotifier with LoadableState {
   /// for this call only, which gives no protection against a retry that
   /// calls this method again.
   Future<GroceryCheckoutResult> confirmOrder({
-    required GroceryDeliveryAddress address,
+    DeliveryDetails delivery = const DeliveryDetails(),
     required GroceryDeliverySlot? slot,
     required GrocerySubstitutionPreference? substitutionPreference,
     String? idempotencyKey,
@@ -481,7 +463,6 @@ class GroceryController extends ChangeNotifier with LoadableState {
     }
 
     final errors = validateCheckout(
-      address: address,
       slot: slot,
       substitutionPreference: substitutionPreference,
     );
@@ -522,7 +503,7 @@ class GroceryController extends ChangeNotifier with LoadableState {
             GroceryOrderRequest(
               storeId: confirmedStoreId!,
               deliverySlotId: slot!.id,
-              address: address,
+              delivery: delivery,
               substitutionPreference: substitutionPreference!,
               items: confirmedItems,
               idempotencyKey: resolvedIdempotencyKey,
@@ -541,7 +522,10 @@ class GroceryController extends ChangeNotifier with LoadableState {
           'GroceryController.confirmOrder failed: $error\n$stackTrace',
         );
         return GroceryCheckoutResult.invalid([
-          'The grocery order could not be saved. Please try again.',
+          describeOrderSaveError(
+            error,
+            'The grocery order could not be saved. Please try again.',
+          ),
         ]);
       },
       // `order.total` is the RPC's authoritative, server-computed total
@@ -554,7 +538,6 @@ class GroceryController extends ChangeNotifier with LoadableState {
           createdAt: createdAt,
           amount: order.total,
           slot: slot!,
-          address: address,
           substitutionPreference: substitutionPreference!,
         );
         _activityController.record(
@@ -563,7 +546,7 @@ class GroceryController extends ChangeNotifier with LoadableState {
             serviceId: ServiceId.grocery,
             title: confirmedStoreName ?? 'Grocery order',
             subtitle: '${slot.label}, ${slot.detail}',
-            status: 'Demo confirmed',
+            status: 'Confirmed',
             occurredAt: createdAt,
             amount: order.total,
             detailsRoute: '/grocery',

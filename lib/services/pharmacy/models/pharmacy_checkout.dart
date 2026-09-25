@@ -1,26 +1,4 @@
-class PharmacyCheckoutDetails {
-  const PharmacyCheckoutDetails({
-    required this.recipientName,
-    required this.phone,
-    required this.city,
-    required this.district,
-    required this.street,
-    this.deliveryInstructions = '',
-  });
-
-  static const country = 'Somalia';
-
-  /// Field names match the recipient/phone/street/district/city baseline
-  /// food (`FoodDeliveryAddress`) and grocery (`GroceryDeliveryAddress`)
-  /// already use for the equivalent concept — issue #78 renamed this class
-  /// from customerName/phoneNumber/addressLine to match.
-  final String recipientName;
-  final String phone;
-  final String city;
-  final String district;
-  final String street;
-  final String deliveryInstructions;
-}
+import '../../shared/models/delivery_details.dart';
 
 class PharmacyCheckoutValidation {
   const PharmacyCheckoutValidation(this.errors);
@@ -88,12 +66,12 @@ class PharmacyOrderLineInput {
 
 class PharmacyOrderRequest {
   const PharmacyOrderRequest({
-    required this.details,
     required this.items,
+    this.delivery = const DeliveryDetails(),
     this.idempotencyKey,
   });
 
-  final PharmacyCheckoutDetails details;
+  final DeliveryDetails delivery;
   final List<PharmacyOrderLineInput> items;
 
   /// A client-generated token identifying this checkout attempt (issue
@@ -110,12 +88,8 @@ class PharmacyOrderRequest {
       );
     }
     return {
-      'p_recipient_name': details.recipientName.trim(),
-      'p_phone': details.phone.trim(),
-      'p_city': details.city.trim(),
-      'p_district': details.district.trim(),
-      'p_street': details.street.trim(),
-      'p_delivery_instructions': details.deliveryInstructions.trim(),
+      ...delivery.toRpcParams(),
+      'p_delivery_instructions': '',
       'p_items': items.map((item) => item.toRpcMap()).toList(growable: false),
       'p_idempotency_key': idempotencyKey,
       // p_delivery_address_id (issue #78) is intentionally not sent here:
