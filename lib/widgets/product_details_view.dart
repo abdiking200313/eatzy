@@ -4,12 +4,12 @@ import 'package:flutter/material.dart';
 import '../config/theme.dart';
 import 'app_misc.dart';
 
-/// The shared full-screen "more info" page for a single grocery or pharmacy
-/// product: photo hero, name, price, stock, description, a quantity picker
-/// and Add to cart. The per-vertical screens
-/// (`GroceryProductDetailsScreen`, `PharmacyProductDetailsScreen`) map their
-/// product model onto these fields. Like food's `MenuItemDetailsScreen`,
-/// it's pushed directly from the product row rather than being a go_router
+/// The shared full-screen "more info" page for a single food, grocery, or
+/// pharmacy item: photo hero, name, price, optional stock pill, description,
+/// a quantity picker and Add to cart. The per-vertical screens
+/// (`MenuItemDetailsScreen`, `GroceryProductDetailsScreen`,
+/// `PharmacyProductDetailsScreen`) map their own model onto these fields.
+/// It's pushed directly from the item row rather than being a go_router
 /// route.
 class ProductDetailsView extends StatefulWidget {
   const ProductDetailsView({
@@ -18,8 +18,8 @@ class ProductDetailsView extends StatefulWidget {
     required this.fallback,
     required this.name,
     required this.priceLabel,
-    required this.stockLabel,
-    required this.isInStock,
+    this.stockLabel,
+    this.isInStock = true,
     required this.description,
     required this.maxSteps,
     required this.quantityLabel,
@@ -36,7 +36,10 @@ class ProductDetailsView extends StatefulWidget {
 
   final String name;
   final String priceLabel;
-  final String stockLabel;
+
+  /// The stock pill's label, e.g. "In stock" or "Only 2 left". Hidden entirely
+  /// when null (food items have no stock concept).
+  final String? stockLabel;
   final bool isInStock;
   final String description;
 
@@ -111,16 +114,18 @@ class _ProductDetailsViewState extends State<ProductDetailsView> {
                     widget.priceLabel,
                     style: TwText.fontBoldBase.copyWith(color: palette.accent),
                   ),
-                  const SizedBox(height: TwSpacing.x3),
-                  StatusPill(
-                    label: widget.stockLabel,
-                    backgroundColor: widget.isInStock
-                        ? TwColors.tertiary.withOpacityValue(0.14)
-                        : TwColors.errorSoft,
-                    foregroundColor: widget.isInStock
-                        ? const Color(0xFF0F7A54)
-                        : TwColors.error,
-                  ),
+                  if (widget.stockLabel case final stockLabel?) ...[
+                    const SizedBox(height: TwSpacing.x3),
+                    StatusPill(
+                      label: stockLabel,
+                      backgroundColor: widget.isInStock
+                          ? TwColors.tertiary.withOpacityValue(0.14)
+                          : TwColors.errorSoft,
+                      foregroundColor: widget.isInStock
+                          ? const Color(0xFF0F7A54)
+                          : TwColors.error,
+                    ),
+                  ],
                   if (widget.description.trim().isNotEmpty) ...[
                     const SizedBox(height: TwSpacing.x4),
                     Text(widget.description, style: TwText.textSm),

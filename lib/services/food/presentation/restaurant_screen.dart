@@ -1,4 +1,3 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -7,6 +6,7 @@ import '../../../app/app_routes.dart';
 import '../../../config/theme.dart';
 import '../../../widgets/app_cards.dart';
 import '../../../widgets/app_misc.dart';
+import '../../../widgets/store_hero_app_bar.dart';
 import '../data/food_repository.dart';
 import '../data/restaurant_menu_repository.dart';
 import '../models/cart_item.dart';
@@ -50,7 +50,7 @@ class _RestaurantScreenState extends State<RestaurantScreen> {
   String? _selectedCategoryId;
 
   // The pinned category chip bar sits right below the collapsed app bar
-  // (`kToolbarHeight`, since `_RestaurantAppBar` is `pinned: true`) once
+  // (`kToolbarHeight`, since `StoreHeroAppBar` is `pinned: true`) once
   // scrolled past its `expandedHeight` hero. A section counts as "current"
   // once its heading has scrolled up to (or past) that line, matching what
   // a user reading top-to-bottom would call the category they're looking
@@ -148,7 +148,11 @@ class _RestaurantScreenState extends State<RestaurantScreen> {
     }
   }
 
-  Future<void> _addToCart(RestaurantMenu menu, MenuItem menuItem) async {
+  Future<void> _addToCart(
+    RestaurantMenu menu,
+    MenuItem menuItem,
+    int quantity,
+  ) async {
     final controller = widget.cartController ?? CartController.instance;
     final cartItem = CartItem(
       menuItemId: menuItem.id,
@@ -160,7 +164,7 @@ class _RestaurantScreenState extends State<RestaurantScreen> {
     );
 
     try {
-      var result = await controller.addItem(cartItem);
+      var result = await controller.addItem(cartItem, quantity: quantity);
       if (!mounted) {
         return;
       }
@@ -194,20 +198,22 @@ class _RestaurantScreenState extends State<RestaurantScreen> {
         result = await controller.addItem(
           cartItem,
           replaceRestaurantCart: true,
+          quantity: quantity,
         );
       }
 
       if (!mounted) {
         return;
       }
+      final itemLabel = quantity > 1
+          ? '$quantity× ${menuItem.name}'
+          : menuItem.name;
       final message = switch (result) {
-        CartAddResult.quantityIncreased =>
-          '${menuItem.name} quantity increased',
-        CartAddResult.replacedRestaurant =>
-          'New cart started with ${menuItem.name}',
+        CartAddResult.quantityIncreased => '$itemLabel quantity increased',
+        CartAddResult.replacedRestaurant => 'New cart started with $itemLabel',
         CartAddResult.maximumReached =>
           '${menuItem.name} is already at the maximum quantity',
-        _ => '${menuItem.name} added to cart',
+        _ => '$itemLabel added to cart',
       };
       showCartSnackBar(context, message);
     } on Object {
@@ -243,7 +249,8 @@ class _RestaurantScreenState extends State<RestaurantScreen> {
             sectionKeyFor: (categoryId) =>
                 _sectionKeys.putIfAbsent(categoryId, GlobalKey.new),
             onCategorySelected: _selectCategory,
-            onAddToCart: (item) => _addToCart(snapshot.requireData, item),
+            onAddToCart: (item, quantity) =>
+                _addToCart(snapshot.requireData, item, quantity),
           );
         },
       ),
@@ -285,14 +292,19 @@ class _RestaurantMenuView extends StatelessWidget {
   final ScrollController scrollController;
   final GlobalKey Function(String categoryId) sectionKeyFor;
   final ValueChanged<MenuCategory> onCategorySelected;
-  final ValueChanged<MenuItem> onAddToCart;
+  final void Function(MenuItem item, int quantity) onAddToCart;
 
   @override
   Widget build(BuildContext context) {
     return CustomScrollView(
       controller: scrollController,
       slivers: [
-        _RestaurantAppBar(menu: menu),
+        StoreHeroAppBar(
+          title: menu.restaurant.name,
+          imageUrl: menu.restaurant.logoUrl,
+          fallbackIcon: Icons.restaurant_rounded,
+          imageFit: BoxFit.contain,
+        ),
         SliverToBoxAdapter(
           child: Center(
             child: ConstrainedBox(
@@ -444,7 +456,7 @@ class _RestaurantMenuView extends StatelessWidget {
                       ),
                       child: MenuItemCard(
                         item: item,
-                        onAddToCart: () => onAddToCart(item),
+                        onAddToCart: (quantity) => onAddToCart(item, quantity),
                       ),
                     ),
                   ),
@@ -454,108 +466,6 @@ class _RestaurantMenuView extends StatelessWidget {
           ],
         const SliverToBoxAdapter(child: SizedBox(height: TwSpacing.x10)),
       ],
-    );
-  }
-}
-
-class _RestaurantAppBar extends StatelessWidget {
-  const _RestaurantAppBar({required this.menu});
-
-  final RestaurantMenu menu;
-
-  @override
-  Widget build(BuildContext context) {
-    final palette = context.serviceColors;
-    return SliverAppBar(
-      pinned: true,
-      expandedHeight: 230,
-      backgroundColor: palette.accent,
-      foregroundColor: palette.onAccent,
-      title: Text(
-        menu.restaurant.name,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: TwText.fontBoldBase.copyWith(color: palette.onAccent),
-      ),
-      flexibleSpace: FlexibleSpaceBar(
-        background: _RestaurantHero(imageUrl: menu.restaurant.logoUrl),
-      ),
-    );
-  }
-}
-
-class _RestaurantHero extends StatelessWidget {
-  const _RestaurantHero({required this.imageUrl});
-
-  final String imageUrl;
-
-  @override
-  Widget build(BuildContext context) {
-    final trimmedUrl = imageUrl.trim();
-    // The hero fills the SliverAppBar's expandedHeight (230) at full
-    // screen width; there's no fixed logical width available here, so the
-    // screen width is used as the practical upper bound for the decoded
-    // width. It is scaled for device pixel density and
-    // capped at 3x since a wider cap buys no visible sharpness while
-    // still inflating decode memory.
-    final cacheScale = MediaQuery.of(context).devicePixelRatio.clamp(1.0, 3.0);
-    // Only the width is capped: capping both dimensions decodes to that
-    // exact box and squashes (stretches) any photo of a different shape.
-    final cacheWidth = (MediaQuery.of(context).size.width * cacheScale).round();
-    final image = trimmedUrl.isEmpty
-        ? const _RestaurantHeroFallback()
-        : CachedNetworkImage(
-            imageUrl: trimmedUrl,
-            fit: BoxFit.contain,
-            alignment: Alignment.center,
-            memCacheWidth: cacheWidth,
-            placeholder: (_, _) =>
-                const _RestaurantHeroFallback(showLoader: true),
-            errorWidget: (_, _, _) => const _RestaurantHeroFallback(),
-          );
-
-    return Stack(
-      fit: StackFit.expand,
-      children: [
-        // A plain white base under the photo: a logo/photo with transparent
-        // pixels (common for uploaded restaurant logos) would otherwise
-        // reveal whatever sits behind this in the widget tree — previously
-        // the app bar's own accent color, which read as a stray red tint
-        // around/through the image rather than a clean background.
-        const ColoredBox(color: TwColors.card),
-        image,
-        DecoratedBox(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [
-                TwColors.slate900.withOpacityValue(85 / 255),
-                TwColors.slate900.withOpacityValue(34 / 255),
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _RestaurantHeroFallback extends StatelessWidget {
-  const _RestaurantHeroFallback({this.showLoader = false});
-
-  final bool showLoader;
-
-  @override
-  Widget build(BuildContext context) {
-    final palette = context.serviceColors;
-    return ColoredBox(
-      color: TwColors.card,
-      child: Center(
-        child: showLoader
-            ? CircularProgressIndicator(color: palette.accent)
-            : Icon(Icons.restaurant_rounded, color: palette.accent, size: 72),
-      ),
     );
   }
 }

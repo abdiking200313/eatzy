@@ -187,8 +187,8 @@ class PrimaryButton extends StatelessWidget {
 /// A photo-header list card for a single store, used across verticals (food
 /// restaurants, grocery stores, pharmacy stores) in mixed-vertical contexts:
 /// the home screen's "Popular Stores" strip and the rebuilt Explore tab feed.
-/// Distinct from the existing `RestaurantCard`/`GroceryStoreCard`, which stay
-/// as-is for their own single-vertical screens.
+/// Distinct from `StoreRowCard`, the compact thumbnail-and-text row used by
+/// each vertical's own single-vertical store-list screen.
 class StoreListCard extends StatelessWidget {
   const StoreListCard({
     super.key,

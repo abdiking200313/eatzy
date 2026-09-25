@@ -5,9 +5,9 @@ import '../../../app/app_routes.dart';
 import '../../../config/theme.dart';
 import '../../../widgets/app_cards.dart';
 import '../../../widgets/app_scaffold.dart';
+import '../../../widgets/store_row_card.dart';
 import '../data/restaurant_repository.dart';
 import '../models/restaurant.dart';
-import 'widgets/restaurant_card.dart';
 
 /// The restaurant list — mirrors `GroceryScreen`'s "heading + blurb +
 /// search field + flat list" shape rather than a photo-forward feed, so the
@@ -139,9 +139,15 @@ class _FoodExploreScreenState extends State<FoodExploreScreen> {
               final restaurant = restaurants[index - 1];
               return Padding(
                 padding: const EdgeInsets.only(bottom: TwSpacing.x3),
-                child: RestaurantCard(
-                  restaurant: restaurant,
-                  onPressed: () =>
+                child: StoreRowCard(
+                  imageUrl: restaurant.logoUrl,
+                  fallbackIcon: Icons.restaurant_rounded,
+                  name: restaurant.name,
+                  subtitleLines: [
+                    if (restaurant.description.trim().isNotEmpty)
+                      restaurant.description,
+                  ],
+                  onTap: () =>
                       context.push(AppRoutes.restaurantDetails(restaurant.id)),
                 ),
               );

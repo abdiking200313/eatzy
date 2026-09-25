@@ -64,6 +64,8 @@ class GroceryProduct {
     required this.availableQuantity,
     required this.icon,
     this.imageUrl,
+    this.categoryName,
+    this.categorySortOrder = 0,
   });
 
   final String id;
@@ -82,6 +84,13 @@ class GroceryProduct {
   /// Product photo (`grocery_products.image_url`), uploaded by the merchant.
   /// `null` means no photo -- the UI falls back to [icon].
   final String? imageUrl;
+
+  /// Name of the product's `grocery_categories` row, or `null` when the
+  /// product has no category (the store screen lists those under "Other").
+  final String? categoryName;
+
+  /// `grocery_categories.sort_order` — orders the store screen's sections.
+  final int categorySortOrder;
 
   double get quantityStep => pricingUnit == GroceryPricingUnit.each ? 1 : 0.5;
 
@@ -111,6 +120,11 @@ class GroceryProduct {
       );
     }
 
+    final category = map['grocery_categories'];
+    final categoryMap = category is Map
+        ? Map<String, dynamic>.from(category)
+        : null;
+
     return GroceryProduct(
       id: _requiredString(map, 'id'),
       storeId: _requiredString(map, 'store_id'),
@@ -126,6 +140,8 @@ class GroceryProduct {
       availableQuantity: availableQuantity,
       icon: _optionalString(map, 'icon', fallback: '🛒'),
       imageUrl: _nullIfBlank(map['image_url']),
+      categoryName: _nullIfBlank(categoryMap?['name']),
+      categorySortOrder: (categoryMap?['sort_order'] as num?)?.toInt() ?? 0,
     );
   }
 
@@ -144,6 +160,8 @@ class GroceryProduct {
       'available_quantity': availableQuantity,
       'icon': icon,
       'image_url': imageUrl,
+      'category_name': categoryName,
+      'category_sort_order': categorySortOrder,
     };
   }
 
@@ -163,6 +181,9 @@ class GroceryProduct {
       availableQuantity: _requiredDouble(json, 'available_quantity'),
       icon: _optionalString(json, 'icon', fallback: '🛒'),
       imageUrl: _nullIfBlank(json['image_url']),
+      // Optional: carts persisted before categories existed lack both keys.
+      categoryName: _nullIfBlank(json['category_name']),
+      categorySortOrder: (json['category_sort_order'] as num?)?.toInt() ?? 0,
     );
   }
 }

@@ -8,13 +8,13 @@ import '../../../config/theme.dart';
 import '../../../widgets/app_cards.dart';
 import '../../../widgets/app_scaffold.dart';
 import '../../../widgets/cart_app_bar_action.dart';
+import '../../../widgets/store_row_card.dart';
 import '../data/category_repository.dart';
 import '../data/restaurant_repository.dart';
 import '../models/category.dart';
 import '../models/restaurant.dart';
 import 'cart_controller.dart';
 import 'widgets/categories_section.dart';
-import 'widgets/restaurant_card.dart';
 import 'widgets/section_header.dart';
 
 typedef CategoryLoader = Future<List<Category>> Function();
@@ -329,9 +329,14 @@ class _FoodHomeScreenState extends State<FoodHomeScreen> {
   Widget _buildRestaurant(BuildContext context, Restaurant restaurant) {
     return Padding(
       padding: const EdgeInsets.only(bottom: TwSpacing.x4),
-      child: RestaurantCard(
-        restaurant: restaurant,
-        onPressed: () => _openRestaurant(restaurant),
+      child: StoreRowCard(
+        imageUrl: restaurant.logoUrl,
+        fallbackIcon: Icons.restaurant_rounded,
+        name: restaurant.name,
+        subtitleLines: [
+          if (restaurant.description.trim().isNotEmpty) restaurant.description,
+        ],
+        onTap: () => _openRestaurant(restaurant),
       ),
     );
   }

@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/foundation.dart';
 
 import '../../../services/shared/data/cart_storage.dart';
@@ -79,7 +81,11 @@ class CartController extends ChangeNotifier {
   Future<CartAddResult> addItem(
     CartItem item, {
     bool replaceRestaurantCart = false,
+
+    /// Number of units to add. Must be at least 1.
+    int quantity = 1,
   }) async {
+    assert(quantity >= 1);
     final hasRestaurantConflict =
         _items.isNotEmpty && _items.first.restaurantId != item.restaurantId;
 
@@ -90,7 +96,7 @@ class CartController extends ChangeNotifier {
     if (hasRestaurantConflict) {
       _items
         ..clear()
-        ..add(item.copyWith(quantity: 1));
+        ..add(item.copyWith(quantity: quantity.clamp(1, maximumQuantity)));
       notifyListeners();
       await _persist();
       return CartAddResult.replacedRestaurant;
@@ -100,7 +106,7 @@ class CartController extends ChangeNotifier {
       (cartItem) => cartItem.menuItemId == item.menuItemId,
     );
     if (existingIndex == -1) {
-      _items.add(item.copyWith(quantity: 1));
+      _items.add(item.copyWith(quantity: quantity.clamp(1, maximumQuantity)));
       notifyListeners();
       await _persist();
       return CartAddResult.added;
@@ -112,7 +118,7 @@ class CartController extends ChangeNotifier {
     }
 
     _items[existingIndex] = existingItem.copyWith(
-      quantity: existingItem.quantity + 1,
+      quantity: math.min(existingItem.quantity + quantity, maximumQuantity),
     );
     notifyListeners();
     await _persist();

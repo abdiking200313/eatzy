@@ -16,7 +16,10 @@ class MenuItemCard extends StatelessWidget {
   });
 
   final MenuItem item;
-  final VoidCallback onAddToCart;
+
+  /// Called with the quantity to add: `1` from the inline add button, or
+  /// whatever was picked on [MenuItemDetailsScreen].
+  final ValueChanged<int> onAddToCart;
 
   @override
   Widget build(BuildContext context) {
@@ -67,7 +70,7 @@ class MenuItemCard extends StatelessWidget {
                         AddToCartButton(
                           key: ValueKey('add-to-cart-${item.id}'),
                           tooltip: 'Add ${item.name} to cart',
-                          onPressed: onAddToCart,
+                          onPressed: () => onAddToCart(1),
                         ),
                       ],
                     ),

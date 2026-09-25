@@ -41,9 +41,9 @@ class _SuperAppHomeScreenState extends State<SuperAppHomeScreen> {
     final controller = widget.activityController ?? ActivityController.instance;
     // Only the Recent Activity preview below depends on `controller`, so it
     // is the only part of this screen wrapped in a listener (see
-    // GroceryCartBadgeAction/PharmacyCartBadgeAction for the same narrow-
-    // listener pattern). Everything else here builds once per screen build
-    // instead of on every ActivityController notification (issue #181).
+    // `CartBadgeAction` for the same narrow-listener pattern). Everything
+    // else here builds once per screen build instead of on every
+    // ActivityController notification (issue #181).
     return Scaffold(
       backgroundColor: TwColors.bg,
       body: ListView(
