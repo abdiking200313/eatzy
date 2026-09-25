@@ -33,7 +33,7 @@ void main() {
 
       // The "Delivery" coming-soon category has no `photoUrl` -- its card
       // falls back to the locally drawn accent-gradient + icon-watermark
-      // placeholder, not a photo. It's the 5th of 7 (now taller, 148px
+      // placeholder, not a photo. It's the 6th of 7 (now taller, 148px
       // photo-card-height) list items, so it isn't built until scrolled
       // into view.
       final deliveryCard = find.byKey(
@@ -86,19 +86,23 @@ void main() {
       const MaterialApp(home: CategoriesScreen(showBackButton: false)),
     );
 
-    final electronics = find.byKey(
-      const Key('services-coming-soon-electronics'),
-    );
+    // Electronics and Fresh Meat are real (grocery-engine) services now.
     await tester.scrollUntilVisible(
-      electronics,
+      find.byKey(const Key('services-electronics')),
       300,
       scrollable: find.byType(Scrollable).first,
     );
     expect(find.text('Electronics'), findsOneWidget);
 
-    await tester.tap(electronics);
+    final deals = find.byKey(const Key('services-coming-soon-deals'));
+    await tester.scrollUntilVisible(
+      deals,
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.tap(deals);
     await tester.pump();
-    expect(find.text('Electronics is coming soon'), findsOneWidget);
+    expect(find.text('Deals is coming soon'), findsOneWidget);
   });
 
   testWidgets('pushed category screen shows a back control', (tester) async {

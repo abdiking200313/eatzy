@@ -1,3 +1,27 @@
+/// Which customer category lists a grocery store (`grocery_stores.store_type`).
+/// Fresh Meat and Electronics run on the grocery engine — same cart,
+/// checkout and order RPC — and only differ in which store list shows them.
+enum GroceryStoreType {
+  grocery('grocery', 'Groceries', 'grocery stores'),
+  freshMeat('fresh_meat', 'Fresh Meat', 'butchers'),
+  electronics('electronics', 'Electronics', 'electronics stores');
+
+  const GroceryStoreType(this.dbValue, this.title, this.storesNoun);
+
+  final String dbValue;
+  final String title;
+
+  /// Plural noun used in empty-state copy, e.g. "No butchers found."
+  final String storesNoun;
+
+  /// Unknown or missing values fall back to [grocery], so a store is never
+  /// hidden from every list by a value this app version doesn't know.
+  static GroceryStoreType fromDb(Object? value) => values.firstWhere(
+    (type) => type.dbValue == value,
+    orElse: () => GroceryStoreType.grocery,
+  );
+}
+
 enum GroceryPricingUnit { each, kilogram }
 
 enum GroceryStockState { inStock, lowStock, outOfStock }
@@ -28,12 +52,14 @@ class GroceryStore {
     required this.area,
     required this.products,
     this.imageUrl,
+    this.storeType = GroceryStoreType.grocery,
   });
 
   final String id;
   final String name;
   final String area;
   final List<GroceryProduct> products;
+  final GroceryStoreType storeType;
 
   /// Store photo (`grocery_stores.image_url`). `null` means no photo.
   final String? imageUrl;
@@ -48,6 +74,7 @@ class GroceryStore {
       area: _requiredString(map, 'area'),
       products: List.unmodifiable(products),
       imageUrl: map['image_url']?.toString(),
+      storeType: GroceryStoreType.fromDb(map['store_type']),
     );
   }
 }

@@ -68,51 +68,52 @@ void main() {
     expect(find.text('/grocery'), findsOneWidget);
   });
 
-  testWidgets('category grid is 4 columns: services, coming soon, then More', (
-    tester,
-  ) async {
-    await tester.pumpWidget(
-      MaterialApp(
-        theme: buildAppTheme(),
-        home: const SuperAppHomeScreen(storeListingLoader: _noStores),
-      ),
-    );
-    await tester.pump();
+  testWidgets(
+    'category grid is 4 columns: services (incl. Fresh Meat and Electronics), coming soon, then More',
+    (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: buildAppTheme(),
+          home: const SuperAppHomeScreen(storeListingLoader: _noStores),
+        ),
+      );
+      await tester.pump();
 
-    const keys = [
-      'service-grocery',
-      'service-food',
-      'service-pharmacy',
-      'coming-soon-fresh-meat',
-      'coming-soon-delivery',
-      'coming-soon-deals',
-      'coming-soon-electronics',
-      'service-more',
-    ];
-    final tops = [
-      for (final key in keys) tester.getTopLeft(find.byKey(Key(key))),
-    ];
-    // Row one is the first four tiles, row two the last four, left to right.
-    for (var i = 0; i < 4; i++) {
-      expect(tops[i].dy, tops[0].dy);
-      expect(tops[i + 4].dy, tops[4].dy);
-      expect(tops[i + 4].dx, tops[i].dx);
-    }
-    expect(tops[4].dy, greaterThan(tops[0].dy));
-    expect(tops[1].dx, greaterThan(tops[0].dx));
+      const keys = [
+        'service-grocery',
+        'service-food',
+        'service-pharmacy',
+        'service-fresh-meat',
+        'service-electronics',
+        'coming-soon-delivery',
+        'coming-soon-deals',
+        'service-more',
+      ];
+      final tops = [
+        for (final key in keys) tester.getTopLeft(find.byKey(Key(key))),
+      ];
+      // Row one is the first four tiles, row two the last four, left to right.
+      for (var i = 0; i < 4; i++) {
+        expect(tops[i].dy, tops[0].dy);
+        expect(tops[i + 4].dy, tops[4].dy);
+        expect(tops[i + 4].dx, tops[i].dx);
+      }
+      expect(tops[4].dy, greaterThan(tops[0].dy));
+      expect(tops[1].dx, greaterThan(tops[0].dx));
 
-    for (final label in [
-      'Fresh Meat',
-      'Delivery',
-      'Deals',
-      'Electronics',
-      'More',
-    ]) {
-      expect(find.text(label), findsOneWidget);
-    }
-    // Only the four placeholders carry the badge.
-    expect(find.text('Soon'), findsNWidgets(4));
-  });
+      for (final label in [
+        'Fresh Meat',
+        'Delivery',
+        'Deals',
+        'Electronics',
+        'More',
+      ]) {
+        expect(find.text(label), findsOneWidget);
+      }
+      // Only the two remaining placeholders carry the badge.
+      expect(find.text('Soon'), findsNWidgets(2));
+    },
+  );
 
   testWidgets('coming-soon tiles are grayscale; real service tiles are not', (
     tester,
@@ -136,7 +137,7 @@ void main() {
     );
     expect(
       find.descendant(
-        of: find.byKey(const Key('coming-soon-electronics')),
+        of: find.byKey(const Key('coming-soon-delivery')),
         matching: find.byType(ColorFiltered),
       ),
       findsOneWidget,

@@ -6,10 +6,6 @@ import 'package:chowflow/features/profile/models/customer_profile.dart';
 import 'package:chowflow/features/profile/presentation/profile_screen.dart';
 import 'package:chowflow/features/settings/presentation/settings_screen.dart';
 import 'package:chowflow/features/support/presentation/support_screen.dart';
-import 'package:chowflow/features/wallet/data/wallet_repository.dart';
-import 'package:chowflow/features/wallet/models/wallet_payment_method_record.dart';
-import 'package:chowflow/features/wallet/models/wallet_transaction_record.dart';
-import 'package:chowflow/features/wallet/presentation/wallet_screen.dart';
 import 'package:chowflow/platform/activity/models/activity_item.dart';
 import 'package:chowflow/platform/activity/presentation/activity_controller.dart';
 import 'package:chowflow/platform/activity/presentation/activity_screen.dart';
@@ -345,17 +341,6 @@ void main() {
         expect(tester.takeException(), isNull);
       });
 
-      testWidgets('Wallet', (tester) async {
-        await pumpNarrow(
-          tester,
-          WalletScreen(walletRepository: _FakeWalletRepository()),
-        );
-
-        expect(find.text('My Wallet'), findsOneWidget);
-        expect(find.byType(StatusPill), findsWidgets);
-        expect(tester.takeException(), isNull);
-      });
-
       testWidgets('Support', (tester) async {
         await pumpNarrow(tester, const SupportScreen(), settle: false);
 
@@ -539,35 +524,6 @@ class _FakeProfileRepository implements ProfileRepository {
   @override
   Future<void> deleteAccount() async =>
       throw UnimplementedError('not exercised by this test');
-}
-
-class _FakeWalletRepository implements WalletRepository {
-  @override
-  Future<int> fetchBalance() async => 12050;
-
-  @override
-  Future<List<WalletTransactionRecord>> fetchTransactions({
-    int limit = 20,
-  }) async => [
-    WalletTransactionRecord(
-      id: 'txn-1',
-      type: WalletTransactionType.orderPayment,
-      amount: -1850,
-      description: 'Jollof Feast Order',
-      createdAt: DateTime.utc(2026, 8, 1),
-      orderId: '45782',
-    ),
-  ];
-
-  @override
-  Future<List<WalletPaymentMethodRecord>> fetchPaymentMethods() async => const [
-    WalletPaymentMethodRecord(
-      id: 'pm-1',
-      brand: 'Visa Card',
-      lastFour: '4829',
-      isDefault: true,
-    ),
-  ];
 }
 
 class _ManyGroceryStoresRepository implements GroceryRepository {

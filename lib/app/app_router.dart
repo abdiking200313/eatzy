@@ -20,7 +20,6 @@ import '../features/profile/presentation/profile_screen.dart';
 import '../features/settings/presentation/settings_screen.dart';
 import '../features/super_app/presentation/super_app_home_screen.dart';
 import '../features/support/presentation/support_screen.dart';
-import '../features/wallet/presentation/wallet_screen.dart';
 import '../platform/activity/presentation/activity_screen.dart';
 import '../screens/addresses.dart';
 import '../screens/categories.dart';
@@ -31,6 +30,7 @@ import '../services/food/presentation/food_categories_screen.dart';
 import '../services/food/presentation/food_explore_screen.dart';
 import '../services/food/presentation/food_home_screen.dart';
 import '../services/food/presentation/restaurant_screen.dart';
+import '../services/grocery/models/grocery_models.dart';
 import '../services/grocery/presentation/grocery_cart_screen.dart';
 import '../services/grocery/presentation/grocery_checkout_screen.dart';
 import '../services/grocery/presentation/grocery_screen.dart';
@@ -120,6 +120,14 @@ class AppRouter {
       serviceId: ServiceId.grocery,
       child: GroceryScreen(),
     ),
+    AppRoutes.freshMeat: ZivoServiceTheme(
+      serviceId: ServiceId.grocery,
+      child: GroceryScreen(storeType: GroceryStoreType.freshMeat),
+    ),
+    AppRoutes.electronics: ZivoServiceTheme(
+      serviceId: ServiceId.grocery,
+      child: GroceryScreen(storeType: GroceryStoreType.electronics),
+    ),
     AppRoutes.groceryCart: ZivoServiceTheme(
       serviceId: ServiceId.grocery,
       child: GroceryCartScreen(),
@@ -158,7 +166,6 @@ class AppRouter {
     // already carry a valid Supabase session by the time this route loads.
     AppRoutes.resetPassword: ResetPasswordScreen(),
     AppRoutes.support: SupportScreen(),
-    AppRoutes.wallet: WalletScreen(),
     AppRoutes.privacyPolicy: PrivacyPolicyScreen(),
     AppRoutes.termsOfService: TermsOfServiceScreen(),
     AppRoutes.trackOrder: ZivoServiceTheme(

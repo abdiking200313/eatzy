@@ -34,6 +34,12 @@ final Map<String, String> _deepLinkOnlyRoutes = {
   AppRoutes.profile:
       'reachable as the Profile bottom-nav tab, not a route push',
 
+  // Hidden while delivery addresses are out of scope (owner decision,
+  // 2026-09-25): checkout no longer asks for an address. The screen and
+  // route stay so the feature can come back without a rebuild.
+  AppRoutes.addresses:
+      'hidden while delivery addresses are out of scope (2026-09-25)',
+
   // The bare (no id/service) form is kept only for backward compatibility
   // with an old deep link that has no order to point at -- TrackOrderScreen
   // renders a "no order selected" empty state for it. The real, reachable
@@ -61,7 +67,6 @@ final List<({String name, String path})> _registeredRoutes = [
   (name: 'settings', path: AppRoutes.settings),
   (name: 'resetPassword', path: AppRoutes.resetPassword),
   (name: 'support', path: AppRoutes.support),
-  (name: 'wallet', path: AppRoutes.wallet),
   (name: 'trackOrder', path: AppRoutes.trackOrder),
   (name: 'trackOrderDetails', path: AppRoutes.trackOrderDetails),
   (name: 'food', path: AppRoutes.food),
@@ -104,7 +109,7 @@ void main() {
   });
 
   bool isLinked(String name, String path) {
-    // `AppRoutes.<name>` as a call-site token, e.g. `context.push(AppRoutes.wallet)`
+    // `AppRoutes.<name>` as a call-site token, e.g. `context.push(AppRoutes.support)`
     // or as a ProfileOption's `route:` value. The negative lookahead keeps
     // `AppRoutes.food` from matching inside `AppRoutes.foodCart`, and
     // `AppRoutes.restaurant` from matching inside `AppRoutes.restaurants`.

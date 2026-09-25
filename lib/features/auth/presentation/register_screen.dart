@@ -210,7 +210,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             Text('Create your account', style: TwText.text3xl),
                             const SizedBox(height: TwSpacing.rhythmTight),
                             Text(
-                              'Join Zivo and make every food order faster and more rewarding.',
+                              'Join Zivo to order food, groceries and more, delivered to you.',
                               style: TwText.textSm,
                             ),
                             const SizedBox(height: TwSpacing.rhythmSection),
