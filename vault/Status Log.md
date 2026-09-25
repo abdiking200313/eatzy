@@ -8,6 +8,14 @@ Reverse-chronological. Each session/major chunk of work gets an entry.
 
 ---
 
+## 2026-09-25 (owner-requested, interactive: address/payments removed, Fresh Meat + Electronics, shared cart/checkout, Order again)
+
+- Branch `feat/checkout-simplify-and-verticals`. Decisions in [[Decisions Log]] 2026-09-25. Shared `CheckoutView`/`CartView` in `lib/widgets/`; `DeliveryDetails` in `lib/services/shared/models/`; `OrderAgainService`/`OrderAgainRepository` in `lib/platform/activity/`. Wallet feature and dead `FoodDeal` code deleted; money is integer cents everywhere now.
+- Two migrations, **not applied live** (owner applies): `20260927000000_add_grocery_store_type.sql`, `20260927010000_make_delivery_address_optional.sql`. The client needs both before it works against live (it selects `store_type` and sends blank address fields).
+- Full suite 519/519, analyze + format clean. Done in one chat, no subagents (owner preference for token cost).
+
+---
+
 ## 2026-09-25 (board worker — nothing eligible, queue unchanged, 4 runs today)
 
 - All four runs today: `list_issues` for `todo`/`waiting-on-you` returned only the same tracking-only pair, **#29/#52** (`updated_at` unchanged: 2026-08-17/2026-08-26). `waiting-on-you` empty. Each run's only new `master` commit since the prior run was that prior run's own vault-update PR (#269, then #270, then #271) — never new work.
