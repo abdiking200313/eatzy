@@ -140,7 +140,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             Text('Welcome back', style: TwText.text3xl),
                             const SizedBox(height: TwSpacing.rhythmTight),
                             Text(
-                              'Sign in to continue your orders, favorites, and rewards.',
+                              'Sign in to continue your orders.',
                               style: TwText.textSm,
                             ),
                             const SizedBox(height: TwSpacing.rhythmSection),

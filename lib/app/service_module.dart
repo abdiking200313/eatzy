@@ -16,7 +16,8 @@ class ServiceDescriptor {
     required this.entryRoute,
     required this.icon,
     this.photoUrl,
-  });
+    String? slug,
+  }) : _slug = slug;
 
   final ServiceId id;
   final String title;
@@ -27,6 +28,13 @@ class ServiceDescriptor {
   /// When set, the home grid shows this photo (in a [ServicePhotoChip])
   /// instead of [icon].
   final String? photoUrl;
+
+  final String? _slug;
+
+  /// Unique per tile, for widget keys. Defaults to [id]'s name; set when
+  /// several tiles share one engine (Fresh Meat and Electronics are
+  /// [ServiceId.grocery] store lists).
+  String get slug => _slug ?? id.name;
 }
 
 /// A category announced on the home grid and the Services list before any
@@ -83,17 +91,27 @@ abstract final class ServiceRegistry {
       icon: Icons.local_pharmacy_outlined,
       photoUrl: '$_iconBucketUrl/service-pharmacy.jpg',
     ),
+    ServiceDescriptor(
+      id: ServiceId.grocery,
+      slug: 'fresh-meat',
+      title: 'Fresh Meat',
+      description: 'Fresh cuts from local butchers',
+      entryRoute: AppRoutes.freshMeat,
+      icon: Icons.kebab_dining_outlined,
+      photoUrl: '$_iconBucketUrl/service-fresh-meat.jpg',
+    ),
+    ServiceDescriptor(
+      id: ServiceId.grocery,
+      slug: 'electronics',
+      title: 'Electronics',
+      description: 'Phones, gadgets and accessories',
+      entryRoute: AppRoutes.electronics,
+      icon: Icons.devices_outlined,
+    ),
   ];
 
   /// Categories with no logic behind them yet; shown after [modules].
   static const comingSoon = <ComingSoonCategory>[
-    ComingSoonCategory(
-      id: 'fresh-meat',
-      title: 'Fresh Meat',
-      description: 'Fresh cuts from local butchers',
-      icon: Icons.kebab_dining_outlined,
-      photoUrl: '$_iconBucketUrl/service-fresh-meat.jpg',
-    ),
     ComingSoonCategory(
       id: 'delivery',
       title: 'Delivery',
@@ -105,12 +123,6 @@ abstract final class ServiceRegistry {
       title: 'Deals',
       description: 'Discounts and offers from nearby shops',
       icon: Icons.local_offer_outlined,
-    ),
-    ComingSoonCategory(
-      id: 'electronics',
-      title: 'Electronics',
-      description: 'Phones, gadgets and accessories',
-      icon: Icons.devices_outlined,
     ),
   ];
 

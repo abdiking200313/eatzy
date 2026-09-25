@@ -10,12 +10,6 @@ abstract final class AppMoney {
     decimalDigits: 2,
   );
 
-  /// Formats a decimal-dollar amount directly. Almost nothing in this app
-  /// should call this — every money value that comes from the database or an
-  /// internal calculation is integer cents (see issue #8), and passing one
-  /// here would render 100x too large. Prefer [formatCents].
-  static String format(num amount) => _formatter.format(amount);
-
   /// Formats an integer smallest-currency-unit (cents) amount as decimal
   /// dollars. This is the only place a cents value should ever be divided by
   /// 100 — every model, controller, and RPC payload in this app reads,

@@ -3,13 +3,16 @@ import 'package:chowflow/config/theme.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  test('service registry exposes unique IDs and entry routes', () {
+  test('service registry exposes unique slugs and entry routes', () {
     final ids = ServiceRegistry.modules.map((module) => module.id).toSet();
+    final slugs = ServiceRegistry.modules.map((module) => module.slug).toSet();
     final routes = ServiceRegistry.modules
         .map((module) => module.entryRoute)
         .toSet();
 
-    expect(ids.length, ServiceRegistry.modules.length);
+    // Fresh Meat and Electronics share ServiceId.grocery (grocery-engine
+    // store lists), so tiles are told apart by slug, not id.
+    expect(slugs.length, ServiceRegistry.modules.length);
     expect(routes.length, ServiceRegistry.modules.length);
     // ServiceId.unknown is a fallback for legacy/malformed activity rows
     // (#62), not a purchasable module, so it is intentionally absent from

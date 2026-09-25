@@ -7,6 +7,7 @@ import 'package:chowflow/services/pharmacy/models/pharmacy_cart_item.dart';
 import 'package:chowflow/services/pharmacy/models/pharmacy_checkout.dart';
 import 'package:chowflow/services/pharmacy/models/pharmacy_product.dart';
 import 'package:chowflow/services/pharmacy/presentation/pharmacy_controller.dart';
+import 'package:chowflow/services/shared/models/delivery_details.dart';
 import 'package:chowflow/services/shared/data/rpc_helpers.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -103,46 +104,26 @@ void main() {
     expect(controller.isCartEmpty, isTrue);
   });
 
-  test('checkout validates cart and Somalia delivery details', () {
-    const emptyDetails = PharmacyCheckoutDetails(
-      recipientName: '',
-      phone: '12',
-      city: '',
-      district: '',
-      street: '',
-    );
-
-    final validation = controller.validateCheckout(emptyDetails);
+  test('checkout validates only the cart — no address', () {
+    final validation = controller.validateCheckout();
 
     expect(validation.isValid, isFalse);
     expect(validation.errorFor('cart'), isNotNull);
-    expect(validation.errorFor('recipientName'), isNotNull);
-    expect(validation.errorFor('phone'), isNotNull);
-    expect(validation.errorFor('city'), contains('Somalia'));
-    expect(validation.errorFor('district'), isNotNull);
-    expect(validation.errorFor('street'), isNotNull);
-    expect(PharmacyCheckoutDetails.country, 'Somalia');
+    expect(validation.errors.keys, ['cart']);
   });
 
   test('demo checkout records pharmacy activity and clears its cart', () async {
     controller.addProduct(controller.products.first);
-    const details = PharmacyCheckoutDetails(
-      recipientName: 'Asha Ali',
-      phone: '+252 61 234 5678',
-      city: 'Mogadishu',
-      district: 'Hodan',
-      street: 'Taleex Road, blue gate',
-      deliveryInstructions: 'Please call on arrival.',
-    );
+    const delivery = DeliveryDetails(note: 'Taleex Road, blue gate');
 
-    final result = await controller.placeDemoOrder(details);
+    final result = await controller.placeDemoOrder(delivery: delivery);
 
     expect(result.isSuccess, isTrue);
-    expect(result.message, contains('No payment was processed'));
+    expect(result.message, contains('Pay on delivery'));
     expect(controller.isCartEmpty, isTrue);
     expect(activityController.items, hasLength(1));
     expect(activityController.items.single.serviceId, ServiceId.pharmacy);
-    expect(activityController.items.single.status, 'Demo confirmed');
+    expect(activityController.items.single.status, 'Confirmed');
     expect(activityController.items.single.amount, 525);
   });
 
@@ -203,16 +184,9 @@ void main() {
     );
     throwingController.addProduct(throwingController.products.first);
 
-    const details = PharmacyCheckoutDetails(
-      recipientName: 'Asha Ali',
-      phone: '+252 61 234 5678',
-      city: 'Mogadishu',
-      district: 'Hodan',
-      street: 'Taleex Road, blue gate',
-      deliveryInstructions: 'Please call on arrival.',
-    );
+    const delivery = DeliveryDetails(note: 'Taleex Road, blue gate');
 
-    final result = await throwingController.placeDemoOrder(details);
+    final result = await throwingController.placeDemoOrder(delivery: delivery);
 
     expect(result.isSuccess, isFalse);
     expect(
@@ -238,21 +212,17 @@ void main() {
     );
     submittingController.addProduct(submittingController.products.first);
 
-    const details = PharmacyCheckoutDetails(
-      recipientName: 'Asha Ali',
-      phone: '+252 61 234 5678',
-      city: 'Mogadishu',
-      district: 'Hodan',
-      street: 'Taleex Road, blue gate',
-    );
+    const delivery = DeliveryDetails(note: 'Taleex Road, blue gate');
 
-    final first = submittingController.placeDemoOrder(details);
+    final first = submittingController.placeDemoOrder(delivery: delivery);
     expect(submittingController.isSubmitting, isTrue);
 
     // A second call while the first is still in flight must be a no-op:
     // it must not reach the repository and must not disturb the cart or
     // submission state the first call owns.
-    final second = await submittingController.placeDemoOrder(details);
+    final second = await submittingController.placeDemoOrder(
+      delivery: delivery,
+    );
     expect(second.isSuccess, isFalse);
     expect(repository.callCount, 1);
 
@@ -278,17 +248,11 @@ void main() {
         storeId: SeededPharmacyRepository.defaultStoreId,
       );
 
-      const details = PharmacyCheckoutDetails(
-        recipientName: 'Asha Ali',
-        phone: '+252 61 234 5678',
-        city: 'Mogadishu',
-        district: 'Hodan',
-        street: 'Taleex Road, blue gate',
-      );
+      const delivery = DeliveryDetails(note: 'Taleex Road, blue gate');
 
       recordingController.addProduct(recordingController.products.first);
       await recordingController.placeDemoOrder(
-        details,
+        delivery: delivery,
         idempotencyKey: 'attempt-key-1',
       );
 
@@ -299,7 +263,7 @@ void main() {
       // generated for it, so the RPC always has one to key its own
       // de-duplication on.
       recordingController.addProduct(recordingController.products.first);
-      await recordingController.placeDemoOrder(details);
+      await recordingController.placeDemoOrder(delivery: delivery);
 
       expect(repository.lastRequest!.idempotencyKey, isNotNull);
       expect(repository.lastRequest!.idempotencyKey, isNotEmpty);
@@ -332,15 +296,11 @@ void main() {
     serverPricedController.addProduct(serverPricedController.products.first);
     expect(serverPricedController.total, isNot(4250));
 
-    const details = PharmacyCheckoutDetails(
-      recipientName: 'Asha Ali',
-      phone: '+252 61 234 5678',
-      city: 'Mogadishu',
-      district: 'Hodan',
-      street: 'Taleex Road, blue gate',
-    );
+    const delivery = DeliveryDetails(note: 'Taleex Road, blue gate');
 
-    final result = await serverPricedController.placeDemoOrder(details);
+    final result = await serverPricedController.placeDemoOrder(
+      delivery: delivery,
+    );
 
     expect(result.isSuccess, isTrue);
     expect(activityController.items.single.amount, 4250);

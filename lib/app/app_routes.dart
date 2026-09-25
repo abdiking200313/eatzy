@@ -71,6 +71,12 @@ class AppRoutes {
   static const groceryCart = '$grocery/cart';
   static const groceryCheckout = '$grocery/checkout';
 
+  // Fresh Meat and Electronics are grocery-engine store lists filtered by
+  // `grocery_stores.store_type` — they share the grocery cart, checkout and
+  // store pages.
+  static const freshMeat = '$grocery/fresh-meat';
+  static const electronics = '$grocery/electronics';
+
   // Pharmacy service
   static const pharmacy = '/pharmacy';
 
@@ -95,7 +101,6 @@ class AppRoutes {
   static const addresses = '/addresses';
   static const settings = '/settings';
   static const support = '/support';
-  static const wallet = '/wallet';
 
   // Static legal documents (issue #37), reached from Settings → Privacy
   // Policy / Terms & Conditions. In-app content only — see

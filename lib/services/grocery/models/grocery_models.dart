@@ -1,3 +1,29 @@
+import '../../shared/models/delivery_details.dart';
+
+/// Which customer category lists a grocery store (`grocery_stores.store_type`).
+/// Fresh Meat and Electronics run on the grocery engine — same cart,
+/// checkout and order RPC — and only differ in which store list shows them.
+enum GroceryStoreType {
+  grocery('grocery', 'Groceries', 'grocery stores'),
+  freshMeat('fresh_meat', 'Fresh Meat', 'butchers'),
+  electronics('electronics', 'Electronics', 'electronics stores');
+
+  const GroceryStoreType(this.dbValue, this.title, this.storesNoun);
+
+  final String dbValue;
+  final String title;
+
+  /// Plural noun used in empty-state copy, e.g. "No butchers found."
+  final String storesNoun;
+
+  /// Unknown or missing values fall back to [grocery], so a store is never
+  /// hidden from every list by a value this app version doesn't know.
+  static GroceryStoreType fromDb(Object? value) => values.firstWhere(
+    (type) => type.dbValue == value,
+    orElse: () => GroceryStoreType.grocery,
+  );
+}
+
 enum GroceryPricingUnit { each, kilogram }
 
 enum GroceryStockState { inStock, lowStock, outOfStock }
@@ -28,12 +54,14 @@ class GroceryStore {
     required this.area,
     required this.products,
     this.imageUrl,
+    this.storeType = GroceryStoreType.grocery,
   });
 
   final String id;
   final String name;
   final String area;
   final List<GroceryProduct> products;
+  final GroceryStoreType storeType;
 
   /// Store photo (`grocery_stores.image_url`). `null` means no photo.
   final String? imageUrl;
@@ -48,6 +76,7 @@ class GroceryStore {
       area: _requiredString(map, 'area'),
       products: List.unmodifiable(products),
       imageUrl: map['image_url']?.toString(),
+      storeType: GroceryStoreType.fromDb(map['store_type']),
     );
   }
 }
@@ -198,6 +227,11 @@ class GroceryCartLine {
   /// fractional-kilogram `quantity` can land on a fractional cent.
   int get total => (product.unitPrice * quantity).round();
 
+  /// "1.5 kg" for weighed products, "2" for everything else.
+  String get quantityLabel => product.pricingUnit == GroceryPricingUnit.kilogram
+      ? '${quantity.toStringAsFixed(1)} kg'
+      : quantity.toInt().toString();
+
   GroceryCartLine copyWith({double? quantity}) {
     return GroceryCartLine(
       product: product,
@@ -250,31 +284,12 @@ class GroceryDeliverySlot {
   }
 }
 
-class GroceryDeliveryAddress {
-  const GroceryDeliveryAddress({
-    required this.recipientName,
-    required this.phone,
-    required this.street,
-    required this.district,
-    required this.city,
-    this.country = 'Somalia',
-  });
-
-  final String recipientName;
-  final String phone;
-  final String street;
-  final String district;
-  final String city;
-  final String country;
-}
-
 class GroceryOrderConfirmation {
   const GroceryOrderConfirmation({
     required this.orderId,
     required this.createdAt,
     required this.amount,
     required this.slot,
-    required this.address,
     required this.substitutionPreference,
   });
 
@@ -284,7 +299,6 @@ class GroceryOrderConfirmation {
   /// In integer cents — see issue #8.
   final int amount;
   final GroceryDeliverySlot slot;
-  final GroceryDeliveryAddress address;
   final GrocerySubstitutionPreference substitutionPreference;
 }
 
@@ -334,15 +348,15 @@ class GroceryOrderRequest {
   const GroceryOrderRequest({
     required this.storeId,
     required this.deliverySlotId,
-    required this.address,
     required this.substitutionPreference,
     required this.items,
+    this.delivery = const DeliveryDetails(),
     this.idempotencyKey,
   });
 
   final String storeId;
   final String deliverySlotId;
-  final GroceryDeliveryAddress address;
+  final DeliveryDetails delivery;
   final GrocerySubstitutionPreference substitutionPreference;
   final List<GroceryOrderLineInput> items;
 
@@ -366,11 +380,7 @@ class GroceryOrderRequest {
     return {
       'p_store_id': storeId,
       'p_delivery_slot_id': deliverySlotId,
-      'p_recipient_name': address.recipientName.trim(),
-      'p_phone': address.phone.trim(),
-      'p_street': address.street.trim(),
-      'p_district': address.district.trim(),
-      'p_city': address.city.trim(),
+      ...delivery.toRpcParams(),
       'p_substitution_preference': switch (substitutionPreference) {
         GrocerySubstitutionPreference.bestMatch => 'best_match',
         GrocerySubstitutionPreference.contactMe => 'contact_me',

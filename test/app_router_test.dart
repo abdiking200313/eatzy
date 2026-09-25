@@ -39,7 +39,7 @@ void main() {
       // Signed-out visitors.
       _RedirectCase(
         'a signed-out user is sent to login for protected routes',
-        AppRoutes.wallet,
+        AppRoutes.support,
         expected: AppRoutes.login,
       ),
       _RedirectCase(
@@ -157,7 +157,7 @@ void main() {
       AppRoutes.mainApp,
       AppRoutes.food,
       AppRoutes.settings,
-      AppRoutes.wallet,
+      AppRoutes.support,
       AppRoutes.grocery,
       AppRoutes.pharmacy,
       AppRoutes.profile,
@@ -206,7 +206,7 @@ void main() {
       AppRoutes.pharmacyStoreDetails('legacy-pharmacy'),
       AppRoutes.trackOrder,
       AppRoutes.trackOrderDetailsPath(serviceId: 'grocery', orderId: 'o-2'),
-      AppRoutes.wallet,
+      AppRoutes.support,
       AppRoutes.resetPassword,
       AppRoutes.merchantDashboard,
     ];

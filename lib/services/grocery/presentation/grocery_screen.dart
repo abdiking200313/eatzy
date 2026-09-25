@@ -16,9 +16,17 @@ import 'grocery_controller.dart';
 /// store's products — mirroring food's "restaurant list -> restaurant
 /// menu" flow instead of the old flattened, every-store-at-once feed.
 class GroceryScreen extends StatefulWidget {
-  const GroceryScreen({super.key, this.controller});
+  const GroceryScreen({
+    super.key,
+    this.controller,
+    this.storeType = GroceryStoreType.grocery,
+  });
 
   final GroceryController? controller;
+
+  /// Which category this list shows. Fresh Meat and Electronics reuse this
+  /// screen (and the whole grocery engine) filtered to their store type.
+  final GroceryStoreType storeType;
 
   @override
   State<GroceryScreen> createState() => _GroceryScreenState();
@@ -98,11 +106,11 @@ class _GroceryScreenState extends State<GroceryScreen> {
 
   List<GroceryStore> _visibleStores() {
     final query = _searchController.text.trim().toLowerCase();
-    if (query.isEmpty) {
-      return _controller.stores;
-    }
     return _controller.stores
-        .where((store) => store.name.toLowerCase().contains(query))
+        .where((store) => store.storeType == widget.storeType)
+        .where(
+          (store) => query.isEmpty || store.name.toLowerCase().contains(query),
+        )
         .toList(growable: false);
   }
 
@@ -112,7 +120,7 @@ class _GroceryScreenState extends State<GroceryScreen> {
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
-      title: 'Groceries',
+      title: widget.storeType.title,
       showBackButton: true,
       actions: [
         CartBadgeAction(
@@ -193,7 +201,10 @@ class _GroceryScreenState extends State<GroceryScreen> {
           }
 
           if (showEmptyRow) {
-            return _EmptyStores(searchQuery: _searchController.text.trim());
+            return _EmptyStores(
+              searchQuery: _searchController.text.trim(),
+              storesNoun: widget.storeType.storesNoun,
+            );
           }
 
           final store = stores[index - 1];
@@ -251,9 +262,10 @@ class _GroceryScreenState extends State<GroceryScreen> {
 }
 
 class _EmptyStores extends StatelessWidget {
-  const _EmptyStores({required this.searchQuery});
+  const _EmptyStores({required this.searchQuery, required this.storesNoun});
 
   final String searchQuery;
+  final String storesNoun;
 
   @override
   Widget build(BuildContext context) {
@@ -262,7 +274,7 @@ class _EmptyStores extends StatelessWidget {
       child: Center(
         child: Text(
           searchQuery.isEmpty
-              ? 'No grocery stores found.'
+              ? 'No $storesNoun found yet.'
               : 'No stores match "$searchQuery".',
           textAlign: TextAlign.center,
           style: TwText.textSm,

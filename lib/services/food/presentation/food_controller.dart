@@ -8,6 +8,7 @@ import '../../../platform/activity/models/activity_item.dart';
 import '../../../platform/activity/presentation/activity_controller.dart';
 import '../../shared/data/idempotency_key.dart';
 import '../../shared/data/rpc_helpers.dart';
+import '../../shared/models/delivery_details.dart';
 import '../../shared/presentation/confirm_order_flow.dart';
 import '../data/food_repository.dart';
 import '../models/food_models.dart';
@@ -61,11 +62,9 @@ class FoodController extends ChangeNotifier {
 
   bool _isSubmitting = false;
   String? _submissionError;
-  List<String> _addressErrors = const [];
 
   bool get isSubmitting => _isSubmitting;
   String? get submissionError => _submissionError;
-  List<String> get addressErrors => _addressErrors;
 
   FoodOrderRepository get _repository =>
       _orderRepository ??
@@ -89,8 +88,8 @@ class FoodController extends ChangeNotifier {
   /// and keep passing the same value across retries of that attempt; when
   /// omitted, a fresh key is generated for this call only, which gives no
   /// protection against a retry that calls this method again.
-  Future<FoodCheckoutResult> confirmOrder(
-    FoodDeliveryAddress address, {
+  Future<FoodCheckoutResult> confirmOrder({
+    DeliveryDetails delivery = const DeliveryDetails(),
     String? idempotencyKey,
   }) async {
     if (_isSubmitting) {
@@ -105,17 +104,8 @@ class FoodController extends ChangeNotifier {
       return FoodCheckoutResult.invalid(const []);
     }
 
-    final addressErrors = _validateAddress(address);
-    if (addressErrors.isNotEmpty) {
-      _addressErrors = addressErrors;
-      _submissionError = null;
-      notifyListeners();
-      return FoodCheckoutResult.invalid(addressErrors);
-    }
-
     _isSubmitting = true;
     _submissionError = null;
-    _addressErrors = const [];
     notifyListeners();
 
     final result =
@@ -126,7 +116,7 @@ class FoodController extends ChangeNotifier {
           placeOrder: () => _repository.placeOrder(
             FoodOrderRequest(
               restaurantId: restaurantId,
-              address: address,
+              delivery: delivery,
               items: [
                 for (final item in items)
                   FoodOrderLineInput(
@@ -153,8 +143,11 @@ class FoodController extends ChangeNotifier {
             debugPrint(
               'FoodController.confirmOrder failed: $error\n$stackTrace',
             );
-            return FoodCheckoutResult.invalid(const [
-              'The food order could not be saved. Please try again.',
+            return FoodCheckoutResult.invalid([
+              describeOrderSaveError(
+                error,
+                'The food order could not be saved. Please try again.',
+              ),
             ]);
           },
           // `order.total` is the RPC's authoritative, server-computed total
@@ -167,8 +160,7 @@ class FoodController extends ChangeNotifier {
               serviceId: ServiceId.food,
               title: _cartController.restaurantName ?? 'Food order',
               subtitle:
-                  '${items.length} ${items.length == 1 ? 'item' : 'items'} • '
-                  '${address.city}',
+                  '${items.length} ${items.length == 1 ? 'item' : 'items'}',
               status: 'Confirmed',
               occurredAt: DateTime.now(),
               amount: order.total,
@@ -187,25 +179,5 @@ class FoodController extends ChangeNotifier {
     _isSubmitting = false;
     notifyListeners();
     return result;
-  }
-
-  List<String> _validateAddress(FoodDeliveryAddress address) {
-    final errors = <String>[];
-    if (address.recipientName.trim().isEmpty) {
-      errors.add('Enter the recipient name.');
-    }
-    if (address.phone.trim().length < 7) {
-      errors.add('Enter a valid phone number.');
-    }
-    if (address.street.trim().isEmpty) {
-      errors.add('Enter a street or landmark.');
-    }
-    if (address.district.trim().isEmpty) {
-      errors.add('Enter a district.');
-    }
-    if (address.city.trim().isEmpty) {
-      errors.add('Enter a city.');
-    }
-    return errors;
   }
 }

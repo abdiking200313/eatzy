@@ -1,76 +1,70 @@
 import 'package:chowflow/services/food/models/food_models.dart';
+import 'package:chowflow/services/shared/models/delivery_details.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 void main() {
-  const validAddress = FoodDeliveryAddress(
-    recipientName: '  Amina Yusuf  ',
-    phone: ' +252611234567 ',
-    street: ' Maka Al-Mukarama Road ',
-    district: ' Hodan ',
-    city: ' Mogadishu ',
-  );
-
   const validItems = [FoodOrderLineInput(menuItemId: 'menu-1', quantity: 2)];
 
   group('FoodOrderRequest.toRpcParams', () {
-    test('includes trimmed recipient/address fields for the RPC call', () {
+    test('sends the trimmed delivery note as the street and leaves name, '
+        'phone, district and city blank for the server to fill', () {
       final params = const FoodOrderRequest(
         restaurantId: 'restaurant-1',
-        address: validAddress,
+        delivery: DeliveryDetails(note: '  Near the mosque, blue gate  '),
         items: validItems,
       ).toRpcParams();
 
       expect(params['p_restaurant_id'], 'restaurant-1');
-      expect(params['p_recipient_name'], 'Amina Yusuf');
-      expect(params['p_phone'], '+252611234567');
-      expect(params['p_street'], 'Maka Al-Mukarama Road');
-      expect(params['p_district'], 'Hodan');
-      expect(params['p_city'], 'Mogadishu');
+      expect(params['p_recipient_name'], '');
+      expect(params['p_phone'], '');
+      expect(params['p_street'], 'Near the mosque, blue gate');
+      expect(params['p_district'], '');
+      expect(params['p_city'], '');
       expect(params['p_items'], [
         {'menu_item_id': 'menu-1', 'quantity': 2},
       ]);
     });
 
-    test('rejects a missing recipient name', () {
-      final request = FoodOrderRequest(
+    test('the delivery note is optional', () {
+      final params = const FoodOrderRequest(
         restaurantId: 'restaurant-1',
-        address: const FoodDeliveryAddress(
-          recipientName: '',
-          phone: '+252611234567',
-          street: 'Maka Al-Mukarama Road',
-          district: 'Hodan',
-          city: 'Mogadishu',
-        ),
         items: validItems,
-      );
+      ).toRpcParams();
 
-      expect(request.toRpcParams, throwsA(isA<FormatException>()));
-    });
-
-    test('rejects a missing street', () {
-      final request = FoodOrderRequest(
-        restaurantId: 'restaurant-1',
-        address: const FoodDeliveryAddress(
-          recipientName: 'Amina Yusuf',
-          phone: '+252611234567',
-          street: '   ',
-          district: 'Hodan',
-          city: 'Mogadishu',
-        ),
-        items: validItems,
-      );
-
-      expect(request.toRpcParams, throwsA(isA<FormatException>()));
+      expect(params['p_street'], '');
     });
 
     test('still rejects an empty item list', () {
-      const request = FoodOrderRequest(
-        restaurantId: 'restaurant-1',
-        address: validAddress,
-        items: [],
-      );
+      const request = FoodOrderRequest(restaurantId: 'restaurant-1', items: []);
 
       expect(request.toRpcParams, throwsA(isA<FormatException>()));
+    });
+  });
+
+  group('describeOrderSaveError', () {
+    test('shows the server message when the profile has no name/phone', () {
+      final message = describeOrderSaveError(
+        const PostgrestException(
+          message: 'Add your name and phone number in Settings before ordering',
+        ),
+        'fallback',
+      );
+      expect(message, '$missingContactDetailsMessage.');
+    });
+
+    test('falls back to the generic message for any other failure', () {
+      expect(
+        describeOrderSaveError(
+          const PostgrestException(message: 'Restaurant not found'),
+          'fallback',
+        ),
+        'fallback',
+      );
+      expect(
+        describeOrderSaveError(StateError('offline'), 'fallback'),
+        'fallback',
+      );
     });
   });
 }

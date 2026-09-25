@@ -188,7 +188,11 @@ class _OrderDetailBody extends StatelessWidget {
               const SizedBox(height: 2),
               Text(order.phone),
               const SizedBox(height: 8),
-              Text('${order.street}, ${order.district}, ${order.city}'),
+              Text(
+                order.deliveryLine.isEmpty
+                    ? 'No delivery note. Call the customer for directions.'
+                    : order.deliveryLine,
+              ),
               if (order.deliverySlotLabel case final slot?
                   when slot.trim().isNotEmpty) ...[
                 const SizedBox(height: 8),

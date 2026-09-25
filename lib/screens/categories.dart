@@ -36,7 +36,7 @@ class CategoriesScreen extends StatelessWidget {
           final module = ServiceRegistry.modules[index];
           final colors = ServiceThemes.forId(module.id);
           return _ServicePhotoCard(
-            cardKey: Key('services-${module.id.name}'),
+            cardKey: Key('services-${module.slug}'),
             title: module.title,
             description: module.description,
             icon: module.icon,

@@ -40,24 +40,7 @@ void main() {
     return cartController;
   }
 
-  Future<void> fillFoodAddress(WidgetTester tester) async {
-    await tester.enterText(
-      find.byKey(const ValueKey('food-recipient-name')),
-      'Amina Yusuf',
-    );
-    await tester.enterText(
-      find.byKey(const ValueKey('food-phone')),
-      '+252 61 234 5678',
-    );
-    await tester.enterText(
-      find.byKey(const ValueKey('food-street')),
-      'Maka Al-Mukarama Road',
-    );
-    await tester.enterText(
-      find.byKey(const ValueKey('food-district')),
-      'Hodan',
-    );
-  }
+  final placeOrderButton = find.byKey(const Key('checkout-place-order'));
 
   group('food checkout', () {
     testWidgets(
@@ -81,8 +64,7 @@ void main() {
         );
         await tester.pump();
 
-        await fillFoodAddress(tester);
-        await tester.tap(find.text('Place order'));
+        await tester.tap(placeOrderButton);
         // Let the submission start (isSubmitting = true) and complete.
         await tester.pump();
         await tester.pump();
@@ -92,9 +74,9 @@ void main() {
           findsOneWidget,
         );
         // The submit button resets back to its idle label instead of being
-        // stuck on "Saving order...".
-        expect(find.text('Place order'), findsOneWidget);
-        expect(find.text('Saving order...'), findsNothing);
+        // stuck on "Placing order...".
+        expect(find.textContaining('Place order'), findsOneWidget);
+        expect(find.text('Placing order...'), findsNothing);
 
         // The cart must not be cleared on a failed order placement.
         expect(cartController.items, hasLength(1));
@@ -106,55 +88,55 @@ void main() {
     );
 
     testWidgets(
-      'submitting an incomplete food checkout shows errors inline below each '
-      'invalid field, not just a generic list',
+      'asks only for an optional delivery note (no address, no payment '
+      'picker) and sends the note with the order',
       (tester) async {
         await tester.binding.setSurfaceSize(const Size(800, 1400));
         addTearDown(() => tester.binding.setSurfaceSize(null));
 
+        final repository = _RecordingFoodOrderRepository();
         await tester.pumpWidget(
           MaterialApp(
             home: CheckoutScreen(
               cartController: await foodCart(),
-              orderRepository: const _ThrowingFoodOrderRepository(),
+              orderRepository: repository,
               activityController: ActivityController(),
             ),
           ),
         );
         await tester.pump();
 
-        // Leave every address field blank and submit.
-        await tester.tap(find.text('Place order'));
+        expect(find.byType(TextField), findsOneWidget);
+        expect(
+          find.text('Delivery note / landmark (optional)'),
+          findsOneWidget,
+        );
+        expect(find.textContaining('Street'), findsNothing);
+        expect(find.textContaining('District'), findsNothing);
+        expect(find.text('Payment method'), findsNothing);
+        expect(find.text('Pay on delivery'), findsOneWidget);
+        expect(find.text('Classic Burger ×1'), findsOneWidget);
+
+        await tester.enterText(
+          find.byKey(const Key('checkout-delivery-note')),
+          'Blue gate',
+        );
+        await tester.tap(placeOrderButton);
         await tester.pump();
 
-        String? errorFor(String key) => tester
-            .widget<TextField>(find.byKey(ValueKey(key)))
-            .decoration
-            ?.errorText;
-
-        expect(errorFor('food-recipient-name'), 'Enter the recipient name.');
-        expect(errorFor('food-phone'), 'Enter a valid phone number.');
-        expect(errorFor('food-street'), 'Enter a street or landmark.');
-        expect(errorFor('food-district'), 'Enter a district.');
-
-        // The old generic bullet-list rendering is gone.
-        expect(find.textContaining('• Enter'), findsNothing);
-
-        // Submission never reached the (failing) repository, since the form
-        // is still invalid — the order-save failure banner never appears.
-        expect(
-          find.text('The food order could not be saved. Please try again.'),
-          findsNothing,
-        );
+        expect(repository.requests.single.delivery.note, 'Blue gate');
       },
     );
   });
 
   group('grocery checkout', () {
     testWidgets(
-      'submitting an incomplete grocery checkout shows errors inline below '
-      'each invalid field, not just a generic banner',
+      'an incomplete grocery checkout flags only the slot and substitution '
+      'sections, since there are no address fields to fill',
       (tester) async {
+        await tester.binding.setSurfaceSize(const Size(800, 2400));
+        addTearDown(() => tester.binding.setSurfaceSize(null));
+
         final controller = await buildLoadedGroceryController();
         controller.addProduct(
           controller.stores
@@ -167,32 +149,14 @@ void main() {
         );
         await tester.pumpAndSettle();
 
-        await tester.tap(find.textContaining('Confirm demo order'));
+        expect(find.byType(TextField), findsOneWidget);
+
+        await tester.tap(placeOrderButton);
         await tester.pumpAndSettle();
 
-        // Each invalid field carries its own inline error below it,
-        // mirroring pharmacy checkout's errorText pattern, instead of one
-        // generic list.
-        expect(find.text('Enter the recipient name.'), findsOneWidget);
-        expect(find.text('Enter a valid phone number.'), findsOneWidget);
-        expect(find.text('Enter a street or landmark.'), findsOneWidget);
-        expect(find.text('Enter a district.'), findsOneWidget);
-
-        final scrollable = find.byType(Scrollable).first;
-        for (final error in [
-          'Choose a delivery slot.',
-          'Choose a substitution preference.',
-        ]) {
-          await tester.scrollUntilVisible(
-            find.text(error),
-            300,
-            scrollable: scrollable,
-          );
-          expect(find.text(error), findsOneWidget);
-        }
-
-        // The old generic "Please complete the following:" banner is gone.
-        expect(find.text('Please complete the following:'), findsNothing);
+        expect(find.text('Choose a delivery slot.'), findsOneWidget);
+        expect(find.text('Choose a substitution preference.'), findsOneWidget);
+        expect(find.byKey(const Key('checkout-error')), findsNothing);
       },
     );
   });
@@ -201,17 +165,15 @@ void main() {
     final cases = <_DoubleTapCase>[
       _DoubleTapCase(
         service: 'food',
-        submitButton: find.text('Place order'),
         build: (pending) async => CheckoutScreen(
           cartController: await foodCart(),
           orderRepository: _PendingFoodOrderRepository(pending),
           activityController: ActivityController(),
         ),
-        fillForm: fillFoodAddress,
+        fillForm: (tester) async {},
       ),
       _DoubleTapCase(
         service: 'grocery',
-        submitButton: find.textContaining('Confirm demo order'),
         build: (pending) async {
           final controller = await buildLoadedGroceryController(
             orderRepository: _PendingGroceryOrderRepository(pending),
@@ -224,11 +186,6 @@ void main() {
           return GroceryCheckoutScreen(controller: controller);
         },
         fillForm: (tester) async {
-          final fields = find.byType(TextField);
-          await tester.enterText(fields.at(0), 'Amina');
-          await tester.enterText(fields.at(1), '+252 61 234 5678');
-          await tester.enterText(fields.at(2), 'Near Taleex Road');
-          await tester.enterText(fields.at(3), 'Hodan');
           await tester.tap(
             find.byType(RadioListTile<GroceryDeliverySlot>).first,
           );
@@ -239,7 +196,6 @@ void main() {
       ),
       _DoubleTapCase(
         service: 'pharmacy',
-        submitButton: find.textContaining('Confirm demo order'),
         build: (pending) async {
           final controller = await buildLoadedPharmacyController(
             orderRepository: _PendingPharmacyOrderRepository(pending),
@@ -247,17 +203,7 @@ void main() {
           controller.addProduct(controller.products.first);
           return PharmacyCheckoutScreen(controller: controller);
         },
-        fillForm: (tester) async {
-          const fields = {
-            'pharmacy-customer-name': 'Asha Ali',
-            'pharmacy-phone': '+252 61 234 5678',
-            'pharmacy-district': 'Hodan',
-            'pharmacy-address': 'Taleex Road, blue gate',
-          };
-          for (final MapEntry(:key, :value) in fields.entries) {
-            await tester.enterText(find.byKey(ValueKey(key)), value);
-          }
-        },
+        fillForm: (tester) async {},
       ),
     ];
 
@@ -274,18 +220,18 @@ void main() {
         await tester.pumpAndSettle();
 
         // Tap twice in a row before the first submission's RPC has resolved.
-        await tester.tap(c.submitButton);
+        await tester.tap(placeOrderButton);
         await tester.pump();
-        expect(find.text('Saving order...'), findsOneWidget);
+        expect(find.text('Placing order...'), findsOneWidget);
 
-        await tester.tap(find.text('Saving order...'));
+        await tester.tap(placeOrderButton);
         await tester.pump();
 
-        // Only one request ever reached the repository — the button was
+        // Only one request ever reached the repository: the button was
         // disabled for the second tap, and the controller's own
         // `isSubmitting` guard is a second line of defense either way. The
         // first submission is left in flight (never completed) so this test
-        // doesn't also have to stand up routes for the post-success
+        // does not also have to stand up routes for the post-success
         // navigation, which is outside what this test is about.
         expect(pending.callCount, 1);
       });
@@ -371,13 +317,11 @@ void main() {
 class _DoubleTapCase {
   const _DoubleTapCase({
     required this.service,
-    required this.submitButton,
     required this.build,
     required this.fillForm,
   });
 
   final String service;
-  final Finder submitButton;
   final Future<Widget> Function(_PendingOrders pending) build;
   final Future<void> Function(WidgetTester tester) fillForm;
 }
@@ -430,5 +374,16 @@ class _ThrowingFoodOrderRepository implements FoodOrderRepository {
   @override
   Future<PlacedOrder> placeOrder(FoodOrderRequest request) {
     throw Exception('Simulated network failure while placing food order');
+  }
+}
+
+/// Records every request and leaves it in flight, for asserting what was sent.
+class _RecordingFoodOrderRepository implements FoodOrderRepository {
+  final requests = <FoodOrderRequest>[];
+
+  @override
+  Future<PlacedOrder> placeOrder(FoodOrderRequest request) {
+    requests.add(request);
+    return Completer<PlacedOrder>().future;
   }
 }

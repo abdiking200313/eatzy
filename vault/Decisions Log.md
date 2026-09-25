@@ -9,6 +9,9 @@ upstream_concept: 00-Index
 
 Dated record of explicit choices the user made, and why — so future sessions don't re-litigate or accidentally reverse them.
 
+### 2026-09-25 — No address, no payments, Fresh Meat / Electronics on the grocery engine, one shared cart/checkout
+Owner decisions: (1) **delivery address is not required anywhere** — checkout asks only for an optional delivery note; name + phone come from the profile server-side (RPCs fill blanks from `profiles`); the Addresses screen stays in code but is unlinked. (2) **No payments right now** — Wallet screen/route removed; checkout shows a static "Pay on delivery" line (orders still record `cash_on_delivery`). (3) **Fresh Meat and Electronics reuse the grocery engine** (a `grocery_stores.store_type` column, one store list per type), not new verticals. (4) Cart and checkout are one shared screen each across verticals. (5) **"Order again"** replaces the cart after a "Replace your cart?" prompt, at today's prices, skipping unavailable items. (6) Remaining rewards copy removed.
+
 ### 2026-09-24 — Account deletion = full anonymization + blocked login; least-privilege grants on every table
 "Delete my account" keeps the profile row (orders reference it) but wipes name/phone/DOB/avatar, clears the signup data and email copied into `auth.users` (email becomes a `deleted-<id>@deleted.invalid` placeholder, freeing the real address), bans login and revokes sessions. Chosen over a minimal fix (the person could still sign in to an emptied account) and over a hard delete (it would destroy order history). Order delivery snapshots are kept as the store's transaction record. Permissions: the owner chose a full audit of every table over fixing `profiles` only.
 

@@ -11,6 +11,7 @@ import '../../../platform/session/session_reset_registry.dart';
 import '../../shared/data/cart_storage.dart';
 import '../../shared/data/idempotency_key.dart';
 import '../../shared/data/rpc_helpers.dart';
+import '../../shared/models/delivery_details.dart';
 import '../../shared/presentation/confirm_order_flow.dart';
 import '../../shared/presentation/loadable_state_mixin.dart';
 import '../data/pharmacy_repository.dart';
@@ -376,26 +377,11 @@ class PharmacyController extends ChangeNotifier with LoadableState {
   /// persisted cart.
   void resetSessionState() => clearCart();
 
-  PharmacyCheckoutValidation validateCheckout(PharmacyCheckoutDetails details) {
+  PharmacyCheckoutValidation validateCheckout() {
     final errors = <String, String>{};
 
     if (_cartItems.isEmpty) {
       errors['cart'] = 'Add at least one OTC product before checkout.';
-    }
-    if (details.recipientName.trim().length < 2) {
-      errors['recipientName'] = 'Enter the customer name.';
-    }
-    if (details.phone.trim().length < 7) {
-      errors['phone'] = 'Enter a valid phone number.';
-    }
-    if (details.city.trim().isEmpty) {
-      errors['city'] = 'Enter a city in Somalia.';
-    }
-    if (details.district.trim().isEmpty) {
-      errors['district'] = 'Enter a district.';
-    }
-    if (details.street.trim().length < 5) {
-      errors['street'] = 'Enter a complete delivery address.';
     }
     if (_cartItems.any(
       (item) =>
@@ -428,8 +414,8 @@ class PharmacyController extends ChangeNotifier with LoadableState {
   /// across retries of that attempt; when omitted, a fresh key is generated
   /// for this call only, which gives no protection against a retry that
   /// calls this method again.
-  Future<PharmacyCheckoutResult> placeDemoOrder(
-    PharmacyCheckoutDetails details, {
+  Future<PharmacyCheckoutResult> placeDemoOrder({
+    DeliveryDetails delivery = const DeliveryDetails(),
     String? idempotencyKey,
   }) {
     if (_isSubmitting) {
@@ -438,7 +424,7 @@ class PharmacyController extends ChangeNotifier with LoadableState {
       );
     }
 
-    final validation = validateCheckout(details);
+    final validation = validateCheckout();
     if (!validation.isValid) {
       return Future.value(PharmacyCheckoutResult.invalid(validation));
     }
@@ -476,7 +462,7 @@ class PharmacyController extends ChangeNotifier with LoadableState {
           placeOrder: () =>
               _orderRepository?.placeOrder(
                 PharmacyOrderRequest(
-                  details: details,
+                  delivery: delivery,
                   items: confirmedItems,
                   idempotencyKey: resolvedIdempotencyKey,
                 ),
@@ -494,9 +480,11 @@ class PharmacyController extends ChangeNotifier with LoadableState {
               'PharmacyController.placeDemoOrder failed: $error\n$stackTrace',
             );
             return PharmacyCheckoutResult.invalid(
-              const PharmacyCheckoutValidation({
-                'order':
-                    'The pharmacy order could not be saved. Please try again.',
+              PharmacyCheckoutValidation({
+                'order': describeOrderSaveError(
+                  error,
+                  'The pharmacy order could not be saved. Please try again.',
+                ),
               }),
             );
           },
@@ -513,7 +501,7 @@ class PharmacyController extends ChangeNotifier with LoadableState {
                 subtitle:
                     '$confirmedItemCount OTC '
                     '${confirmedItemCount == 1 ? 'item' : 'items'}',
-                status: 'Demo confirmed',
+                status: 'Confirmed',
                 occurredAt: confirmedAt,
                 amount: order.total,
                 detailsRoute: '/pharmacy',
@@ -525,9 +513,7 @@ class PharmacyController extends ChangeNotifier with LoadableState {
           clearCart: clearCart,
           onConfirmed: (order) => PharmacyCheckoutResult.success(
             orderId: order.orderId,
-            message:
-                'Order confirmed. No payment was processed and no order '
-                'was sent to a pharmacy.',
+            message: 'Your order was sent to the pharmacy. Pay on delivery.',
           ),
         )
         .whenComplete(() {

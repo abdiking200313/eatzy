@@ -17,8 +17,8 @@ class SupportScreen extends StatelessWidget {
     ),
     SupportTopic(
       icon: Icons.payment,
-      title: 'Payment & Wallet',
-      subtitle: 'Refunds, payment methods',
+      title: 'Payment',
+      subtitle: 'Pay on delivery, refunds',
     ),
     SupportTopic(
       icon: Icons.restaurant,
