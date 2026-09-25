@@ -141,11 +141,11 @@ void main() {
         expect(find.text(AppMoney.formatCents(850)), findsOneWidget);
         expect(find.text('Subtotal'), findsOneWidget);
         expect(find.text(AppMoney.formatCents(975)), findsOneWidget);
-        expect(find.text('Delivery'), findsOneWidget);
+        expect(find.text('Delivery fee'), findsOneWidget);
         expect(find.text(AppMoney.formatCents(250)), findsOneWidget);
         expect(find.text('Total'), findsOneWidget);
         expect(find.text(AppMoney.formatCents(1225)), findsOneWidget);
-        expect(find.textContaining('Continue •'), findsOneWidget);
+        expect(find.byKey(const Key('cart-checkout')), findsOneWidget);
         expect(tester.takeException(), isNull);
 
         num riceQuantity() => controller.cart
@@ -183,7 +183,9 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Remove'));
+      await tester.tap(
+        find.byKey(const ValueKey('remove-cart-item-bakaal-rice')),
+      );
       await tester.pumpAndSettle();
 
       expect(controller.isEmpty, isTrue);
@@ -257,7 +259,7 @@ void main() {
             .quantity;
 
         await tester.tap(
-          find.byKey(const ValueKey('increase-pharmacy-pain-paracetamol')),
+          find.byKey(const ValueKey('increase-cart-item-pain-paracetamol')),
         );
         await tester.pumpAndSettle();
 
@@ -266,26 +268,23 @@ void main() {
         expect(find.text(AppMoney.formatCents(875)), findsOneWidget);
 
         await tester.tap(
-          find.byKey(const ValueKey('decrease-pharmacy-pain-paracetamol')),
+          find.byKey(const ValueKey('decrease-cart-item-pain-paracetamol')),
         );
         await tester.pumpAndSettle();
 
         expect(paracetamolQuantity(), 1);
 
-        await tester.scrollUntilVisible(
-          find.text('Continue to checkout'),
-          300,
-          scrollable: find.byType(Scrollable).first,
-        );
         expect(find.text('Subtotal'), findsOneWidget);
         expect(find.text(AppMoney.formatCents(600)), findsOneWidget);
-        expect(find.text('Delivery in Somalia'), findsOneWidget);
+        expect(find.text('Delivery fee'), findsOneWidget);
         expect(find.text(AppMoney.formatCents(250)), findsOneWidget);
         expect(find.text('Total'), findsOneWidget);
         expect(find.text(AppMoney.formatCents(850)), findsOneWidget);
         expect(tester.takeException(), isNull);
 
         await tester.tap(find.text('Clear'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Clear cart'));
         await tester.pumpAndSettle();
 
         expect(controller.isCartEmpty, isTrue);
@@ -310,7 +309,7 @@ void main() {
         await tester.pumpAndSettle();
 
         await tester.tap(
-          find.byKey(const ValueKey('decrease-pharmacy-pain-paracetamol')),
+          find.byKey(const ValueKey('decrease-cart-item-pain-paracetamol')),
         );
         await tester.pumpAndSettle();
 
@@ -342,7 +341,7 @@ void main() {
         await tester.pumpAndSettle();
 
         final increase = find.byKey(
-          const ValueKey('increase-pharmacy-cold-cough-syrup'),
+          const ValueKey('increase-cart-item-cold-cough-syrup'),
         );
         final increaseButton = tester.widget<IconButton>(
           find.descendant(of: increase, matching: find.byType(IconButton)),
@@ -365,8 +364,8 @@ void main() {
         catalogRoute: AppRoutes.grocery,
         checkoutRoute: AppRoutes.groceryCheckout,
         emptyTitle: 'Your grocery cart is empty',
-        browseLabel: 'Browse groceries',
-        continueButton: find.textContaining('Continue •'),
+        browseLabel: 'Browse stores',
+        continueButton: find.byKey(const Key('cart-checkout')),
         checkoutTitle: 'Checkout',
         build: ({required fillCart}) async {
           final controller = await buildLoadedGroceryController();
@@ -390,7 +389,7 @@ void main() {
         checkoutRoute: AppRoutes.pharmacyCheckout,
         emptyTitle: 'Your pharmacy cart is empty',
         browseLabel: 'Browse pharmacy',
-        continueButton: find.text('Continue to checkout'),
+        continueButton: find.byKey(const Key('cart-checkout')),
         checkoutTitle: 'Checkout',
         build: ({required fillCart}) async {
           final controller = await buildLoadedPharmacyController();
@@ -453,11 +452,6 @@ void main() {
         );
         await tester.pumpAndSettle();
 
-        await tester.scrollUntilVisible(
-          c.continueButton,
-          300,
-          scrollable: find.byType(Scrollable).first,
-        );
         await tester.tap(c.continueButton);
         await tester.pumpAndSettle();
 

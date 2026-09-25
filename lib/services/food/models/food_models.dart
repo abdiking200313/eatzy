@@ -52,115 +52,6 @@ class FoodOrderRequest {
   }
 }
 
-class FoodDealItem {
-  const FoodDealItem({
-    required this.menuItemId,
-    required this.name,
-    required this.quantity,
-    required this.unitPrice,
-    this.imageUrl,
-  });
-
-  final String menuItemId;
-  final String name;
-  final int quantity;
-
-  /// Price in integer cents, straight from `menu_items.price` — see
-  /// issue #8.
-  final int unitPrice;
-  final String? imageUrl;
-
-  factory FoodDealItem.fromMap(Map<String, dynamic> map) {
-    final menuValue = map['menu_items'];
-    if (menuValue is! Map) {
-      throw const FormatException('A deal item is missing its menu item.');
-    }
-    final menu = Map<String, dynamic>.from(menuValue);
-    return FoodDealItem(
-      menuItemId: _requiredString(menu, 'id'),
-      name: _requiredString(menu, 'name'),
-      quantity: _requiredPositiveInt(map, 'quantity'),
-      unitPrice: _requiredNonNegativeInt(menu, 'price'),
-      imageUrl: _optionalString(menu, 'image_url'),
-    );
-  }
-}
-
-class FoodDeal {
-  const FoodDeal({
-    required this.id,
-    required this.restaurantId,
-    required this.restaurantName,
-    required this.name,
-    required this.description,
-    required this.dealPrice,
-    required this.items,
-    this.imageUrl,
-    this.startsAt,
-    this.endsAt,
-  });
-
-  final String id;
-  final String restaurantId;
-  final String restaurantName;
-  final String name;
-  final String description;
-
-  /// Decimal dollars, deliberately NOT converted to cents by issue #8:
-  /// `deals`/`deal_items` are not created by any migration in
-  /// `supabase/migrations/` (nor `supabase/schema.sql`) — `fetchDeals` has no
-  /// callers in `lib/` today (see `food_repository.dart`) and this repo has
-  /// no way to inspect that live table's real column type without touching
-  /// production, which is out of scope here. `FoodDealItem.unitPrice` below
-  /// is converted, since it reads straight from `menu_items.price`, a column
-  /// this issue's migration does touch.
-  final double dealPrice;
-  final String? imageUrl;
-  final DateTime? startsAt;
-  final DateTime? endsAt;
-  final List<FoodDealItem> items;
-
-  int get itemCount => items.fold(0, (count, item) => count + item.quantity);
-
-  bool isAvailableAt(DateTime moment) {
-    final utcMoment = moment.toUtc();
-    return (startsAt == null || !utcMoment.isBefore(startsAt!)) &&
-        (endsAt == null || utcMoment.isBefore(endsAt!));
-  }
-
-  factory FoodDeal.fromMap(Map<String, dynamic> map) {
-    final restaurantValue = map['restaurants'];
-    if (restaurantValue is! Map) {
-      throw const FormatException('A deal is missing its restaurant.');
-    }
-    final itemValue = map['deal_items'];
-    if (itemValue is! List) {
-      throw const FormatException('A deal has invalid items.');
-    }
-
-    return FoodDeal(
-      id: _requiredString(map, 'id'),
-      restaurantId: _requiredString(map, 'restaurant_id'),
-      restaurantName: _requiredString(
-        Map<String, dynamic>.from(restaurantValue),
-        'name',
-      ),
-      name: _requiredString(map, 'name'),
-      description: _optionalString(map, 'description') ?? '',
-      dealPrice: _requiredNonNegativeDouble(map, 'deal_price'),
-      imageUrl: _optionalString(map, 'image_url'),
-      startsAt: _optionalDateTime(map, 'starts_at'),
-      endsAt: _optionalDateTime(map, 'ends_at'),
-      items: List.unmodifiable(
-        itemValue.map(
-          (item) =>
-              FoodDealItem.fromMap(Map<String, dynamic>.from(item as Map)),
-        ),
-      ),
-    );
-  }
-}
-
 class RestaurantLocation {
   const RestaurantLocation({
     required this.id,
@@ -209,32 +100,6 @@ String? _optionalString(Map<String, dynamic> map, String key) {
   return value == null || value.isEmpty ? null : value;
 }
 
-int _requiredPositiveInt(Map<String, dynamic> map, String key) {
-  final value = map[key];
-  final parsed = value is int ? value : int.tryParse(value?.toString() ?? '');
-  if (parsed == null || parsed <= 0) {
-    throw FormatException('Invalid positive food integer: $key');
-  }
-  return parsed;
-}
-
-int _requiredNonNegativeInt(Map<String, dynamic> map, String key) {
-  final value = map[key];
-  final parsed = value is num ? value.round() : int.tryParse(value.toString());
-  if (parsed == null || parsed < 0) {
-    throw FormatException('Invalid non-negative food integer: $key');
-  }
-  return parsed;
-}
-
-double _requiredNonNegativeDouble(Map<String, dynamic> map, String key) {
-  final value = _optionalDouble(map, key);
-  if (value == null || value < 0) {
-    throw FormatException('Invalid non-negative food number: $key');
-  }
-  return value;
-}
-
 double? _optionalDouble(Map<String, dynamic> map, String key) {
   final value = map[key];
   if (value == null) {
@@ -247,16 +112,4 @@ double? _optionalDouble(Map<String, dynamic> map, String key) {
     throw FormatException('Invalid food number: $key');
   }
   return parsed;
-}
-
-DateTime? _optionalDateTime(Map<String, dynamic> map, String key) {
-  final value = _optionalString(map, key);
-  if (value == null) {
-    return null;
-  }
-  final parsed = DateTime.tryParse(value);
-  if (parsed == null) {
-    throw FormatException('Invalid food timestamp: $key');
-  }
-  return parsed.toUtc();
 }
