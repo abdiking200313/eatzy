@@ -13,6 +13,7 @@ Reverse-chronological. Each session/major chunk of work gets an entry.
 - Branch `feat/checkout-simplify-and-verticals`. Decisions in [[Decisions Log]] 2026-09-25. Shared `CheckoutView`/`CartView` in `lib/widgets/`; `DeliveryDetails` in `lib/services/shared/models/`; `OrderAgainService`/`OrderAgainRepository` in `lib/platform/activity/`. Wallet feature and dead `FoodDeal` code deleted; money is integer cents everywhere now.
 - Two migrations, **not applied live** (owner applies): `20260927000000_add_grocery_store_type.sql`, `20260927010000_make_delivery_address_optional.sql`. The client needs both before it works against live (it selects `store_type` and sends blank address fields).
 - Full suite 519/519, analyze + format clean. Done in one chat, no subagents (owner preference for token cost).
+- Follow-up (branch `feat/separate-grocery-category-carts`): Grocery / Fresh Meat / Electronics now have separate carts — `GroceryController.forType(type)`, routes and palette on `GroceryStoreType`, router builds each category's list/store/cart/checkout from `_groceryRoutes(type)`. Order again refills the right category's cart. Suite 525/525.
 
 ---
 

@@ -1,18 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../app/app_routes.dart';
+import '../models/grocery_models.dart';
 import '../../../widgets/app_misc.dart';
 import '../../../widgets/cart_view.dart';
 import '../../../widgets/checkout_view.dart';
 import 'grocery_controller.dart';
 
 class GroceryCartScreen extends StatelessWidget {
-  const GroceryCartScreen({super.key, this.controller});
+  const GroceryCartScreen({
+    super.key,
+    this.controller,
+    this.storeType = GroceryStoreType.grocery,
+  });
 
   final GroceryController? controller;
 
-  GroceryController get _controller => controller ?? GroceryController.instance;
+  /// Grocery, Fresh Meat and Electronics each have their own cart.
+  final GroceryStoreType storeType;
+
+  GroceryController get _controller =>
+      controller ?? GroceryController.forType(storeType);
 
   @override
   Widget build(BuildContext context) {
@@ -21,10 +29,12 @@ class GroceryCartScreen extends StatelessWidget {
       builder: (context, _) {
         final controller = _controller;
         return CartView(
+          title: '${storeType.serviceName} cart',
           isEmpty: controller.isEmpty,
-          emptyMessage: 'Your grocery cart is empty',
+          emptyMessage:
+              'Your ${storeType.serviceName.toLowerCase()} cart is empty',
           browseLabel: 'Browse stores',
-          onBrowse: () => context.go(AppRoutes.grocery),
+          onBrowse: () => context.go(storeType.listRoute),
           storeName: controller.storeName,
           fallbackIcon: Icons.shopping_basket_outlined,
           lines: [
@@ -53,7 +63,7 @@ class GroceryCartScreen extends StatelessWidget {
             CheckoutLine('Delivery fee', controller.deliveryFee),
           ],
           total: controller.total,
-          onCheckout: () => context.push(AppRoutes.groceryCheckout),
+          onCheckout: () => context.push(storeType.checkoutRoute),
         );
       },
     );

@@ -347,7 +347,7 @@ class _ServiceGrid extends StatelessWidget {
       itemBuilder: (context, index) {
         if (index < modules.length) {
           final module = modules[index];
-          final colors = ServiceThemes.forId(module.id);
+          final colors = ServiceThemes.forSlug(module.slug, module.id);
           return _CategoryTile(
             tileKey: Key('service-${module.slug}'),
             icon: module.icon,

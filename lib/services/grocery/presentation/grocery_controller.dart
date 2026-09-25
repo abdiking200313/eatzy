@@ -33,6 +33,7 @@ class GroceryController extends ChangeNotifier with LoadableState {
     GroceryOrderRepository? orderRepository,
     ActivityController? activityController,
     DateTime Function()? now,
+    this.storeType = GroceryStoreType.grocery,
   }) : _repository = repository,
        _storage = storage,
        _catalogRepository =
@@ -44,10 +45,24 @@ class GroceryController extends ChangeNotifier with LoadableState {
        _activityController = activityController ?? ActivityController.instance,
        _now = now ?? DateTime.now;
 
-  // Deliberately does not call load() here: constructing this singleton
-  // must not issue catalog queries for users who never open the grocery
-  // vertical. Callers (GroceryScreen and friends) trigger load() on demand.
-  static final GroceryController instance = () {
+  /// Which category this controller serves. Grocery, Fresh Meat and
+  /// Electronics share this engine but each has its own controller, so each
+  /// keeps its own cart and store list (owner decision, 2026-09-25).
+  final GroceryStoreType storeType;
+
+  static final Map<GroceryStoreType, GroceryController> _instances = {};
+
+  /// The app-wide controller for [type], created on first use.
+  static GroceryController forType(GroceryStoreType type) =>
+      _instances.putIfAbsent(type, () => _create(type));
+
+  /// The Grocery category's controller.
+  static GroceryController get instance => forType(GroceryStoreType.grocery);
+
+  // Deliberately does not call load() here: constructing a controller must
+  // not issue catalog queries for users who never open that category.
+  // Callers (GroceryScreen and friends) trigger load() on demand.
+  static GroceryController _create(GroceryStoreType type) {
     final client = Supabase.instance.client;
     final catalog = SupabaseGroceryCatalogRepository(client: client);
     final controller = GroceryController(
@@ -55,17 +70,21 @@ class GroceryController extends ChangeNotifier with LoadableState {
       catalogRepository: catalog,
       orderRepository: SupabaseGroceryOrderRepository(client: client),
       storage: SharedPreferencesCartStorage<GroceryCartLine>(
-        keyPrefix: 'zivo.cart.v1.grocery',
+        // Grocery keeps its original key so existing saved carts survive.
+        keyPrefix: type == GroceryStoreType.grocery
+            ? 'zivo.cart.v1.grocery'
+            : 'zivo.cart.v1.grocery.${type.dbValue}',
         toJson: (line) => line.toJson(),
         fromJson: GroceryCartLine.fromJson,
       ),
+      storeType: type,
     );
     SessionResetRegistry.instance.register((ownerId) {
       controller.resetSessionState();
       unawaited(controller.loadForOwner(ownerId));
     });
     return controller;
-  }();
+  }
 
   /// In integer cents — see issue #8.
   static const int standardDeliveryFee = 250;
@@ -244,7 +263,7 @@ class GroceryController extends ChangeNotifier with LoadableState {
         final stores = await _repository.fetchStores();
         _stores
           ..clear()
-          ..addAll(stores);
+          ..addAll(stores.where((store) => store.storeType == storeType));
         _hasLoaded = true;
         _lastLoadedAt = _now();
       },
@@ -549,7 +568,7 @@ class GroceryController extends ChangeNotifier with LoadableState {
             status: 'Confirmed',
             occurredAt: createdAt,
             amount: order.total,
-            detailsRoute: '/grocery',
+            detailsRoute: storeType.listRoute,
             paymentMethod: 'cash_on_delivery',
             paymentStatus: 'pending_collection',
           ),

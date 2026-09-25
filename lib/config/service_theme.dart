@@ -93,6 +93,35 @@ abstract final class ServiceThemes {
     border: Color(0xFFD7CBFA),
   );
 
+  // Fresh Meat and Electronics run on the grocery engine ([ServiceId.grocery])
+  // but get their own look (owner decision, 2026-09-25); see [forSlug].
+  static const freshMeat = ZivoServiceColors(
+    accent: Color(0xFFB91C1C),
+    onAccent: Colors.white,
+    soft: Color(0xFFFEE2E2),
+    background: Color(0xFFFFF8F8),
+    card: Color(0xFFFEF0F0),
+    border: Color(0xFFF5C2C2),
+  );
+
+  static const electronics = ZivoServiceColors(
+    accent: Color(0xFF1D4ED8),
+    onAccent: Colors.white,
+    soft: Color(0xFFDBEAFE),
+    background: Color(0xFFF7FAFF),
+    card: Color(0xFFEEF4FF),
+    border: Color(0xFFBFD3F8),
+  );
+
+  /// Palette for a home/services tile or store type by its slug
+  /// (`ServiceDescriptor.slug`, `GroceryStoreType.dbValue` with `_` -> `-`),
+  /// falling back to [forId].
+  static ZivoServiceColors forSlug(String slug, ServiceId id) => switch (slug) {
+    'fresh-meat' => freshMeat,
+    'electronics' => electronics,
+    _ => forId(id),
+  };
+
   static ZivoServiceColors forId(ServiceId id) => switch (id) {
     ServiceId.food => food,
     ServiceId.grocery => grocery,
@@ -108,14 +137,19 @@ class ZivoServiceTheme extends StatelessWidget {
     super.key,
     required this.serviceId,
     required this.child,
+    this.palette,
   });
 
   final ServiceId serviceId;
   final Widget child;
 
+  /// Overrides [serviceId]'s palette, e.g. Fresh Meat's red on a
+  /// grocery-engine screen.
+  final ZivoServiceColors? palette;
+
   @override
   Widget build(BuildContext context) {
-    final colors = ServiceThemes.forId(serviceId);
+    final colors = palette ?? ServiceThemes.forId(serviceId);
     final base = Theme.of(context);
     final scheme = base.colorScheme.copyWith(
       primary: colors.accent,

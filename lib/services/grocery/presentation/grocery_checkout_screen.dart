@@ -16,9 +16,16 @@ import 'grocery_controller.dart';
 /// Electronics): the shared [CheckoutView] plus grocery's own delivery-slot
 /// and substitution-preference sections.
 class GroceryCheckoutScreen extends StatefulWidget {
-  const GroceryCheckoutScreen({super.key, this.controller});
+  const GroceryCheckoutScreen({
+    super.key,
+    this.controller,
+    this.storeType = GroceryStoreType.grocery,
+  });
 
   final GroceryController? controller;
+
+  /// Grocery, Fresh Meat and Electronics each have their own cart.
+  final GroceryStoreType storeType;
 
   @override
   State<GroceryCheckoutScreen> createState() => _GroceryCheckoutScreenState();
@@ -42,7 +49,7 @@ class _GroceryCheckoutScreenState extends State<GroceryCheckoutScreen> {
   final String _idempotencyKey = generateIdempotencyKey();
 
   GroceryController get _controller =>
-      widget.controller ?? GroceryController.instance;
+      widget.controller ?? GroceryController.forType(widget.storeType);
 
   @override
   void initState() {
@@ -66,11 +73,11 @@ class _GroceryCheckoutScreenState extends State<GroceryCheckoutScreen> {
     return AnimatedBuilder(
       animation: _controller,
       builder: (context, _) => CheckoutView(
-        title: 'Checkout',
+        title: '${widget.storeType.serviceName} checkout',
         isEmpty: _controller.isEmpty,
         emptyMessage: 'Your cart is empty',
         browseLabel: 'Browse stores',
-        onBrowse: () => context.go(AppRoutes.grocery),
+        onBrowse: () => context.go(widget.storeType.listRoute),
         noteController: _noteController,
         itemLines: [
           for (final line in _controller.cart)

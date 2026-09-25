@@ -15,7 +15,11 @@ class GroceryProductDetailsScreen extends StatelessWidget {
     required this.product,
     required this.inCartQuantity,
     required this.onAddToCart,
+    this.storeType = GroceryStoreType.grocery,
   });
+
+  /// Picks the palette (Grocery / Fresh Meat / Electronics).
+  final GroceryStoreType storeType;
 
   final GroceryProduct product;
   final double inCartQuantity;
@@ -36,6 +40,7 @@ class GroceryProductDetailsScreen extends StatelessWidget {
 
     return ZivoServiceTheme(
       serviceId: ServiceId.grocery,
+      palette: storeType.palette,
       child: ProductDetailsView(
         imageUrl: product.imageUrl,
         fallback: Text(product.icon, style: const TextStyle(fontSize: 96)),

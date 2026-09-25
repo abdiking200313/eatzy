@@ -366,7 +366,7 @@ void main() {
         emptyTitle: 'Your grocery cart is empty',
         browseLabel: 'Browse stores',
         continueButton: find.byKey(const Key('cart-checkout')),
-        checkoutTitle: 'Checkout',
+        checkoutTitle: 'Grocery checkout',
         build: ({required fillCart}) async {
           final controller = await buildLoadedGroceryController();
           if (fillCart) {

@@ -106,7 +106,7 @@ class StoreListingRepository {
       name: store.name,
       subtitle: store.area,
       imageUrl: store.imageUrl,
-      route: AppRoutes.groceryStoreDetails(store.id),
+      route: store.storeType.storeDetailsRoute(store.id),
     );
   }
 

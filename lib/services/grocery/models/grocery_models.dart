@@ -1,17 +1,34 @@
+import '../../../app/app_routes.dart';
+import '../../../config/service_theme.dart';
 import '../../shared/models/delivery_details.dart';
 
 /// Which customer category lists a grocery store (`grocery_stores.store_type`).
 /// Fresh Meat and Electronics run on the grocery engine — same cart,
 /// checkout and order RPC — and only differ in which store list shows them.
 enum GroceryStoreType {
-  grocery('grocery', 'Groceries', 'grocery stores'),
-  freshMeat('fresh_meat', 'Fresh Meat', 'butchers'),
-  electronics('electronics', 'Electronics', 'electronics stores');
+  grocery('grocery', 'Groceries', 'Grocery', 'grocery stores'),
+  freshMeat('fresh_meat', 'Fresh Meat', 'Fresh Meat', 'butchers'),
+  electronics(
+    'electronics',
+    'Electronics',
+    'Electronics',
+    'electronics stores',
+  );
 
-  const GroceryStoreType(this.dbValue, this.title, this.storesNoun);
+  const GroceryStoreType(
+    this.dbValue,
+    this.title,
+    this.serviceName,
+    this.storesNoun,
+  );
 
   final String dbValue;
+
+  /// Store-list title, e.g. "Groceries".
   final String title;
+
+  /// Used in cart/checkout titles, e.g. "Fresh Meat cart".
+  final String serviceName;
 
   /// Plural noun used in empty-state copy, e.g. "No butchers found."
   final String storesNoun;
@@ -22,6 +39,41 @@ enum GroceryStoreType {
     (type) => type.dbValue == value,
     orElse: () => GroceryStoreType.grocery,
   );
+
+  // Each category has its own store pages, cart and checkout, so each keeps
+  // a separate cart (owner decision, 2026-09-25).
+  String get listRoute => switch (this) {
+    grocery => AppRoutes.grocery,
+    freshMeat => AppRoutes.freshMeat,
+    electronics => AppRoutes.electronics,
+  };
+
+  String get storeRoutePattern => switch (this) {
+    grocery => AppRoutes.groceryStore,
+    freshMeat => AppRoutes.freshMeatStore,
+    electronics => AppRoutes.electronicsStore,
+  };
+
+  String get cartRoute => switch (this) {
+    grocery => AppRoutes.groceryCart,
+    freshMeat => AppRoutes.freshMeatCart,
+    electronics => AppRoutes.electronicsCart,
+  };
+
+  String get checkoutRoute => switch (this) {
+    grocery => AppRoutes.groceryCheckout,
+    freshMeat => AppRoutes.freshMeatCheckout,
+    electronics => AppRoutes.electronicsCheckout,
+  };
+
+  ZivoServiceColors get palette => switch (this) {
+    grocery => ServiceThemes.grocery,
+    freshMeat => ServiceThemes.freshMeat,
+    electronics => ServiceThemes.electronics,
+  };
+
+  String storeDetailsRoute(String storeId) =>
+      storeRoutePattern.replaceFirst(':storeId', Uri.encodeComponent(storeId));
 }
 
 enum GroceryPricingUnit { each, kilogram }
