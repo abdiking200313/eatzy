@@ -24,7 +24,7 @@ class ToggleCard extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(
         horizontal: TwSpacing.x4,
-        vertical: TwSpacing.rhythmDefault,
+        vertical: TwSpacing.x3_5,
       ),
       child: Row(
         children: [
@@ -33,7 +33,7 @@ class ToggleCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(title, style: TwText.fontBoldSm),
-                const SizedBox(height: TwSpacing.rhythmTight),
+                const SizedBox(height: TwSpacing.x2),
                 Text(
                   subtitle,
                   style: TwText.textXs.copyWith(color: TwColors.textMuted),

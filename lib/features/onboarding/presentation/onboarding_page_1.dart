@@ -135,7 +135,7 @@ class _RestaurantCard extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: TwSpacing.rhythmTight),
+          const SizedBox(height: TwSpacing.x2),
           Text(
             '${restaurant.cuisine} · ${restaurant.distanceKm} · '
             '${restaurant.rating}',

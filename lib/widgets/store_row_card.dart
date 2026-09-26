@@ -47,7 +47,7 @@ class StoreRowCard extends StatelessWidget {
             imageUrl: imageUrl,
             fallback: ServiceIconChip(icon: fallbackIcon, iconSize: 28),
           ),
-          const SizedBox(width: TwSpacing.rhythmDefault),
+          const SizedBox(width: TwSpacing.x3_5),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -59,7 +59,7 @@ class StoreRowCard extends StatelessWidget {
                   style: TwText.fontBoldBase,
                 ),
                 for (final line in subtitleLines) ...[
-                  const SizedBox(height: TwSpacing.rhythmTight),
+                  const SizedBox(height: TwSpacing.x2),
                   Text(
                     line,
                     maxLines: subtitleMaxLines,
@@ -68,7 +68,7 @@ class StoreRowCard extends StatelessWidget {
                   ),
                 ],
                 if (caption != null) ...[
-                  const SizedBox(height: TwSpacing.rhythmTight),
+                  const SizedBox(height: TwSpacing.x2),
                   Text(
                     caption!,
                     style: TwText.textXs.copyWith(color: TwColors.textMuted),

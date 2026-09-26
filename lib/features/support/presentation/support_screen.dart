@@ -76,7 +76,7 @@ class SupportScreen extends StatelessWidget {
         padding: const EdgeInsets.all(TwSpacing.x5),
         children: [
           const SectionTitle('How can we help?'),
-          const SizedBox(height: TwSpacing.rhythmDefault),
+          const SizedBox(height: TwSpacing.x3_5),
           OutlinedCard(
             padding: EdgeInsets.zero,
             child: Column(
@@ -88,9 +88,9 @@ class SupportScreen extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(height: TwSpacing.rhythmSection),
+          const SizedBox(height: TwSpacing.sectionGap),
           const SectionTitle('Need more help?', fontSize: 18),
-          const SizedBox(height: TwSpacing.rhythmDefault),
+          const SizedBox(height: TwSpacing.x3_5),
           OutlinedCard(
             padding: EdgeInsets.zero,
             child: Column(
@@ -102,9 +102,9 @@ class SupportScreen extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(height: TwSpacing.rhythmSection),
+          const SizedBox(height: TwSpacing.sectionGap),
           const SectionTitle('Frequently Asked Questions', fontSize: 18),
-          const SizedBox(height: TwSpacing.rhythmDefault),
+          const SizedBox(height: TwSpacing.x3_5),
           OutlinedCard(
             padding: EdgeInsets.zero,
             child: Column(

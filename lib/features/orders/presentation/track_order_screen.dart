@@ -152,7 +152,7 @@ class _TrackOrderContent extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                           style: TwText.fontBoldBase,
                         ),
-                        const SizedBox(height: TwSpacing.rhythmTight),
+                        const SizedBox(height: TwSpacing.x2),
                         Text(
                           'Order #${order.id}',
                           maxLines: 1,
@@ -172,7 +172,7 @@ class _TrackOrderContent extends StatelessWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: TwSpacing.rhythmSection),
+              const SizedBox(height: TwSpacing.sectionGap),
               // Only one real status value ever exists for an order today
               // (issue #79) — show it as the single known-reached step
               // rather than fabricating a multi-stage timeline that
@@ -195,7 +195,7 @@ class _TrackOrderContent extends StatelessWidget {
           ),
         ),
         if (order.paymentMethodLabel case final methodLabel?) ...[
-          const SizedBox(height: TwSpacing.rhythmSection),
+          const SizedBox(height: TwSpacing.sectionGap),
           OutlinedCard(
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -205,7 +205,7 @@ class _TrackOrderContent extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text('Payment', style: TwText.fontBoldSm),
-                      const SizedBox(height: TwSpacing.rhythmTight),
+                      const SizedBox(height: TwSpacing.x2),
                       Text(methodLabel, style: TwText.textSm),
                     ],
                   ),
@@ -220,7 +220,7 @@ class _TrackOrderContent extends StatelessWidget {
             ),
           ),
         ],
-        const SizedBox(height: TwSpacing.rhythmSection),
+        const SizedBox(height: TwSpacing.sectionGap),
         OutlinedCard(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,

@@ -138,12 +138,12 @@ class _LoginScreenState extends State<LoginScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text('Welcome back', style: TwText.text3xl),
-                            const SizedBox(height: TwSpacing.rhythmTight),
+                            const SizedBox(height: TwSpacing.x2),
                             Text(
                               'Sign in to continue your orders.',
                               style: TwText.textSm,
                             ),
-                            const SizedBox(height: TwSpacing.rhythmSection),
+                            const SizedBox(height: TwSpacing.sectionGap),
                             AppTextField(
                               controller: _emailController,
                               label: 'Email address',
@@ -153,7 +153,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               textInputAction: TextInputAction.next,
                               autofillHints: const [AutofillHints.email],
                             ),
-                            const SizedBox(height: TwSpacing.rhythmDefault),
+                            const SizedBox(height: TwSpacing.x3_5),
                             AppTextField(
                               controller: _passwordController,
                               label: 'Password',
@@ -166,7 +166,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 if (!_isLoading) _login();
                               },
                             ),
-                            const SizedBox(height: TwSpacing.rhythmTight),
+                            const SizedBox(height: TwSpacing.x2),
                             Align(
                               alignment: Alignment.centerRight,
                               child: TextButton(
@@ -178,7 +178,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 ),
                               ),
                             ),
-                            const SizedBox(height: TwSpacing.rhythmSection),
+                            const SizedBox(height: TwSpacing.sectionGap),
                             if (_isLoading)
                               const Center(child: CircularProgressIndicator())
                             else

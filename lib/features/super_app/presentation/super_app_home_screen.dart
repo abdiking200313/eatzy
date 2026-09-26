@@ -697,7 +697,7 @@ class _RecentActivityRow extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(item.title, style: TwText.fontBoldSm),
-                  const SizedBox(height: TwSpacing.rhythmTight),
+                  const SizedBox(height: TwSpacing.x2),
                   StatusPill(
                     label: item.status,
                     backgroundColor: colors.soft,

@@ -56,7 +56,7 @@ class MenuItemCard extends StatelessWidget {
                       const SizedBox(height: TwSpacing.x1),
                       Text(item.description, style: TwText.textSm),
                     ],
-                    const SizedBox(height: TwSpacing.rhythmDefault),
+                    const SizedBox(height: TwSpacing.x3_5),
                     Row(
                       children: [
                         Expanded(

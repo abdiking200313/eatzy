@@ -208,12 +208,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text('Create your account', style: TwText.text3xl),
-                            const SizedBox(height: TwSpacing.rhythmTight),
+                            const SizedBox(height: TwSpacing.x2),
                             Text(
                               'Join Zivo to order food, groceries and more, delivered to you.',
                               style: TwText.textSm,
                             ),
-                            const SizedBox(height: TwSpacing.rhythmSection),
+                            const SizedBox(height: TwSpacing.sectionGap),
                             AppTextField(
                               controller: _firstNameController,
                               label: 'First name',
@@ -222,7 +222,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               textInputAction: TextInputAction.next,
                               autofillHints: const [AutofillHints.givenName],
                             ),
-                            const SizedBox(height: TwSpacing.rhythmDefault),
+                            const SizedBox(height: TwSpacing.x3_5),
                             AppTextField(
                               controller: _lastNameController,
                               label: 'Last name',
@@ -231,7 +231,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               textInputAction: TextInputAction.next,
                               autofillHints: const [AutofillHints.familyName],
                             ),
-                            const SizedBox(height: TwSpacing.rhythmDefault),
+                            const SizedBox(height: TwSpacing.x3_5),
                             AppTextField(
                               controller: _phoneController,
                               label: 'Phone number',
@@ -243,7 +243,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 AutofillHints.telephoneNumber,
                               ],
                             ),
-                            const SizedBox(height: TwSpacing.rhythmDefault),
+                            const SizedBox(height: TwSpacing.x3_5),
                             AppTextField(
                               controller: _dobController,
                               label: 'Date of birth',
@@ -252,7 +252,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               readOnly: true,
                               onTap: _pickDob,
                             ),
-                            const SizedBox(height: TwSpacing.rhythmDefault),
+                            const SizedBox(height: TwSpacing.x3_5),
                             AppTextField(
                               controller: _emailController,
                               label: 'Email address',
@@ -262,7 +262,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               textInputAction: TextInputAction.next,
                               autofillHints: const [AutofillHints.email],
                             ),
-                            const SizedBox(height: TwSpacing.rhythmDefault),
+                            const SizedBox(height: TwSpacing.x3_5),
                             AppTextField(
                               controller: _passwordController,
                               label: 'Password',
@@ -272,7 +272,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               textInputAction: TextInputAction.next,
                               autofillHints: const [AutofillHints.newPassword],
                             ),
-                            const SizedBox(height: TwSpacing.rhythmDefault),
+                            const SizedBox(height: TwSpacing.x3_5),
                             AppTextField(
                               controller: _confirmPasswordController,
                               label: 'Confirm password',
@@ -284,7 +284,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 if (!_isLoading) _register();
                               },
                             ),
-                            const SizedBox(height: TwSpacing.rhythmDefault),
+                            const SizedBox(height: TwSpacing.x3_5),
                             Row(
                               children: [
                                 const Icon(
@@ -303,7 +303,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 ),
                               ],
                             ),
-                            const SizedBox(height: TwSpacing.rhythmSection),
+                            const SizedBox(height: TwSpacing.sectionGap),
                             if (_isLoading)
                               const Center(child: CircularProgressIndicator())
                             else

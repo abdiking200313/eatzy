@@ -65,20 +65,20 @@ class GroceryProductCard extends StatelessWidget {
               child: Text(product.icon, style: const TextStyle(fontSize: 28)),
             ),
           ),
-          const SizedBox(width: TwSpacing.rhythmDefault),
+          const SizedBox(width: TwSpacing.x3_5),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(product.name, style: TwText.fontBoldBase),
                 Text(product.description, style: TwText.textSm),
-                const SizedBox(height: TwSpacing.rhythmTight),
+                const SizedBox(height: TwSpacing.x2),
                 Text(
                   '${AppMoney.formatCents(product.unitPrice)} '
                   '${product.unitLabel}',
                   style: TwText.fontBoldSm,
                 ),
-                const SizedBox(height: TwSpacing.rhythmTight),
+                const SizedBox(height: TwSpacing.x2),
                 StatusPill(
                   label: stockLabel,
                   backgroundColor: stockPillColors.bg,

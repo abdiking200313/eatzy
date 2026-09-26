@@ -17,7 +17,7 @@ class AboutZivoSheet extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.fromLTRB(
         TwSpacing.x5,
-        TwSpacing.rhythmTight,
+        TwSpacing.x2,
         TwSpacing.x5,
         TwSpacing.x6,
       ),
@@ -26,12 +26,12 @@ class AboutZivoSheet extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text('Zivo', style: TwText.textXl),
-          const SizedBox(height: TwSpacing.rhythmTight),
+          const SizedBox(height: TwSpacing.x2),
           Text(
             'Version 1.0.0',
             style: TwText.textXs.copyWith(color: TwColors.textMuted),
           ),
-          const SizedBox(height: TwSpacing.rhythmDefault),
+          const SizedBox(height: TwSpacing.x3_5),
           Text(
             'Zivo is a modular delivery app. Food delivery is live today, '
             'with grocery and pharmacy ordering on the way.',

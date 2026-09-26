@@ -18,7 +18,7 @@ class HelpCard extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(
         horizontal: TwSpacing.x4,
-        vertical: TwSpacing.rhythmDefault,
+        vertical: TwSpacing.x3_5,
       ),
       child: Row(
         children: [
@@ -65,7 +65,7 @@ class ContactCard extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(
         horizontal: TwSpacing.x4,
-        vertical: TwSpacing.rhythmDefault,
+        vertical: TwSpacing.x3_5,
       ),
       child: Row(
         children: [
@@ -107,13 +107,13 @@ class FaqCard extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(
         horizontal: TwSpacing.x4,
-        vertical: TwSpacing.rhythmDefault,
+        vertical: TwSpacing.x3_5,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(item.question, style: TwText.fontBoldSm),
-          const SizedBox(height: TwSpacing.rhythmTight),
+          const SizedBox(height: TwSpacing.x2),
           Text(
             item.answer,
             style: TwText.textXs.copyWith(

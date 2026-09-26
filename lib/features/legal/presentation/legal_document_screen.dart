@@ -68,15 +68,15 @@ class LegalDocumentScreen extends StatelessWidget {
               'Effective ${document.effectiveDate}',
               style: TwText.textXs.copyWith(color: TwColors.textMuted),
             ),
-            const SizedBox(height: TwSpacing.rhythmDefault),
+            const SizedBox(height: TwSpacing.x3_5),
             Text(document.intro, style: TwText.textSm),
             for (final section in document.sections) ...[
-              const SizedBox(height: TwSpacing.rhythmSection),
+              const SizedBox(height: TwSpacing.sectionGap),
               Text(
                 section.heading,
                 style: TwText.fontBoldSm.copyWith(fontSize: 16),
               ),
-              const SizedBox(height: TwSpacing.rhythmTight),
+              const SizedBox(height: TwSpacing.x2),
               Text(section.body, style: TwText.textSm),
             ],
             const SizedBox(height: TwSpacing.x5),

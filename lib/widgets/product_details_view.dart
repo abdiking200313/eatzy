@@ -106,7 +106,7 @@ class _ProductDetailsViewState extends State<ProductDetailsView> {
                 children: [
                   if (widget.eyebrow != null) ...[
                     Text(widget.eyebrow!, style: TwText.link),
-                    const SizedBox(height: TwSpacing.rhythmTight),
+                    const SizedBox(height: TwSpacing.x2),
                   ],
                   Text(widget.name, style: TwText.text2xl),
                   const SizedBox(height: TwSpacing.x2),

@@ -193,9 +193,9 @@ class _CartLinesCard extends StatelessWidget {
           for (var index = 0; index < lines.length; index++) ...[
             _CartLineRow(line: lines[index], fallbackIcon: fallbackIcon),
             if (index != lines.length - 1) ...[
-              const SizedBox(height: TwSpacing.rhythmDefault),
+              const SizedBox(height: TwSpacing.x3_5),
               const Divider(),
-              const SizedBox(height: TwSpacing.rhythmDefault),
+              const SizedBox(height: TwSpacing.x3_5),
             ],
           ],
         ],
@@ -248,12 +248,12 @@ class _CartLineRow extends StatelessWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: TwSpacing.rhythmTight),
+              const SizedBox(height: TwSpacing.x2),
               Text(
                 AppMoney.formatCents(line.total),
                 style: TwText.fontBoldSm.copyWith(color: TwColors.primary),
               ),
-              const SizedBox(height: TwSpacing.rhythmDefault),
+              const SizedBox(height: TwSpacing.x3_5),
               // A `Wrap` rather than a `Row` so the "$X each" note drops to
               // its own line instead of overflowing on a narrow screen with
               // enlarged text.

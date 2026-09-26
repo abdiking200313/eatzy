@@ -184,7 +184,7 @@ class _ActivityRowState extends State<_ActivityRow> {
       child: Padding(
         padding: const EdgeInsets.symmetric(
           horizontal: TwSpacing.x4,
-          vertical: TwSpacing.rhythmDefault,
+          vertical: TwSpacing.x3_5,
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -200,11 +200,11 @@ class _ActivityRowState extends State<_ActivityRow> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(item.title, style: TwText.fontBoldSm),
-                  const SizedBox(height: TwSpacing.rhythmTight),
+                  const SizedBox(height: TwSpacing.x2),
                   Wrap(
                     crossAxisAlignment: WrapCrossAlignment.center,
                     spacing: TwSpacing.x2,
-                    runSpacing: TwSpacing.rhythmTight,
+                    runSpacing: TwSpacing.x2,
                     children: [
                       if (item.subtitle?.isNotEmpty == true)
                         Text(
@@ -221,7 +221,7 @@ class _ActivityRowState extends State<_ActivityRow> {
                     ],
                   ),
                   if (OrderAgainService.canReorder(item)) ...[
-                    const SizedBox(height: TwSpacing.rhythmTight),
+                    const SizedBox(height: TwSpacing.x2),
                     TextButton.icon(
                       key: ValueKey('order-again-${item.id}'),
                       onPressed: _loadingReorder ? null : _orderAgain,
@@ -254,7 +254,7 @@ class _ActivityRowState extends State<_ActivityRow> {
                 // above (issue #67) — this is the only way to reach a real,
                 // order-keyed TrackOrderScreen (issue #43).
                 if (trackableServiceId != null) ...[
-                  const SizedBox(height: TwSpacing.rhythmTight),
+                  const SizedBox(height: TwSpacing.x2),
                   Tooltip(
                     message: 'Track order',
                     child: InkWell(

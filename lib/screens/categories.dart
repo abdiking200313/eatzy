@@ -154,7 +154,7 @@ class _ServicePhotoCard extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                   style: TwText.fontBoldBase.copyWith(color: TwColors.white),
                 ),
-                const SizedBox(height: TwSpacing.rhythmTight),
+                const SizedBox(height: TwSpacing.x2),
                 Text(
                   description,
                   maxLines: 2,
@@ -164,7 +164,7 @@ class _ServicePhotoCard extends StatelessWidget {
                   ),
                 ),
                 if (comingSoon) ...[
-                  const SizedBox(height: TwSpacing.rhythmTight),
+                  const SizedBox(height: TwSpacing.x2),
                   const StatusPill(
                     label: 'Coming soon',
                     backgroundColor: TwColors.white,

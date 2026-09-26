@@ -221,19 +221,19 @@ class _FoodHomeScreenState extends State<FoodHomeScreen> {
                     ],
                   ),
                 ),
-                const SizedBox(height: TwSpacing.rhythmSection),
+                const SizedBox(height: TwSpacing.sectionGap),
                 SectionHeader(
                   title: 'Categories',
                   actionLabel: 'See All',
                   onPressed: _openCategories,
                 ),
-                const SizedBox(height: TwSpacing.rhythmDefault),
+                const SizedBox(height: TwSpacing.x3_5),
                 CategoriesSection(
                   categories: data.categories,
                   selectedCategoryId: _selectedCategoryId,
                   onCategorySelected: _selectCategory,
                 ),
-                const SizedBox(height: TwSpacing.rhythmSection),
+                const SizedBox(height: TwSpacing.sectionGap),
                 SectionHeader(
                   title: 'Trending Now',
                   actionLabel: 'View All',

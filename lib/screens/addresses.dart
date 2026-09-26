@@ -53,7 +53,7 @@ class AddressesScreen extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(height: TwSpacing.rhythmSection),
+            const SizedBox(height: TwSpacing.sectionGap),
             OutlinedCard(
               padding: EdgeInsets.zero,
               child: Column(
@@ -84,7 +84,7 @@ class _AddressRow extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(
         horizontal: TwSpacing.x4,
-        vertical: TwSpacing.rhythmDefault,
+        vertical: TwSpacing.x3_5,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -102,9 +102,9 @@ class _AddressRow extends StatelessWidget {
                 ),
             ],
           ),
-          const SizedBox(height: TwSpacing.rhythmTight),
+          const SizedBox(height: TwSpacing.x2),
           Text(address.address, style: TwText.textSm.copyWith(height: 1.5)),
-          const SizedBox(height: TwSpacing.rhythmDefault),
+          const SizedBox(height: TwSpacing.x3_5),
           Row(
             children: [
               Expanded(

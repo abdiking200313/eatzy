@@ -74,7 +74,7 @@ class _FoodCategoriesScreenState extends State<FoodCategoriesScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     const ServiceIconChip(icon: Icons.restaurant_menu),
-                    const SizedBox(height: TwSpacing.rhythmTight),
+                    const SizedBox(height: TwSpacing.x2),
                     Text(
                       category.name,
                       textAlign: TextAlign.center,

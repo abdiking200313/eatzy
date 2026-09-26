@@ -242,7 +242,7 @@ class StoreListCard extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                   style: TwText.fontBoldSm,
                 ),
-                const SizedBox(height: TwSpacing.rhythmTight),
+                const SizedBox(height: TwSpacing.x2),
                 Row(
                   children: [
                     // The one accent touch this neutral white card allows —
@@ -348,7 +348,7 @@ class _NoPicturePlaceholder extends StatelessWidget {
                 color: TwColors.textMuted,
                 size: 28,
               ),
-              const SizedBox(height: TwSpacing.rhythmTight),
+              const SizedBox(height: TwSpacing.x2),
               Text(
                 'No picture available',
                 style: TwText.textXs.copyWith(color: TwColors.textMuted),

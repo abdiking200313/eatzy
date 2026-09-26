@@ -416,7 +416,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SectionTitle('Notifications', fontSize: 18),
-            const SizedBox(height: TwSpacing.rhythmDefault),
+            const SizedBox(height: TwSpacing.x3_5),
             OutlinedCard(
               padding: EdgeInsets.zero,
               child: Column(
@@ -457,9 +457,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ],
               ),
             ),
-            const SizedBox(height: TwSpacing.rhythmSection),
+            const SizedBox(height: TwSpacing.sectionGap),
             const SectionTitle('Account', fontSize: 18),
-            const SizedBox(height: TwSpacing.rhythmDefault),
+            const SizedBox(height: TwSpacing.x3_5),
             OutlinedCard(
               padding: EdgeInsets.zero,
               child: Column(
@@ -514,9 +514,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ],
               ),
             ),
-            const SizedBox(height: TwSpacing.rhythmSection),
+            const SizedBox(height: TwSpacing.sectionGap),
             const SectionTitle('Preferences', fontSize: 18),
-            const SizedBox(height: TwSpacing.rhythmDefault),
+            const SizedBox(height: TwSpacing.x3_5),
             OutlinedCard(
               padding: EdgeInsets.zero,
               child: Column(
@@ -544,9 +544,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ],
               ),
             ),
-            const SizedBox(height: TwSpacing.rhythmSection),
+            const SizedBox(height: TwSpacing.sectionGap),
             const SectionTitle('Support', fontSize: 18),
-            const SizedBox(height: TwSpacing.rhythmDefault),
+            const SizedBox(height: TwSpacing.x3_5),
             OutlinedCard(
               padding: EdgeInsets.zero,
               child: Column(
@@ -578,13 +578,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ],
               ),
             ),
-            const SizedBox(height: TwSpacing.rhythmSection),
+            const SizedBox(height: TwSpacing.sectionGap),
             PrimaryButton(
               label: 'Logout',
               onPressed: _logout,
               color: TwColors.error,
             ),
-            const SizedBox(height: TwSpacing.rhythmDefault),
+            const SizedBox(height: TwSpacing.x3_5),
             Center(
               child: TextButton(
                 onPressed: _confirmDeleteAccount,

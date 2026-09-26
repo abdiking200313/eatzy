@@ -103,7 +103,7 @@ class _EditFieldSheetState extends State<EditFieldSheet> {
     return Padding(
       padding: EdgeInsets.fromLTRB(
         TwSpacing.x5,
-        TwSpacing.rhythmTight,
+        TwSpacing.x2,
         TwSpacing.x5,
         TwSpacing.x6 + MediaQuery.of(context).viewInsets.bottom,
       ),
@@ -158,7 +158,7 @@ class _EditFieldSheetState extends State<EditFieldSheet> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(widget.title, style: TwText.textXl),
-              const SizedBox(height: TwSpacing.rhythmDefault),
+              const SizedBox(height: TwSpacing.x3_5),
               if (helperText != null) ...[
                 Text(
                   helperText,

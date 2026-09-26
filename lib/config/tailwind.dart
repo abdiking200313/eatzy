@@ -68,16 +68,28 @@ class TwSpacing {
   static const double x10 = 40.0;
   static const double x12 = 48.0;
 
-  /// Redesign component-internal spacing rhythm (tight / default /
-  /// section-gap). This is a distinct scale from the `x*` page-layout scale
-  /// above — it does not divide evenly into the 4px `x*` grid, so it is kept
-  /// as its own named set rather than folded into it. Use these for spacing
-  /// *within* a component (e.g. between an icon chip and its label, or
-  /// between stacked rows in a card); keep using `x5` (20px) for screen body
-  /// padding and the `x*` scale for page-level layout gaps.
-  static const double rhythmTight = 6.0;
-  static const double rhythmDefault = 14.0;
-  static const double rhythmSection = 28.0;
+  // Half steps used by the "1a" spacing system.
+  static const double x2_5 = 10.0;
+  static const double x3_5 = 14.0;
+
+  // Semantic layout tokens (design "1a"). Prefer these over raw `x*` values
+  // when the spacing has one of these roles.
+  static const double screenX = 20.0; // horizontal screen-body padding
+  static const double sectionGap = 32.0; // space above a section header
+  static const double sectionGapDense = 28.0; // dense sub-screens (food home)
+  static const double headerToContent = 14.0; // section header -> content
+  static const double gridGap = 10.0; // category / bento grids
+  static const double carouselGap = 12.0; // horizontal card rails
+  static const double listRowY = 14.0; // vertical padding of list rows
+  static const double iconButtonGap = 8.0;
+
+  /// Visual bottom-nav height in the design, *including* the home-indicator
+  /// area. Flutter's `NavigationBar` adds the bottom safe-area inset on top
+  /// of its own `height`, so the widget itself uses [navBarContentHeight].
+  static const double navHeight = 88.0;
+  static const double navBarContentHeight = 64.0;
+  static const double bottomScrollInset = 110.0; // scroll content under nav
+  static const double bottomScrollInsetWithCta = 190.0; // nav + sticky CTA
 }
 
 class TwRadius {
@@ -86,6 +98,15 @@ class TwRadius {
   static const double md = 10.0;
   static const double lg = 14.0;
   static const double xl = 20.0;
+
+  // Semantic radii (design "1a").
+  static const double chip = 12.0; // chips, filter pills, small icon chips
+  static const double control = 14.0; // icon buttons, steppers
+  static const double input = 16.0; // search field
+  static const double tile = 16.0; // small tiles, thumbnails
+  static const double media = 18.0; // store-card images, sticky CTA
+  static const double card = 20.0; // list cards / grouped rows
+  static const double hero = 24.0; // promo / hero banners
   static const double full = 9999.0;
 }
 
@@ -186,6 +207,17 @@ class TwText {
     letterSpacing: 0.6,
     color: TwColors.textMuted,
   );
+
+  /// Section header title ("Popular near you" etc.), paired with a
+  /// "See all" link on the right of the header row.
+  static const TextStyle sectionTitle = TextStyle(
+    fontFamily: 'Outfit',
+    fontSize: 20,
+    fontWeight: FontWeight.w600,
+    height: 1.25,
+    letterSpacing: -0.4,
+    color: TwColors.text,
+  );
 }
 
 ThemeData buildAppTheme() {
@@ -264,7 +296,7 @@ ThemeData buildAppTheme() {
       elevation: 0.6,
       margin: EdgeInsets.zero,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(TwRadius.xl),
+        borderRadius: BorderRadius.circular(TwRadius.card),
         side: const BorderSide(color: TwColors.border),
       ),
     ),
@@ -314,7 +346,7 @@ ThemeData buildAppTheme() {
       ),
     ),
     navigationBarTheme: NavigationBarThemeData(
-      height: 76,
+      height: TwSpacing.navBarContentHeight,
       backgroundColor: TwColors.white,
       surfaceTintColor: Colors.transparent,
       indicatorColor: Colors.transparent,
