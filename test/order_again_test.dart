@@ -2,8 +2,9 @@ import 'package:chowflow/app/app_routes.dart';
 import 'package:chowflow/app/service_module.dart';
 import 'package:chowflow/platform/activity/data/order_again_repository.dart';
 import 'package:chowflow/platform/activity/models/activity_item.dart';
-import 'package:chowflow/platform/activity/presentation/activity_controller.dart';
-import 'package:chowflow/platform/activity/presentation/activity_screen.dart';
+import 'package:chowflow/features/orders/presentation/track_order_screen.dart';
+import 'package:chowflow/platform/activity/data/activity_repository.dart';
+import 'package:chowflow/platform/activity/models/order_details.dart';
 import 'package:chowflow/platform/activity/presentation/order_again_service.dart';
 import 'package:chowflow/services/food/models/cart_item.dart';
 import 'package:chowflow/services/food/presentation/cart_controller.dart';
@@ -107,7 +108,7 @@ void main() {
     });
   });
 
-  group('Activity "Order again"', () {
+  group('Order details "Order again"', () {
     final foodOrder = ActivityItem(
       id: 'order-1',
       serviceId: ServiceId.food,
@@ -117,12 +118,14 @@ void main() {
       amount: 2400,
       detailsRoute: AppRoutes.food,
     );
-    final orderAgainButton = find.byKey(const ValueKey('order-again-order-1'));
+    final orderAgainButton = find.byKey(
+      const ValueKey('order-details-order-again'),
+    );
 
     /// Builds the food cart inside the widget test's own fake-async zone (a
     /// cart built in `setUp` awaits writes that never complete there),
-    /// optionally pre-filled, and pumps the Activity screen.
-    Future<CartController> pumpActivity(
+    /// optionally pre-filled, and pumps the order details screen.
+    Future<CartController> pumpOrderDetails(
       WidgetTester tester,
       ReorderBasket basket, {
       bool prefilled = false,
@@ -131,16 +134,31 @@ void main() {
       await cart.loadForOwner('user-1');
       if (prefilled) await cart.addItem(otherRestaurantItem);
 
-      final activity = ActivityController()..record(foodOrder);
       await tester.pumpWidget(
         MaterialApp.router(
           routerConfig: GoRouter(
-            initialLocation: AppRoutes.activity,
+            initialLocation: foodOrder.orderDetailsPath,
             routes: [
               GoRoute(
-                path: AppRoutes.activity,
-                builder: (_, _) => ActivityScreen(
-                  controller: activity,
+                path: AppRoutes.trackOrderDetails,
+                builder: (_, state) => TrackOrderScreen(
+                  orderId: state.pathParameters['orderId'],
+                  serviceId: state.pathParameters['serviceId'],
+                  repository: _FakeOrderDetailsRepository(
+                    OrderDetails(
+                      summary: foodOrder,
+                      lines: const [
+                        OrderLine(
+                          name: 'Classic Burger',
+                          quantity: 2,
+                          unitPrice: 1200,
+                        ),
+                      ],
+                      subtotal: 2400,
+                      deliveryFee: 0,
+                      total: 2400,
+                    ),
+                  ),
                   orderAgainService: OrderAgainService(
                     repository: _FakeOrderAgainRepository(basket),
                     foodCart: cart,
@@ -163,7 +181,7 @@ void main() {
 
     testWidgets('asks before replacing a non-empty cart, then fills it, '
         'lists skipped items and opens the cart', (tester) async {
-      final cart = await pumpActivity(
+      final cart = await pumpOrderDetails(
         tester,
         const FoodReorderBasket(items: [pastBurger], skippedNames: ['Fries']),
         prefilled: true,
@@ -184,7 +202,7 @@ void main() {
     testWidgets('cancelling the replace prompt leaves the cart alone', (
       tester,
     ) async {
-      final cart = await pumpActivity(
+      final cart = await pumpOrderDetails(
         tester,
         const FoodReorderBasket(items: [pastBurger], skippedNames: []),
         prefilled: true,
@@ -200,7 +218,7 @@ void main() {
     });
 
     testWidgets('an empty cart is filled without asking', (tester) async {
-      await pumpActivity(
+      await pumpOrderDetails(
         tester,
         const FoodReorderBasket(items: [pastBurger], skippedNames: []),
       );
@@ -215,7 +233,7 @@ void main() {
     testWidgets('when nothing is available any more, says so and stays', (
       tester,
     ) async {
-      final cart = await pumpActivity(
+      final cart = await pumpOrderDetails(
         tester,
         const FoodReorderBasket(items: [], skippedNames: ['Classic Burger']),
       );
@@ -243,4 +261,22 @@ class _FakeOrderAgainRepository implements OrderAgainRepository {
     required ServiceId serviceId,
     required String orderId,
   }) async => basket;
+}
+
+class _FakeOrderDetailsRepository implements OrderDetailsRepository {
+  const _FakeOrderDetailsRepository(this.order);
+
+  final OrderDetails order;
+
+  @override
+  Future<ActivityItem?> fetchOrderById({
+    required String orderId,
+    required String serviceId,
+  }) async => order.summary;
+
+  @override
+  Future<OrderDetails?> fetchOrderDetails({
+    required String orderId,
+    required String serviceId,
+  }) async => order;
 }

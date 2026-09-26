@@ -1,7 +1,9 @@
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../app/service_module.dart';
 import '../models/activity_item.dart';
+import '../models/order_details.dart';
 
 abstract interface class ActivitySource {
   Future<List<ActivityItem>> fetchActivities({int limit = 100});
@@ -20,6 +22,13 @@ abstract interface class OrderDetailsSource {
   /// indistinguishable from here by design (RLS should never leak which one
   /// happened), so callers must treat both as a plain "order not found".
   Future<ActivityItem?> fetchOrderById({
+    required String orderId,
+    required String serviceId,
+  });
+
+  /// [fetchOrderById] plus the order's lines, charges and delivery
+  /// address. Same `null` contract.
+  Future<OrderDetails?> fetchOrderDetails({
     required String orderId,
     required String serviceId,
   });
@@ -113,5 +122,63 @@ class SupabaseActivityRepository
       );
       return null;
     }
+  }
+
+  @override
+  Future<OrderDetails?> fetchOrderDetails({
+    required String orderId,
+    required String serviceId,
+  }) async {
+    final summary = await fetchOrderById(
+      orderId: orderId,
+      serviceId: serviceId,
+    );
+    if (summary == null) return null;
+
+    final (table, itemsTable, itemName, extra) = switch (summary.serviceId) {
+      ServiceId.food => (
+        'food_orders',
+        'food_order_items',
+        'item_name',
+        'restaurant_name, tax',
+      ),
+      ServiceId.grocery => (
+        'grocery_orders',
+        'grocery_order_items',
+        'product_name',
+        'store_name, delivery_slot_label',
+      ),
+      ServiceId.pharmacy => (
+        'pharmacy_orders',
+        'pharmacy_order_items',
+        'product_name',
+        'delivery_instructions',
+      ),
+      ServiceId.unknown => (null, null, null, null),
+    };
+    if (table == null || itemsTable == null || itemName == null) return null;
+
+    final itemColumns = [
+      itemName,
+      'quantity',
+      'unit_price',
+      if (summary.serviceId == ServiceId.grocery) 'pricing_unit',
+    ].join(', ');
+    // RLS already scopes each order table to the caller's own rows.
+    final row = await _client
+        .from(table)
+        .select(
+          'subtotal, delivery_fee, total, recipient_name, phone, street, '
+          'district, city, $extra, $itemsTable($itemColumns)',
+        )
+        .eq('id', orderId)
+        .maybeSingle();
+    if (row == null) return null;
+    return OrderDetails.fromOrderRow(
+      summary,
+      Map<String, dynamic>.from(row),
+      itemsKey: itemsTable,
+      itemNameColumn: itemName,
+    );
   }
 }

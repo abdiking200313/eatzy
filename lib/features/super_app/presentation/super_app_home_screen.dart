@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../app/app_routes.dart';
@@ -6,11 +7,12 @@ import '../../../app/service_module.dart';
 import '../../../config/theme.dart';
 import '../../../platform/activity/models/activity_item.dart';
 import '../../../platform/activity/presentation/activity_controller.dart';
+import '../../../platform/cache/catalog_queries.dart';
 import '../../../platform/discovery/store_listing.dart';
-import '../../../platform/discovery/store_listing_repository.dart';
 import '../../../platform/localization/app_money.dart';
 import '../../../widgets/app_misc.dart';
 import '../../../widgets/app_cards.dart';
+import '../../../widgets/app_search_bar.dart';
 
 class SuperAppHomeScreen extends StatefulWidget {
   const SuperAppHomeScreen({
@@ -27,13 +29,22 @@ class SuperAppHomeScreen extends StatefulWidget {
 }
 
 class _SuperAppHomeScreenState extends State<SuperAppHomeScreen> {
-  late final Future<List<StoreListing>> _storesFuture = _loadStores();
+  late final Stream<List<StoreListing>> _stores;
 
-  Future<List<StoreListing>> _loadStores() async {
-    final loader =
-        widget.storeListingLoader ??
-        (() => StoreListingRepository().fetchStores(limit: 10));
-    return loader();
+  /// The cached listing shown on the first frame, before [_stores] emits.
+  List<StoreListing>? _initialStores;
+
+  @override
+  void initState() {
+    super.initState();
+    final loader = widget.storeListingLoader;
+    if (loader != null) {
+      _stores = Stream.fromFuture(loader());
+    } else {
+      final query = CatalogQueries.homeStores();
+      _initialStores = query.peek();
+      _stores = query.watch();
+    }
   }
 
   @override
@@ -72,7 +83,6 @@ class _SuperAppHomeScreenState extends State<SuperAppHomeScreen> {
                 ),
                 _ServiceGrid(
                   modules: ServiceRegistry.modules,
-                  comingSoon: ServiceRegistry.comingSoon,
                   onMore: () => context.push(AppRoutes.services),
                 ),
                 _SectionHeader(
@@ -83,7 +93,7 @@ class _SuperAppHomeScreenState extends State<SuperAppHomeScreen> {
               ],
             ),
           ),
-          _PopularStores(future: _storesFuture),
+          _PopularStores(stream: _stores, initialData: _initialStores),
           _RecentActivitySection(controller: controller),
         ],
       ),
@@ -199,33 +209,9 @@ class _HomeHeader extends StatelessWidget {
               // 18: literal per the "1a" spec's search-field-below-top-bar gap
               // (no token at this value).
               const SizedBox(height: 18),
-              Material(
-                color: TwColors.white,
-                borderRadius: BorderRadius.circular(TwRadius.input),
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(TwRadius.input),
-                  onTap: onSearch,
-                  child: const Padding(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: TwSpacing.x4,
-                      vertical: TwSpacing.x3_5,
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(Icons.search, color: TwColors.textMuted),
-                        SizedBox(width: TwSpacing.x3),
-                        Expanded(
-                          child: Text(
-                            'Search restaurants, stores...',
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(color: TwColors.textMuted),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
+              AppSearchBar(
+                hintText: 'Search restaurants, stores...',
+                onTap: onSearch,
               ),
             ],
           ),
@@ -315,52 +301,37 @@ class _PromoBanner extends StatelessWidget {
   }
 }
 
-/// Four-column category grid: the live service modules first, then the
-/// coming-soon placeholders, then a trailing "More" tile that opens the full
-/// Services list.
+/// Category section: a three-column grid of photo tiles, the live service
+/// modules then a trailing "More" tile that opens the full Services list
+/// (which is also where the coming-soon categories are listed).
 class _ServiceGrid extends StatelessWidget {
-  const _ServiceGrid({
-    required this.modules,
-    required this.comingSoon,
-    required this.onMore,
-  });
+  const _ServiceGrid({required this.modules, required this.onMore});
 
   final List<ServiceDescriptor> modules;
-  final List<ComingSoonCategory> comingSoon;
   final VoidCallback onMore;
 
   @override
   Widget build(BuildContext context) {
-    final textScale = MediaQuery.textScalerOf(context).scale(1);
-    // Base raised from 92 to 100 to fit the "1a" spec's larger 12/8 tile
-    // padding and 10px chip-to-label gap without the label clipping/
-    // overflowing at default text scale.
-    final tileHeight = 100.0 + ((textScale - 1).clamp(0.0, 1.0) * 30.0);
-    final platform = ZivoServiceColors.platform;
     return GridView.builder(
       // Without an explicit padding a vertical GridView adds the phone's
       // safe-area insets (status bar / home indicator) around itself.
       padding: EdgeInsets.zero,
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      itemCount: modules.length + comingSoon.length + 1,
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 4,
+      itemCount: modules.length + 1,
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 3,
         crossAxisSpacing: TwSpacing.gridGap,
         mainAxisSpacing: TwSpacing.gridGap,
-        mainAxisExtent: tileHeight,
       ),
       itemBuilder: (context, index) {
         if (index < modules.length) {
           final module = modules[index];
-          final colors = ServiceThemes.forSlug(module.slug, module.id);
           return _CategoryTile(
             tileKey: Key('service-${module.slug}'),
             icon: module.icon,
             photoUrl: module.photoUrl,
             label: module.title,
-            background: colors.soft,
-            foreground: colors.accent,
             // `go`, not `push`: module.entryRoute belongs to its own shell
             // branch (see app_router.dart), so this switches branches within
             // the persistent bottom-nav shell instead of stacking a
@@ -368,27 +339,10 @@ class _ServiceGrid extends StatelessWidget {
             onTap: () => context.go(module.entryRoute),
           );
         }
-        final soonIndex = index - modules.length;
-        if (soonIndex < comingSoon.length) {
-          final category = comingSoon[soonIndex];
-          return _CategoryTile(
-            tileKey: Key('coming-soon-${category.id}'),
-            icon: category.icon,
-            photoUrl: category.photoUrl,
-            label: category.title,
-            background: platform.soft,
-            foreground: platform.accent,
-            comingSoon: true,
-            onTap: () =>
-                showCartSnackBar(context, '${category.title} is coming soon'),
-          );
-        }
         return _CategoryTile(
           tileKey: const Key('service-more'),
           icon: Icons.grid_view_rounded,
           label: 'More',
-          background: TwColors.border,
-          foreground: TwColors.slate700,
           onTap: onMore,
         );
       },
@@ -396,190 +350,177 @@ class _ServiceGrid extends StatelessWidget {
   }
 }
 
+/// A square category tile: the service photo fills the whole tile with the
+/// label bottom-left in white over a dark fade. Without a photo (or when it
+/// fails to load) it falls back to a large icon on a light neutral tile.
 class _CategoryTile extends StatelessWidget {
   const _CategoryTile({
     required this.tileKey,
     required this.icon,
     this.photoUrl,
     required this.label,
-    required this.background,
-    required this.foreground,
     required this.onTap,
-    this.comingSoon = false,
   });
 
-  /// Applied to the tile's [Material] (its card surface), which tests and
-  /// the white-card rule inspect directly.
+  /// Applied to the tile's [Material], which tests inspect directly.
   final Key tileKey;
   final IconData icon;
-
-  /// When set, shown (via [ServicePhotoChip]) instead of [icon].
   final String? photoUrl;
   final String label;
-  final Color background;
-  final Color foreground;
   final VoidCallback onTap;
-  final bool comingSoon;
 
   @override
   Widget build(BuildContext context) {
+    final url = photoUrl;
     return Semantics(
-      label: comingSoon ? '$label, coming soon' : label,
+      label: label,
       button: true,
       excludeSemantics: true,
       onTap: onTap,
       child: Material(
         key: tileKey,
-        color: TwColors.card,
-        elevation: 0.6,
-        shadowColor: TwColors.slate900.withOpacityValue(0.1),
+        color: TwColors.stone100,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(TwRadius.tile),
-          // A neutral warm gray (rather than the app's usual blue-tinted
-          // `TwColors.border`) for coming-soon tiles, so the card outline
-          // reads as disabled along with the desaturated chip and muted
-          // label rather than just the small "Soon" badge.
-          side: BorderSide(
-            color: comingSoon ? TwColors.stone300 : TwColors.border,
-          ),
         ),
         clipBehavior: Clip.antiAlias,
-        child: InkWell(
-          onTap: onTap,
-          child: Stack(
-            // Stack defaults non-positioned children to topStart; without
-            // this the content Padding below (sized to its own content, not
-            // stretched) sat pinned to the top of the tile's full height
-            // instead of centered in it.
-            alignment: Alignment.center,
-            children: [
-              Padding(
-                // 12/8, not a uniform 12: in four columns on a 360px-wide
-                // screen a 12 side inset leaves the label too little room.
-                padding: const EdgeInsets.symmetric(
-                  vertical: TwSpacing.x3,
-                  horizontal: TwSpacing.x2,
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    _MaybeGrayscale(
-                      grayscale: comingSoon,
-                      child: photoUrl == null
-                          ? ServiceIconChip(
-                              icon: icon,
-                              background: background,
-                              foreground: foreground,
-                              borderRadius: TwRadius.full,
-                              size: 40,
-                            )
-                          : ServicePhotoChip(
-                              imageUrl: photoUrl!,
-                              ringColor: foreground,
-                              size: 40,
-                            ),
-                    ),
-                    const SizedBox(height: TwSpacing.x2_5),
-                    // Four narrow columns: shrink a long label ("Electronics")
-                    // to fit its tile rather than ellipsize or wrap it.
-                    FittedBox(
-                      fit: BoxFit.scaleDown,
-                      child: Text(
-                        label,
-                        maxLines: 1,
-                        textAlign: TextAlign.center,
-                        style: TwText.fontBoldSm.copyWith(
-                          fontSize: 12,
-                          color: comingSoon ? TwColors.textMuted : null,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            if (url == null)
+              _IconTileContent(icon: icon, label: label)
+            else
+              _PhotoTileContent(imageUrl: url, icon: icon, label: label),
+            Material(
+              type: MaterialType.transparency,
+              child: InkWell(onTap: onTap),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _PhotoTileContent extends StatelessWidget {
+  const _PhotoTileContent({
+    required this.imageUrl,
+    required this.icon,
+    required this.label,
+  });
+
+  final String imageUrl;
+  final IconData icon;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        // The label and fade below are drawn whether or not the photo has
+        // loaded, so a slow or failed load never leaves a blank tile.
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final dpr = MediaQuery.devicePixelRatioOf(context);
+            return CachedNetworkImage(
+              imageUrl: imageUrl,
+              fit: BoxFit.cover,
+              memCacheWidth: (constraints.maxWidth * dpr).round(),
+              placeholder: (context, url) => const SizedBox.shrink(),
+              errorWidget: (context, url, error) => Align(
+                alignment: const Alignment(0, -0.3),
+                child: Icon(icon, size: 28, color: TwColors.slate700),
               ),
-              if (comingSoon)
-                const Positioned(
-                  top: TwSpacing.x1,
-                  right: TwSpacing.x1,
-                  child: _SoonBadge(),
-                ),
-            ],
+            );
+          },
+        ),
+        // Darkens only the bottom of the photo so the white label stays
+        // readable on any image.
+        DecoratedBox(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              stops: const [0.45, 1],
+              colors: [
+                TwColors.slate900.withOpacityValue(0),
+                TwColors.slate900.withOpacityValue(0.65),
+              ],
+            ),
           ),
         ),
+        Padding(
+          padding: const EdgeInsets.all(TwSpacing.x2_5),
+          child: Align(
+            alignment: Alignment.bottomLeft,
+            child: _TileLabel(label: label, color: TwColors.white),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _IconTileContent extends StatelessWidget {
+  const _IconTileContent({required this.icon, required this.label});
+
+  final IconData icon;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(TwSpacing.x2_5),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 28, color: TwColors.slate700),
+          const Spacer(),
+          _TileLabel(label: label, color: TwColors.text),
+        ],
       ),
     );
   }
 }
 
-/// Desaturates [child] (the icon/photo chip) when [grayscale] is true, so a
-/// coming-soon tile's whole chip reads as disabled rather than just its
-/// "Soon" badge.
-class _MaybeGrayscale extends StatelessWidget {
-  const _MaybeGrayscale({required this.grayscale, required this.child});
+class _TileLabel extends StatelessWidget {
+  const _TileLabel({required this.label, required this.color});
 
-  final bool grayscale;
-  final Widget child;
-
-  // Standard luminance-weighted saturation-0 matrix.
-  static const List<double> _grayscaleMatrix = <double>[
-    0.2126, 0.7152, 0.0722, 0, 0, //
-    0.2126, 0.7152, 0.0722, 0, 0, //
-    0.2126, 0.7152, 0.0722, 0, 0, //
-    0, 0, 0, 1, 0, //
-  ];
+  final String label;
+  final Color color;
 
   @override
   Widget build(BuildContext context) {
-    if (!grayscale) {
-      return child;
-    }
-    return ColorFiltered(
-      colorFilter: const ColorFilter.matrix(_grayscaleMatrix),
-      child: child,
-    );
-  }
-}
-
-class _SoonBadge extends StatelessWidget {
-  const _SoonBadge();
-
-  @override
-  Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: TwColors.primary,
-        borderRadius: BorderRadius.circular(TwRadius.full),
-        border: Border.all(color: TwColors.white, width: 1.5),
-      ),
-      child: const Padding(
-        padding: EdgeInsets.symmetric(horizontal: 5, vertical: 1),
-        child: Text(
-          'Soon',
-          style: TextStyle(
-            fontFamily: 'Outfit',
-            fontSize: 9,
-            height: 1.2,
-            fontWeight: FontWeight.w700,
-            color: TwColors.white,
-          ),
-        ),
+    // Shrinks a long label ("Electronics") on narrow tiles or at a large
+    // text scale rather than ellipsizing or wrapping it.
+    return FittedBox(
+      fit: BoxFit.scaleDown,
+      alignment: Alignment.bottomLeft,
+      child: Text(
+        label,
+        maxLines: 1,
+        style: TwText.fontBoldSm.copyWith(fontSize: 14, color: color),
       ),
     );
   }
 }
 
 class _PopularStores extends StatelessWidget {
-  const _PopularStores({required this.future});
+  const _PopularStores({required this.stream, this.initialData});
 
-  final Future<List<StoreListing>> future;
+  final Stream<List<StoreListing>> stream;
+  final List<StoreListing>? initialData;
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<List<StoreListing>>(
-      future: future,
+    return StreamBuilder<List<StoreListing>>(
+      stream: stream,
+      initialData: initialData,
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
+        // Cached stores count as data even while a refresh is in flight, so
+        // the spinner only shows when there is nothing cached at all.
+        if (!snapshot.hasData && !snapshot.hasError) {
           return const SizedBox(
             height: 204,
             child: Center(child: CircularProgressIndicator()),
@@ -716,13 +657,12 @@ class _RecentActivityRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final module = ServiceRegistry.byId(item.serviceId);
     final colors = ServiceThemes.forId(item.serviceId);
+    final orderDetailsPath = item.orderDetailsPath;
     return InkWell(
-      // `go`, not `push` — detailsRoute is always a service vertical's
-      // shell branch root (see app_router.dart); switch to it within the
-      // shell instead of stacking a route over the nav bar (issue #67).
-      onTap: item.detailsRoute.isEmpty
+      // Same as the Activity tab: open the order details page.
+      onTap: orderDetailsPath == null
           ? null
-          : () => context.go(item.detailsRoute),
+          : () => context.push(orderDetailsPath),
       child: Padding(
         // Horizontal inset comes from the enclosing OutlinedCard's own
         // padding, not repeated here, so the divider between rows spans

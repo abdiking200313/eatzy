@@ -8,6 +8,7 @@ import '../../../app/app_routes.dart';
 import '../../../config/theme.dart';
 import '../../../widgets/app_cards.dart';
 import '../../../widgets/app_scaffold.dart';
+import '../../../widgets/app_search_bar.dart';
 import '../../../widgets/cart_app_bar_action.dart';
 import '../../../widgets/store_row_card.dart';
 import '../data/pharmacy_repository.dart';
@@ -195,45 +196,11 @@ class _PharmacyStoreListScreenState extends State<PharmacyStoreListScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                OutlinedCard(
-                  backgroundColor: TwColors.card,
-                  borderColor: TwColors.border,
-                  borderRadius: TwRadius.input,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: TwSpacing.x4,
-                    vertical: TwSpacing.x3_5,
-                  ),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.search, color: TwColors.textMuted),
-                      const SizedBox(width: TwSpacing.x3),
-                      Expanded(
-                        child: TextField(
-                          controller: _searchController,
-                          onChanged: _onSearchChanged,
-                          textInputAction: TextInputAction.search,
-                          decoration: const InputDecoration(
-                            isCollapsed: true,
-                            border: InputBorder.none,
-                            hintText: 'Search pharmacies...',
-                            hintStyle: TextStyle(color: TwColors.textMuted),
-                          ),
-                        ),
-                      ),
-                      if (_searchController.text.isNotEmpty)
-                        GestureDetector(
-                          onTap: _clearSearch,
-                          child: const Padding(
-                            padding: EdgeInsets.only(left: TwSpacing.x2),
-                            child: Icon(
-                              Icons.clear,
-                              size: 20,
-                              color: TwColors.textMuted,
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
+                AppSearchBar(
+                  controller: _searchController,
+                  hintText: 'Search pharmacies...',
+                  onChanged: _onSearchChanged,
+                  onClear: _clearSearch,
                 ),
                 const SizedBox(height: TwSpacing.sectionGap),
                 Text('Pharmacies near you', style: TwText.sectionTitle),

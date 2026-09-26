@@ -1,47 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../app/app_routes.dart';
 import '../../../app/service_module.dart';
 import '../../../config/theme.dart';
 import '../../../widgets/app_misc.dart';
 import '../../../widgets/app_scaffold.dart';
-import '../../error_reporting/error_reporter.dart';
 import '../../localization/app_money.dart';
-import '../data/order_again_repository.dart';
 import '../models/activity_item.dart';
 import 'activity_controller.dart';
-import 'order_again_service.dart';
-
-/// Maps [ServiceId] back to the raw `service_id` path segment
-/// `trackOrderDetailsPath` expects. Returns `null` for [ServiceId.unknown]:
-/// [ActivityItem.fromMap] already discards the original raw string for any
-/// service it doesn't recognize (see #62), so there's nothing real to key a
-/// track-order lookup on — the row hides its "Track order" action instead
-/// of linking to an order that can never resolve.
-String? _trackableServiceId(ServiceId serviceId) => switch (serviceId) {
-  ServiceId.food => 'food',
-  ServiceId.grocery => 'grocery',
-  ServiceId.pharmacy => 'pharmacy',
-  ServiceId.unknown => null,
-};
 
 class ActivityScreen extends StatelessWidget {
-  const ActivityScreen({
-    super.key,
-    this.controller,
-    this.orderAgainService,
-    this.title = 'Activity',
-  });
+  const ActivityScreen({super.key, this.controller, this.title = 'Activity'});
 
   final ActivityController? controller;
-  final OrderAgainService? orderAgainService;
   final String title;
 
   @override
   Widget build(BuildContext context) {
     final activityController = controller ?? ActivityController.instance;
-    final orderAgain = orderAgainService ?? OrderAgainService();
 
     return AppScaffold(
       title: title,
@@ -88,9 +64,7 @@ class ActivityScreen extends StatelessWidget {
                       TwSpacing.x6,
                     ),
                     physics: const AlwaysScrollableScrollPhysics(),
-                    children: [
-                      _ActivityListCard(items: items, orderAgain: orderAgain),
-                    ],
+                    children: [_ActivityListCard(items: items)],
                   ),
           );
         },
@@ -138,10 +112,9 @@ class _EmptyActivity extends StatelessWidget {
 /// row" — see #21/#27). Per-service accent stays confined to each row's
 /// [ServiceIconChip]; the card itself always stays on [TwColors.card].
 class _ActivityListCard extends StatelessWidget {
-  const _ActivityListCard({required this.items, required this.orderAgain});
+  const _ActivityListCard({required this.items});
 
   final List<ActivityItem> items;
-  final OrderAgainService orderAgain;
 
   @override
   Widget build(BuildContext context) {
@@ -150,7 +123,7 @@ class _ActivityListCard extends StatelessWidget {
       child: Column(
         children: [
           for (final item in items) ...[
-            _ActivityRow(item: item, orderAgain: orderAgain),
+            _ActivityRow(item: item),
             if (item != items.last) const Divider(height: 1),
           ],
         ],
@@ -159,33 +132,22 @@ class _ActivityListCard extends StatelessWidget {
   }
 }
 
-class _ActivityRow extends StatefulWidget {
-  const _ActivityRow({required this.item, required this.orderAgain});
+class _ActivityRow extends StatelessWidget {
+  const _ActivityRow({required this.item});
 
   final ActivityItem item;
-  final OrderAgainService orderAgain;
-
-  @override
-  State<_ActivityRow> createState() => _ActivityRowState();
-}
-
-class _ActivityRowState extends State<_ActivityRow> {
-  bool _loadingReorder = false;
-
-  ActivityItem get item => widget.item;
 
   @override
   Widget build(BuildContext context) {
     final module = ServiceRegistry.byId(item.serviceId);
     final colors = ServiceThemes.forId(item.serviceId);
-    final trackableServiceId = _trackableServiceId(item.serviceId);
+    final orderDetailsPath = item.orderDetailsPath;
     return InkWell(
-      // `go`, not `push` — detailsRoute is always a service vertical's shell
-      // branch root (see app_router.dart); switch to it within the shell
-      // instead of stacking a route over the nav bar (issue #67).
-      onTap: item.detailsRoute.isEmpty
+      // Opens the order details page (tracking, items, "Order again"),
+      // pushed over the shell so back returns to Activity.
+      onTap: orderDetailsPath == null
           ? null
-          : () => context.go(item.detailsRoute),
+          : () => context.push(orderDetailsPath),
       child: Padding(
         padding: const EdgeInsets.symmetric(
           horizontal: TwSpacing.x4,
@@ -227,130 +189,17 @@ class _ActivityRowState extends State<_ActivityRow> {
                       ),
                     ],
                   ),
-                  if (OrderAgainService.canReorder(item)) ...[
-                    const SizedBox(height: TwSpacing.x2),
-                    TextButton.icon(
-                      key: ValueKey('order-again-${item.id}'),
-                      onPressed: _loadingReorder ? null : _orderAgain,
-                      style: TextButton.styleFrom(
-                        padding: EdgeInsets.zero,
-                        minimumSize: const Size(0, 32),
-                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      ),
-                      icon: _loadingReorder
-                          ? const SizedBox.square(
-                              dimension: 14,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : const Icon(Icons.replay_rounded, size: 18),
-                      label: const Text('Order again'),
-                    ),
-                  ],
                 ],
               ),
             ),
             const SizedBox(width: TwSpacing.x2),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text(
-                  AppMoney.formatCents(item.amount),
-                  style: TwText.fontBoldSm.copyWith(color: colors.accent),
-                ),
-                // Additive next to the row's own tap-to-shell-home behavior
-                // above (issue #67) — this is the only way to reach a real,
-                // order-keyed TrackOrderScreen (issue #43).
-                if (trackableServiceId != null) ...[
-                  const SizedBox(height: TwSpacing.x2),
-                  Tooltip(
-                    message: 'Track order',
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(TwRadius.full),
-                      onTap: () => context.push(
-                        AppRoutes.trackOrderDetailsPath(
-                          serviceId: trackableServiceId,
-                          orderId: item.id,
-                        ),
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(TwSpacing.x1),
-                        child: Icon(
-                          Icons.local_shipping_outlined,
-                          size: 18,
-                          color: colors.accent,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ],
+            Text(
+              AppMoney.formatCents(item.amount),
+              style: TwText.fontBoldSm.copyWith(color: colors.accent),
             ),
           ],
         ),
       ),
     );
-  }
-
-  /// Loads the order's still-available items, asks before replacing a
-  /// non-empty cart, fills the cart and opens it.
-  Future<void> _orderAgain() async {
-    setState(() => _loadingReorder = true);
-    ReorderBasket? basket;
-    try {
-      basket = await widget.orderAgain.loadBasket(item);
-    } on Object catch (error, stack) {
-      ErrorReporting.instance.reportError(
-        error,
-        stack,
-        context: 'ActivityScreen._orderAgain',
-      );
-    }
-    if (!mounted) return;
-    setState(() => _loadingReorder = false);
-
-    if (basket == null) {
-      showCartSnackBar(context, 'This order could not be loaded. Try again.');
-      return;
-    }
-    if (basket.isEmpty) {
-      showCartSnackBar(
-        context,
-        'None of these items can be ordered right now.',
-      );
-      return;
-    }
-    if (widget.orderAgain.wouldReplaceCart(basket)) {
-      final replace = await showDialog<bool>(
-        context: context,
-        builder: (dialogContext) => AlertDialog(
-          title: const Text('Replace your cart?'),
-          content: const Text(
-            'Your cart already has items. Ordering again will replace them.',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(false),
-              child: const Text('Cancel'),
-            ),
-            FilledButton(
-              onPressed: () => Navigator.of(dialogContext).pop(true),
-              child: const Text('Replace'),
-            ),
-          ],
-        ),
-      );
-      if (replace != true || !mounted) return;
-    }
-
-    final cartRoute = await widget.orderAgain.fillCart(basket);
-    if (!mounted) return;
-    if (basket.skippedNames.isNotEmpty) {
-      showCartSnackBar(
-        context,
-        'No longer available: ${basket.skippedNames.join(', ')}',
-      );
-    }
-    // `go`: each cart lives in its service's shell branch (issue #67).
-    context.go(cartRoute);
   }
 }

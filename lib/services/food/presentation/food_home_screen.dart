@@ -5,8 +5,10 @@ import 'package:go_router/go_router.dart';
 
 import '../../../app/app_routes.dart';
 import '../../../config/theme.dart';
+import '../../../platform/cache/catalog_queries.dart';
 import '../../../widgets/app_cards.dart';
 import '../../../widgets/app_scaffold.dart';
+import '../../../widgets/app_search_bar.dart';
 import '../../../widgets/cart_app_bar_action.dart';
 import '../../../widgets/store_row_card.dart';
 import '../data/category_repository.dart';
@@ -50,7 +52,10 @@ class FoodHomeScreen extends StatefulWidget {
 }
 
 class _FoodHomeScreenState extends State<FoodHomeScreen> {
-  late Future<_FoodHomeData> _homeFuture;
+  late Stream<FoodHomeData> _home;
+
+  /// The cached data shown on the first frame, before [_home] emits.
+  FoodHomeData? _initialHome;
   String? _selectedCategoryId;
   final _searchController = TextEditingController();
   Timer? _debounce;
@@ -63,7 +68,24 @@ class _FoodHomeScreenState extends State<FoodHomeScreen> {
   @override
   void initState() {
     super.initState();
-    _homeFuture = _loadHome();
+    _startHome();
+  }
+
+  /// Injected loaders (tests) bypass the cache; the real app goes through
+  /// [CatalogQueries.foodHome], which shows the last-known data instantly
+  /// and refreshes it in the background.
+  void _startHome() {
+    if (widget.categoryLoader != null || widget.restaurantLoader != null) {
+      _initialHome = null;
+      _home = Stream.fromFuture(_loadHome());
+      return;
+    }
+    final query = CatalogQueries.foodHome();
+    _initialHome = query.peek();
+    _home = query.watch().map((data) {
+      CatalogQueries.prefetchMenus(data.restaurants);
+      return data;
+    });
   }
 
   @override
@@ -73,7 +95,7 @@ class _FoodHomeScreenState extends State<FoodHomeScreen> {
     super.dispose();
   }
 
-  Future<_FoodHomeData> _loadHome() async {
+  Future<FoodHomeData> _loadHome() async {
     final categoriesFuture =
         widget.categoryLoader?.call() ?? CategoryRepository().fetchCategories();
     final restaurantsFuture =
@@ -84,11 +106,11 @@ class _FoodHomeScreenState extends State<FoodHomeScreen> {
       restaurantsFuture,
     ).wait;
 
-    return _FoodHomeData(categories: categories, restaurants: restaurants);
+    return (categories: categories, restaurants: restaurants);
   }
 
   void _retry() {
-    setState(() => _homeFuture = _loadHome());
+    setState(_startHome);
   }
 
   void _selectCategory(String categoryId) {
@@ -162,22 +184,26 @@ class _FoodHomeScreenState extends State<FoodHomeScreen> {
           },
         ),
       ],
-      body: FutureBuilder<_FoodHomeData>(
-        future: _homeFuture,
+      body: StreamBuilder<FoodHomeData>(
+        stream: _home,
+        initialData: _initialHome,
         builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
+          // Cached data wins over both the spinner and a failed background
+          // refresh; the error card only shows when nothing was cached.
+          final data = snapshot.data;
+          if (data != null) {
+            return _buildHomeContent(data);
           }
           if (snapshot.hasError) {
             return _FoodHomeError(onRetry: _retry);
           }
-          return _buildHomeContent(snapshot.requireData);
+          return const Center(child: CircularProgressIndicator());
         },
       ),
     );
   }
 
-  Widget _buildHomeContent(_FoodHomeData data) {
+  Widget _buildHomeContent(FoodHomeData data) {
     return CustomScrollView(
       slivers: [
         SliverToBoxAdapter(
@@ -190,46 +216,11 @@ class _FoodHomeScreenState extends State<FoodHomeScreen> {
                   TwSpacing.screenX,
                   0,
                 ),
-                child: OutlinedCard(
-                  backgroundColor: TwColors.card,
-                  borderColor: TwColors.border,
-                  borderRadius: TwRadius.input,
-                  padding: const EdgeInsets.symmetric(horizontal: TwSpacing.x4),
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(minHeight: 52),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        const Icon(Icons.search, color: TwColors.textMuted),
-                        const SizedBox(width: TwSpacing.x3),
-                        Expanded(
-                          child: TextField(
-                            controller: _searchController,
-                            onChanged: _onSearchChanged,
-                            textInputAction: TextInputAction.search,
-                            decoration: const InputDecoration(
-                              isCollapsed: true,
-                              border: InputBorder.none,
-                              hintText: 'Search restaurants...',
-                              hintStyle: TextStyle(color: TwColors.textMuted),
-                            ),
-                          ),
-                        ),
-                        if (_searchController.text.isNotEmpty)
-                          GestureDetector(
-                            onTap: _clearSearch,
-                            child: const Padding(
-                              padding: EdgeInsets.only(left: TwSpacing.x2),
-                              child: Icon(
-                                Icons.clear,
-                                size: 20,
-                                color: TwColors.textMuted,
-                              ),
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
+                child: AppSearchBar(
+                  controller: _searchController,
+                  hintText: 'Search restaurants...',
+                  onChanged: _onSearchChanged,
+                  onClear: _clearSearch,
                 ),
               ),
               const SizedBox(height: TwSpacing.sectionGapDense),
@@ -363,13 +354,6 @@ class _FoodHomeScreenState extends State<FoodHomeScreen> {
       ),
     );
   }
-}
-
-class _FoodHomeData {
-  const _FoodHomeData({required this.categories, required this.restaurants});
-
-  final List<Category> categories;
-  final List<Restaurant> restaurants;
 }
 
 class _FoodHomeError extends StatelessWidget {

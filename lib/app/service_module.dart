@@ -107,6 +107,7 @@ abstract final class ServiceRegistry {
       description: 'Phones, gadgets and accessories',
       entryRoute: AppRoutes.electronics,
       icon: Icons.devices_outlined,
+      photoUrl: '$_iconBucketUrl/service-electronics.jpg',
     ),
   ];
 

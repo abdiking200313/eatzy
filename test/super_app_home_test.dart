@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:chowflow/config/theme.dart';
 import 'package:chowflow/app/service_module.dart';
 import 'package:chowflow/features/super_app/presentation/super_app_home_screen.dart';
@@ -44,17 +45,13 @@ void main() {
     final groceryCard = tester.widget<Material>(
       find.byKey(const Key('service-grocery')),
     );
-    // White cards only: the service accent stays confined to the 48px icon
-    // chip, so the card fill itself is the neutral token, never the
-    // per-service tinted `ServiceThemes.grocery.card`.
-    expect(groceryCard.color, TwColors.card);
-    // Grocery now has a real photo (`ServiceRegistry.modules`), so its tile
-    // renders the photo chip, not the icon chip — see item 1 of the
-    // 2026-09-22 category-photo follow-up.
+    // The tile is a full-bleed photo on a neutral backing, never tinted with
+    // the per-service color.
+    expect(groceryCard.color, TwColors.stone100);
     expect(
       find.descendant(
         of: find.byKey(const Key('service-grocery')),
-        matching: find.byType(ServicePhotoChip),
+        matching: find.byType(CachedNetworkImage),
       ),
       findsOneWidget,
     );
@@ -69,7 +66,7 @@ void main() {
   });
 
   testWidgets(
-    'category grid is 4 columns: services (incl. Fresh Meat and Electronics), coming soon, then More',
+    'category grid is 3 columns of services then More, with no coming-soon placeholders',
     (tester) async {
       await tester.pumpWidget(
         MaterialApp(
@@ -85,84 +82,32 @@ void main() {
         'service-pharmacy',
         'service-fresh-meat',
         'service-electronics',
-        'coming-soon-delivery',
-        'coming-soon-deals',
         'service-more',
       ];
       final tops = [
         for (final key in keys) tester.getTopLeft(find.byKey(Key(key))),
       ];
-      // Row one is the first four tiles, row two the last four, left to right.
-      for (var i = 0; i < 4; i++) {
+      // Row one is the first three tiles, row two the last three, left to
+      // right.
+      for (var i = 0; i < 3; i++) {
         expect(tops[i].dy, tops[0].dy);
-        expect(tops[i + 4].dy, tops[4].dy);
-        expect(tops[i + 4].dx, tops[i].dx);
+        expect(tops[i + 3].dy, tops[3].dy);
+        expect(tops[i + 3].dx, tops[i].dx);
       }
-      expect(tops[4].dy, greaterThan(tops[0].dy));
+      expect(tops[3].dy, greaterThan(tops[0].dy));
       expect(tops[1].dx, greaterThan(tops[0].dx));
 
-      for (final label in [
-        'Fresh Meat',
-        'Delivery',
-        'Deals',
-        'Electronics',
-        'More',
-      ]) {
+      for (final label in ['Fresh Meat', 'Electronics', 'More']) {
         expect(find.text(label), findsOneWidget);
       }
-      // Only the two remaining placeholders carry the badge.
-      expect(find.text('Soon'), findsNWidgets(2));
+      // Coming-soon categories live only on the full Services list.
+      for (final label in ['Delivery', 'Deals', 'Soon']) {
+        expect(find.text(label), findsNothing);
+      }
     },
   );
 
-  testWidgets('coming-soon tiles are grayscale; real service tiles are not', (
-    tester,
-  ) async {
-    await tester.pumpWidget(
-      MaterialApp(
-        theme: buildAppTheme(),
-        home: const SuperAppHomeScreen(storeListingLoader: _noStores),
-      ),
-    );
-    await tester.pump();
-
-    // Coming-soon tiles wrap their icon/photo chip in a ColorFiltered
-    // (grayscale) matrix, not just carrying the "Soon" badge.
-    expect(
-      find.descendant(
-        of: find.byKey(const Key('coming-soon-deals')),
-        matching: find.byType(ColorFiltered),
-      ),
-      findsOneWidget,
-    );
-    expect(
-      find.descendant(
-        of: find.byKey(const Key('coming-soon-delivery')),
-        matching: find.byType(ColorFiltered),
-      ),
-      findsOneWidget,
-    );
-
-    // A real, live service tile stays full color.
-    expect(
-      find.descendant(
-        of: find.byKey(const Key('service-food')),
-        matching: find.byType(ColorFiltered),
-      ),
-      findsNothing,
-    );
-    expect(
-      find.descendant(
-        of: find.byKey(const Key('service-grocery')),
-        matching: find.byType(ColorFiltered),
-      ),
-      findsNothing,
-    );
-  });
-
-  testWidgets('coming-soon tile shows a snackbar instead of navigating', (
-    tester,
-  ) async {
+  testWidgets('"More" opens the full Services list', (tester) async {
     final router = GoRouter(
       initialLocation: '/',
       routes: [
@@ -182,14 +127,8 @@ void main() {
     );
     await tester.pump();
 
-    await tester.ensureVisible(find.byKey(const Key('coming-soon-deals')));
+    await tester.ensureVisible(find.byKey(const Key('service-more')));
     await tester.pump();
-    await tester.tap(find.byKey(const Key('coming-soon-deals')));
-    await tester.pump();
-    expect(find.text('Deals is coming soon'), findsOneWidget);
-    expect(find.text('services screen'), findsNothing);
-
-    // "More" is a real link to the full list, not a placeholder.
     await tester.tap(find.byKey(const Key('service-more')));
     await tester.pumpAndSettle();
     expect(find.text('services screen'), findsOneWidget);

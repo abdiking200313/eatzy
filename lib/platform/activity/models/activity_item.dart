@@ -1,3 +1,4 @@
+import '../../../app/app_routes.dart';
 import '../../../app/service_module.dart';
 
 class ActivityItem {
@@ -97,6 +98,23 @@ class ActivityItem {
     'cash_on_delivery' => 'Cash on delivery',
     final other => other,
   };
+
+  /// The order details page for this order, or `null` for a
+  /// [ServiceId.unknown] row: [fromMap] has already discarded its raw
+  /// `service_id` (see #62), so there is nothing real to key the lookup on.
+  String? get orderDetailsPath {
+    final rawServiceId = switch (serviceId) {
+      ServiceId.food => 'food',
+      ServiceId.grocery => 'grocery',
+      ServiceId.pharmacy => 'pharmacy',
+      ServiceId.unknown => null,
+    };
+    if (rawServiceId == null) return null;
+    return AppRoutes.trackOrderDetailsPath(
+      serviceId: rawServiceId,
+      orderId: id,
+    );
+  }
 
   /// A human-readable label for [paymentStatus]. See [paymentMethodLabel].
   String? get paymentStatusLabel => switch (paymentStatus) {

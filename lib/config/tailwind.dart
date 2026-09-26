@@ -34,6 +34,7 @@ class TwColors {
   static const Color bgMuted = blue50;
   static const Color card = white;
   static const Color cardMuted = Color(0xFFF8FAFD);
+  static const Color searchFill = Color(0xFFEEF1F5);
   static const Color border = Color(0xFFE2E8F0);
   static const Color borderStrong = Color(0xFFCBD5E1);
   static const Color text = Color(0xFF0F172A);

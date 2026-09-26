@@ -11,7 +11,7 @@ import '../../../widgets/app_misc.dart';
 import '../../../widgets/app_scaffold.dart';
 import '../../../widgets/cart_app_bar_action.dart';
 import '../../../widgets/store_hero_app_bar.dart';
-import '../../../widgets/store_search_field.dart';
+import '../../../widgets/app_search_bar.dart';
 import '../models/pharmacy_product.dart';
 import 'pharmacy_product_details_screen.dart';
 import 'pharmacy_controller.dart';
@@ -240,7 +240,7 @@ class _PharmacyCatalogScreenState extends State<PharmacyCatalogScreen> {
                 if (index == 0) {
                   return Padding(
                     padding: const EdgeInsets.only(bottom: TwSpacing.x3_5),
-                    child: StoreSearchField(
+                    child: AppSearchBar(
                       controller: _searchController,
                       hintText: 'Search this pharmacy...',
                       onChanged: _onSearchChanged,

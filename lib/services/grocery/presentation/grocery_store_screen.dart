@@ -8,7 +8,7 @@ import '../../../widgets/app_misc.dart';
 import '../../../widgets/app_scaffold.dart';
 import '../../../widgets/cart_app_bar_action.dart';
 import '../../../widgets/store_hero_app_bar.dart';
-import '../../../widgets/store_search_field.dart';
+import '../../../widgets/app_search_bar.dart';
 import '../models/grocery_models.dart';
 import 'grocery_controller.dart';
 import 'grocery_product_details_screen.dart';
@@ -348,7 +348,7 @@ class _StoreView extends StatelessWidget {
                     style: TwText.textSm,
                   ),
                   const SizedBox(height: TwSpacing.x5),
-                  StoreSearchField(
+                  AppSearchBar(
                     controller: searchController,
                     hintText: 'Search products...',
                     onClear: onSearchClear,

@@ -184,8 +184,8 @@ void main() {
     );
   });
 
-  group('"Track order" row action (issue #43)', () {
-    testWidgets('a real-service row exposes a track action that navigates to '
+  group('tapping an order row opens its order details', () {
+    testWidgets('a real-service row navigates to '
         'trackOrderDetails with that row\'s service/order id', (tester) async {
       final controller = ActivityController()
         ..record(
@@ -223,11 +223,12 @@ void main() {
       await tester.pumpWidget(MaterialApp.router(routerConfig: router));
       await tester.pumpAndSettle();
 
-      // The existing row tap (issue #67, navigates to the shell home)
-      // must remain intact -- this is an ADDITION, not a replacement.
-      expect(find.byIcon(Icons.local_shipping_outlined), findsOneWidget);
+      // No separate truck icon or "Order again" on the row any more: both
+      // live on the order details page.
+      expect(find.byIcon(Icons.local_shipping_outlined), findsNothing);
+      expect(find.text('Order again'), findsNothing);
 
-      await tester.tap(find.byIcon(Icons.local_shipping_outlined));
+      await tester.tap(find.text('Jollof Feast Order'));
       await tester.pumpAndSettle();
 
       expect(find.text('track order screen'), findsOneWidget);
@@ -236,7 +237,7 @@ void main() {
     });
 
     testWidgets(
-      'a row with an unrecognized service has no track action (there is no '
+      'a row with an unrecognized service does not navigate (there is no '
       'real service_id left to key a lookup on, see #62)',
       (tester) async {
         final controller = ActivityController()
@@ -257,7 +258,11 @@ void main() {
         );
         await tester.pumpAndSettle();
 
-        expect(find.byIcon(Icons.local_shipping_outlined), findsNothing);
+        await tester.tap(find.text('Mystery order'));
+        await tester.pumpAndSettle();
+
+        expect(tester.takeException(), isNull);
+        expect(find.text('Mystery order'), findsOneWidget);
       },
     );
   });
