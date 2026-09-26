@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../app/app_routes.dart';
 import '../../../config/theme.dart';
 import '../../../widgets/app_cards.dart';
 import '../../../widgets/app_scaffold.dart';
@@ -34,7 +33,7 @@ class GroceryScreen extends StatefulWidget {
 
 class _GroceryScreenState extends State<GroceryScreen> {
   GroceryController get _controller =>
-      widget.controller ?? GroceryController.instance;
+      widget.controller ?? GroceryController.forType(widget.storeType);
 
   final _searchController = TextEditingController();
 
@@ -107,7 +106,6 @@ class _GroceryScreenState extends State<GroceryScreen> {
   List<GroceryStore> _visibleStores() {
     final query = _searchController.text.trim().toLowerCase();
     return _controller.stores
-        .where((store) => store.storeType == widget.storeType)
         .where(
           (store) => query.isEmpty || store.name.toLowerCase().contains(query),
         )
@@ -115,7 +113,7 @@ class _GroceryScreenState extends State<GroceryScreen> {
   }
 
   void _openStore(GroceryStore store) =>
-      context.push(AppRoutes.groceryStoreDetails(store.id));
+      context.push(widget.storeType.storeDetailsRoute(store.id));
 
   @override
   Widget build(BuildContext context) {
@@ -127,8 +125,8 @@ class _GroceryScreenState extends State<GroceryScreen> {
           listenable: _controller,
           itemCount: () => _controller.itemCount,
           icon: Icons.shopping_basket_rounded,
-          tooltip: (count) => 'Grocery cart ($count)',
-          route: AppRoutes.groceryCart,
+          tooltip: (count) => '${widget.storeType.serviceName} cart ($count)',
+          route: widget.storeType.cartRoute,
         ),
       ],
       body: _body(),

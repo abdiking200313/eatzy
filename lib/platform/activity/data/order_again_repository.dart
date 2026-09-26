@@ -31,7 +31,11 @@ class GroceryReorderBasket extends ReorderBasket {
   const GroceryReorderBasket({
     required this.lines,
     required super.skippedNames,
+    this.storeType = GroceryStoreType.grocery,
   });
+
+  /// Grocery, Fresh Meat or Electronics: picks which cart to fill.
+  final GroceryStoreType storeType;
 
   /// Quantities are already capped at today's available stock.
   final List<({GroceryProduct product, double quantity})> lines;
@@ -168,7 +172,7 @@ class SupabaseOrderAgainRepository implements OrderAgainRepository {
           );
     final storeActive = await _client
         .from('grocery_stores')
-        .select('id')
+        .select('id, store_type')
         .eq('id', order['store_id'].toString())
         .eq('is_active', true)
         .maybeSingle();
@@ -194,7 +198,11 @@ class SupabaseOrderAgainRepository implements OrderAgainRepository {
             : wanted,
       ));
     }
-    return GroceryReorderBasket(lines: lines, skippedNames: skipped);
+    return GroceryReorderBasket(
+      lines: lines,
+      skippedNames: skipped,
+      storeType: GroceryStoreType.fromDb(storeActive?['store_type']),
+    );
   }
 
   Future<ReorderBasket?> _pharmacyBasket(String orderId) async {

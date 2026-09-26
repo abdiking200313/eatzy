@@ -3,6 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../app/app_routes.dart';
 import '../../../app/service_module.dart';
 import '../../../services/food/presentation/cart_controller.dart';
+import '../../../services/grocery/models/grocery_models.dart';
 import '../../../services/grocery/presentation/grocery_controller.dart';
 import '../../../services/pharmacy/presentation/pharmacy_controller.dart';
 import '../data/order_again_repository.dart';
@@ -31,8 +32,8 @@ class OrderAgainService {
   final GroceryController? _groceryOverride;
   final PharmacyController? _pharmacyOverride;
   CartController get _foodCart => _foodCartOverride ?? CartController.instance;
-  GroceryController get _grocery =>
-      _groceryOverride ?? GroceryController.instance;
+  GroceryController _grocery(GroceryStoreType type) =>
+      _groceryOverride ?? GroceryController.forType(type);
   PharmacyController get _pharmacy =>
       _pharmacyOverride ?? PharmacyController.instance;
 
@@ -50,7 +51,7 @@ class OrderAgainService {
   /// Whether filling [basket] would replace items already in a cart.
   bool wouldReplaceCart(ReorderBasket basket) => switch (basket) {
     FoodReorderBasket() => _foodCart.isNotEmpty,
-    GroceryReorderBasket() => _grocery.isNotEmpty,
+    GroceryReorderBasket(:final storeType) => _grocery(storeType).isNotEmpty,
     PharmacyReorderBasket() => _pharmacy.isCartNotEmpty,
   };
 
@@ -64,17 +65,18 @@ class OrderAgainService {
           await _foodCart.addItem(item, quantity: item.quantity);
         }
         return AppRoutes.foodCart;
-      case GroceryReorderBasket(:final lines):
-        for (final line in List.of(_grocery.cart)) {
-          _grocery.remove(line.product.id);
+      case GroceryReorderBasket(:final lines, :final storeType):
+        final grocery = _grocery(storeType);
+        for (final line in List.of(grocery.cart)) {
+          grocery.remove(line.product.id);
         }
         for (final (:product, :quantity) in lines) {
-          _grocery.addProduct(product);
+          grocery.addProduct(product);
           // Falls back to one step when the past quantity isn't a valid
           // step of today's product (e.g. its step size changed).
-          _grocery.setQuantity(product.id, quantity);
+          grocery.setQuantity(product.id, quantity);
         }
-        return AppRoutes.groceryCart;
+        return storeType.cartRoute;
       case PharmacyReorderBasket(:final lines):
         _pharmacy.clearCart();
         for (final (:product, :quantity) in lines) {

@@ -115,28 +115,30 @@ class AppRouter {
     ),
   };
 
-  static const Map<String, Widget> _groceryPages = {
-    AppRoutes.grocery: ZivoServiceTheme(
+  /// Store list, store page, cart and checkout for one grocery-engine
+  /// category. Grocery, Fresh Meat and Electronics each get their own set,
+  /// with their own palette and their own cart (owner decision, 2026-09-25).
+  static List<RouteBase> _groceryRoutes(GroceryStoreType type) {
+    Widget themed(Widget child) => ZivoServiceTheme(
       serviceId: ServiceId.grocery,
-      child: GroceryScreen(),
-    ),
-    AppRoutes.freshMeat: ZivoServiceTheme(
-      serviceId: ServiceId.grocery,
-      child: GroceryScreen(storeType: GroceryStoreType.freshMeat),
-    ),
-    AppRoutes.electronics: ZivoServiceTheme(
-      serviceId: ServiceId.grocery,
-      child: GroceryScreen(storeType: GroceryStoreType.electronics),
-    ),
-    AppRoutes.groceryCart: ZivoServiceTheme(
-      serviceId: ServiceId.grocery,
-      child: GroceryCartScreen(),
-    ),
-    AppRoutes.groceryCheckout: ZivoServiceTheme(
-      serviceId: ServiceId.grocery,
-      child: GroceryCheckoutScreen(),
-    ),
-  };
+      palette: type.palette,
+      child: child,
+    );
+    return [
+      _page(type.listRoute, themed(GroceryScreen(storeType: type))),
+      _page(type.cartRoute, themed(GroceryCartScreen(storeType: type))),
+      _page(type.checkoutRoute, themed(GroceryCheckoutScreen(storeType: type))),
+      GoRoute(
+        path: type.storeRoutePattern,
+        builder: (_, state) => themed(
+          GroceryStoreScreen(
+            storeId: state.pathParameters['storeId']!,
+            storeType: type,
+          ),
+        ),
+      ),
+    ];
+  }
 
   static const Map<String, Widget> _pharmacyPages = {
     AppRoutes.pharmacy: ZivoServiceTheme(
@@ -249,18 +251,7 @@ class AppRouter {
       ),
       StatefulShellBranch(
         routes: [
-          ..._groceryPages.entries.map(
-            (entry) => _page(entry.key, entry.value),
-          ),
-          GoRoute(
-            path: AppRoutes.groceryStore,
-            builder: (_, state) => ZivoServiceTheme(
-              serviceId: ServiceId.grocery,
-              child: GroceryStoreScreen(
-                storeId: state.pathParameters['storeId']!,
-              ),
-            ),
-          ),
+          for (final type in GroceryStoreType.values) ..._groceryRoutes(type),
         ],
       ),
       StatefulShellBranch(

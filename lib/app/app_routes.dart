@@ -71,11 +71,18 @@ class AppRoutes {
   static const groceryCart = '$grocery/cart';
   static const groceryCheckout = '$grocery/checkout';
 
-  // Fresh Meat and Electronics are grocery-engine store lists filtered by
-  // `grocery_stores.store_type` — they share the grocery cart, checkout and
-  // store pages.
+  // Fresh Meat and Electronics run on the grocery engine (filtered by
+  // `grocery_stores.store_type`) but each has its own store pages, cart and
+  // checkout, so each keeps a separate cart (owner decision, 2026-09-25).
+  // See `GroceryStoreType`'s route getters.
   static const freshMeat = '$grocery/fresh-meat';
+  static const freshMeatStore = '$freshMeat/stores/:storeId';
+  static const freshMeatCart = '$freshMeat/cart';
+  static const freshMeatCheckout = '$freshMeat/checkout';
   static const electronics = '$grocery/electronics';
+  static const electronicsStore = '$electronics/stores/:storeId';
+  static const electronicsCart = '$electronics/cart';
+  static const electronicsCheckout = '$electronics/checkout';
 
   // Pharmacy service
   static const pharmacy = '/pharmacy';

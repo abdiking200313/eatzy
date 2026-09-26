@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
-import '../../../app/app_routes.dart';
 import '../../../config/theme.dart';
 import '../../../widgets/app_cards.dart';
 import '../../../widgets/app_misc.dart';
@@ -20,10 +19,18 @@ import 'widgets/grocery_product_card.dart';
 /// "restaurant list -> `RestaurantScreen`" flow: only this store's products
 /// are shown, and search here filters by product name rather than by store.
 class GroceryStoreScreen extends StatefulWidget {
-  const GroceryStoreScreen({super.key, required this.storeId, this.controller});
+  const GroceryStoreScreen({
+    super.key,
+    required this.storeId,
+    this.controller,
+    this.storeType = GroceryStoreType.grocery,
+  });
 
   final String storeId;
   final GroceryController? controller;
+
+  /// Which category's cart this store adds to.
+  final GroceryStoreType storeType;
 
   @override
   State<GroceryStoreScreen> createState() => _GroceryStoreScreenState();
@@ -31,7 +38,7 @@ class GroceryStoreScreen extends StatefulWidget {
 
 class _GroceryStoreScreenState extends State<GroceryStoreScreen> {
   GroceryController get _controller =>
-      widget.controller ?? GroceryController.instance;
+      widget.controller ?? GroceryController.forType(widget.storeType);
 
   final _searchController = TextEditingController();
 
@@ -146,8 +153,8 @@ class _GroceryStoreScreenState extends State<GroceryStoreScreen> {
       listenable: _controller,
       itemCount: () => _controller.itemCount,
       icon: Icons.shopping_basket_rounded,
-      tooltip: (count) => 'Grocery cart ($count)',
-      route: AppRoutes.groceryCart,
+      tooltip: (count) => '${widget.storeType.serviceName} cart ($count)',
+      route: widget.storeType.cartRoute,
     );
   }
 
@@ -196,6 +203,7 @@ class _GroceryStoreScreenState extends State<GroceryStoreScreen> {
           product: product,
           inCartQuantity: inCart,
           onAddToCart: (steps) => _add(product, steps: steps),
+          storeType: widget.storeType,
         ),
       ),
     );
