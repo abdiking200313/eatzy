@@ -65,25 +65,21 @@ class _SuperAppHomeScreenState extends State<SuperAppHomeScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _PromoBanner(onExplore: () => context.go(AppRoutes.explore)),
-                const SizedBox(height: TwSpacing.sectionGap),
                 _SectionHeader(
                   title: 'Categories',
                   actionLabel: 'See all',
                   onPressed: () => context.push(AppRoutes.services),
                 ),
-                const SizedBox(height: TwSpacing.headerToContent),
                 _ServiceGrid(
                   modules: ServiceRegistry.modules,
                   comingSoon: ServiceRegistry.comingSoon,
                   onMore: () => context.push(AppRoutes.services),
                 ),
-                const SizedBox(height: TwSpacing.sectionGap),
                 _SectionHeader(
                   title: 'Popular Stores',
                   actionLabel: 'View all',
                   onPressed: () => context.go(AppRoutes.explore),
                 ),
-                const SizedBox(height: TwSpacing.headerToContent),
               ],
             ),
           ),
@@ -117,11 +113,8 @@ class _RecentActivitySection extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Padding(
-              padding: const EdgeInsets.fromLTRB(
-                TwSpacing.screenX,
-                TwSpacing.sectionGap,
-                TwSpacing.screenX,
-                0,
+              padding: const EdgeInsets.symmetric(
+                horizontal: TwSpacing.screenX,
               ),
               child: _SectionHeader(
                 title: 'Recent Activity',
@@ -129,7 +122,6 @@ class _RecentActivitySection extends StatelessWidget {
                 onPressed: () => context.go(AppRoutes.activity),
               ),
             ),
-            const SizedBox(height: TwSpacing.headerToContent),
             Padding(
               padding: const EdgeInsets.symmetric(
                 horizontal: TwSpacing.screenX,
@@ -346,6 +338,9 @@ class _ServiceGrid extends StatelessWidget {
     final tileHeight = 100.0 + ((textScale - 1).clamp(0.0, 1.0) * 30.0);
     final platform = ZivoServiceColors.platform;
     return GridView.builder(
+      // Without an explicit padding a vertical GridView adds the phone's
+      // safe-area insets (status bar / home indicator) around itself.
+      padding: EdgeInsets.zero,
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       itemCount: modules.length + comingSoon.length + 1,
@@ -633,22 +628,47 @@ class _SectionHeader extends StatelessWidget {
   final String actionLabel;
   final VoidCallback onPressed;
 
+  /// Tap height of the action link.
+  static const double _tapHeight = 44;
+
   @override
   Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.baseline,
-      textBaseline: TextBaseline.alphabetic,
-      children: [
-        Expanded(
-          child: Text(
-            title,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: TwText.sectionTitle,
+    // The gaps above and below are measured from the title text. The link
+    // is taller than the title (44px tap area), so the part of it that
+    // sticks out past the title is taken out of those gaps instead of
+    // being added to them.
+    const style = TwText.sectionTitle;
+    final titleHeight =
+        MediaQuery.textScalerOf(context).scale(style.fontSize!) * style.height!;
+    final overhang = ((_tapHeight - titleHeight) / 2).clamp(
+      0.0,
+      TwSpacing.headerToContent,
+    );
+    return Padding(
+      padding: EdgeInsets.only(
+        top: TwSpacing.sectionGap - overhang,
+        bottom: TwSpacing.headerToContent - overhang,
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              title,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: style,
+            ),
           ),
-        ),
-        TextButton(onPressed: onPressed, child: Text(actionLabel)),
-      ],
+          TextButton(
+            onPressed: onPressed,
+            style: TextButton.styleFrom(
+              minimumSize: const Size(_tapHeight, _tapHeight),
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
+            child: Text(actionLabel),
+          ),
+        ],
+      ),
     );
   }
 }
