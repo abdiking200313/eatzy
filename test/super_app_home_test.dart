@@ -182,6 +182,8 @@ void main() {
     );
     await tester.pump();
 
+    await tester.ensureVisible(find.byKey(const Key('coming-soon-deals')));
+    await tester.pump();
     await tester.tap(find.byKey(const Key('coming-soon-deals')));
     await tester.pump();
     expect(find.text('Deals is coming soon'), findsOneWidget);

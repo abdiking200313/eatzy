@@ -31,14 +31,17 @@ class SettingCard extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Icon(icon, color: TwColors.primary, size: 24),
-          const SizedBox(width: TwSpacing.x4),
+          SizedBox.square(
+            dimension: 42,
+            child: Icon(icon, color: TwColors.primary, size: 24),
+          ),
+          const SizedBox(width: TwSpacing.x3_5),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(title, style: TwText.fontBoldSm),
-                const SizedBox(height: TwSpacing.x2),
+                const SizedBox(height: 3),
                 Text(
                   subtitle,
                   style: TwText.textXs.copyWith(color: TwColors.textMuted),

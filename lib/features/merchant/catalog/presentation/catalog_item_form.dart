@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../config/tailwind.dart';
 import '../../../../platform/localization/app_money.dart';
 import '../../shared/merchant_media_store.dart';
 import '../../shared/merchant_photo_field.dart';
@@ -138,10 +139,10 @@ class _CatalogItemFormState extends State<CatalogItemForm> {
     final vertical = widget.vertical;
     return Padding(
       padding: EdgeInsets.only(
-        left: 24,
-        right: 24,
-        top: 24,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+        left: TwSpacing.screenX,
+        right: TwSpacing.screenX,
+        top: TwSpacing.x6,
+        bottom: MediaQuery.of(context).viewInsets.bottom + TwSpacing.x6,
       ),
       child: SingleChildScrollView(
         child: Form(
@@ -154,7 +155,7 @@ class _CatalogItemFormState extends State<CatalogItemForm> {
                 _isEditing ? 'Edit item' : 'Add item',
                 style: Theme.of(context).textTheme.titleLarge,
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: TwSpacing.x4),
               TextFormField(
                 controller: _nameController,
                 decoration: const InputDecoration(
@@ -165,7 +166,7 @@ class _CatalogItemFormState extends State<CatalogItemForm> {
                     ? 'Enter a name.'
                     : null,
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: TwSpacing.x3),
               TextFormField(
                 controller: _descriptionController,
                 maxLines: 2,
@@ -174,7 +175,7 @@ class _CatalogItemFormState extends State<CatalogItemForm> {
                   border: OutlineInputBorder(),
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: TwSpacing.x3),
               TextFormField(
                 controller: _priceController,
                 keyboardType: const TextInputType.numberWithOptions(
@@ -191,7 +192,7 @@ class _CatalogItemFormState extends State<CatalogItemForm> {
                     ? 'Enter a valid, non-negative price.'
                     : null,
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: TwSpacing.x4),
               MerchantPhotoField(
                 label: 'Item photo',
                 imageUrl: _imageUrl,
@@ -203,7 +204,7 @@ class _CatalogItemFormState extends State<CatalogItemForm> {
                     setState(() => _isUploading = value),
               ),
               if (vertical == MerchantVertical.grocery) ...[
-                const SizedBox(height: 12),
+                const SizedBox(height: TwSpacing.x3),
                 DropdownButtonFormField<GroceryPricingUnit>(
                   initialValue: _pricingUnit,
                   decoration: const InputDecoration(
@@ -222,7 +223,7 @@ class _CatalogItemFormState extends State<CatalogItemForm> {
                     if (value != null) setState(() => _pricingUnit = value);
                   },
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: TwSpacing.x3),
                 TextFormField(
                   controller: _availableQuantityController,
                   keyboardType: const TextInputType.numberWithOptions(
@@ -241,7 +242,7 @@ class _CatalogItemFormState extends State<CatalogItemForm> {
                 ),
               ],
               if (vertical == MerchantVertical.pharmacy) ...[
-                const SizedBox(height: 12),
+                const SizedBox(height: TwSpacing.x3),
                 DropdownButtonFormField<String>(
                   initialValue: _categoryId,
                   decoration: const InputDecoration(
@@ -260,7 +261,7 @@ class _CatalogItemFormState extends State<CatalogItemForm> {
                   validator: (value) =>
                       value == null ? 'Choose a category.' : null,
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: TwSpacing.x3),
                 TextFormField(
                   controller: _stockQuantityController,
                   keyboardType: TextInputType.number,
@@ -276,7 +277,7 @@ class _CatalogItemFormState extends State<CatalogItemForm> {
                   },
                 ),
               ],
-              const SizedBox(height: 8),
+              const SizedBox(height: TwSpacing.x2),
               SwitchListTile(
                 contentPadding: EdgeInsets.zero,
                 title: const Text('Available'),
@@ -287,7 +288,7 @@ class _CatalogItemFormState extends State<CatalogItemForm> {
                 value: _isAvailable,
                 onChanged: (value) => setState(() => _isAvailable = value),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: TwSpacing.x6),
               ListenableBuilder(
                 listenable: widget.controller,
                 builder: (context, _) {
@@ -302,7 +303,7 @@ class _CatalogItemFormState extends State<CatalogItemForm> {
                             color: Theme.of(context).colorScheme.error,
                           ),
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: TwSpacing.x2),
                       ],
                       FilledButton(
                         onPressed: controller.isSaving || _isUploading

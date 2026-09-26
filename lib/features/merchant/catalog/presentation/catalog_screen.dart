@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../../config/tailwind.dart';
 import '../../../../platform/localization/app_money.dart';
 import '../../shared/merchant_media_store.dart';
 import '../../shared/merchant_photo_field.dart';
@@ -82,6 +83,11 @@ class _CatalogScreenState extends State<CatalogScreen> {
     return showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(TwRadius.hero),
+        ),
+      ),
       builder: (_) => CatalogItemForm(
         controller: _controller,
         vertical: widget.vertical,
@@ -130,9 +136,9 @@ class _CatalogScreenState extends State<CatalogScreen> {
       appBar: AppBar(
         title: Text(widget.storeName),
         bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(20),
+          preferredSize: const Size.fromHeight(TwSpacing.x5),
           child: Padding(
-            padding: const EdgeInsets.only(bottom: 8),
+            padding: const EdgeInsets.only(bottom: TwSpacing.x2),
             child: Text(
               'Catalog',
               style: Theme.of(
@@ -160,7 +166,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
     if (loadError != null && _controller.items.isEmpty) {
       return Center(
         child: Padding(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.all(TwSpacing.x6),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -169,9 +175,9 @@ class _CatalogScreenState extends State<CatalogScreen> {
                 size: 48,
                 color: Theme.of(context).colorScheme.error,
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: TwSpacing.x4),
               Text(loadError, textAlign: TextAlign.center),
-              const SizedBox(height: 16),
+              const SizedBox(height: TwSpacing.x4),
               FilledButton(
                 onPressed: () => unawaited(_controller.load()),
                 child: const Text('Try again'),
@@ -185,7 +191,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
     if (_controller.hasLoaded && _controller.items.isEmpty) {
       return Center(
         child: Padding(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.all(TwSpacing.x6),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -194,17 +200,17 @@ class _CatalogScreenState extends State<CatalogScreen> {
                 size: 48,
                 color: Theme.of(context).disabledColor,
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: TwSpacing.x4),
               const Text(
                 'No items yet',
                 style: TextStyle(fontWeight: FontWeight.bold),
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: TwSpacing.x1),
               const Text(
                 'Add your first item to start selling.',
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: TwSpacing.x4),
               FilledButton.icon(
                 onPressed: () => _openForm(),
                 icon: const Icon(Icons.add),
@@ -219,9 +225,14 @@ class _CatalogScreenState extends State<CatalogScreen> {
     return RefreshIndicator(
       onRefresh: () => _controller.load(),
       child: ListView.separated(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
+        padding: const EdgeInsets.fromLTRB(
+          TwSpacing.screenX,
+          TwSpacing.x4,
+          TwSpacing.screenX,
+          TwSpacing.x12 * 2,
+        ),
         itemCount: _controller.items.length,
-        separatorBuilder: (_, _) => const SizedBox(height: 8),
+        separatorBuilder: (_, _) => const SizedBox(height: TwSpacing.x2),
         itemBuilder: (context, index) {
           final item = _controller.items[index];
           return _CatalogItemTile(
@@ -254,7 +265,10 @@ class _CatalogItemTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.symmetric(
+          horizontal: TwSpacing.x3_5,
+          vertical: TwSpacing.listRowY,
+        ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -267,7 +281,7 @@ class _CatalogItemTile extends StatelessWidget {
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                   if ((item.description ?? '').trim().isNotEmpty) ...[
-                    const SizedBox(height: 2),
+                    const SizedBox(height: 3),
                     Text(
                       item.description!,
                       maxLines: 2,

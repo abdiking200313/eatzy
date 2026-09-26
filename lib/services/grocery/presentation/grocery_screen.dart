@@ -171,10 +171,10 @@ class _GroceryScreenState extends State<GroceryScreen> {
       onRefresh: () => _controller.load(forceRefresh: true),
       child: ListView.builder(
         padding: const EdgeInsets.fromLTRB(
-          TwSpacing.x5,
+          TwSpacing.screenX,
           TwSpacing.x2,
-          TwSpacing.x5,
-          TwSpacing.x8,
+          TwSpacing.screenX,
+          TwSpacing.x6,
         ),
         physics: const AlwaysScrollableScrollPhysics(),
         itemCount: itemCount,
@@ -185,7 +185,7 @@ class _GroceryScreenState extends State<GroceryScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Somali stores near you', style: TwText.textXl),
+                  Text('Somali stores near you', style: TwText.sectionTitle),
                   const SizedBox(height: TwSpacing.x2),
                   Text(
                     'Pick a store to browse its products.',
@@ -228,11 +228,15 @@ class _GroceryScreenState extends State<GroceryScreen> {
     return OutlinedCard(
       backgroundColor: TwColors.card,
       borderColor: TwColors.border,
-      borderRadius: 50,
+      borderRadius: TwRadius.input,
+      padding: const EdgeInsets.symmetric(
+        horizontal: TwSpacing.x4,
+        vertical: TwSpacing.x3_5,
+      ),
       child: Row(
         children: [
           const Icon(Icons.search, color: TwColors.textMuted),
-          const SizedBox(width: TwSpacing.x4),
+          const SizedBox(width: TwSpacing.x3),
           Expanded(
             child: TextField(
               controller: _searchController,

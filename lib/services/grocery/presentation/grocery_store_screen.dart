@@ -332,10 +332,10 @@ class _StoreView extends StatelessWidget {
           ),
           SliverPadding(
             padding: const EdgeInsets.fromLTRB(
-              TwSpacing.x5,
-              TwSpacing.x5,
-              TwSpacing.x5,
-              TwSpacing.x2,
+              TwSpacing.screenX,
+              TwSpacing.screenX,
+              TwSpacing.screenX,
+              0,
             ),
             sliver: SliverToBoxAdapter(
               child: Column(
@@ -359,7 +359,9 @@ class _StoreView extends StatelessWidget {
           ),
           if (showEmptyRow)
             SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: TwSpacing.x5),
+              padding: const EdgeInsets.symmetric(
+                horizontal: TwSpacing.screenX,
+              ),
               sliver: SliverToBoxAdapter(
                 child: _EmptyProducts(
                   searchQuery: searchController.text.trim(),
@@ -369,20 +371,24 @@ class _StoreView extends StatelessWidget {
           else
             for (final section in sections) ...[
               if (!showSectionHeaders)
-                const SliverToBoxAdapter(child: SizedBox(height: TwSpacing.x3))
+                const SliverToBoxAdapter(
+                  child: SizedBox(height: TwSpacing.headerToContent),
+                )
               else
                 SliverPadding(
                   padding: const EdgeInsets.fromLTRB(
-                    TwSpacing.x5,
-                    TwSpacing.x4,
-                    TwSpacing.x5,
-                    TwSpacing.x3,
+                    TwSpacing.screenX,
+                    TwSpacing.sectionGap,
+                    TwSpacing.screenX,
+                    TwSpacing.headerToContent,
                   ),
                   sliver: SliverToBoxAdapter(
                     child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.baseline,
+                      textBaseline: TextBaseline.alphabetic,
                       children: [
                         Expanded(
-                          child: Text(section.name, style: TwText.textXl),
+                          child: Text(section.name, style: TwText.sectionTitle),
                         ),
                         Text(
                           '${section.products.length} '
@@ -396,7 +402,9 @@ class _StoreView extends StatelessWidget {
                   ),
                 ),
               SliverPadding(
-                padding: const EdgeInsets.symmetric(horizontal: TwSpacing.x5),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: TwSpacing.screenX,
+                ),
                 sliver: SliverList.separated(
                   itemCount: section.products.length,
                   separatorBuilder: (_, _) =>
@@ -412,7 +420,7 @@ class _StoreView extends StatelessWidget {
                 ),
               ),
             ],
-          const SliverToBoxAdapter(child: SizedBox(height: TwSpacing.x8)),
+          const SliverToBoxAdapter(child: SizedBox(height: TwSpacing.x6)),
         ],
       ),
     );

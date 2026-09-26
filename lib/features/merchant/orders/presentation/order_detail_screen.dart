@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../../../../config/tailwind.dart';
 import '../../../../platform/localization/app_money.dart';
 import '../models/merchant_order.dart';
 import '../models/merchant_order_vertical.dart';
@@ -92,7 +93,7 @@ class _OrderGoneMessage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(TwSpacing.x6),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -101,7 +102,7 @@ class _OrderGoneMessage extends StatelessWidget {
               size: 48,
               color: Theme.of(context).disabledColor,
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: TwSpacing.x3),
             const Text(
               'This order is no longer available.',
               textAlign: TextAlign.center,
@@ -132,7 +133,12 @@ class _OrderDetailBody extends StatelessWidget {
     final canCancel = canCancelOrder(vertical, order.status);
 
     return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
+      padding: const EdgeInsets.fromLTRB(
+        TwSpacing.screenX,
+        TwSpacing.x4,
+        TwSpacing.screenX,
+        TwSpacing.x6,
+      ),
       children: [
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -145,7 +151,7 @@ class _OrderDetailBody extends StatelessWidget {
                     'Order #${shortOrderId(order.id)}',
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 3),
                   Text(
                     _formatDateTime(order.createdAt),
                     style: Theme.of(context).textTheme.bodySmall,
@@ -156,13 +162,13 @@ class _OrderDetailBody extends StatelessWidget {
             _StatusPill(status: order.status),
           ],
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: TwSpacing.x5),
         _SectionCard(
           title: 'Items',
           child: Column(
             children: [
               for (final item in order.items) _LineItemRow(item: item),
-              const Divider(height: 24),
+              const Divider(height: 9, indent: 4, endIndent: 4),
               _TotalsRow(label: 'Subtotal', cents: order.subtotalCents),
               _TotalsRow(label: 'Delivery fee', cents: order.deliveryFeeCents),
               if (order.taxCents case final taxCents?)
@@ -175,7 +181,7 @@ class _OrderDetailBody extends StatelessWidget {
             ],
           ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: TwSpacing.x3),
         _SectionCard(
           title: 'Delivery details',
           child: Column(
@@ -185,9 +191,9 @@ class _OrderDetailBody extends StatelessWidget {
                 order.recipientName,
                 style: const TextStyle(fontWeight: FontWeight.w600),
               ),
-              const SizedBox(height: 2),
+              const SizedBox(height: 3),
               Text(order.phone),
-              const SizedBox(height: 8),
+              const SizedBox(height: TwSpacing.x2),
               Text(
                 order.deliveryLine.isEmpty
                     ? 'No delivery note. Call the customer for directions.'
@@ -195,24 +201,24 @@ class _OrderDetailBody extends StatelessWidget {
               ),
               if (order.deliverySlotLabel case final slot?
                   when slot.trim().isNotEmpty) ...[
-                const SizedBox(height: 8),
+                const SizedBox(height: TwSpacing.x2),
                 Text('Delivery window: $slot'),
               ],
               if (substitutionPreferenceLabel(order.substitutionPreference)
                   case final substitution?) ...[
-                const SizedBox(height: 8),
+                const SizedBox(height: TwSpacing.x2),
                 Text(substitution),
               ],
               if (order.deliveryInstructions case final instructions?
                   when instructions.trim().isNotEmpty) ...[
-                const SizedBox(height: 8),
+                const SizedBox(height: TwSpacing.x2),
                 Text('Instructions: $instructions'),
               ],
             ],
           ),
         ),
         if (order.paymentMethod != null || order.paymentStatus != null) ...[
-          const SizedBox(height: 12),
+          const SizedBox(height: TwSpacing.x3),
           _SectionCard(
             title: 'Payment',
             child: Column(
@@ -226,7 +232,7 @@ class _OrderDetailBody extends StatelessWidget {
             ),
           ),
         ],
-        const SizedBox(height: 20),
+        const SizedBox(height: TwSpacing.x5),
         if (nextStatus == null && !canCancel)
           const Text(
             'This order is complete. No further action is available.',
@@ -248,7 +254,8 @@ class _OrderDetailBody extends StatelessWidget {
                     child: Text(isConfirmed ? 'Reject order' : 'Cancel order'),
                   ),
                 ),
-              if (canCancel && nextStatus != null) const SizedBox(width: 12),
+              if (canCancel && nextStatus != null)
+                const SizedBox(width: TwSpacing.x3),
               if (nextStatus != null)
                 Expanded(
                   child: FilledButton(
@@ -283,12 +290,12 @@ class _SectionCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(TwSpacing.x4),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(title, style: Theme.of(context).textTheme.titleMedium),
-            const SizedBox(height: 12),
+            const SizedBox(height: TwSpacing.headerToContent),
             child,
           ],
         ),
@@ -305,14 +312,14 @@ class _LineItemRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: const EdgeInsets.symmetric(vertical: TwSpacing.x1),
       child: Row(
         children: [
           Text(
             '${item.quantity}x',
             style: Theme.of(context).textTheme.bodyMedium,
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: TwSpacing.x2),
           Expanded(child: Text(item.name)),
           Text(AppMoney.formatCents(item.lineTotalCents)),
         ],
@@ -340,7 +347,7 @@ class _TotalsRow extends StatelessWidget {
           ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold)
         : Theme.of(context).textTheme.bodyMedium;
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 2),
+      padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 4),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -361,10 +368,13 @@ class _StatusPill extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      padding: const EdgeInsets.symmetric(
+        horizontal: TwSpacing.x2_5,
+        vertical: 6,
+      ),
       decoration: BoxDecoration(
         color: scheme.primaryContainer,
-        borderRadius: BorderRadius.circular(999),
+        borderRadius: BorderRadius.circular(TwRadius.full),
       ),
       child: Text(
         merchantOrderStatusLabel(status),

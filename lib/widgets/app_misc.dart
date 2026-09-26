@@ -69,7 +69,7 @@ class NetworkAvatar extends StatelessWidget {
 }
 
 /// The one place a per-service accent color is allowed to appear outside a
-/// button: a fixed 48x48 rounded chip holding an icon, or its photo
+/// button: a rounded chip (48x48 by default) holding an icon, or its photo
 /// counterpart [ServicePhotoChip]. Cards, list rows, and section headers
 /// must stay on the neutral tokens and use one of these chips (with a
 /// [ZivoServiceColors] accent, or an explicit override) instead of tinting
@@ -82,15 +82,17 @@ class ServiceIconChip extends StatelessWidget {
     this.foreground,
     this.borderRadius = TwRadius.lg,
     this.iconSize = 24,
+    this.size = defaultSize,
   });
 
-  static const double size = 48;
+  static const double defaultSize = 48;
 
   final IconData icon;
   final Color? background;
   final Color? foreground;
   final double borderRadius;
   final double iconSize;
+  final double size;
 
   @override
   Widget build(BuildContext context) {
@@ -116,7 +118,7 @@ class ServicePhotoChip extends StatelessWidget {
     super.key,
     required this.imageUrl,
     this.ringColor,
-    this.size = ServiceIconChip.size,
+    this.size = ServiceIconChip.defaultSize,
   });
 
   final String imageUrl;

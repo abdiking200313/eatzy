@@ -21,6 +21,8 @@ class SectionHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      crossAxisAlignment: CrossAxisAlignment.baseline,
+      textBaseline: TextBaseline.alphabetic,
       children: [
         // Expanded + ellipsis keeps this row overflow-free next to the
         // trailing action button at narrow widths / large text scales
@@ -30,7 +32,7 @@ class SectionHeader extends StatelessWidget {
             title,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: TwText.sectionLabel,
+            style: TwText.sectionTitle,
           ),
         ),
         if (actionLabel != null)

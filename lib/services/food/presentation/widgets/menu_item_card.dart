@@ -28,58 +28,58 @@ class MenuItemCard extends StatelessWidget {
     return OutlinedCard(
       backgroundColor: TwColors.card,
       borderColor: TwColors.border,
-      borderRadius: TwRadius.xl,
-      padding: EdgeInsets.zero,
+      borderRadius: TwRadius.card,
+      padding: const EdgeInsets.all(TwSpacing.x3),
       onTap: () => Navigator.of(context).push(
         MaterialPageRoute<void>(
           builder: (_) =>
               MenuItemDetailsScreen(item: item, onAddToCart: onAddToCart),
         ),
       ),
-      child: IntrinsicHeight(
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            SizedBox(
-              width: 112,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(TwRadius.tile),
+            child: SizedBox(
+              width: 100,
+              height: 100,
               child: _MenuItemImage(imageUrl: item.imageUrl),
             ),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(TwSpacing.x4),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
+          ),
+          const SizedBox(width: TwSpacing.x3_5),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(item.name, style: TwText.fontBoldBase),
+                if (item.description.trim().isNotEmpty) ...[
+                  const SizedBox(height: TwSpacing.x1),
+                  Text(item.description, style: TwText.textSm),
+                ],
+                const SizedBox(height: TwSpacing.x3_5),
+                Row(
                   children: [
-                    Text(item.name, style: TwText.fontBoldBase),
-                    if (item.description.trim().isNotEmpty) ...[
-                      const SizedBox(height: TwSpacing.x1),
-                      Text(item.description, style: TwText.textSm),
-                    ],
-                    const SizedBox(height: TwSpacing.x3_5),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            AppMoney.formatCents(item.price),
-                            style: TwText.fontBoldBase.copyWith(
-                              color: TwColors.primary,
-                            ),
-                          ),
+                    Expanded(
+                      child: Text(
+                        AppMoney.formatCents(item.price),
+                        style: TwText.fontBoldBase.copyWith(
+                          color: TwColors.primary,
                         ),
-                        AddToCartButton(
-                          key: ValueKey('add-to-cart-${item.id}'),
-                          tooltip: 'Add ${item.name} to cart',
-                          onPressed: () => onAddToCart(1),
-                        ),
-                      ],
+                      ),
+                    ),
+                    AddToCartButton(
+                      key: ValueKey('add-to-cart-${item.id}'),
+                      tooltip: 'Add ${item.name} to cart',
+                      onPressed: () => onAddToCart(1),
                     ),
                   ],
                 ),
-              ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -94,14 +94,14 @@ class _MenuItemImage extends StatelessWidget {
   Widget build(BuildContext context) {
     final trimmedUrl = imageUrl.trim();
 
-    // Decode at roughly the rendered 112x112 box scaled for device pixel
+    // Decode at roughly the rendered 100x100 box scaled for device pixel
     // density. Capped at 3x since a wider cap buys no visible sharpness on
     // a thumbnail this small while still inflating decode memory.
     final cacheScale = MediaQuery.of(context).devicePixelRatio.clamp(1.0, 3.0);
     // Only the width is capped: capping both dimensions decodes to that
     // exact box and squashes any photo that isn't already square. Doubled so
     // a wide photo still decodes tall enough to cover-crop sharply.
-    final cacheWidth = (112 * 2 * cacheScale).round();
+    final cacheWidth = (100 * 2 * cacheScale).round();
     return trimmedUrl.isEmpty
         ? const _MenuImageFallback()
         : CachedNetworkImage(

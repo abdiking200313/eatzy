@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../../config/tailwind.dart';
 import '../../catalog/presentation/catalog_screen.dart';
 import '../../shared/merchant_media_store.dart';
 import '../../shared/merchant_photo_field.dart';
@@ -128,7 +129,7 @@ class _ErrorView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(TwSpacing.x6),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -137,9 +138,9 @@ class _ErrorView extends StatelessWidget {
               size: 48,
               color: Theme.of(context).colorScheme.error,
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: TwSpacing.x4),
             Text(message, textAlign: TextAlign.center),
-            const SizedBox(height: 16),
+            const SizedBox(height: TwSpacing.x4),
             FilledButton(onPressed: onRetry, child: const Text('Try again')),
           ],
         ),
@@ -218,7 +219,10 @@ class _CreateStoreViewState extends State<_CreateStoreView> {
   Widget build(BuildContext context) {
     final controller = widget.controller;
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.symmetric(
+        horizontal: TwSpacing.screenX,
+        vertical: TwSpacing.x6,
+      ),
       child: Form(
         key: _formKey,
         child: Column(
@@ -229,20 +233,20 @@ class _CreateStoreViewState extends State<_CreateStoreView> {
               size: 48,
               color: Theme.of(context).disabledColor,
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: TwSpacing.x3),
             Text(
               "You don't have a store yet",
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.titleLarge,
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: TwSpacing.x1),
             Text(
               'Choose a service and set up your store profile to start '
               'selling.',
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.bodyMedium,
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: TwSpacing.x5),
             SegmentedButton<MerchantVertical>(
               segments: MerchantVertical.values
                   .map(
@@ -256,7 +260,7 @@ class _CreateStoreViewState extends State<_CreateStoreView> {
               onSelectionChanged: (selection) =>
                   setState(() => _vertical = selection.first),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: TwSpacing.x4),
             TextFormField(
               controller: _nameController,
               decoration: const InputDecoration(
@@ -267,7 +271,7 @@ class _CreateStoreViewState extends State<_CreateStoreView> {
                   ? 'Enter a store name.'
                   : null,
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: TwSpacing.x3),
             TextFormField(
               controller: _locationController,
               decoration: InputDecoration(
@@ -276,7 +280,7 @@ class _CreateStoreViewState extends State<_CreateStoreView> {
               ),
             ),
             if (_vertical.storeSupportsDescription) ...[
-              const SizedBox(height: 12),
+              const SizedBox(height: TwSpacing.x3),
               TextFormField(
                 controller: _descriptionController,
                 maxLines: 3,
@@ -286,7 +290,7 @@ class _CreateStoreViewState extends State<_CreateStoreView> {
                 ),
               ),
             ],
-            const SizedBox(height: 16),
+            const SizedBox(height: TwSpacing.x4),
             MerchantPhotoField(
               label: 'Store photo',
               imageUrl: _imageUrl,
@@ -298,13 +302,13 @@ class _CreateStoreViewState extends State<_CreateStoreView> {
                   setState(() => _isUploading = value),
             ),
             if (controller.saveError != null) ...[
-              const SizedBox(height: 12),
+              const SizedBox(height: TwSpacing.x3),
               Text(
                 controller.saveError!,
                 style: TextStyle(color: Theme.of(context).colorScheme.error),
               ),
             ],
-            const SizedBox(height: 20),
+            const SizedBox(height: TwSpacing.x6),
             FilledButton(
               onPressed: controller.isSaving || _isUploading ? null : _submit,
               child: controller.isSaving
@@ -417,7 +421,10 @@ class _StoreFormState extends State<_StoreForm> {
     final controller = widget.controller;
     final vertical = widget.store.vertical;
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.symmetric(
+        horizontal: TwSpacing.screenX,
+        vertical: TwSpacing.x6,
+      ),
       child: Form(
         key: _formKey,
         child: Column(
@@ -429,14 +436,14 @@ class _StoreFormState extends State<_StoreForm> {
                   Icons.storefront_rounded,
                   color: Theme.of(context).colorScheme.primary,
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: TwSpacing.x2),
                 Text(
                   '${vertical.displayName} store',
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: TwSpacing.x4),
             TextFormField(
               controller: _nameController,
               decoration: const InputDecoration(
@@ -447,7 +454,7 @@ class _StoreFormState extends State<_StoreForm> {
                   ? 'Enter a store name.'
                   : null,
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: TwSpacing.x3),
             TextFormField(
               controller: _locationController,
               decoration: InputDecoration(
@@ -456,7 +463,7 @@ class _StoreFormState extends State<_StoreForm> {
               ),
             ),
             if (vertical.storeSupportsDescription) ...[
-              const SizedBox(height: 12),
+              const SizedBox(height: TwSpacing.x3),
               TextFormField(
                 controller: _descriptionController,
                 maxLines: 3,
@@ -466,7 +473,7 @@ class _StoreFormState extends State<_StoreForm> {
                 ),
               ),
             ],
-            const SizedBox(height: 16),
+            const SizedBox(height: TwSpacing.x4),
             MerchantPhotoField(
               label: 'Store photo',
               imageUrl: _imageUrl,
@@ -477,7 +484,7 @@ class _StoreFormState extends State<_StoreForm> {
               onUploadingChanged: (value) =>
                   setState(() => _isUploading = value),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: TwSpacing.x2),
             SwitchListTile(
               contentPadding: EdgeInsets.zero,
               title: const Text('Open for business'),
@@ -490,13 +497,13 @@ class _StoreFormState extends State<_StoreForm> {
               onChanged: (value) => setState(() => _isOpen = value),
             ),
             if (controller.saveError != null) ...[
-              const SizedBox(height: 8),
+              const SizedBox(height: TwSpacing.x2),
               Text(
                 controller.saveError!,
                 style: TextStyle(color: Theme.of(context).colorScheme.error),
               ),
             ],
-            const SizedBox(height: 16),
+            const SizedBox(height: TwSpacing.x6),
             FilledButton(
               onPressed: controller.isSaving || _isUploading ? null : _submit,
               child: controller.isSaving
@@ -507,7 +514,7 @@ class _StoreFormState extends State<_StoreForm> {
                     )
                   : const Text('Save changes'),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: TwSpacing.x3),
             OutlinedButton.icon(
               onPressed: _openCatalog,
               icon: const Icon(Icons.menu_book_outlined),

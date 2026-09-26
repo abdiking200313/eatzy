@@ -22,7 +22,12 @@ class CategoriesScreen extends StatelessWidget {
       // each card sizes to its own content instead of overflowing at
       // narrow widths / large text scales.
       body: ListView.separated(
-        padding: const EdgeInsets.all(TwSpacing.x5),
+        padding: const EdgeInsets.fromLTRB(
+          TwSpacing.x5,
+          TwSpacing.x5,
+          TwSpacing.x5,
+          TwSpacing.x6,
+        ),
         itemCount:
             ServiceRegistry.modules.length + ServiceRegistry.comingSoon.length,
         separatorBuilder: (_, _) => const SizedBox(height: TwSpacing.x5),
@@ -188,7 +193,7 @@ class _ServicePhotoCard extends StatelessWidget {
 
     return OutlinedCard(
       padding: EdgeInsets.zero,
-      borderRadius: TwRadius.xl,
+      borderRadius: TwRadius.card,
       borderColor: comingSoon ? TwColors.stone300 : TwColors.border,
       onTap: onTap,
       child: content,

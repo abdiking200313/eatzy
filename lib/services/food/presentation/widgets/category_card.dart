@@ -32,14 +32,14 @@ class CategoryCard extends StatelessWidget {
             height: 90,
             decoration: BoxDecoration(
               color: isSelected ? palette.soft : TwColors.card,
-              borderRadius: BorderRadius.circular(TwRadius.xl),
+              borderRadius: BorderRadius.circular(TwRadius.card),
               border: Border.all(
                 color: isSelected ? palette.accent : TwColors.border,
                 width: isSelected ? 2 : 1,
               ),
             ),
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(TwRadius.xl - 2),
+              borderRadius: BorderRadius.circular(TwRadius.card - 2),
               child: _CategoryImage(imageUrl: category.iconUrl),
             ),
           ),

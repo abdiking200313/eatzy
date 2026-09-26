@@ -77,10 +77,10 @@ class CheckoutView extends StatelessWidget {
             )
           : ListView(
               padding: const EdgeInsets.fromLTRB(
-                TwSpacing.x5,
+                TwSpacing.screenX,
                 TwSpacing.x2,
-                TwSpacing.x5,
-                TwSpacing.x8,
+                TwSpacing.screenX,
+                TwSpacing.x6,
               ),
               children: [
                 CheckoutDeliveryNote(controller: noteController),
@@ -107,13 +107,23 @@ class CheckoutView extends StatelessWidget {
       bottomNavigationBar: isEmpty || isLoading
           ? null
           : SafeArea(
-              minimum: const EdgeInsets.all(TwSpacing.x4),
+              minimum: const EdgeInsets.fromLTRB(
+                TwSpacing.x4,
+                TwSpacing.x4,
+                TwSpacing.x4,
+                TwSpacing.x3,
+              ),
               child: GradientActionButton(
                 key: const Key('checkout-place-order'),
                 label: isSubmitting
                     ? 'Placing order...'
                     : 'Place order • ${AppMoney.formatCents(total)}',
                 onPressed: isSubmitting ? null : onSubmit,
+                borderRadius: TwRadius.media,
+                padding: const EdgeInsets.symmetric(
+                  vertical: TwSpacing.x4,
+                  horizontal: TwSpacing.x5,
+                ),
                 icon: const Icon(
                   Icons.check_circle_outline,
                   color: TwColors.onPrimary,
@@ -178,6 +188,7 @@ class CheckoutSummaryCard extends StatelessWidget {
     // White card only — a plain OutlinedCard already uses the neutral
     // fill/border tokens.
     return OutlinedCard(
+      borderRadius: TwRadius.card,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -188,17 +199,26 @@ class CheckoutSummaryCard extends StatelessWidget {
               label: line.label,
               value: AppMoney.formatCents(line.amount),
             ),
-            const SizedBox(height: TwSpacing.x2),
+            const SizedBox(height: TwSpacing.x2_5),
           ],
-          if (itemLines.isNotEmpty) const Divider(height: TwSpacing.x6),
+          if (itemLines.isNotEmpty)
+            const Divider(
+              height: 9,
+              indent: TwSpacing.x1,
+              endIndent: TwSpacing.x1,
+            ),
           for (final line in feeLines) ...[
             SummaryRow(
               label: line.label,
               value: AppMoney.formatCents(line.amount),
             ),
-            const SizedBox(height: TwSpacing.x2),
+            const SizedBox(height: TwSpacing.x2_5),
           ],
-          const Divider(height: TwSpacing.x6),
+          const Divider(
+            height: 9,
+            indent: TwSpacing.x1,
+            endIndent: TwSpacing.x1,
+          ),
           SummaryRow(
             label: 'Total',
             value: AppMoney.formatCents(total),

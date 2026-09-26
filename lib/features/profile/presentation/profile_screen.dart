@@ -113,7 +113,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return AppScaffold(
       title: 'Profile',
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(TwSpacing.x5),
+        padding: const EdgeInsets.fromLTRB(
+          TwSpacing.x5,
+          TwSpacing.x5,
+          TwSpacing.x5,
+          TwSpacing.x6,
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -131,9 +136,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 );
               },
             ),
-            const SizedBox(height: TwSpacing.x5),
-            Text('Account', style: Theme.of(context).textTheme.titleMedium),
-            const SizedBox(height: TwSpacing.x3),
+            const SizedBox(height: TwSpacing.sectionGap),
+            const Text('Account', style: TwText.sectionTitle),
+            const SizedBox(height: TwSpacing.headerToContent),
             ProfileOptionsCard(
               options: _accountOptions,
               onOptionTap: _handleOptionTap,

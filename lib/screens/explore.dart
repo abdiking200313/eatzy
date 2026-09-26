@@ -87,7 +87,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
           Padding(
             padding: const EdgeInsets.fromLTRB(
               TwSpacing.x5,
-              TwSpacing.x4,
+              18,
               TwSpacing.x5,
               0,
             ),
@@ -142,7 +142,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                     TwSpacing.x5,
                     0,
                     TwSpacing.x5,
-                    TwSpacing.x5,
+                    TwSpacing.x6,
                   ),
                   itemCount: stores.length,
                   separatorBuilder: (_, _) =>
@@ -182,29 +182,31 @@ class _SearchField extends StatelessWidget {
       color: TwColors.white,
       elevation: 0.6,
       shadowColor: TwColors.slate900.withOpacityValue(0.1),
-      borderRadius: BorderRadius.circular(TwRadius.full),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: TwSpacing.x4),
-        child: Row(
-          children: [
-            const Icon(Icons.search, color: TwColors.textMuted),
-            const SizedBox(width: TwSpacing.x3),
-            Expanded(
-              child: TextField(
-                controller: controller,
-                onChanged: onChanged,
-                style: TwText.textBase,
-                decoration: const InputDecoration(
-                  isDense: true,
-                  filled: false,
-                  border: InputBorder.none,
-                  hintText: 'Search restaurants, stores...',
-                  hintStyle: TextStyle(color: TwColors.textMuted),
-                  contentPadding: EdgeInsets.symmetric(vertical: TwSpacing.x3),
+      borderRadius: BorderRadius.circular(TwRadius.input),
+      child: SizedBox(
+        height: 52,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: TwSpacing.x4),
+          child: Row(
+            children: [
+              const Icon(Icons.search, color: TwColors.textMuted),
+              const SizedBox(width: TwSpacing.x3),
+              Expanded(
+                child: TextField(
+                  controller: controller,
+                  onChanged: onChanged,
+                  style: TwText.textBase,
+                  decoration: const InputDecoration(
+                    isDense: true,
+                    filled: false,
+                    border: InputBorder.none,
+                    hintText: 'Search restaurants, stores...',
+                    hintStyle: TextStyle(color: TwColors.textMuted),
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -229,7 +231,7 @@ class _FilterChipsRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 40,
+      height: 38,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: TwSpacing.x5),

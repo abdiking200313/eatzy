@@ -114,10 +114,10 @@ class CartView extends StatelessWidget {
             )
           : ListView(
               padding: const EdgeInsets.fromLTRB(
-                TwSpacing.x5,
+                TwSpacing.screenX,
                 TwSpacing.x2,
-                TwSpacing.x5,
-                TwSpacing.x8,
+                TwSpacing.screenX,
+                TwSpacing.x6,
               ),
               children: [
                 if (storeName case final name?) ...[
@@ -136,11 +136,21 @@ class CartView extends StatelessWidget {
             ),
       bottomNavigationBar: showCart
           ? SafeArea(
-              minimum: const EdgeInsets.all(TwSpacing.x4),
+              minimum: const EdgeInsets.fromLTRB(
+                TwSpacing.x4,
+                TwSpacing.x4,
+                TwSpacing.x4,
+                TwSpacing.x3,
+              ),
               child: GradientActionButton(
                 key: const Key('cart-checkout'),
                 label: 'Continue to checkout • ${AppMoney.formatCents(total)}',
                 onPressed: onCheckout,
+                borderRadius: TwRadius.media,
+                padding: const EdgeInsets.symmetric(
+                  vertical: TwSpacing.x4,
+                  horizontal: TwSpacing.x5,
+                ),
                 icon: const Icon(
                   Icons.arrow_forward_rounded,
                   color: TwColors.onPrimary,
@@ -187,16 +197,22 @@ class _CartLinesCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return OutlinedCard(
-      padding: const EdgeInsets.all(TwSpacing.x4),
+      borderRadius: TwRadius.card,
+      padding: const EdgeInsets.symmetric(
+        horizontal: TwSpacing.x4,
+        vertical: TwSpacing.x1,
+      ),
       child: Column(
         children: [
           for (var index = 0; index < lines.length; index++) ...[
-            _CartLineRow(line: lines[index], fallbackIcon: fallbackIcon),
-            if (index != lines.length - 1) ...[
-              const SizedBox(height: TwSpacing.x3_5),
-              const Divider(),
-              const SizedBox(height: TwSpacing.x3_5),
-            ],
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: TwSpacing.x3),
+              child: _CartLineRow(
+                line: lines[index],
+                fallbackIcon: fallbackIcon,
+              ),
+            ),
+            if (index != lines.length - 1) const Divider(),
           ],
         ],
       ),
@@ -216,7 +232,7 @@ class _CartLineRow extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         CartThumbnail(imageUrl: line.imageUrl, fallbackIcon: fallbackIcon),
-        const SizedBox(width: TwSpacing.x4),
+        const SizedBox(width: TwSpacing.x3_5),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -233,7 +249,7 @@ class _CartLineRow extends StatelessWidget {
                     ),
                   ),
                   SizedBox.square(
-                    dimension: 32,
+                    dimension: 44,
                     child: IconButton(
                       key: ValueKey('remove-cart-item-${line.id}'),
                       tooltip: 'Remove ${line.name}',
@@ -275,7 +291,7 @@ class _CartLineRow extends StatelessWidget {
                       // scale) wraps instead of overflowing the stepper.
                       Flexible(
                         child: ConstrainedBox(
-                          constraints: const BoxConstraints(minWidth: 40),
+                          constraints: const BoxConstraints(minWidth: 28),
                           child: Text(
                             line.quantityLabel,
                             textAlign: TextAlign.center,
@@ -306,12 +322,12 @@ class _CartLineRow extends StatelessWidget {
   }
 }
 
-/// An 82×82 product photo, or a tinted [fallbackIcon] tile when there is no
+/// A 76×76 product photo, or a tinted [fallbackIcon] tile when there is no
 /// photo (or it fails to load).
 class CartThumbnail extends StatelessWidget {
   const CartThumbnail({super.key, this.imageUrl, required this.fallbackIcon});
 
-  static const double size = 82;
+  static const double size = 76;
 
   final String? imageUrl;
   final IconData fallbackIcon;
@@ -323,7 +339,7 @@ class CartThumbnail extends StatelessWidget {
       width: size,
       height: size,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(TwRadius.tile),
         color: palette.soft,
       ),
       child: Icon(fallbackIcon, color: palette.accent, size: 32),
@@ -342,7 +358,7 @@ class CartThumbnail extends StatelessWidget {
     // photos.
     final cacheScale = MediaQuery.of(context).devicePixelRatio.clamp(1.0, 3.0);
     return ClipRRect(
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(TwRadius.tile),
       child: CachedNetworkImage(
         imageUrl: url,
         width: size,
@@ -371,10 +387,15 @@ class _QuantityButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox.square(
-      dimension: 32,
+      dimension: 36,
       child: IconButton.outlined(
         tooltip: tooltip,
         padding: EdgeInsets.zero,
+        style: IconButton.styleFrom(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(TwRadius.chip),
+          ),
+        ),
         onPressed: onPressed,
         icon: Icon(icon, size: 18),
       ),
@@ -393,6 +414,7 @@ class _CartTotalsCard extends StatelessWidget {
     // White card only — OutlinedCard's default fill/border are already the
     // neutral tokens.
     return OutlinedCard(
+      borderRadius: TwRadius.card,
       child: Column(
         children: [
           for (final line in feeLines) ...[
@@ -400,10 +422,13 @@ class _CartTotalsCard extends StatelessWidget {
               label: line.label,
               value: AppMoney.formatCents(line.amount),
             ),
-            const SizedBox(height: TwSpacing.x3),
+            const SizedBox(height: TwSpacing.x2_5),
           ],
-          const Divider(),
-          const SizedBox(height: TwSpacing.x3),
+          const Divider(
+            height: 9,
+            indent: TwSpacing.x1,
+            endIndent: TwSpacing.x1,
+          ),
           SummaryRow(
             label: 'Total',
             value: AppMoney.formatCents(total),

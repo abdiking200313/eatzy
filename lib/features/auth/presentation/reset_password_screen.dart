@@ -125,7 +125,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                               textInputAction: TextInputAction.next,
                               autofillHints: const [AutofillHints.newPassword],
                             ),
-                            const SizedBox(height: TwSpacing.x4),
+                            const SizedBox(height: TwSpacing.x3_5),
                             AppTextField(
                               controller: _confirmPasswordController,
                               label: 'Confirm new password',
@@ -138,7 +138,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                                 if (!_isLoading) _updatePassword();
                               },
                             ),
-                            const SizedBox(height: TwSpacing.x8),
+                            const SizedBox(height: TwSpacing.x6),
                             if (_isLoading)
                               const Center(child: CircularProgressIndicator())
                             else

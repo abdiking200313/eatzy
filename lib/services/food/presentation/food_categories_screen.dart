@@ -54,12 +54,12 @@ class _FoodCategoriesScreenState extends State<FoodCategoriesScreen> {
           }
 
           return GridView.builder(
-            padding: const EdgeInsets.all(TwSpacing.x5),
+            padding: const EdgeInsets.all(TwSpacing.screenX),
             itemCount: categories.length,
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 2,
-              crossAxisSpacing: TwSpacing.x4,
-              mainAxisSpacing: TwSpacing.x4,
+              crossAxisSpacing: TwSpacing.gridGap,
+              mainAxisSpacing: TwSpacing.gridGap,
               // Tall enough for the 48px icon chip plus a two-line label at
               // a 1.4x text scale on a 320px-wide screen without overflow.
               childAspectRatio: 0.85,
@@ -67,14 +67,20 @@ class _FoodCategoriesScreenState extends State<FoodCategoriesScreen> {
             itemBuilder: (context, index) {
               final category = categories[index];
               // White card only — the service accent is confined to the
-              // 48px ServiceIconChip rather than tinting the card itself.
+              // ServiceIconChip rather than tinting the card itself.
               return OutlinedCard(
+                borderRadius: TwRadius.tile,
+                padding: const EdgeInsets.all(TwSpacing.x3),
                 onTap: () => _openCategory(context, category),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const ServiceIconChip(icon: Icons.restaurant_menu),
-                    const SizedBox(height: TwSpacing.x2),
+                    const ServiceIconChip(
+                      icon: Icons.restaurant_menu,
+                      size: 40,
+                      borderRadius: TwRadius.chip,
+                    ),
+                    const SizedBox(height: TwSpacing.x2_5),
                     Text(
                       category.name,
                       textAlign: TextAlign.center,

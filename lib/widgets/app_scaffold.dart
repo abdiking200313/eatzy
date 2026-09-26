@@ -72,7 +72,7 @@ class SectionTitle extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       title,
-      style: TwText.textXl.copyWith(
+      style: TwText.sectionTitle.copyWith(
         color: color ?? Theme.of(context).colorScheme.onSurface,
         fontSize: fontSize,
       ),

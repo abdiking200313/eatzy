@@ -56,6 +56,7 @@ class GroceryProductCard extends StatelessWidget {
         children: [
           PhotoThumbnail(
             imageUrl: product.imageUrl,
+            size: 60,
             fallback: Container(
               alignment: Alignment.center,
               decoration: BoxDecoration(
@@ -71,6 +72,7 @@ class GroceryProductCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(product.name, style: TwText.fontBoldBase),
+                const SizedBox(height: 3),
                 Text(product.description, style: TwText.textSm),
                 const SizedBox(height: TwSpacing.x2),
                 Text(

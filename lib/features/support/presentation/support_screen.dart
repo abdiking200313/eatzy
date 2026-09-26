@@ -73,12 +73,18 @@ class SupportScreen extends StatelessWidget {
       title: 'Help & Support',
       showBackButton: true,
       body: ListView(
-        padding: const EdgeInsets.all(TwSpacing.x5),
+        padding: const EdgeInsets.fromLTRB(
+          TwSpacing.x5,
+          TwSpacing.x5,
+          TwSpacing.x5,
+          TwSpacing.x6,
+        ),
         children: [
-          const SectionTitle('How can we help?'),
-          const SizedBox(height: TwSpacing.x3_5),
+          const Text('How can we help?', style: TwText.sectionTitle),
+          const SizedBox(height: TwSpacing.headerToContent),
           OutlinedCard(
             padding: EdgeInsets.zero,
+            borderRadius: TwRadius.card,
             child: Column(
               children: [
                 for (final topic in _helpTopics) ...[
@@ -89,10 +95,11 @@ class SupportScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: TwSpacing.sectionGap),
-          const SectionTitle('Need more help?', fontSize: 18),
-          const SizedBox(height: TwSpacing.x3_5),
+          const Text('Need more help?', style: TwText.sectionTitle),
+          const SizedBox(height: TwSpacing.headerToContent),
           OutlinedCard(
             padding: EdgeInsets.zero,
+            borderRadius: TwRadius.card,
             child: Column(
               children: [
                 for (final topic in _contactOptions) ...[
@@ -103,10 +110,11 @@ class SupportScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: TwSpacing.sectionGap),
-          const SectionTitle('Frequently Asked Questions', fontSize: 18),
-          const SizedBox(height: TwSpacing.x3_5),
+          const Text('Frequently Asked Questions', style: TwText.sectionTitle),
+          const SizedBox(height: TwSpacing.headerToContent),
           OutlinedCard(
             padding: EdgeInsets.zero,
+            borderRadius: TwRadius.card,
             child: Column(
               children: [
                 for (final faq in _faqItems) ...[

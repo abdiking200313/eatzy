@@ -234,7 +234,7 @@ class _PharmacyCatalogScreenState extends State<PharmacyCatalogScreen> {
             actions: [_cartAction()],
           ),
           SliverPadding(
-            padding: const EdgeInsets.all(TwSpacing.x5),
+            padding: const EdgeInsets.all(TwSpacing.screenX),
             sliver: SliverList(
               delegate: SliverChildBuilderDelegate((context, index) {
                 if (index == 0) {
@@ -260,7 +260,7 @@ class _PharmacyCatalogScreenState extends State<PharmacyCatalogScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Health essentials', style: TwText.textXl),
+                        Text('Health essentials', style: TwText.sectionTitle),
                         const SizedBox(height: TwSpacing.x1),
                         Text(
                           'Seeded products for the interactive Zivo preview.',
@@ -292,7 +292,7 @@ class _PharmacyCatalogScreenState extends State<PharmacyCatalogScreen> {
                     child: Center(
                       child: _isLoadingMore
                           ? const CircularProgressIndicator()
-                          : const SizedBox(height: 32),
+                          : const SizedBox(height: TwSpacing.x8),
                     ),
                   );
                 }
@@ -301,7 +301,7 @@ class _PharmacyCatalogScreenState extends State<PharmacyCatalogScreen> {
                 return Padding(
                   padding: EdgeInsets.only(
                     bottom: productIndex == _productCount - 1 && !_hasMore
-                        ? TwSpacing.x8
+                        ? TwSpacing.x6
                         : TwSpacing.x3,
                   ),
                   child: _ProductCard(
@@ -422,7 +422,7 @@ class _OtcNotice extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text('Over-the-counter (OTC) only', style: TwText.fontBoldSm),
-                const SizedBox(height: TwSpacing.x2),
+                const SizedBox(height: 3),
                 Text(
                   'This preview does not accept prescriptions or include '
                   'regulated medicines. Ask a healthcare professional if you '
@@ -469,6 +469,7 @@ class _ProductCard extends StatelessWidget {
         children: [
           PhotoThumbnail(
             imageUrl: product.imageUrl,
+            size: 60,
             fallback: const ServiceIconChip(
               icon: Icons.medication_outlined,
               iconSize: 28,
@@ -482,7 +483,7 @@ class _ProductCard extends StatelessWidget {
                 Text(product.category, style: TwText.link),
                 const SizedBox(height: TwSpacing.x2),
                 Text(product.name, style: TwText.fontBoldBase),
-                const SizedBox(height: TwSpacing.x2),
+                const SizedBox(height: 3),
                 Text(product.description, style: TwText.textSm),
                 const SizedBox(height: TwSpacing.x3_5),
                 Wrap(

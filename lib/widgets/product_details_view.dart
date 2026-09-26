@@ -168,25 +168,45 @@ class _ProductDetailsViewState extends State<ProductDetailsView> {
           child: Row(
             children: [
               if (canAdd) ...[
-                IconButton.outlined(
-                  tooltip: 'Decrease quantity',
-                  onPressed: _steps > 1 ? () => setState(() => _steps--) : null,
-                  icon: const Icon(Icons.remove_rounded),
+                SizedBox.square(
+                  dimension: 36,
+                  child: IconButton.outlined(
+                    tooltip: 'Decrease quantity',
+                    padding: EdgeInsets.zero,
+                    style: IconButton.styleFrom(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(TwRadius.chip),
+                      ),
+                    ),
+                    onPressed: _steps > 1
+                        ? () => setState(() => _steps--)
+                        : null,
+                    icon: const Icon(Icons.remove_rounded, size: 18),
+                  ),
                 ),
                 ConstrainedBox(
-                  constraints: const BoxConstraints(minWidth: 64),
+                  constraints: const BoxConstraints(minWidth: 28),
                   child: Text(
                     widget.quantityLabel(_steps),
                     textAlign: TextAlign.center,
                     style: TwText.fontBoldBase,
                   ),
                 ),
-                IconButton.outlined(
-                  tooltip: 'Increase quantity',
-                  onPressed: _steps < widget.maxSteps
-                      ? () => setState(() => _steps++)
-                      : null,
-                  icon: const Icon(Icons.add_rounded),
+                SizedBox.square(
+                  dimension: 36,
+                  child: IconButton.outlined(
+                    tooltip: 'Increase quantity',
+                    padding: EdgeInsets.zero,
+                    style: IconButton.styleFrom(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(TwRadius.chip),
+                      ),
+                    ),
+                    onPressed: _steps < widget.maxSteps
+                        ? () => setState(() => _steps++)
+                        : null,
+                    icon: const Icon(Icons.add_rounded, size: 18),
+                  ),
                 ),
                 const SizedBox(width: TwSpacing.x3),
               ],

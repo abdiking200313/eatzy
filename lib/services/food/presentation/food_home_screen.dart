@@ -181,72 +181,95 @@ class _FoodHomeScreenState extends State<FoodHomeScreen> {
     return CustomScrollView(
       slivers: [
         SliverToBoxAdapter(
-          child: Padding(
-            padding: const EdgeInsets.all(TwSpacing.x5),
-            child: Column(
-              children: [
-                OutlinedCard(
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  TwSpacing.screenX,
+                  18,
+                  TwSpacing.screenX,
+                  0,
+                ),
+                child: OutlinedCard(
                   backgroundColor: TwColors.card,
                   borderColor: TwColors.border,
-                  borderRadius: 50,
-                  child: Row(
-                    children: [
-                      const Icon(Icons.search, color: TwColors.textMuted),
-                      const SizedBox(width: TwSpacing.x4),
-                      Expanded(
-                        child: TextField(
-                          controller: _searchController,
-                          onChanged: _onSearchChanged,
-                          textInputAction: TextInputAction.search,
-                          decoration: const InputDecoration(
-                            isCollapsed: true,
-                            border: InputBorder.none,
-                            hintText: 'Search restaurants...',
-                            hintStyle: TextStyle(color: TwColors.textMuted),
-                          ),
-                        ),
-                      ),
-                      if (_searchController.text.isNotEmpty)
-                        GestureDetector(
-                          onTap: _clearSearch,
-                          child: const Padding(
-                            padding: EdgeInsets.only(left: TwSpacing.x2),
-                            child: Icon(
-                              Icons.clear,
-                              size: 20,
-                              color: TwColors.textMuted,
+                  borderRadius: TwRadius.input,
+                  padding: const EdgeInsets.symmetric(horizontal: TwSpacing.x4),
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(minHeight: 52),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.search, color: TwColors.textMuted),
+                        const SizedBox(width: TwSpacing.x3),
+                        Expanded(
+                          child: TextField(
+                            controller: _searchController,
+                            onChanged: _onSearchChanged,
+                            textInputAction: TextInputAction.search,
+                            decoration: const InputDecoration(
+                              isCollapsed: true,
+                              border: InputBorder.none,
+                              hintText: 'Search restaurants...',
+                              hintStyle: TextStyle(color: TwColors.textMuted),
                             ),
                           ),
                         ),
-                    ],
+                        if (_searchController.text.isNotEmpty)
+                          GestureDetector(
+                            onTap: _clearSearch,
+                            child: const Padding(
+                              padding: EdgeInsets.only(left: TwSpacing.x2),
+                              child: Icon(
+                                Icons.clear,
+                                size: 20,
+                                color: TwColors.textMuted,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
                   ),
                 ),
-                const SizedBox(height: TwSpacing.sectionGap),
-                SectionHeader(
+              ),
+              const SizedBox(height: TwSpacing.sectionGapDense),
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: TwSpacing.screenX,
+                ),
+                child: SectionHeader(
                   title: 'Categories',
                   actionLabel: 'See All',
                   onPressed: _openCategories,
                 ),
-                const SizedBox(height: TwSpacing.x3_5),
-                CategoriesSection(
-                  categories: data.categories,
-                  selectedCategoryId: _selectedCategoryId,
-                  onCategorySelected: _selectCategory,
+              ),
+              const SizedBox(height: TwSpacing.headerToContent),
+              // Edge-to-edge horizontal rail: no outer padding clips it, the
+              // inset instead comes from the rail's own ListView padding.
+              CategoriesSection(
+                categories: data.categories,
+                selectedCategoryId: _selectedCategoryId,
+                onCategorySelected: _selectCategory,
+              ),
+              const SizedBox(height: TwSpacing.sectionGapDense),
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: TwSpacing.screenX,
                 ),
-                const SizedBox(height: TwSpacing.sectionGap),
-                SectionHeader(
+                child: SectionHeader(
                   title: 'Trending Now',
                   actionLabel: 'View All',
                   onPressed: _openExplore,
                 ),
-              ],
-            ),
+              ),
+              const SizedBox(height: TwSpacing.headerToContent),
+            ],
           ),
         ),
         _filteredRestaurants == null
             ? _buildRestaurantResults(data.restaurants)
             : _buildFilteredRestaurantResults(_filteredRestaurants!),
-        const SliverToBoxAdapter(child: SizedBox(height: TwSpacing.x5)),
+        const SliverToBoxAdapter(child: SizedBox(height: TwSpacing.x6)),
       ],
     );
   }
@@ -263,7 +286,7 @@ class _FoodHomeScreenState extends State<FoodHomeScreen> {
     }
 
     return SliverPadding(
-      padding: const EdgeInsets.symmetric(horizontal: TwSpacing.x5),
+      padding: const EdgeInsets.symmetric(horizontal: TwSpacing.screenX),
       sliver: SliverList.builder(
         itemCount: restaurants.length,
         itemBuilder: (context, index) =>
@@ -301,7 +324,7 @@ class _FoodHomeScreenState extends State<FoodHomeScreen> {
           }
 
           return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: TwSpacing.x5),
+            padding: const EdgeInsets.symmetric(horizontal: TwSpacing.screenX),
             child: Column(
               children: [
                 for (final restaurant in restaurants)

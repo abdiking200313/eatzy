@@ -33,7 +33,7 @@ class ToggleCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(title, style: TwText.fontBoldSm),
-                const SizedBox(height: TwSpacing.x2),
+                const SizedBox(height: 3),
                 Text(
                   subtitle,
                   style: TwText.textXs.copyWith(color: TwColors.textMuted),

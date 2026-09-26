@@ -186,9 +186,9 @@ class _PharmacyStoreListScreenState extends State<PharmacyStoreListScreen> {
       slivers: [
         SliverPadding(
           padding: const EdgeInsets.fromLTRB(
-            TwSpacing.x5,
-            TwSpacing.x5,
-            TwSpacing.x5,
+            TwSpacing.screenX,
+            TwSpacing.screenX,
+            TwSpacing.screenX,
             0,
           ),
           sliver: SliverToBoxAdapter(
@@ -198,11 +198,15 @@ class _PharmacyStoreListScreenState extends State<PharmacyStoreListScreen> {
                 OutlinedCard(
                   backgroundColor: TwColors.card,
                   borderColor: TwColors.border,
-                  borderRadius: 50,
+                  borderRadius: TwRadius.input,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: TwSpacing.x4,
+                    vertical: TwSpacing.x3_5,
+                  ),
                   child: Row(
                     children: [
                       const Icon(Icons.search, color: TwColors.textMuted),
-                      const SizedBox(width: TwSpacing.x4),
+                      const SizedBox(width: TwSpacing.x3),
                       Expanded(
                         child: TextField(
                           controller: _searchController,
@@ -232,18 +236,18 @@ class _PharmacyStoreListScreenState extends State<PharmacyStoreListScreen> {
                   ),
                 ),
                 const SizedBox(height: TwSpacing.sectionGap),
-                Text('Pharmacies near you', style: TwText.textXl),
-                const SizedBox(height: TwSpacing.x3_5),
+                Text('Pharmacies near you', style: TwText.sectionTitle),
+                const SizedBox(height: TwSpacing.headerToContent),
               ],
             ),
           ),
         ),
         SliverPadding(
           padding: const EdgeInsets.fromLTRB(
-            TwSpacing.x5,
+            TwSpacing.screenX,
             0,
-            TwSpacing.x5,
-            TwSpacing.x5,
+            TwSpacing.screenX,
+            TwSpacing.x6,
           ),
           sliver: _filteredStores == null
               ? _buildStoreList(stores)
@@ -310,7 +314,7 @@ class _PharmacyStoreListScreenState extends State<PharmacyStoreListScreen> {
 
   Widget _buildStore(PharmacyStore store) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: TwSpacing.x4),
+      padding: const EdgeInsets.only(bottom: TwSpacing.x3),
       child: StoreRowCard(
         imageUrl: store.imageUrl,
         fallbackIcon: Icons.local_pharmacy_outlined,

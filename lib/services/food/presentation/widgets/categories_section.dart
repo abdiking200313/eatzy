@@ -28,6 +28,7 @@ class CategoriesSection extends StatelessWidget {
 
     return ListView.separated(
       scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.symmetric(horizontal: TwSpacing.screenX),
       itemCount: categories.length,
       separatorBuilder: _buildSeparator,
       itemBuilder: (context, index) {
@@ -43,6 +44,6 @@ class CategoriesSection extends StatelessWidget {
   }
 
   Widget _buildSeparator(BuildContext context, int index) {
-    return const SizedBox(width: TwSpacing.x4);
+    return const SizedBox(width: TwSpacing.gridGap);
   }
 }

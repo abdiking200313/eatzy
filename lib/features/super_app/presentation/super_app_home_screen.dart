@@ -47,7 +47,7 @@ class _SuperAppHomeScreenState extends State<SuperAppHomeScreen> {
     return Scaffold(
       backgroundColor: TwColors.bg,
       body: ListView(
-        padding: const EdgeInsets.only(bottom: TwSpacing.x8),
+        padding: const EdgeInsets.only(bottom: TwSpacing.x6),
         children: [
           _HomeHeader(
             onSearch: () => context.go(AppRoutes.explore),
@@ -56,34 +56,34 @@ class _SuperAppHomeScreenState extends State<SuperAppHomeScreen> {
           ),
           Padding(
             padding: const EdgeInsets.fromLTRB(
+              TwSpacing.screenX,
               TwSpacing.x5,
-              TwSpacing.x5,
-              TwSpacing.x5,
+              TwSpacing.screenX,
               0,
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _PromoBanner(onExplore: () => context.go(AppRoutes.explore)),
-                const SizedBox(height: TwSpacing.x8),
+                const SizedBox(height: TwSpacing.sectionGap),
                 _SectionHeader(
                   title: 'Categories',
                   actionLabel: 'See all',
                   onPressed: () => context.push(AppRoutes.services),
                 ),
-                const SizedBox(height: TwSpacing.x3),
+                const SizedBox(height: TwSpacing.headerToContent),
                 _ServiceGrid(
                   modules: ServiceRegistry.modules,
                   comingSoon: ServiceRegistry.comingSoon,
                   onMore: () => context.push(AppRoutes.services),
                 ),
-                const SizedBox(height: TwSpacing.x8),
+                const SizedBox(height: TwSpacing.sectionGap),
                 _SectionHeader(
                   title: 'Popular Stores',
                   actionLabel: 'View all',
                   onPressed: () => context.go(AppRoutes.explore),
                 ),
-                const SizedBox(height: TwSpacing.x3),
+                const SizedBox(height: TwSpacing.headerToContent),
               ],
             ),
           ),
@@ -118,9 +118,9 @@ class _RecentActivitySection extends StatelessWidget {
           children: [
             Padding(
               padding: const EdgeInsets.fromLTRB(
-                TwSpacing.x5,
-                TwSpacing.x8,
-                TwSpacing.x5,
+                TwSpacing.screenX,
+                TwSpacing.sectionGap,
+                TwSpacing.screenX,
                 0,
               ),
               child: _SectionHeader(
@@ -129,9 +129,11 @@ class _RecentActivitySection extends StatelessWidget {
                 onPressed: () => context.go(AppRoutes.activity),
               ),
             ),
-            const SizedBox(height: TwSpacing.x4),
+            const SizedBox(height: TwSpacing.headerToContent),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: TwSpacing.x5),
+              padding: const EdgeInsets.symmetric(
+                horizontal: TwSpacing.screenX,
+              ),
               child: _RecentActivityListCard(items: recentItems),
             ),
           ],
@@ -157,14 +159,16 @@ class _HomeHeader extends StatelessWidget {
     return DecoratedBox(
       decoration: const BoxDecoration(
         gradient: TwColors.primaryGradient,
-        borderRadius: BorderRadius.vertical(bottom: Radius.circular(28)),
+        borderRadius: BorderRadius.vertical(
+          bottom: Radius.circular(TwRadius.hero),
+        ),
       ),
       child: SafeArea(
         bottom: false,
         child: Padding(
           padding: const EdgeInsets.fromLTRB(
             TwSpacing.x5,
-            TwSpacing.x3,
+            TwSpacing.x2_5,
             TwSpacing.x3,
             TwSpacing.x6,
           ),
@@ -189,6 +193,7 @@ class _HomeHeader extends StatelessWidget {
                       color: TwColors.white,
                     ),
                   ),
+                  const SizedBox(width: TwSpacing.iconButtonGap),
                   IconButton(
                     tooltip: 'Settings',
                     onPressed: onSettings,
@@ -199,17 +204,19 @@ class _HomeHeader extends StatelessWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: TwSpacing.x2),
+              // 18: literal per the "1a" spec's search-field-below-top-bar gap
+              // (no token at this value).
+              const SizedBox(height: 18),
               Material(
                 color: TwColors.white,
-                borderRadius: BorderRadius.circular(TwRadius.full),
+                borderRadius: BorderRadius.circular(TwRadius.input),
                 child: InkWell(
-                  borderRadius: BorderRadius.circular(TwRadius.full),
+                  borderRadius: BorderRadius.circular(TwRadius.input),
                   onTap: onSearch,
                   child: const Padding(
                     padding: EdgeInsets.symmetric(
                       horizontal: TwSpacing.x4,
-                      vertical: TwSpacing.x3,
+                      vertical: TwSpacing.x3_5,
                     ),
                     child: Row(
                       children: [
@@ -244,21 +251,20 @@ class _PromoBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ConstrainedBox(
-      // A wide, shallow card (~132 tall at default text scale) rather than
+      // A wide, shallow card (~176 tall at default text scale) rather than
       // the previous content-hugging block, so the banner reads as a
       // distinct promo/discount strip instead of another text section. A
       // minimum rather than a fixed height so it can still grow to fit
       // larger text scales instead of overflowing.
-      constraints: const BoxConstraints(minHeight: 132),
+      constraints: const BoxConstraints(minHeight: 176),
       child: Container(
         width: double.infinity,
-        padding: const EdgeInsets.symmetric(
-          horizontal: TwSpacing.x5,
-          vertical: TwSpacing.x4,
-        ),
+        // 22: literal per the "1a" spec's hero-banner inner padding (no
+        // token at this value).
+        padding: const EdgeInsets.all(22),
         decoration: BoxDecoration(
           gradient: TwColors.primaryGradient,
-          borderRadius: BorderRadius.circular(TwRadius.xl),
+          borderRadius: BorderRadius.circular(TwRadius.hero),
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -266,7 +272,9 @@ class _PromoBanner extends StatelessWidget {
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
+                // spaceBetween (not center): title top-left, CTA bottom-left
+                // per the "1a" spec, now that the banner is taller.
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
                     'Everything nearby,\none tap away',
@@ -332,7 +340,10 @@ class _ServiceGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textScale = MediaQuery.textScalerOf(context).scale(1);
-    final tileHeight = 92.0 + ((textScale - 1).clamp(0.0, 1.0) * 30.0);
+    // Base raised from 92 to 100 to fit the "1a" spec's larger 12/8 tile
+    // padding and 10px chip-to-label gap without the label clipping/
+    // overflowing at default text scale.
+    final tileHeight = 100.0 + ((textScale - 1).clamp(0.0, 1.0) * 30.0);
     final platform = ZivoServiceColors.platform;
     return GridView.builder(
       shrinkWrap: true,
@@ -340,8 +351,8 @@ class _ServiceGrid extends StatelessWidget {
       itemCount: modules.length + comingSoon.length + 1,
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 4,
-        crossAxisSpacing: TwSpacing.x2,
-        mainAxisSpacing: TwSpacing.x2,
+        crossAxisSpacing: TwSpacing.gridGap,
+        mainAxisSpacing: TwSpacing.gridGap,
         mainAxisExtent: tileHeight,
       ),
       itemBuilder: (context, index) {
@@ -428,7 +439,7 @@ class _CategoryTile extends StatelessWidget {
         elevation: 0.6,
         shadowColor: TwColors.slate900.withOpacityValue(0.1),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(TwRadius.xl),
+          borderRadius: BorderRadius.circular(TwRadius.tile),
           // A neutral warm gray (rather than the app's usual blue-tinted
           // `TwColors.border`) for coming-soon tiles, so the card outline
           // reads as disabled along with the desaturated chip and muted
@@ -448,9 +459,11 @@ class _CategoryTile extends StatelessWidget {
             alignment: Alignment.center,
             children: [
               Padding(
+                // 12/8, not a uniform 12: in four columns on a 360px-wide
+                // screen a 12 side inset leaves the label too little room.
                 padding: const EdgeInsets.symmetric(
-                  vertical: TwSpacing.x2,
-                  horizontal: TwSpacing.x1,
+                  vertical: TwSpacing.x3,
+                  horizontal: TwSpacing.x2,
                 ),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -464,13 +477,15 @@ class _CategoryTile extends StatelessWidget {
                               background: background,
                               foreground: foreground,
                               borderRadius: TwRadius.full,
+                              size: 40,
                             )
                           : ServicePhotoChip(
                               imageUrl: photoUrl!,
                               ringColor: foreground,
+                              size: 40,
                             ),
                     ),
-                    const SizedBox(height: TwSpacing.x1),
+                    const SizedBox(height: TwSpacing.x2_5),
                     // Four narrow columns: shrink a long label ("Electronics")
                     // to fit its tile rather than ellipsize or wrap it.
                     FittedBox(
@@ -571,7 +586,7 @@ class _PopularStores extends StatelessWidget {
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const SizedBox(
-            height: 196,
+            height: 204,
             child: Center(child: CircularProgressIndicator()),
           );
         }
@@ -579,31 +594,27 @@ class _PopularStores extends StatelessWidget {
         if (snapshot.hasError || stores.isEmpty) {
           return const SizedBox.shrink();
         }
-        return SizedBox(
-          height: 196,
-          child: SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: TwSpacing.x5),
-            child: Row(
-              children: [
-                for (final store in stores.take(6))
-                  Padding(
-                    padding: const EdgeInsets.only(right: TwSpacing.x3),
-                    child: SizedBox(
-                      width: 150,
-                      child: StoreListCard(
-                        name: store.name,
-                        subtitle: store.subtitle,
-                        imageUrl: store.imageUrl,
-                        accentColor: ServiceThemes.forId(
-                          store.serviceId,
-                        ).accent,
-                        onTap: () => context.push(store.route),
-                      ),
-                    ),
+        // No fixed height: the row takes its tallest card's height, so the
+        // cards grow with the text scale instead of overflowing.
+        return SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.symmetric(horizontal: TwSpacing.screenX),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            spacing: TwSpacing.carouselGap,
+            children: [
+              for (final store in stores.take(6))
+                SizedBox(
+                  width: 212,
+                  child: StoreListCard(
+                    name: store.name,
+                    subtitle: store.subtitle,
+                    imageUrl: store.imageUrl,
+                    accentColor: ServiceThemes.forId(store.serviceId).accent,
+                    onTap: () => context.push(store.route),
                   ),
-              ],
-            ),
+                ),
+            ],
           ),
         );
       },
@@ -625,8 +636,17 @@ class _SectionHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.baseline,
+      textBaseline: TextBaseline.alphabetic,
       children: [
-        Expanded(child: Text(title, style: TwText.sectionLabel)),
+        Expanded(
+          child: Text(
+            title,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TwText.sectionTitle,
+          ),
+        ),
         TextButton(onPressed: onPressed, child: Text(actionLabel)),
       ],
     );
@@ -649,13 +669,19 @@ class _RecentActivityListCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       margin: EdgeInsets.zero,
-      child: Column(
-        children: [
-          for (final item in items) ...[
-            _RecentActivityRow(item: item),
-            if (item != items.last) const Divider(height: 1),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: TwSpacing.x3_5,
+          vertical: TwSpacing.x1,
+        ),
+        child: Column(
+          children: [
+            for (final item in items) ...[
+              _RecentActivityRow(item: item),
+              if (item != items.last) const Divider(height: 1),
+            ],
           ],
-        ],
+        ),
       ),
     );
   }
@@ -678,10 +704,10 @@ class _RecentActivityRow extends StatelessWidget {
           ? null
           : () => context.go(item.detailsRoute),
       child: Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: TwSpacing.x3,
-          vertical: TwSpacing.x4,
-        ),
+        // Horizontal inset comes from the enclosing OutlinedCard's own
+        // padding, not repeated here, so the divider between rows spans
+        // full width flush with the row content.
+        padding: const EdgeInsets.symmetric(vertical: TwSpacing.listRowY),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -689,15 +715,19 @@ class _RecentActivityRow extends StatelessWidget {
               icon: module.icon,
               background: colors.soft,
               foreground: colors.accent,
+              size: 42,
+              borderRadius: 13,
               iconSize: 20,
             ),
-            const SizedBox(width: TwSpacing.x3),
+            const SizedBox(width: TwSpacing.x3_5),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(item.title, style: TwText.fontBoldSm),
-                  const SizedBox(height: TwSpacing.x2),
+                  // 3: literal per the "1a" spec's title-to-subtitle gap (no
+                  // token at this value).
+                  const SizedBox(height: 3),
                   StatusPill(
                     label: item.status,
                     backgroundColor: colors.soft,

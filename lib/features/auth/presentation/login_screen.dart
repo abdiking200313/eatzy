@@ -178,7 +178,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 ),
                               ),
                             ),
-                            const SizedBox(height: TwSpacing.sectionGap),
+                            const SizedBox(height: TwSpacing.x6),
                             if (_isLoading)
                               const Center(child: CircularProgressIndicator())
                             else

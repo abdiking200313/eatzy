@@ -40,11 +40,17 @@ class StoreRowCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return OutlinedCard(
+      borderRadius: TwRadius.card,
+      padding: const EdgeInsets.symmetric(
+        horizontal: TwSpacing.x4,
+        vertical: TwSpacing.x3,
+      ),
       onTap: onTap,
       child: Row(
         children: [
           PhotoThumbnail(
             imageUrl: imageUrl,
+            size: 60,
             fallback: ServiceIconChip(icon: fallbackIcon, iconSize: 28),
           ),
           const SizedBox(width: TwSpacing.x3_5),
@@ -58,8 +64,8 @@ class StoreRowCard extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                   style: TwText.fontBoldBase,
                 ),
-                for (final line in subtitleLines) ...[
-                  const SizedBox(height: TwSpacing.x2),
+                for (final (index, line) in subtitleLines.indexed) ...[
+                  SizedBox(height: index == 0 ? 3 : TwSpacing.x2),
                   Text(
                     line,
                     maxLines: subtitleMaxLines,
@@ -68,7 +74,7 @@ class StoreRowCard extends StatelessWidget {
                   ),
                 ],
                 if (caption != null) ...[
-                  const SizedBox(height: TwSpacing.x2),
+                  SizedBox(height: subtitleLines.isEmpty ? 3 : TwSpacing.x2),
                   Text(
                     caption!,
                     style: TwText.textXs.copyWith(color: TwColors.textMuted),

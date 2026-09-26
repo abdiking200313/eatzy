@@ -47,7 +47,7 @@ class CartAppBarAction extends StatelessWidget {
               backgroundColor: palette.soft,
               foregroundColor: palette.accent,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(TwRadius.lg),
+                borderRadius: BorderRadius.circular(TwRadius.control),
               ),
             ),
             icon: Icon(icon),

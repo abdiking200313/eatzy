@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../../config/tailwind.dart';
 import '../../../../platform/localization/app_money.dart';
 import '../../store/models/merchant_store.dart';
 import '../../store/presentation/merchant_store_controller.dart';
@@ -136,7 +137,7 @@ class _NoStoreView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(TwSpacing.x6),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -145,13 +146,13 @@ class _NoStoreView extends StatelessWidget {
               size: 48,
               color: Theme.of(context).disabledColor,
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: TwSpacing.x4),
             const Text(
               'Set up your store first',
               style: TextStyle(fontWeight: FontWeight.bold),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: TwSpacing.x1),
             const Text(
               'Set up your store from the "My Store" tab to start '
               'receiving orders.',
@@ -174,7 +175,7 @@ class _ErrorView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(TwSpacing.x6),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -183,9 +184,9 @@ class _ErrorView extends StatelessWidget {
               size: 48,
               color: Theme.of(context).colorScheme.error,
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: TwSpacing.x4),
             Text(message, textAlign: TextAlign.center),
-            const SizedBox(height: 16),
+            const SizedBox(height: TwSpacing.x4),
             FilledButton(onPressed: onRetry, child: const Text('Try again')),
           ],
         ),
@@ -205,7 +206,12 @@ class _OrdersListView extends StatelessWidget {
     return Column(
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+          padding: const EdgeInsets.fromLTRB(
+            TwSpacing.screenX,
+            TwSpacing.x4,
+            TwSpacing.screenX,
+            0,
+          ),
           child: Align(
             alignment: Alignment.centerLeft,
             child: Text(
@@ -238,10 +244,10 @@ class _OrdersListView extends StatelessWidget {
         child: ListView(
           physics: const AlwaysScrollableScrollPhysics(),
           children: [
-            const SizedBox(height: 96),
+            const SizedBox(height: TwSpacing.x12 * 2),
             Center(
               child: Padding(
-                padding: const EdgeInsets.all(24),
+                padding: const EdgeInsets.all(TwSpacing.x6),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -250,12 +256,12 @@ class _OrdersListView extends StatelessWidget {
                       size: 48,
                       color: Theme.of(context).disabledColor,
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: TwSpacing.x4),
                     const Text(
                       'No orders yet',
                       style: TextStyle(fontWeight: FontWeight.bold),
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: TwSpacing.x1),
                     const Text(
                       'Pull down to refresh once a customer places an '
                       'order.',
@@ -273,9 +279,14 @@ class _OrdersListView extends StatelessWidget {
     return RefreshIndicator(
       onRefresh: controller.load,
       child: ListView.separated(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+        padding: const EdgeInsets.fromLTRB(
+          TwSpacing.screenX,
+          TwSpacing.x4,
+          TwSpacing.screenX,
+          TwSpacing.x6,
+        ),
         itemCount: controller.orders.length,
-        separatorBuilder: (_, _) => const SizedBox(height: 8),
+        separatorBuilder: (_, _) => const SizedBox(height: TwSpacing.x2),
         itemBuilder: (context, index) {
           final order = controller.orders[index];
           return _OrderTile(
@@ -322,7 +333,7 @@ class _OrderTile extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
             _StatusChip(status: order.status),
-            const SizedBox(height: 4),
+            const SizedBox(height: TwSpacing.x1),
             Text(AppMoney.formatCents(order.totalCents)),
           ],
         ),
@@ -341,12 +352,15 @@ class _StatusChip extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     final isTerminal = status == 'delivered' || status == 'cancelled';
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: const EdgeInsets.symmetric(
+        horizontal: TwSpacing.x2,
+        vertical: TwSpacing.x1,
+      ),
       decoration: BoxDecoration(
         color: isTerminal
             ? scheme.surfaceContainerHighest
             : scheme.primaryContainer,
-        borderRadius: BorderRadius.circular(999),
+        borderRadius: BorderRadius.circular(TwRadius.full),
       ),
       child: Text(
         merchantOrderStatusLabel(status),

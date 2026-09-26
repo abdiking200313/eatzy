@@ -133,7 +133,12 @@ class _TrackOrderContent extends StatelessWidget {
   Widget build(BuildContext context) {
     final palette = context.serviceColors;
     return ListView(
-      padding: const EdgeInsets.all(TwSpacing.x5),
+      padding: const EdgeInsets.fromLTRB(
+        TwSpacing.x5,
+        TwSpacing.x5,
+        TwSpacing.x5,
+        TwSpacing.x6,
+      ),
       children: [
         OutlinedCard(
           child: Column(
@@ -152,7 +157,7 @@ class _TrackOrderContent extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                           style: TwText.fontBoldBase,
                         ),
-                        const SizedBox(height: TwSpacing.x2),
+                        const SizedBox(height: 3),
                         Text(
                           'Order #${order.id}',
                           maxLines: 1,
@@ -302,8 +307,8 @@ class _TimelineStepRow extends StatelessWidget {
           Column(
             children: [
               Container(
-                width: 20,
-                height: 20,
+                width: TwSpacing.x5,
+                height: TwSpacing.x5,
                 decoration: BoxDecoration(
                   color: step.isCompleted
                       ? palette.accent
@@ -315,7 +320,11 @@ class _TimelineStepRow extends StatelessWidget {
                     : null,
               ),
               if (step.hasConnector)
-                Container(width: 2, height: 40, color: palette.accent),
+                Container(
+                  width: 2,
+                  height: TwSpacing.x10,
+                  color: palette.accent,
+                ),
             ],
           ),
           const SizedBox(width: TwSpacing.x5),

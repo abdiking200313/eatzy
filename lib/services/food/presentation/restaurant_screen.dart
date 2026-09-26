@@ -20,8 +20,9 @@ typedef RestaurantMenuLoader =
 
 /// Fixed height of the pinned category-chip bar (`_CategoryHeaderDelegate`'s
 /// `minExtent`/`maxExtent`) — shared with `_RestaurantScreenState`'s
-/// scroll-position math so the two stay in sync.
-const _kCategoryHeaderExtent = 66.0;
+/// scroll-position math so the two stay in sync. Sized for the sticky chip
+/// bar's 18-top/12-bottom padding plus a 36px chip.
+const _kCategoryHeaderExtent = 72.0;
 
 class RestaurantScreen extends StatefulWidget {
   const RestaurantScreen({
@@ -311,9 +312,9 @@ class _RestaurantMenuView extends StatelessWidget {
               constraints: const BoxConstraints(maxWidth: 760),
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(
-                  TwSpacing.x5,
+                  TwSpacing.screenX,
                   TwSpacing.x6,
-                  TwSpacing.x5,
+                  TwSpacing.screenX,
                   TwSpacing.x5,
                 ),
                 child: Column(
@@ -410,16 +411,21 @@ class _RestaurantMenuView extends StatelessWidget {
                   constraints: const BoxConstraints(maxWidth: 760),
                   child: Padding(
                     padding: const EdgeInsets.fromLTRB(
-                      TwSpacing.x5,
-                      TwSpacing.x6,
-                      TwSpacing.x5,
-                      TwSpacing.x4,
+                      TwSpacing.screenX,
+                      TwSpacing.sectionGap,
+                      TwSpacing.screenX,
+                      TwSpacing.headerToContent,
                     ),
                     child: Row(
                       key: sectionKeyFor(category.id),
+                      crossAxisAlignment: CrossAxisAlignment.baseline,
+                      textBaseline: TextBaseline.alphabetic,
                       children: [
                         Expanded(
-                          child: Text(category.name, style: TwText.textXl),
+                          child: Text(
+                            category.name,
+                            style: TwText.sectionTitle,
+                          ),
                         ),
                         Text(
                           '${category.items.length} '
@@ -449,9 +455,9 @@ class _RestaurantMenuView extends StatelessWidget {
                     constraints: const BoxConstraints(maxWidth: 760),
                     child: Padding(
                       padding: EdgeInsets.fromLTRB(
-                        TwSpacing.x5,
+                        TwSpacing.screenX,
                         0,
-                        TwSpacing.x5,
+                        TwSpacing.screenX,
                         index == category.items.length - 1 ? 0 : TwSpacing.x3,
                       ),
                       child: MenuItemCard(
@@ -464,7 +470,7 @@ class _RestaurantMenuView extends StatelessWidget {
               }, childCount: category.items.length),
             ),
           ],
-        const SliverToBoxAdapter(child: SizedBox(height: TwSpacing.x10)),
+        const SliverToBoxAdapter(child: SizedBox(height: TwSpacing.x6)),
       ],
     );
   }
@@ -511,9 +517,11 @@ class _CategoryHeaderDelegate extends SliverPersistentHeaderDelegate {
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 760),
           child: ListView.separated(
-            padding: const EdgeInsets.symmetric(
-              horizontal: TwSpacing.x5,
-              vertical: TwSpacing.x3,
+            padding: const EdgeInsets.fromLTRB(
+              TwSpacing.screenX,
+              18,
+              TwSpacing.screenX,
+              TwSpacing.x3,
             ),
             scrollDirection: Axis.horizontal,
             itemCount: categories.length,

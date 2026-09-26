@@ -24,36 +24,46 @@ class StoreSearchField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return OutlinedCard(
-      backgroundColor: TwColors.card,
-      borderColor: TwColors.border,
-      borderRadius: 50,
-      child: Row(
-        children: [
-          const Icon(Icons.search, color: TwColors.textMuted),
-          const SizedBox(width: TwSpacing.x4),
-          Expanded(
-            child: TextField(
-              controller: controller,
-              onChanged: onChanged,
-              textInputAction: TextInputAction.search,
-              decoration: InputDecoration(
-                isCollapsed: true,
-                border: InputBorder.none,
-                hintText: hintText,
-                hintStyle: const TextStyle(color: TwColors.textMuted),
+    return SizedBox(
+      height: 52,
+      child: OutlinedCard(
+        backgroundColor: TwColors.card,
+        borderColor: TwColors.border,
+        borderRadius: TwRadius.input,
+        padding: const EdgeInsets.symmetric(horizontal: TwSpacing.x4),
+        child: Row(
+          children: [
+            const Icon(Icons.search, color: TwColors.textMuted),
+            const SizedBox(width: TwSpacing.x3),
+            Expanded(
+              child: TextField(
+                controller: controller,
+                onChanged: onChanged,
+                textInputAction: TextInputAction.search,
+                decoration: InputDecoration(
+                  isCollapsed: true,
+                  border: InputBorder.none,
+                  hintText: hintText,
+                  hintStyle: const TextStyle(color: TwColors.textMuted),
+                ),
               ),
             ),
-          ),
-          if (controller.text.isNotEmpty)
-            GestureDetector(
-              onTap: onClear,
-              child: const Padding(
-                padding: EdgeInsets.only(left: TwSpacing.x2),
-                child: Icon(Icons.clear, size: 20, color: TwColors.textMuted),
+            if (controller.text.isNotEmpty)
+              SizedBox.square(
+                dimension: 44,
+                child: IconButton(
+                  tooltip: 'Clear',
+                  onPressed: onClear,
+                  padding: EdgeInsets.zero,
+                  icon: const Icon(
+                    Icons.clear,
+                    size: 20,
+                    color: TwColors.textMuted,
+                  ),
+                ),
               ),
-            ),
-        ],
+          ],
+        ),
       ),
     );
   }

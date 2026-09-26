@@ -213,7 +213,7 @@ class StoreListCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return OutlinedCard(
       backgroundColor: TwColors.card,
-      borderRadius: TwRadius.xl,
+      borderRadius: TwRadius.media,
       borderColor: TwColors.border,
       padding: EdgeInsets.zero,
       onTap: onTap,
@@ -223,7 +223,7 @@ class StoreListCard extends StatelessWidget {
         children: [
           ClipRRect(
             borderRadius: const BorderRadius.vertical(
-              top: Radius.circular(TwRadius.xl),
+              top: Radius.circular(TwRadius.media),
             ),
             child: _StoreListImage(
               imageUrl: imageUrl,
@@ -231,7 +231,12 @@ class StoreListCard extends StatelessWidget {
             ),
           ),
           Padding(
-            padding: const EdgeInsets.all(TwSpacing.x3),
+            padding: const EdgeInsets.fromLTRB(
+              TwSpacing.x3,
+              TwSpacing.x2_5,
+              TwSpacing.x3,
+              TwSpacing.x3,
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
@@ -242,13 +247,13 @@ class StoreListCard extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                   style: TwText.fontBoldSm,
                 ),
-                const SizedBox(height: TwSpacing.x2),
+                const SizedBox(height: 3),
                 Row(
                   children: [
                     // The one accent touch this neutral white card allows —
                     // a small service-colored dot next to the subtitle,
                     // mirroring how the accent stays confined to a small
-                    // element elsewhere (e.g. the 48px icon chip).
+                    // element elsewhere (e.g. the service icon chip).
                     Container(
                       width: 6,
                       height: 6,
@@ -282,7 +287,7 @@ class StoreListCard extends StatelessWidget {
 class _StoreListImage extends StatelessWidget {
   const _StoreListImage({required this.imageUrl, required this.accentColor});
 
-  static const double height = 110;
+  static const double height = 138;
 
   final String? imageUrl;
   final Color accentColor;
@@ -295,7 +300,7 @@ class _StoreListImage extends StatelessWidget {
     }
 
     // Decode at roughly the rendered width (this card's own width varies by
-    // context — a fixed 150 in the home strip, full row width in the
+    // context — a fixed 212 in the home strip, full row width in the
     // Explore feed — so the device screen width is used as a practical
     // upper bound) scaled for device pixel density. Capped at 3x since a
     // wider cap buys no visible sharpness on a card image this small while

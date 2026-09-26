@@ -5,7 +5,6 @@ import 'package:go_router/go_router.dart';
 
 import '../../../app/app_routes.dart';
 import '../../../config/theme.dart';
-import '../../../widgets/app_scaffold.dart';
 import '../../../widgets/checkout_view.dart';
 import '../../shared/data/idempotency_key.dart';
 import '../../shared/models/delivery_details.dart';
@@ -103,8 +102,8 @@ class _GroceryCheckoutScreenState extends State<GroceryCheckoutScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SectionTitle('Delivery slot'),
-        const SizedBox(height: TwSpacing.x3),
+        const Text('Delivery slot', style: TwText.sectionTitle),
+        const SizedBox(height: TwSpacing.headerToContent),
         RadioGroup<GroceryDeliverySlot>(
           groupValue: _slot,
           onChanged: (value) => setState(() => _slot = value),
@@ -133,7 +132,10 @@ class _GroceryCheckoutScreenState extends State<GroceryCheckoutScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SectionTitle('If an item becomes unavailable'),
+        const Text(
+          'If an item becomes unavailable',
+          style: TwText.sectionTitle,
+        ),
         const SizedBox(height: TwSpacing.x2),
         Text('Choose one option before ordering.', style: TwText.textSm),
         RadioGroup<GrocerySubstitutionPreference>(

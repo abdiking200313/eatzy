@@ -26,13 +26,16 @@ class HelpCard extends StatelessWidget {
             icon: topic.icon,
             background: palette.soft,
             foreground: palette.accent,
+            size: 42,
+            borderRadius: 13,
           ),
-          const SizedBox(width: TwSpacing.x4),
+          const SizedBox(width: TwSpacing.x3_5),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(topic.title, style: TwText.fontBoldSm),
+                const SizedBox(height: 3),
                 Text(
                   topic.subtitle,
                   style: TwText.textXs.copyWith(color: TwColors.textMuted),
@@ -73,13 +76,16 @@ class ContactCard extends StatelessWidget {
             icon: topic.icon,
             background: palette.soft,
             foreground: palette.accent,
+            size: 42,
+            borderRadius: 13,
           ),
-          const SizedBox(width: TwSpacing.x4),
+          const SizedBox(width: TwSpacing.x3_5),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(topic.title, style: TwText.fontBoldSm),
+                const SizedBox(height: 3),
                 Text(
                   topic.subtitle,
                   style: TwText.textXs.copyWith(color: TwColors.textMuted),

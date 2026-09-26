@@ -29,7 +29,12 @@ class AddressesScreen extends StatelessWidget {
       title: 'Saved Addresses',
       showBackButton: true,
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(TwSpacing.x5),
+        padding: const EdgeInsets.fromLTRB(
+          TwSpacing.x5,
+          TwSpacing.x5,
+          TwSpacing.x5,
+          TwSpacing.x6,
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -56,6 +61,7 @@ class AddressesScreen extends StatelessWidget {
             const SizedBox(height: TwSpacing.sectionGap),
             OutlinedCard(
               padding: EdgeInsets.zero,
+              borderRadius: TwRadius.card,
               child: Column(
                 children: [
                   for (final address in _addresses) ...[
@@ -133,7 +139,7 @@ class _AddressRow extends StatelessWidget {
                 color: palette.accent,
                 icon: const Icon(Icons.edit_outlined, size: 18),
               ),
-              const SizedBox(width: TwSpacing.x2),
+              const SizedBox(width: TwSpacing.iconButtonGap),
               IconButton.outlined(
                 tooltip: 'Delete ${address.label}',
                 onPressed: () {},

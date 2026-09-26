@@ -134,6 +134,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
       context: context,
       isScrollControlled: true,
       showDragHandle: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(TwRadius.hero),
+        ),
+      ),
       builder: (sheetContext) => EditFieldSheet(
         title: 'Edit name',
         controller: _profileEditController,
@@ -167,6 +172,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
       context: context,
       isScrollControlled: true,
       showDragHandle: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(TwRadius.hero),
+        ),
+      ),
       builder: (sheetContext) => EditFieldSheet(
         title: 'Edit phone number',
         controller: _profileEditController,
@@ -194,6 +204,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
       context: context,
       isScrollControlled: true,
       showDragHandle: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(TwRadius.hero),
+        ),
+      ),
       builder: (sheetContext) => EditFieldSheet(
         title: 'Edit email address',
         controller: _profileEditController,
@@ -357,6 +372,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final shouldDelete = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(TwRadius.hero)),
+        ),
         title: const Text('Delete your account?'),
         content: const Text(
           'This permanently removes your profile and personal data. '
@@ -401,6 +419,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
     showModalBottomSheet<void>(
       context: context,
       showDragHandle: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(TwRadius.hero),
+        ),
+      ),
       builder: (context) => const AboutZivoSheet(),
     );
   }
@@ -415,10 +438,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SectionTitle('Notifications', fontSize: 18),
-            const SizedBox(height: TwSpacing.x3_5),
+            const Text('Notifications', style: TwText.sectionTitle),
+            const SizedBox(height: TwSpacing.headerToContent),
             OutlinedCard(
               padding: EdgeInsets.zero,
+              borderRadius: TwRadius.card,
               child: Column(
                 children: [
                   ToggleCard(
@@ -458,10 +482,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
             ),
             const SizedBox(height: TwSpacing.sectionGap),
-            const SectionTitle('Account', fontSize: 18),
-            const SizedBox(height: TwSpacing.x3_5),
+            const Text('Account', style: TwText.sectionTitle),
+            const SizedBox(height: TwSpacing.headerToContent),
             OutlinedCard(
               padding: EdgeInsets.zero,
+              borderRadius: TwRadius.card,
               child: Column(
                 children: [
                   SettingCard(
@@ -515,10 +540,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
             ),
             const SizedBox(height: TwSpacing.sectionGap),
-            const SectionTitle('Preferences', fontSize: 18),
-            const SizedBox(height: TwSpacing.x3_5),
+            const Text('Preferences', style: TwText.sectionTitle),
+            const SizedBox(height: TwSpacing.headerToContent),
             OutlinedCard(
               padding: EdgeInsets.zero,
+              borderRadius: TwRadius.card,
               child: Column(
                 children: [
                   // No language/currency/theme infrastructure exists yet;
@@ -545,10 +571,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
             ),
             const SizedBox(height: TwSpacing.sectionGap),
-            const SectionTitle('Support', fontSize: 18),
-            const SizedBox(height: TwSpacing.x3_5),
+            const Text('Support', style: TwText.sectionTitle),
+            const SizedBox(height: TwSpacing.headerToContent),
             OutlinedCard(
               padding: EdgeInsets.zero,
+              borderRadius: TwRadius.card,
               child: Column(
                 children: [
                   SettingCard(
@@ -594,7 +621,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
               ),
             ),
-            const SizedBox(height: TwSpacing.x5),
+            const SizedBox(height: TwSpacing.x6),
           ],
         ),
       ),

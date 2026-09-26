@@ -81,7 +81,12 @@ class ActivityScreen extends StatelessWidget {
                     ],
                   )
                 : ListView(
-                    padding: const EdgeInsets.all(TwSpacing.x5),
+                    padding: const EdgeInsets.fromLTRB(
+                      TwSpacing.x5,
+                      TwSpacing.x5,
+                      TwSpacing.x5,
+                      TwSpacing.x6,
+                    ),
                     physics: const AlwaysScrollableScrollPhysics(),
                     children: [
                       _ActivityListCard(items: items, orderAgain: orderAgain),
@@ -193,14 +198,16 @@ class _ActivityRowState extends State<_ActivityRow> {
               icon: module.icon,
               background: colors.accent,
               foreground: colors.onAccent,
+              size: 42,
+              borderRadius: 13,
             ),
-            const SizedBox(width: TwSpacing.x4),
+            const SizedBox(width: TwSpacing.x3_5),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(item.title, style: TwText.fontBoldSm),
-                  const SizedBox(height: TwSpacing.x2),
+                  const SizedBox(height: 3),
                   Wrap(
                     crossAxisAlignment: WrapCrossAlignment.center,
                     spacing: TwSpacing.x2,

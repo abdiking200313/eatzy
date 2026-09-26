@@ -136,7 +136,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           if (!_isLoading) _sendResetLink();
         },
       ),
-      const SizedBox(height: TwSpacing.x8),
+      const SizedBox(height: TwSpacing.x6),
       if (_isLoading)
         const Center(child: CircularProgressIndicator())
       else
@@ -167,7 +167,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         'to continue.',
         style: TwText.textSm,
       ),
-      const SizedBox(height: TwSpacing.x8),
+      const SizedBox(height: TwSpacing.x6),
       GradientActionButton(
         label: 'Back to sign in',
         onPressed: () => context.go(AppRoutes.login),

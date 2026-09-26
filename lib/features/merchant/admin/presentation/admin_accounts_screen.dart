@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../../config/tailwind.dart';
 import '../models/admin_account.dart';
 import 'admin_accounts_controller.dart';
 
@@ -126,18 +127,23 @@ class _AdminAccountsScreenState extends State<AdminAccountsScreen> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+          padding: const EdgeInsets.fromLTRB(
+            TwSpacing.screenX,
+            TwSpacing.x4,
+            TwSpacing.screenX,
+            TwSpacing.x2,
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text('Accounts', style: textTheme.titleLarge),
-              const SizedBox(height: 4),
+              const SizedBox(height: TwSpacing.x1),
               Text(
                 'Change what each account can do. Customers shop, merchants '
                 'run a store, admins manage accounts.',
                 style: textTheme.bodyMedium,
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: TwSpacing.x3),
               TextField(
                 controller: _searchController,
                 onChanged: _onSearchChanged,
@@ -172,7 +178,7 @@ class _AdminAccountsScreenState extends State<AdminAccountsScreen> {
     if (controller.loadError != null) {
       return Center(
         child: Padding(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.all(TwSpacing.x6),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -181,7 +187,7 @@ class _AdminAccountsScreenState extends State<AdminAccountsScreen> {
                 textAlign: TextAlign.center,
                 style: TextStyle(color: Theme.of(context).colorScheme.error),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: TwSpacing.x3),
               OutlinedButton(
                 onPressed: () => unawaited(controller.load(controller.query)),
                 child: const Text('Try again'),
@@ -214,7 +220,12 @@ class _AdminAccountsScreenState extends State<AdminAccountsScreen> {
         Expanded(
           child: ListView.builder(
             controller: _scrollController,
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+            padding: const EdgeInsets.fromLTRB(
+              TwSpacing.screenX,
+              TwSpacing.x2,
+              TwSpacing.screenX,
+              TwSpacing.x4,
+            ),
             itemCount: accounts.length + (showFooter ? 1 : 0),
             itemBuilder: (context, index) => index < accounts.length
                 ? _buildAccountCard(context, accounts[index])
@@ -229,17 +240,17 @@ class _AdminAccountsScreenState extends State<AdminAccountsScreen> {
     final controller = _controller;
     if (controller.isLoadingMore) {
       return const Padding(
-        padding: EdgeInsets.symmetric(vertical: 16),
+        padding: EdgeInsets.symmetric(vertical: TwSpacing.x4),
         child: Center(child: CircularProgressIndicator()),
       );
     }
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
+      padding: const EdgeInsets.symmetric(vertical: TwSpacing.x2),
       child: Column(
         children: [
           if (controller.loadMoreError != null)
             Padding(
-              padding: const EdgeInsets.only(bottom: 4),
+              padding: const EdgeInsets.only(bottom: TwSpacing.x1),
               child: Text(
                 controller.loadMoreError!,
                 textAlign: TextAlign.center,
@@ -266,9 +277,9 @@ class _AdminAccountsScreenState extends State<AdminAccountsScreen> {
         : [..._roles, account.role];
 
     return Card(
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: const EdgeInsets.only(bottom: TwSpacing.x3),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(TwSpacing.x4),
         child: Row(
           children: [
             Expanded(
@@ -286,13 +297,13 @@ class _AdminAccountsScreenState extends State<AdminAccountsScreen> {
                         ),
                       ),
                       if (isSelf) ...[
-                        const SizedBox(width: 8),
+                        const SizedBox(width: TwSpacing.x2),
                         Text('You', style: textTheme.labelMedium),
                       ],
                     ],
                   ),
                   if (account.email.isNotEmpty) ...[
-                    const SizedBox(height: 2),
+                    const SizedBox(height: 3),
                     Text(
                       account.email,
                       style: textTheme.bodySmall,
@@ -303,7 +314,7 @@ class _AdminAccountsScreenState extends State<AdminAccountsScreen> {
                 ],
               ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: TwSpacing.x3),
             if (isSaving)
               const SizedBox(
                 height: 24,

@@ -104,10 +104,10 @@ class _FoodExploreScreenState extends State<FoodExploreScreen> {
 
           return ListView.builder(
             padding: const EdgeInsets.fromLTRB(
-              TwSpacing.x5,
+              TwSpacing.screenX,
               TwSpacing.x2,
-              TwSpacing.x5,
-              TwSpacing.x8,
+              TwSpacing.screenX,
+              TwSpacing.x6,
             ),
             itemCount: itemCount,
             itemBuilder: (context, index) {
@@ -117,7 +117,7 @@ class _FoodExploreScreenState extends State<FoodExploreScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Restaurants near you', style: TwText.textXl),
+                      Text('Restaurants near you', style: TwText.sectionTitle),
                       const SizedBox(height: TwSpacing.x2),
                       Text(
                         'Pick a restaurant to browse its menu.',
@@ -162,32 +162,37 @@ class _FoodExploreScreenState extends State<FoodExploreScreen> {
     return OutlinedCard(
       backgroundColor: TwColors.card,
       borderColor: TwColors.border,
-      borderRadius: 50,
-      child: Row(
-        children: [
-          const Icon(Icons.search, color: TwColors.textMuted),
-          const SizedBox(width: TwSpacing.x4),
-          Expanded(
-            child: TextField(
-              controller: _searchController,
-              textInputAction: TextInputAction.search,
-              decoration: const InputDecoration(
-                isCollapsed: true,
-                border: InputBorder.none,
-                hintText: 'Search restaurants...',
-                hintStyle: TextStyle(color: TwColors.textMuted),
+      borderRadius: TwRadius.input,
+      padding: const EdgeInsets.symmetric(horizontal: TwSpacing.x4),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(minHeight: 52),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            const Icon(Icons.search, color: TwColors.textMuted),
+            const SizedBox(width: TwSpacing.x3),
+            Expanded(
+              child: TextField(
+                controller: _searchController,
+                textInputAction: TextInputAction.search,
+                decoration: const InputDecoration(
+                  isCollapsed: true,
+                  border: InputBorder.none,
+                  hintText: 'Search restaurants...',
+                  hintStyle: TextStyle(color: TwColors.textMuted),
+                ),
               ),
             ),
-          ),
-          if (_searchController.text.isNotEmpty)
-            GestureDetector(
-              onTap: _clearSearch,
-              child: const Padding(
-                padding: EdgeInsets.only(left: TwSpacing.x2),
-                child: Icon(Icons.clear, size: 20, color: TwColors.textMuted),
+            if (_searchController.text.isNotEmpty)
+              GestureDetector(
+                onTap: _clearSearch,
+                child: const Padding(
+                  padding: EdgeInsets.only(left: TwSpacing.x2),
+                  child: Icon(Icons.clear, size: 20, color: TwColors.textMuted),
+                ),
               ),
-            ),
-        ],
+          ],
+        ),
       ),
     );
   }

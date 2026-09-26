@@ -26,7 +26,7 @@ class AddToCartButton extends StatelessWidget {
           disabledBackgroundColor: scheme.outlineVariant,
           disabledForegroundColor: TwColors.textMuted,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(TwRadius.lg),
+            borderRadius: BorderRadius.circular(TwRadius.control),
           ),
         ),
         icon: const Icon(Icons.add_shopping_cart_rounded, size: 20),

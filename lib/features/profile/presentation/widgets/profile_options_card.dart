@@ -24,6 +24,7 @@ class ProfileOptionsCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return OutlinedCard(
       padding: EdgeInsets.zero,
+      borderRadius: TwRadius.card,
       child: Column(
         children: [
           for (final option in options) ...[
@@ -45,6 +46,7 @@ class LogoutCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return OutlinedCard(
       padding: EdgeInsets.zero,
+      borderRadius: TwRadius.card,
       child: _ProfileOptionTile(
         option: const ProfileOption(title: 'Logout', icon: Icons.logout),
         onTap: onTap,
@@ -78,13 +80,13 @@ class _ProfileOptionTile extends StatelessWidget {
       minTileHeight: 58,
       contentPadding: const EdgeInsets.symmetric(horizontal: TwSpacing.x4),
       leading: Container(
-        width: 36,
-        height: 36,
+        width: 42,
+        height: 42,
         decoration: BoxDecoration(
           color: isDestructive ? colorScheme.errorContainer : palette.soft,
-          borderRadius: BorderRadius.circular(TwRadius.md),
+          borderRadius: BorderRadius.circular(13),
         ),
-        child: Icon(option.icon, color: foreground, size: 19),
+        child: Icon(option.icon, color: foreground, size: 20),
       ),
       title: Text(
         option.title,

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../../config/tailwind.dart';
 import 'merchant_media_store.dart';
 
 /// A photo chosen (and, where supported, cropped) on-device, ready to upload.
@@ -124,7 +125,7 @@ class _MerchantPhotoFieldState extends State<MerchantPhotoField> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(widget.label, style: theme.textTheme.titleSmall),
-        const SizedBox(height: 8),
+        const SizedBox(height: TwSpacing.x2),
         ConstrainedBox(
           // Keep the square item preview thumbnail-sized; let the store
           // banner use the full width.
@@ -132,7 +133,7 @@ class _MerchantPhotoFieldState extends State<MerchantPhotoField> {
             maxWidth: folder.aspectX == folder.aspectY ? 160 : double.infinity,
           ),
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(TwRadius.tile),
             child: AspectRatio(
               aspectRatio: folder.aspectX / folder.aspectY,
               child: Stack(
@@ -149,9 +150,9 @@ class _MerchantPhotoFieldState extends State<MerchantPhotoField> {
             ),
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: TwSpacing.x2),
         Wrap(
-          spacing: 8,
+          spacing: TwSpacing.x2,
           children: [
             OutlinedButton.icon(
               onPressed: _isUploading
