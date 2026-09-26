@@ -8,6 +8,24 @@ class RestaurantMenu {
 
   int get itemCount =>
       categories.fold(0, (count, category) => count + category.items.length);
+
+  /// JSON-encodable form for `QueryCache`; round-trips through [fromMap].
+  Map<String, dynamic> toMap() => {
+    'restaurant': restaurant.toMap(),
+    'categories': [for (final category in categories) category.toMap()],
+  };
+
+  factory RestaurantMenu.fromMap(Map<String, dynamic> map) {
+    return RestaurantMenu(
+      restaurant: Restaurant.fromMap(
+        Map<String, dynamic>.from(map['restaurant'] as Map),
+      ),
+      categories: List.unmodifiable([
+        for (final category in map['categories'] as List)
+          MenuCategory.fromMap(Map<String, dynamic>.from(category as Map)),
+      ]),
+    );
+  }
 }
 
 class MenuCategory {
@@ -20,6 +38,23 @@ class MenuCategory {
   final String id;
   final String name;
   final List<MenuItem> items;
+
+  Map<String, dynamic> toMap() => {
+    'id': id,
+    'name': name,
+    'items': [for (final item in items) item.toMap()],
+  };
+
+  factory MenuCategory.fromMap(Map<String, dynamic> map) {
+    return MenuCategory(
+      id: map['id'].toString(),
+      name: map['name'] as String? ?? 'Other',
+      items: List.unmodifiable([
+        for (final item in map['items'] as List)
+          MenuItem.fromMap(Map<String, dynamic>.from(item as Map)),
+      ]),
+    );
+  }
 }
 
 class MenuItem {
@@ -70,4 +105,14 @@ class MenuItem {
       categoryId: map['categorie_id']?.toString() ?? 'uncategorized',
     );
   }
+
+  /// Inverse of [MenuItem.fromMap], using the same column names.
+  Map<String, dynamic> toMap() => {
+    'id': id,
+    'name': name,
+    'description': description,
+    'price': price,
+    'image_url': imageUrl,
+    'categorie_id': categoryId,
+  };
 }

@@ -12,4 +12,7 @@ class Category {
       iconUrl: map['icon_url'] as String? ?? '',
     );
   }
+
+  /// Inverse of [Category.fromMap], using the same column names.
+  Map<String, dynamic> toMap() => {'id': id, 'name': name, 'icon_url': iconUrl};
 }

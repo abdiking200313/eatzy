@@ -15,6 +15,8 @@ import '../../services/pharmacy/presentation/pharmacy_controller.dart';
 import '../../widgets/zivo_logo.dart';
 import '../activity/data/activity_repository.dart';
 import '../activity/presentation/activity_controller.dart';
+import '../cache/catalog_queries.dart';
+import '../cache/query_cache.dart';
 import '../error_reporting/error_reporter.dart';
 import '../notifications/push_notifications.dart';
 import '../session/secure_session_storage.dart';
@@ -66,6 +68,17 @@ Future<StartupResult> runStartupSequence() async {
     );
     rethrow;
   }
+
+  // Load the last-seen catalog from disk so the first screens render it on
+  // their first frame, then start refreshing it in the background while the
+  // rest of startup runs -- deliberately not awaited, so a slow network
+  // never delays reaching the app. Screens that need the data before the
+  // prefetch finishes join the same in-flight request (see QueryCache.fetch).
+  await _runBestEffort(
+    'QueryCache.hydrate',
+    () => QueryCache.instance.hydrate().timeout(kStartupNetworkTimeout),
+  );
+  unawaited(CatalogQueries.prefetchHome());
 
   // Loaded once, up front, so AppRouter's synchronous redirect can gate a
   // returning signed-out user past onboarding on this very first frame --

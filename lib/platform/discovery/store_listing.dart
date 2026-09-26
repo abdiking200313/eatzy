@@ -25,4 +25,25 @@ class StoreListing {
 
   /// go_router route string to open when this store is tapped.
   final String route;
+
+  /// JSON-encodable form for `QueryCache`; round-trips through [fromMap].
+  Map<String, dynamic> toMap() => {
+    'id': id,
+    'service_id': serviceId.name,
+    'name': name,
+    'subtitle': subtitle,
+    'image_url': imageUrl,
+    'route': route,
+  };
+
+  factory StoreListing.fromMap(Map<String, dynamic> map) {
+    return StoreListing(
+      id: map['id'] as String,
+      serviceId: ServiceId.values.byName(map['service_id'] as String),
+      name: map['name'] as String,
+      subtitle: map['subtitle'] as String,
+      imageUrl: map['image_url'] as String?,
+      route: map['route'] as String,
+    );
+  }
 }

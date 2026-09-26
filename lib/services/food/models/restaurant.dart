@@ -19,4 +19,12 @@ class Restaurant {
       logoUrl: map['logo_url'] as String? ?? '',
     );
   }
+
+  /// Inverse of [Restaurant.fromMap], using the same column names.
+  Map<String, dynamic> toMap() => {
+    'id': id,
+    'name': name,
+    'description': description,
+    'logo_url': logoUrl,
+  };
 }

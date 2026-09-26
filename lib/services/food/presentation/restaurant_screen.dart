@@ -4,11 +4,11 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../app/app_routes.dart';
 import '../../../config/theme.dart';
+import '../../../platform/cache/catalog_queries.dart';
 import '../../../widgets/app_cards.dart';
 import '../../../widgets/app_misc.dart';
 import '../../../widgets/store_hero_app_bar.dart';
 import '../data/food_repository.dart';
-import '../data/restaurant_menu_repository.dart';
 import '../models/cart_item.dart';
 import '../models/food_models.dart';
 import '../models/restaurant_menu.dart';
@@ -46,7 +46,10 @@ class _RestaurantScreenState extends State<RestaurantScreen> {
   final _sectionKeys = <String, GlobalKey>{};
   final _scrollController = ScrollController();
 
-  late Future<RestaurantMenu> _menuFuture;
+  late Stream<RestaurantMenu> _menu;
+
+  /// The cached menu shown on the first frame, before [_menu] emits.
+  RestaurantMenu? _initialMenu;
   late Future<List<RestaurantLocation>> _locationsFuture;
   String? _selectedCategoryId;
 
@@ -64,9 +67,24 @@ class _RestaurantScreenState extends State<RestaurantScreen> {
   @override
   void initState() {
     super.initState();
-    _menuFuture = _menuLoader(widget.restaurantId);
+    _startMenu();
     _locationsFuture = _loadLocations();
     _scrollController.addListener(_syncSelectedCategoryFromScroll);
+  }
+
+  /// An injected [RestaurantScreen.menuLoader] (tests) bypasses the cache;
+  /// the real app shows the last-known menu instantly and refreshes it in
+  /// the background via [CatalogQueries.restaurantMenu].
+  void _startMenu() {
+    final loader = widget.menuLoader;
+    if (loader != null) {
+      _initialMenu = null;
+      _menu = Stream.fromFuture(loader(widget.restaurantId));
+      return;
+    }
+    final query = CatalogQueries.restaurantMenu(widget.restaurantId);
+    _initialMenu = query.peek();
+    _menu = query.watch();
   }
 
   void _syncSelectedCategoryFromScroll() {
@@ -91,9 +109,6 @@ class _RestaurantScreenState extends State<RestaurantScreen> {
       setState(() => _selectedCategoryId = currentId);
     }
   }
-
-  RestaurantMenuLoader get _menuLoader =>
-      widget.menuLoader ?? RestaurantMenuRepository().fetchMenu;
 
   @override
   void dispose() {
@@ -123,14 +138,14 @@ class _RestaurantScreenState extends State<RestaurantScreen> {
         oldWidget.locationRepository != widget.locationRepository) {
       _sectionKeys.clear();
       _selectedCategoryId = null;
-      _menuFuture = _menuLoader(widget.restaurantId);
+      _startMenu();
       _locationsFuture = _loadLocations();
     }
   }
 
   void _retry() {
     setState(() {
-      _menuFuture = _menuLoader(widget.restaurantId);
+      _startMenu();
       _locationsFuture = _loadLocations();
     });
   }
@@ -231,27 +246,28 @@ class _RestaurantScreenState extends State<RestaurantScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: FutureBuilder<RestaurantMenu>(
-        future: _menuFuture,
+      body: StreamBuilder<RestaurantMenu>(
+        stream: _menu,
+        initialData: _initialMenu,
         builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const _RestaurantLoading();
-          }
-
-          if (snapshot.hasError) {
-            return _RestaurantError(onRetry: _retry);
+          // A cached menu wins over both the loading state and a failed
+          // background refresh; errors only show when nothing was cached.
+          final menu = snapshot.data;
+          if (menu == null) {
+            return snapshot.hasError
+                ? _RestaurantError(onRetry: _retry)
+                : const _RestaurantLoading();
           }
 
           return _RestaurantMenuView(
-            menu: snapshot.requireData,
+            menu: menu,
             locationsFuture: _locationsFuture,
             selectedCategoryId: _selectedCategoryId,
             scrollController: _scrollController,
             sectionKeyFor: (categoryId) =>
                 _sectionKeys.putIfAbsent(categoryId, GlobalKey.new),
             onCategorySelected: _selectCategory,
-            onAddToCart: (item, quantity) =>
-                _addToCart(snapshot.requireData, item, quantity),
+            onAddToCart: (item, quantity) => _addToCart(menu, item, quantity),
           );
         },
       ),
