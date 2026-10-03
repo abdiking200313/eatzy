@@ -16,6 +16,11 @@ enum CartAddResult {
 class CartController extends ChangeNotifier {
   CartController({required CartStorage<CartItem> storage}) : _storage = storage;
 
+  /// Process-wide singleton, kept for every call site that hasn't migrated
+  /// yet. New code should prefer `AppScope.of(context).cartController`
+  /// (`lib/app/app_scope.dart`, issue #281) instead of reaching for this
+  /// directly -- it resolves to the exact same object in production, just
+  /// through the app's composition root rather than a global.
   static final CartController instance = CartController(
     storage: SharedPreferencesCartStorage<CartItem>(
       keyPrefix: 'zivo.cart.v1',

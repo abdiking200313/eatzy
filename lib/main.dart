@@ -6,8 +6,9 @@ import 'package:flutter/services.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'app/app_router.dart';
+import 'app/app_scope.dart';
+import 'app/app_services.dart';
 import 'config/theme.dart';
-import 'platform/activity/presentation/activity_controller.dart';
 import 'platform/error_reporting/error_reporter.dart';
 import 'platform/session/account_state_coordinator.dart';
 import 'platform/startup/startup_gate.dart';
@@ -78,7 +79,10 @@ void main() {
       // permanently black/frozen one if it fails.
       runApp(
         StartupGate(
-          onReady: (cartController) => ZivoApp(cartController: cartController),
+          onReady: (appServices) => AppScope(
+            services: appServices,
+            child: ZivoApp(appServices: appServices),
+          ),
         ),
       );
     },
@@ -93,9 +97,16 @@ void main() {
 }
 
 class ZivoApp extends StatefulWidget {
-  const ZivoApp({super.key, this.cartController});
+  const ZivoApp({super.key, required this.appServices});
 
-  final CartController? cartController;
+  /// The composition root (issue #281) this app instance runs on. Passed
+  /// explicitly rather than read via `AppScope.of(context)` because
+  /// [_ZivoAppState.initState] needs it before this widget's own context has
+  /// an `AppScope` ancestor available to `dependOnInheritedWidgetOfExactType`
+  /// -- callers are expected to also wrap this widget in an `AppScope` using
+  /// the same instance (see `main.dart`), so descendants can look it up via
+  /// context instead.
+  final AppServices appServices;
 
   @override
   State<ZivoApp> createState() => _ZivoAppState();
@@ -104,27 +115,29 @@ class ZivoApp extends StatefulWidget {
 class _ZivoAppState extends State<ZivoApp> {
   final AndroidNavigationBarController _navigationBarController =
       AndroidNavigationBarController();
-  late final CartController _cartController =
-      widget.cartController ?? CartController.instance;
+  late final CartController _cartController = widget.appServices.cartController;
   late final AccountStateCoordinator _accountStateCoordinator =
-      AccountStateCoordinator(initialOwnerId: _cartController.ownerId);
+      AccountStateCoordinator(
+        initialOwnerId: _cartController.ownerId,
+        activityController: widget.appServices.activityController,
+        registry: widget.appServices.sessionResetRegistry,
+      );
   late final StreamSubscription<AuthState> _authSubscription;
 
   @override
   void initState() {
     super.initState();
     _navigationBarController.start();
-    _authSubscription = Supabase.instance.client.auth.onAuthStateChange.listen((
-      authState,
-    ) {
-      final nextOwnerId = authState.session?.user.id;
-      if (_accountStateCoordinator.handleOwnerChanged(nextOwnerId)) {
-        unawaited(_cartController.loadForOwner(nextOwnerId));
-        if (nextOwnerId != null) {
-          unawaited(ActivityController.instance.load());
-        }
-      }
-    });
+    _authSubscription = widget.appServices.supabaseClient.auth.onAuthStateChange
+        .listen((authState) {
+          final nextOwnerId = authState.session?.user.id;
+          if (_accountStateCoordinator.handleOwnerChanged(nextOwnerId)) {
+            unawaited(_cartController.loadForOwner(nextOwnerId));
+            if (nextOwnerId != null) {
+              unawaited(widget.appServices.activityController.load());
+            }
+          }
+        });
   }
 
   @override

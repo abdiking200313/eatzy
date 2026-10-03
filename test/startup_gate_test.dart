@@ -1,17 +1,12 @@
 import 'dart:async';
 
 import 'package:chowflow/platform/startup/startup_gate.dart';
-import 'package:chowflow/services/food/models/cart_item.dart';
-import 'package:chowflow/services/food/presentation/cart_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'helpers/memory_cart_storage.dart';
+import 'helpers/app_scope_test_helpers.dart';
 
 void main() {
-  CartController buildCartController() =>
-      CartController(storage: MemoryCartStorage<CartItem>());
-
   testWidgets('shows a loading indicator while startup is in flight', (
     tester,
   ) async {
@@ -20,7 +15,7 @@ void main() {
     await tester.pumpWidget(
       StartupGate(
         runStartup: () => startupCompleter.future,
-        onReady: (cartController) => const MaterialApp(home: Text('app ready')),
+        onReady: (appServices) => const MaterialApp(home: Text('app ready')),
       ),
     );
     await tester.pump();
@@ -30,19 +25,19 @@ void main() {
 
     // Avoid leaving a pending timer/future dangling past the test.
     startupCompleter.complete(
-      StartupResult(cartController: buildCartController()),
+      StartupResult(appServices: buildTestAppServices()),
     );
     await tester.pumpAndSettle();
   });
 
   testWidgets('hands off to onReady once startup succeeds', (tester) async {
-    final cartController = buildCartController();
+    final appServices = buildTestAppServices();
 
     await tester.pumpWidget(
       StartupGate(
-        runStartup: () async => StartupResult(cartController: cartController),
-        onReady: (controller) => MaterialApp(
-          home: Text('ready:${identical(controller, cartController)}'),
+        runStartup: () async => StartupResult(appServices: appServices),
+        onReady: (services) => MaterialApp(
+          home: Text('ready:${identical(services, appServices)}'),
         ),
       ),
     );
@@ -56,7 +51,7 @@ void main() {
     'retrying can still succeed',
     (tester) async {
       var attempt = 0;
-      final cartController = buildCartController();
+      final appServices = buildTestAppServices();
 
       await tester.pumpWidget(
         StartupGate(
@@ -65,9 +60,9 @@ void main() {
             if (attempt == 1) {
               throw const SocketException('no network');
             }
-            return StartupResult(cartController: cartController);
+            return StartupResult(appServices: appServices);
           },
-          onReady: (controller) => const MaterialApp(home: Text('app ready')),
+          onReady: (services) => const MaterialApp(home: Text('app ready')),
         ),
       );
       await tester.pumpAndSettle();
