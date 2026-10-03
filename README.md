@@ -43,10 +43,15 @@ Requires a Supabase project — see `supabase/` for schema/migrations. Note: the
 ### Pointing at a different Supabase project
 
 The Supabase URL and anon key are read from `lib/config/env.dart` via
-`String.fromEnvironment`, defaulting to the live project so `flutter run` /
-`flutter test` / `flutter build` need no extra flags. To point the app at a
-different project (e.g. a future dev/staging project), pass both defines
-together:
+`String.fromEnvironment`, **defaulting to the live production project** when
+no `--dart-define`/`--dart-define-from-file` is passed, so `flutter run` /
+`flutter test` / `flutter build` need no extra flags to work out of the box —
+this also means an unconfigured local run talks to real production data
+(`Env.isUsingProductionDefault` is `true` and, in debug builds, a startup
+warning is logged — see `lib/platform/startup/startup_gate.dart`).
+
+To point the app at a different project (e.g. a future dev/staging project),
+pass both defines together, either directly:
 
 ```bash
 flutter run \
@@ -54,10 +59,23 @@ flutter run \
   --dart-define=SUPABASE_ANON_KEY=your-anon-key
 ```
 
-The same two `--dart-define` flags work on `flutter build`/`flutter test`.
-Provisioning an actual separate dev/staging Supabase project is a separate,
-out-of-scope follow-up (see issue #42) — this only wires up the ability to
-point at one once it exists.
+or, more conveniently, via a per-environment config file:
+
+```bash
+cp config/dev.json.example config/dev.json
+# edit config/dev.json with your dev project's URL/anon key
+flutter run --dart-define-from-file=config/dev.json
+```
+
+`config/*.json` is gitignored (only the `*.json.example` templates are
+committed), so your real values never get committed. `config/prod.json.example`
+is provided the same way for an explicit, intentional production
+build/run — e.g. `flutter build apk --dart-define-from-file=config/prod.json`.
+
+The same flags/files work on `flutter build`/`flutter test`. Provisioning an
+actual separate dev/staging Supabase project is a separate, out-of-scope
+follow-up (see issue #42) — this only wires up the ability to point at one
+once it exists.
 
 ## 📱 Supported Platforms
 

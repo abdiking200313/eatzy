@@ -21,4 +21,25 @@ void main() {
       expect(Env.supabaseAnonKey, isNotEmpty);
     });
   });
+
+  group('Env.isUsingProductionDefault (issue #277)', () {
+    test(
+      'is true when neither SUPABASE_URL nor SUPABASE_ANON_KEY was passed '
+      'via --dart-define, i.e. the test run (like an unconfigured '
+      'flutter run/build) is falling back to the live production project',
+      () {
+        expect(Env.isUsingProductionDefault, isTrue);
+      },
+    );
+
+    test('is defined purely from bool.hasEnvironment, not by comparing against '
+        'the literal fallback string values, so it would correctly flip to '
+        'false under --dart-define=SUPABASE_URL=...'
+        '--dart-define=SUPABASE_ANON_KEY=... even if a caller passed back the '
+        'exact same values as the fallback', () {
+      const definedUrl = bool.hasEnvironment('SUPABASE_URL');
+      const definedKey = bool.hasEnvironment('SUPABASE_ANON_KEY');
+      expect(Env.isUsingProductionDefault, !definedUrl || !definedKey);
+    });
+  });
 }
