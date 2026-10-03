@@ -23,6 +23,11 @@ class SessionResetRegistry {
 
   /// The registry app-wide singletons register into and that
   /// [AccountStateCoordinator] listens to by default.
+  ///
+  /// New code should prefer `AppScope.of(context).sessionResetRegistry`
+  /// (`lib/app/app_scope.dart`, issue #281) instead of reaching for this
+  /// directly -- it resolves to the exact same object in production, just
+  /// through the app's composition root rather than a global.
   static final SessionResetRegistry instance = SessionResetRegistry();
 
   final List<SessionResetCallback> _callbacks = [];

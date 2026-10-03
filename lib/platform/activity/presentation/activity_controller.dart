@@ -21,6 +21,11 @@ class ActivityController extends ChangeNotifier {
   ActivityController({ActivityRepository? repository})
     : _repository = repository;
 
+  /// Process-wide singleton, kept for every call site that hasn't migrated
+  /// yet. New code should prefer `AppScope.of(context).activityController`
+  /// (`lib/app/app_scope.dart`, issue #281) instead of reaching for this
+  /// directly -- it resolves to the exact same object in production, just
+  /// through the app's composition root rather than a global.
   static final ActivityController instance = ActivityController();
 
   ActivityRepository? _repository;

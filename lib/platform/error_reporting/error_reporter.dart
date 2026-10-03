@@ -45,5 +45,12 @@ class LoggingErrorReporter implements ErrorReporter {
 class ErrorReporting {
   ErrorReporting._();
 
+  /// Process-wide reporter, kept for every call site that hasn't migrated
+  /// yet (including every global error hook in `main.dart`, which runs
+  /// before the composition root exists). New code with a [BuildContext]
+  /// should prefer `AppScope.of(context).errorReporter`
+  /// (`lib/app/app_scope.dart`, issue #281) instead of reaching for this
+  /// directly -- it resolves to the exact same object in production, just
+  /// through the app's composition root rather than a global.
   static ErrorReporter instance = const LoggingErrorReporter();
 }

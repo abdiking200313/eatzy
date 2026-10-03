@@ -4,20 +4,18 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../app/app_services.dart';
 import '../../app/merchant_session_gate.dart';
 import '../../config/env.dart';
 import '../../config/theme.dart';
 import '../../features/onboarding/data/onboarding_preferences.dart';
 import '../../features/settings/data/notification_preferences_repository.dart';
-import '../../services/food/presentation/cart_controller.dart';
 import '../../services/grocery/models/grocery_models.dart';
 import '../../services/grocery/presentation/grocery_controller.dart';
 import '../../services/pharmacy/presentation/pharmacy_controller.dart';
 import '../../widgets/zivo_logo.dart';
 import '../activity/data/activity_repository.dart';
-import '../activity/presentation/activity_controller.dart';
 import '../cache/catalog_queries.dart';
-import '../cache/query_cache.dart';
 import '../error_reporting/error_reporter.dart';
 import '../notifications/push_notifications.dart';
 import '../session/secure_session_storage.dart';
@@ -28,14 +26,14 @@ import '../session/secure_session_storage.dart';
 /// permanently frozen.
 const Duration kStartupNetworkTimeout = Duration(seconds: 15);
 
-/// What [runStartupSequence] hands back on success: the already-configured
-/// singleton controllers the real app root needs. Kept as a named result
-/// (rather than returning the bare [CartController]) so a future caller can
-/// add another controller without changing the function's return type.
+/// What [runStartupSequence] hands back on success: the single [AppServices]
+/// composition root (issue #281) the real app root needs. Kept as a named
+/// result (rather than returning the bare [AppServices]) so a future caller
+/// can add another field without changing the function's return type.
 class StartupResult {
-  const StartupResult({required this.cartController});
+  const StartupResult({required this.appServices});
 
-  final CartController cartController;
+  final AppServices appServices;
 }
 
 /// Runs every startup step that used to block `main()` before `runApp`
@@ -82,6 +80,14 @@ Future<StartupResult> runStartupSequence() async {
     rethrow;
   }
 
+  // The composition root (issue #281): built once Supabase.initialize has
+  // succeeded, since AppServices.fromSingletons reads Supabase.instance.
+  // Wraps the same process-wide singletons every call site already used
+  // (CartController.instance, ActivityController.instance, etc.) -- this
+  // phase only adds a single bundled access point, it does not change which
+  // underlying objects are in use.
+  final appServices = AppServices.fromSingletons();
+
   // Load the last-seen catalog from disk so the first screens render it on
   // their first frame, then start refreshing it in the background while the
   // rest of startup runs -- deliberately not awaited, so a slow network
@@ -89,7 +95,7 @@ Future<StartupResult> runStartupSequence() async {
   // prefetch finishes join the same in-flight request (see QueryCache.fetch).
   await _runBestEffort(
     'QueryCache.hydrate',
-    () => QueryCache.instance.hydrate().timeout(kStartupNetworkTimeout),
+    () => appServices.queryCache.hydrate().timeout(kStartupNetworkTimeout),
   );
   unawaited(CatalogQueries.prefetchHome());
 
@@ -105,7 +111,7 @@ Future<StartupResult> runStartupSequence() async {
             .timeout(kStartupNetworkTimeout);
   }, onFailure: () => OnboardingLaunchGate.hasSeenOnboarding = false);
 
-  final cartController = CartController.instance;
+  final cartController = appServices.cartController;
   final currentUserId = Supabase.instance.client.auth.currentUser?.id;
 
   // Issue #232: resolve merchant/admin routing once at startup for a
@@ -173,17 +179,18 @@ Future<StartupResult> runStartupSequence() async {
         .timeout(kStartupNetworkTimeout),
   );
 
-  ActivityController.instance.configureRepository(
-    SupabaseActivityRepository(client: Supabase.instance.client),
+  appServices.activityController.configureRepository(
+    SupabaseActivityRepository(client: appServices.supabaseClient),
   );
   if (currentUserId != null) {
     await _runBestEffort(
       'ActivityController.load',
-      () => ActivityController.instance.load().timeout(kStartupNetworkTimeout),
+      () =>
+          appServices.activityController.load().timeout(kStartupNetworkTimeout),
     );
   }
 
-  return StartupResult(cartController: cartController);
+  return StartupResult(appServices: appServices);
 }
 
 /// Runs [body], reporting and swallowing any failure (including a timeout)
@@ -206,9 +213,9 @@ Future<void> _runBestEffort(
 /// Root widget installed by `runApp` in place of the real app (issue #41):
 /// runs [runStartup] once mounted and shows a loading state while it's in
 /// flight, an error/retry state if it fails, or hands off to [onReady] with
-/// the loaded [CartController] once it succeeds -- so a slow or failed
-/// network call blocks a lightweight bootstrap screen instead of `runApp`
-/// itself, and a failure is always recoverable instead of leaving a
+/// the composed [AppServices] (issue #281) once it succeeds -- so a slow or
+/// failed network call blocks a lightweight bootstrap screen instead of
+/// `runApp` itself, and a failure is always recoverable instead of leaving a
 /// permanently black/frozen screen.
 class StartupGate extends StatefulWidget {
   const StartupGate({
@@ -218,7 +225,7 @@ class StartupGate extends StatefulWidget {
   });
 
   /// Builds the real app once startup succeeds.
-  final Widget Function(CartController cartController) onReady;
+  final Widget Function(AppServices appServices) onReady;
 
   /// Overridable for tests; defaults to [runStartupSequence].
   final Future<StartupResult> Function() runStartup;
@@ -263,7 +270,7 @@ class _StartupGateState extends State<StartupGate> {
   Widget build(BuildContext context) {
     final result = _result;
     if (result != null) {
-      return widget.onReady(result.cartController);
+      return widget.onReady(result.appServices);
     }
 
     return MaterialApp(
