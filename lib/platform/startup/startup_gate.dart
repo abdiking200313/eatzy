@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -51,6 +52,18 @@ class StartupResult {
 /// the app (they land with an empty cart / no recent activity instead,
 /// which the relevant screens already know how to display and retry).
 Future<StartupResult> runStartupSequence() async {
+  // Issue #277: `Env`'s production fallback (see its doc comment) means a
+  // local run/debug build with no --dart-define-from-file silently talks to
+  // real production data. Debug-build-only (kDebugMode), so a release build
+  // never prints this -- it is a developer nudge, not user-facing.
+  if (kDebugMode && Env.isUsingProductionDefault) {
+    debugPrint(
+      '⚠️ Running against PRODUCTION Supabase — no --dart-define-from-file '
+      'was passed. Use --dart-define-from-file=config/dev.json (copy '
+      'config/dev.json.example) to run against a non-production project.',
+    );
+  }
+
   const supabaseUrl = Env.supabaseUrl;
   try {
     await Supabase.initialize(

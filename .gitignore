@@ -14,6 +14,12 @@ vault/.obsidian/
 
 # Local git worktrees created by isolated agent dispatches
 .claude/worktrees/
+
+# Per-environment --dart-define-from-file config (issue #277) -- real
+# Supabase URLs/keys are environment-specific and local-only; only the
+# *.json.example templates are committed.
+config/*.json
+!config/*.json.example
 .svn/
 .swiftpm/
 migrate_working_dir/
