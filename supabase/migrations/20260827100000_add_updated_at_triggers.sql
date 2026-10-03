@@ -73,25 +73,46 @@ $$;
 comment on function public.set_updated_at() is
   'Shared BEFORE UPDATE trigger function: stamps NEW.updated_at = now() on every row update. Attached to every table below that declares an updated_at column (issue #83).';
 
-drop trigger if exists set_profiles_updated_at on public.profiles;
-create trigger set_profiles_updated_at
-before update on public.profiles
-for each row execute function public.set_updated_at();
-
-drop trigger if exists set_addresses_updated_at on public.addresses;
-create trigger set_addresses_updated_at
-before update on public.addresses
-for each row execute function public.set_updated_at();
-
-drop trigger if exists set_restaurants_updated_at on public.restaurants;
-create trigger set_restaurants_updated_at
-before update on public.restaurants
-for each row execute function public.set_updated_at();
-
-drop trigger if exists set_menu_items_updated_at on public.menu_items;
-create trigger set_menu_items_updated_at
-before update on public.menu_items
-for each row execute function public.set_updated_at();
+-- Amended for issue #276 (fresh-database replay). The four tables below came
+-- from the old starter schema.sql, whose shape this file assumed. The live
+-- project turned out to differ: `public.addresses` does not exist at all,
+-- and `profiles` / `restaurants` / `menu_items` have no `updated_at` column
+-- (see the 2026-09-18 live snapshot in supabase/schema.sql, which also lists
+-- no trigger on any of the four). As originally written this block
+-- hard-failed a fresh replay on the missing `addresses` table, and would
+-- otherwise have attached a trigger that makes every UPDATE on the other
+-- three fail with `record "new" has no field "updated_at"`. Each trigger is
+-- now created only when its table exists and actually has `updated_at`,
+-- which reproduces the live result. Already-applied copies of this
+-- migration are unaffected.
+do $$
+declare
+  t text;
+begin
+  foreach t in array array['profiles', 'addresses', 'restaurants', 'menu_items']
+  loop
+    if exists (
+      select 1
+      from information_schema.columns
+      where table_schema = 'public'
+        and table_name = t
+        and column_name = 'updated_at'
+    ) then
+      execute format(
+        'drop trigger if exists %I on public.%I',
+        'set_' || t || '_updated_at',
+        t
+      );
+      execute format(
+        'create trigger %I before update on public.%I '
+        'for each row execute function public.set_updated_at()',
+        'set_' || t || '_updated_at',
+        t
+      );
+    end if;
+  end loop;
+end;
+$$;
 
 drop trigger if exists set_grocery_stores_updated_at on public.grocery_stores;
 create trigger set_grocery_stores_updated_at

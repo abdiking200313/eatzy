@@ -33,13 +33,10 @@
 -- (migrations/20260815153920_remove_cleaning_vertical.sql) and its tables no
 -- longer exist.
 --
--- This file assumes the base schema in `supabase/schema.sql` (profiles,
--- restaurants, menu_items, categories, ...) has already been applied to the
--- target database -- the same pre-existing assumption the migration this
--- data was moved from already made. Reconciling `schema.sql` into the
--- tracked migration chain is a separate, already-documented gap (see
--- AGENTS.md's "Supabase and security conventions" section) and is out of
--- scope for issue #35.
+-- The core tables this file writes (profiles, restaurants, menu_items, ...)
+-- are created by `migrations/20260727000000_baseline_core_tables.sql`
+-- (issue #276), so nothing outside the migration chain has to be applied
+-- first. `supabase/schema.sql` is reference documentation only.
 
 -- ---------------------------------------------------------------------
 -- Demo grocery catalog. Fake Somalia/USD data; semantic ids keep this
@@ -392,18 +389,21 @@ values (
 )
 on conflict (id) do nothing;
 
-insert into public.profiles (id, full_name, phone, membership_tier)
+-- The `on_auth_user_created` trigger (handle_new_user) has already inserted
+-- a blank profile row for the auth user above, so this fills it in. Columns
+-- match the live `public.profiles` shape (issue #276): there is no
+-- `full_name`, `membership_tier` or `updated_at`.
+insert into public.profiles (id, firstname, lastname, phone)
 values (
   '00000000-0000-0000-0000-000000000001',
-  'Demo Customer',
-  '+252 61 000 0000',
-  'standard'
+  'Demo',
+  'Customer',
+  '+252 61 000 0000'
 )
 on conflict (id) do update
-set full_name = excluded.full_name,
-    phone = excluded.phone,
-    membership_tier = excluded.membership_tier,
-    updated_at = now();
+set firstname = excluded.firstname,
+    lastname = excluded.lastname,
+    phone = excluded.phone;
 
 -- ---------------------------------------------------------------------
 -- Demo order history for the dedicated demo account above. Mirrors what
