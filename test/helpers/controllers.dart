@@ -6,7 +6,9 @@ import 'package:chowflow/services/pharmacy/data/pharmacy_repository.dart';
 import 'package:chowflow/services/pharmacy/models/pharmacy_cart_item.dart';
 import 'package:chowflow/services/pharmacy/presentation/pharmacy_controller.dart';
 import 'package:chowflow/services/shared/data/cart_storage.dart';
+import 'package:chowflow/services/shared/data/service_pricing_repository.dart';
 
+import 'fake_service_pricing_repository.dart';
 import 'memory_cart_storage.dart';
 
 /// Builds a [GroceryController] backed by [SeededGroceryRepository] (or a
@@ -27,6 +29,7 @@ GroceryController buildGroceryController({
   GroceryOrderRepository? orderRepository,
   ActivityController? activityController,
   CartStorage<GroceryCartLine>? storage,
+  ServicePricingRepository? pricingRepository,
   DateTime Function()? now,
 }) {
   return GroceryController(
@@ -34,6 +37,13 @@ GroceryController buildGroceryController({
     orderRepository: orderRepository,
     activityController: activityController ?? ActivityController(),
     storage: storage ?? MemoryCartStorage<GroceryCartLine>(),
+    // Pre-seeded with the historical hardcoded default (issue #279) so every
+    // existing test keeps seeing the same delivery fee without having to
+    // inject pricing itself; pass an explicit [pricingRepository] to test
+    // different pricing (or `FakeServicePricingRepository.unconfigured()` to
+    // test the "pricing never loaded" fallback).
+    pricingRepository:
+        pricingRepository ?? FakeServicePricingRepository.grocery(),
     now: now,
   );
 }
@@ -47,6 +57,7 @@ Future<GroceryController> buildLoadedGroceryController({
   GroceryOrderRepository? orderRepository,
   ActivityController? activityController,
   CartStorage<GroceryCartLine>? storage,
+  ServicePricingRepository? pricingRepository,
   DateTime Function()? now,
 }) async {
   final controller = buildGroceryController(
@@ -54,6 +65,7 @@ Future<GroceryController> buildLoadedGroceryController({
     orderRepository: orderRepository,
     activityController: activityController,
     storage: storage,
+    pricingRepository: pricingRepository,
     now: now,
   );
   await controller.load();
@@ -78,6 +90,7 @@ PharmacyController buildPharmacyController({
   PharmacyOrderRepository? orderRepository,
   ActivityController? activityController,
   CartStorage<PharmacyCartItem>? storage,
+  ServicePricingRepository? pricingRepository,
   DateTime Function()? now,
 }) {
   return PharmacyController(
@@ -85,6 +98,11 @@ PharmacyController buildPharmacyController({
     orderRepository: orderRepository,
     activityController: activityController ?? ActivityController(),
     storage: storage ?? MemoryCartStorage<PharmacyCartItem>(),
+    // See `buildGroceryController`'s identical note: pre-seeded with the
+    // historical hardcoded default (issue #279) unless the caller overrides
+    // it.
+    pricingRepository:
+        pricingRepository ?? FakeServicePricingRepository.pharmacy(),
     now: now,
   );
 }
@@ -99,6 +117,7 @@ Future<PharmacyController> buildLoadedPharmacyController({
   PharmacyOrderRepository? orderRepository,
   ActivityController? activityController,
   CartStorage<PharmacyCartItem>? storage,
+  ServicePricingRepository? pricingRepository,
   DateTime Function()? now,
   String storeId = SeededPharmacyRepository.defaultStoreId,
 }) async {
@@ -107,6 +126,7 @@ Future<PharmacyController> buildLoadedPharmacyController({
     orderRepository: orderRepository,
     activityController: activityController,
     storage: storage,
+    pricingRepository: pricingRepository,
     now: now,
   );
   await controller.loadProducts(storeId: storeId);

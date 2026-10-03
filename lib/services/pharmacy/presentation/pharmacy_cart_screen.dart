@@ -46,7 +46,10 @@ class PharmacyCartScreen extends StatelessWidget {
           ],
           feeLines: [
             CheckoutLine('Subtotal', pharmacyController.subtotal),
-            const CheckoutLine('Delivery fee', PharmacyController.deliveryFee),
+            if (pharmacyController.deliveryFee case final fee?)
+              CheckoutLine('Delivery fee', fee)
+            else
+              const CheckoutLine.pending('Delivery fee'),
           ],
           total: pharmacyController.total,
           onCheckout: () => context.push(AppRoutes.pharmacyCheckout),

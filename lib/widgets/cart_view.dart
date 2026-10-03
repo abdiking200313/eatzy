@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import '../config/theme.dart';
 import '../platform/localization/app_money.dart';
 import 'app_cards.dart';
-import 'app_misc.dart';
 import 'app_scaffold.dart';
 import 'checkout_view.dart';
 
@@ -74,7 +73,12 @@ class CartView extends StatelessWidget {
 
   /// Subtotal, tax, delivery fee — whatever this vertical charges.
   final List<CheckoutLine> feeLines;
-  final int total;
+
+  /// `null` when any fee/tax line is still [CheckoutLine.isPending] (pricing
+  /// hasn't loaded yet — issue #279): shown as "Calculated at checkout"
+  /// instead of a fabricated number. Continuing to checkout is never blocked
+  /// on this.
+  final int? total;
   final VoidCallback onCheckout;
 
   /// Shown in a line's thumbnail when it has no photo.
@@ -144,7 +148,9 @@ class CartView extends StatelessWidget {
               ),
               child: GradientActionButton(
                 key: const Key('cart-checkout'),
-                label: 'Continue to checkout • ${AppMoney.formatCents(total)}',
+                label: total == null
+                    ? 'Continue to checkout'
+                    : 'Continue to checkout • ${AppMoney.formatCents(total!)}',
                 onPressed: onCheckout,
                 borderRadius: TwRadius.media,
                 padding: const EdgeInsets.symmetric(
@@ -407,7 +413,10 @@ class _CartTotalsCard extends StatelessWidget {
   const _CartTotalsCard({required this.feeLines, required this.total});
 
   final List<CheckoutLine> feeLines;
-  final int total;
+
+  /// `null` when a fee/tax line is still [CheckoutLine.isPending] — see
+  /// [CartView.total].
+  final int? total;
 
   @override
   Widget build(BuildContext context) {
@@ -418,10 +427,7 @@ class _CartTotalsCard extends StatelessWidget {
       child: Column(
         children: [
           for (final line in feeLines) ...[
-            SummaryRow(
-              label: line.label,
-              value: AppMoney.formatCents(line.amount),
-            ),
+            FeeSummaryRow(label: line.label, value: line.displayValue),
             const SizedBox(height: TwSpacing.x2_5),
           ],
           const Divider(
@@ -429,9 +435,11 @@ class _CartTotalsCard extends StatelessWidget {
             indent: TwSpacing.x1,
             endIndent: TwSpacing.x1,
           ),
-          SummaryRow(
+          FeeSummaryRow(
             label: 'Total',
-            value: AppMoney.formatCents(total),
+            value: total == null
+                ? 'Calculated at checkout'
+                : AppMoney.formatCents(total!),
             isBold: true,
           ),
         ],

@@ -53,8 +53,14 @@ class CartScreen extends StatelessWidget {
           ],
           feeLines: [
             CheckoutLine('Subtotal', controller.subtotal),
-            CheckoutLine('Tax', controller.tax),
-            CheckoutLine('Delivery fee', controller.deliveryFee),
+            if (controller.tax case final tax?)
+              CheckoutLine('Tax', tax)
+            else
+              const CheckoutLine.pending('Tax'),
+            if (controller.deliveryFee case final fee?)
+              CheckoutLine('Delivery fee', fee)
+            else
+              const CheckoutLine.pending('Delivery fee'),
           ],
           total: controller.total,
           onCheckout: () => context.push(AppRoutes.foodCheckout),

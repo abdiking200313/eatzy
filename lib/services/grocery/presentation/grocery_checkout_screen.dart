@@ -87,7 +87,10 @@ class _GroceryCheckoutScreenState extends State<GroceryCheckoutScreen> {
         ],
         feeLines: [
           CheckoutLine('Subtotal', _controller.subtotal),
-          CheckoutLine('Delivery fee', _controller.deliveryFee),
+          if (_controller.deliveryFee case final fee?)
+            CheckoutLine('Delivery fee', fee)
+          else
+            const CheckoutLine.pending('Delivery fee'),
         ],
         total: _controller.total,
         isSubmitting: _controller.isSubmitting,

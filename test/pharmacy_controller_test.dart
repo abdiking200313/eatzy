@@ -12,6 +12,7 @@ import 'package:chowflow/services/shared/data/rpc_helpers.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'helpers/controllers.dart';
+import 'helpers/fake_service_pricing_repository.dart';
 import 'helpers/memory_cart_storage.dart';
 
 void main() {
@@ -53,6 +54,36 @@ void main() {
     expect(controller.isCartEmpty, isTrue);
     expect(controller.total, 0);
   });
+
+  test(
+    'changing the pricing repository changes the displayed delivery-fee '
+    'estimate, and unconfigured pricing reports it as unknown (issue #279)',
+    () async {
+      final pricingRepository = FakeServicePricingRepository.pharmacy(
+        deliveryFeeCents: 888,
+      );
+      final pricedController = buildPharmacyController(
+        pricingRepository: pricingRepository,
+      );
+      await pricedController.loadProducts(
+        storeId: SeededPharmacyRepository.defaultStoreId,
+      );
+      pricedController.addProduct(pricedController.products.first);
+
+      expect(pricedController.deliveryFee, 888);
+
+      final unconfiguredController = buildPharmacyController(
+        pricingRepository: FakeServicePricingRepository.unconfigured(),
+      );
+      await unconfiguredController.loadProducts(
+        storeId: SeededPharmacyRepository.defaultStoreId,
+      );
+      unconfiguredController.addProduct(unconfiguredController.products.first);
+
+      expect(unconfiguredController.deliveryFee, isNull);
+      expect(unconfiguredController.total, isNull);
+    },
+  );
 
   test('adds several units at once, all or nothing', () {
     final paracetamol = controller.products.first; // 24 in stock

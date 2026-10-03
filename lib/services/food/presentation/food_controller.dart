@@ -132,12 +132,19 @@ class FoodController extends ChangeNotifier {
           // so this only matters for a caller that injects `null`-returning
           // test doubles; it mirrors the client-side estimate the cart screen
           // already showed, since no server round trip actually happened.
+          // `?? 0` only matters if pricing has never loaded (issue #279) —
+          // this demo-only fallback never represents a real charge either
+          // way, unlike the real RPC path above it.
           fallbackOrder: () => PlacedOrder(
             orderId: 'food-${DateTime.now().microsecondsSinceEpoch}',
             subtotal: _cartController.subtotal,
-            deliveryFee: _cartController.deliveryFee,
-            tax: _cartController.tax,
-            total: _cartController.total,
+            deliveryFee: _cartController.deliveryFee ?? 0,
+            tax: _cartController.tax ?? 0,
+            total:
+                _cartController.total ??
+                (_cartController.subtotal +
+                    (_cartController.deliveryFee ?? 0) +
+                    (_cartController.tax ?? 0)),
           ),
           onSaveFailed: (error, stackTrace) {
             debugPrint(
