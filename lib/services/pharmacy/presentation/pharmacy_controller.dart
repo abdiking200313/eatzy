@@ -11,7 +11,9 @@ import '../../../platform/session/session_reset_registry.dart';
 import '../../shared/data/cart_storage.dart';
 import '../../shared/data/idempotency_key.dart';
 import '../../shared/data/rpc_helpers.dart';
+import '../../shared/data/service_pricing_repository.dart';
 import '../../shared/models/delivery_details.dart';
+import '../../shared/models/service_pricing.dart';
 import '../../shared/presentation/confirm_order_flow.dart';
 import '../../shared/presentation/loadable_state_mixin.dart';
 import '../data/pharmacy_repository.dart';
@@ -39,11 +41,14 @@ class PharmacyController extends ChangeNotifier with LoadableState {
     required ActivityController activityController,
     required CartStorage<PharmacyCartItem> storage,
     PharmacyOrderRepository? orderRepository,
+    ServicePricingRepository? pricingRepository,
     DateTime Function()? now,
   }) : _repository = repository,
        _activityController = activityController,
        _storage = storage,
        _orderRepository = orderRepository,
+       _pricingRepository =
+           pricingRepository ?? SupabaseServicePricingRepository(),
        _now = now ?? DateTime.now;
 
   static final PharmacyController instance = () {
@@ -64,8 +69,9 @@ class PharmacyController extends ChangeNotifier with LoadableState {
     return controller;
   }();
 
-  /// In integer cents — see issue #8.
-  static const int deliveryFee = 250;
+  /// The `service_pricing.service_id` this vertical's fee estimate is read
+  /// from (issue #279) — see [ServicePricingRepository].
+  static const String serviceId = 'pharmacy';
 
   /// How long a successful catalog load is considered fresh before
   /// [loadProducts] will silently refetch it again. A manual pull-to-refresh
@@ -76,6 +82,7 @@ class PharmacyController extends ChangeNotifier with LoadableState {
   final ActivityController _activityController;
   final CartStorage<PharmacyCartItem> _storage;
   final PharmacyOrderRepository? _orderRepository;
+  final ServicePricingRepository _pricingRepository;
   final DateTime Function() _now;
   final List<PharmacyProduct> _products = [];
   final List<PharmacyCartItem> _cartItems = [];
@@ -141,7 +148,26 @@ class PharmacyController extends ChangeNotifier with LoadableState {
   int get itemCount =>
       _cartItems.fold(0, (count, item) => count + item.quantity);
   int get subtotal => _cartItems.fold(0, (total, item) => total + item.total);
-  int get total => subtotal + (isCartEmpty ? 0 : deliveryFee);
+
+  /// The last successfully loaded delivery-fee config for this vertical, or
+  /// `null` if none has loaded yet — see [ServicePricingRepository.peek].
+  ServicePricing? get pricing => _pricingRepository.peek(serviceId);
+
+  /// `null` means pricing hasn't loaded yet: [total] is `null` too, and the
+  /// UI should show "Calculated at checkout" instead of a fabricated number.
+  /// An empty cart always reports `0` regardless, since there is nothing to
+  /// price.
+  int? get deliveryFee {
+    if (isCartEmpty) return 0;
+    return pricing?.deliveryFeeCents;
+  }
+
+  int? get total {
+    final fee = deliveryFee;
+    if (fee == null) return null;
+    return subtotal + fee;
+  }
+
   String? get cartOwnerId => _cartOwnerId;
   bool get isCartLoading => _isCartLoading;
   String get _cartStorageOwner => _cartOwnerId ?? _guestCartOwner;
@@ -179,6 +205,15 @@ class PharmacyController extends ChangeNotifier with LoadableState {
       ..addAll(loadedItems);
     _isCartLoading = false;
     notifyListeners();
+    unawaited(_loadPricing());
+  }
+
+  /// Warms (or refreshes) [pricing] in the background; never throws.
+  Future<void> _loadPricing() async {
+    final loaded = await _pricingRepository.load(serviceId);
+    if (loaded != null) {
+      notifyListeners();
+    }
   }
 
   /// Loads the OTC catalog for [storeId], optionally narrowed by
@@ -468,12 +503,17 @@ class PharmacyController extends ChangeNotifier with LoadableState {
                 ),
               ) ??
               Future.value(null),
+          // `?? 0` only matters if pricing has never loaded (issue #279) —
+          // this demo-only fallback (no real repository configured) never
+          // represents a real charge either way.
           fallbackOrder: () => PlacedOrder(
             orderId: 'pharmacy-${confirmedAt.microsecondsSinceEpoch}',
             subtotal: confirmedSubtotal,
-            deliveryFee: confirmedDeliveryFee,
+            deliveryFee: confirmedDeliveryFee ?? 0,
             tax: 0,
-            total: confirmedTotal,
+            total:
+                confirmedTotal ??
+                (confirmedSubtotal + (confirmedDeliveryFee ?? 0)),
           ),
           onSaveFailed: (error, stackTrace) {
             debugPrint(

@@ -11,6 +11,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'helpers/controllers.dart';
+import 'helpers/fake_service_pricing_repository.dart';
 import 'helpers/memory_cart_storage.dart';
 
 void main() {
@@ -46,6 +47,40 @@ void main() {
     expect(controller.deliveryFee, 250);
     expect(controller.total, 1370);
   });
+
+  test(
+    'changing the pricing repository changes the displayed delivery-fee '
+    'estimate, and unconfigured pricing reports it as unknown (issue #279)',
+    () async {
+      final pricingRepository = FakeServicePricingRepository.grocery(
+        deliveryFeeCents: 777,
+      );
+      final pricedController = buildGroceryController(
+        pricingRepository: pricingRepository,
+      );
+      await pricedController.load();
+      pricedController.addProduct(
+        pricedController.stores
+            .expand((store) => store.products)
+            .firstWhere((product) => product.id == 'bakaal-rice'),
+      );
+
+      expect(pricedController.deliveryFee, 777);
+
+      final unconfiguredController = buildGroceryController(
+        pricingRepository: FakeServicePricingRepository.unconfigured(),
+      );
+      await unconfiguredController.load();
+      unconfiguredController.addProduct(
+        unconfiguredController.stores
+            .expand((store) => store.products)
+            .firstWhere((product) => product.id == 'bakaal-rice'),
+      );
+
+      expect(unconfiguredController.deliveryFee, isNull);
+      expect(unconfiguredController.total, isNull);
+    },
+  );
 
   test('does not add unavailable products or exceed available stock', () {
     final tomatoes = product('bakaal-tomatoes');

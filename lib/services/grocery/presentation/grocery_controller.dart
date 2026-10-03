@@ -11,8 +11,10 @@ import '../../../platform/session/session_reset_registry.dart';
 import '../../shared/data/cart_storage.dart';
 import '../../shared/data/idempotency_key.dart';
 import '../../shared/data/rpc_helpers.dart';
+import '../../shared/data/service_pricing_repository.dart';
 import '../../shared/presentation/confirm_order_flow.dart';
 import '../../shared/models/delivery_details.dart';
+import '../../shared/models/service_pricing.dart';
 import '../../shared/presentation/loadable_state_mixin.dart';
 import '../data/grocery_repository.dart';
 import '../models/grocery_models.dart';
@@ -32,6 +34,7 @@ class GroceryController extends ChangeNotifier with LoadableState {
     GroceryCatalogRepository? catalogRepository,
     GroceryOrderRepository? orderRepository,
     ActivityController? activityController,
+    ServicePricingRepository? pricingRepository,
     DateTime Function()? now,
     this.storeType = GroceryStoreType.grocery,
   }) : _repository = repository,
@@ -43,6 +46,8 @@ class GroceryController extends ChangeNotifier with LoadableState {
                : null),
        _orderRepository = orderRepository,
        _activityController = activityController ?? ActivityController.instance,
+       _pricingRepository =
+           pricingRepository ?? SupabaseServicePricingRepository(),
        _now = now ?? DateTime.now;
 
   /// Which category this controller serves. Grocery, Fresh Meat and
@@ -86,8 +91,12 @@ class GroceryController extends ChangeNotifier with LoadableState {
     return controller;
   }
 
-  /// In integer cents — see issue #8.
-  static const int standardDeliveryFee = 250;
+  /// The `service_pricing.service_id` this vertical's fee estimate is read
+  /// from (issue #279) — see [ServicePricingRepository]. Fresh Meat and
+  /// Electronics run on this same engine and share this same pricing row:
+  /// `place_grocery_order` always reads `service_id = 'grocery'` regardless
+  /// of [storeType], so this does not vary by [storeType] either.
+  static const String serviceId = 'grocery';
 
   /// How long a successful store/catalog load is considered fresh before
   /// [load] will silently refetch it again. A manual pull-to-refresh (via
@@ -117,6 +126,7 @@ class GroceryController extends ChangeNotifier with LoadableState {
   final GroceryCatalogRepository? _catalogRepository;
   final GroceryOrderRepository? _orderRepository;
   final ActivityController _activityController;
+  final ServicePricingRepository _pricingRepository;
   final DateTime Function() _now;
   final List<GroceryStore> _stores = [];
   final List<GroceryDeliverySlot> _deliverySlots = [];
@@ -213,8 +223,25 @@ class GroceryController extends ChangeNotifier with LoadableState {
   }
 
   int get subtotal => _cart.values.fold(0, (total, line) => total + line.total);
-  int get deliveryFee => _cart.isEmpty ? 0 : standardDeliveryFee;
-  int get total => subtotal + deliveryFee;
+
+  /// The last successfully loaded delivery-fee config for this vertical, or
+  /// `null` if none has loaded yet — see [ServicePricingRepository.peek].
+  ServicePricing? get pricing => _pricingRepository.peek(serviceId);
+
+  /// `null` means pricing hasn't loaded yet: [total] is `null` too, and the
+  /// UI should show "Calculated at checkout" instead of a fabricated number.
+  /// An empty cart always reports `0` regardless, since there is nothing to
+  /// price.
+  int? get deliveryFee {
+    if (_cart.isEmpty) return 0;
+    return pricing?.deliveryFeeCents;
+  }
+
+  int? get total {
+    final fee = deliveryFee;
+    if (fee == null) return null;
+    return subtotal + fee;
+  }
 
   /// Loads the persisted grocery cart for [ownerId] (or the guest cart when
   /// `null`), replacing whatever cart is currently in memory. Mirrors
@@ -241,6 +268,15 @@ class GroceryController extends ChangeNotifier with LoadableState {
       ..addEntries(loadedLines.map((line) => MapEntry(line.product.id, line)));
     _isCartLoading = false;
     notifyListeners();
+    unawaited(_loadPricing());
+  }
+
+  /// Warms (or refreshes) [pricing] in the background; never throws.
+  Future<void> _loadPricing() async {
+    final loaded = await _pricingRepository.load(serviceId);
+    if (loaded != null) {
+      notifyListeners();
+    }
   }
 
   /// Loads the store/product catalog.
@@ -529,12 +565,17 @@ class GroceryController extends ChangeNotifier with LoadableState {
             ),
           ) ??
           Future.value(null),
+      // `?? 0` only matters if pricing has never loaded (issue #279) — this
+      // demo-only fallback (no real repository configured) never represents
+      // a real charge either way.
       fallbackOrder: () => PlacedOrder(
         orderId: 'grocery-${createdAt.microsecondsSinceEpoch}',
         subtotal: confirmedSubtotal,
-        deliveryFee: confirmedDeliveryFee,
+        deliveryFee: confirmedDeliveryFee ?? 0,
         tax: 0,
-        total: confirmedAmount,
+        total:
+            confirmedAmount ??
+            (confirmedSubtotal + (confirmedDeliveryFee ?? 0)),
       ),
       onSaveFailed: (error, stackTrace) {
         debugPrint(

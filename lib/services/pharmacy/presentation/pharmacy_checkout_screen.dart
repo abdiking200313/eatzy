@@ -54,7 +54,10 @@ class _PharmacyCheckoutScreenState extends State<PharmacyCheckoutScreen> {
         ],
         feeLines: [
           CheckoutLine('Subtotal', _controller.subtotal),
-          const CheckoutLine('Delivery fee', PharmacyController.deliveryFee),
+          if (_controller.deliveryFee case final fee?)
+            CheckoutLine('Delivery fee', fee)
+          else
+            const CheckoutLine.pending('Delivery fee'),
         ],
         total: _controller.total,
         isSubmitting: _controller.isSubmitting,

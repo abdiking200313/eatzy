@@ -18,6 +18,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 
 import 'helpers/controllers.dart';
+import 'helpers/fake_service_pricing_repository.dart';
 import 'helpers/memory_cart_storage.dart';
 
 /// Cart screens for every vertical: food, grocery, pharmacy. Behavior that is
@@ -37,7 +38,10 @@ void main() {
     testWidgets('cart screen updates quantities, totals, and removes items', (
       tester,
     ) async {
-      final controller = CartController(storage: MemoryCartStorage());
+      final controller = CartController(
+        storage: MemoryCartStorage(),
+        pricingRepository: FakeServicePricingRepository.food(),
+      );
       await controller.loadForOwner('user-1');
       await controller.addItem(burger);
 
@@ -69,7 +73,10 @@ void main() {
     testWidgets('checkout places an order that is paid on delivery', (
       tester,
     ) async {
-      final controller = CartController(storage: MemoryCartStorage());
+      final controller = CartController(
+        storage: MemoryCartStorage(),
+        pricingRepository: FakeServicePricingRepository.food(),
+      );
       ActivityController.instance.clear();
       addTearDown(ActivityController.instance.clear);
       await controller.loadForOwner('user-1');
