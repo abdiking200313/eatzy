@@ -1,5 +1,4 @@
 import 'package:flutter/foundation.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../app/app_routes.dart';
 import '../../../app/service_module.dart';
@@ -47,17 +46,24 @@ class FoodCheckoutResult {
 /// across separate visits to the checkout screen, which the previous
 /// per-`State` fields never did. `CheckoutScreen` constructs its own
 /// `FoodController` scoped to its own lifetime instead.
+///
+/// [orderRepository] is required (issue #282, composition root phase 2/5):
+/// there is no default Supabase-backed fallback here any more, since this
+/// is a plain non-widget class with no `BuildContext` of its own to resolve
+/// `AppScope.of(context)` itself. The caller — a screen that *does* have a
+/// `BuildContext` — is expected to pass one in, typically
+/// `SupabaseFoodOrderRepository(client: AppScope.of(context).supabaseClient)`.
 class FoodController extends ChangeNotifier {
   FoodController({
     required CartController cartController,
-    FoodOrderRepository? orderRepository,
+    required FoodOrderRepository orderRepository,
     ActivityController? activityController,
   }) : _cartController = cartController,
        _orderRepository = orderRepository,
        _activityController = activityController ?? ActivityController.instance;
 
   final CartController _cartController;
-  final FoodOrderRepository? _orderRepository;
+  final FoodOrderRepository _orderRepository;
   final ActivityController _activityController;
 
   bool _isSubmitting = false;
@@ -65,10 +71,6 @@ class FoodController extends ChangeNotifier {
 
   bool get isSubmitting => _isSubmitting;
   String? get submissionError => _submissionError;
-
-  FoodOrderRepository get _repository =>
-      _orderRepository ??
-      SupabaseFoodOrderRepository(client: Supabase.instance.client);
 
   /// Validates the cart, places the order through the shared
   /// [confirmDemoOrder] flow, records activity, and clears the cart.
@@ -113,7 +115,7 @@ class FoodController extends ChangeNotifier {
           validation: hasOrder,
           isValid: (isValid) => isValid,
           onInvalid: (_) => FoodCheckoutResult.invalid(const []),
-          placeOrder: () => _repository.placeOrder(
+          placeOrder: () => _orderRepository.placeOrder(
             FoodOrderRequest(
               restaurantId: restaurantId,
               delivery: delivery,
@@ -127,11 +129,11 @@ class FoodController extends ChangeNotifier {
               idempotencyKey: idempotencyKey ?? generateIdempotencyKey(),
             ),
           ),
-          // No real repository is ever configured out from under `_repository`
-          // (it defaults to a live Supabase-backed one — see its getter above),
-          // so this only matters for a caller that injects `null`-returning
-          // test doubles; it mirrors the client-side estimate the cart screen
-          // already showed, since no server round trip actually happened.
+          // `_orderRepository` is always a real (or test-double) repository
+          // now that it's required, so this only matters for a caller whose
+          // injected repository/test double returns `null`; it mirrors the
+          // client-side estimate the cart screen already showed, since no
+          // server round trip actually happened.
           // `?? 0` only matters if pricing has never loaded (issue #279) —
           // this demo-only fallback never represents a real charge either
           // way, unlike the real RPC path above it.
