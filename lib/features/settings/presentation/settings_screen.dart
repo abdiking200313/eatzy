@@ -6,7 +6,6 @@ import '../../../app/app_routes.dart';
 import '../../../app/app_scope.dart';
 import '../../../config/theme.dart';
 import '../../../platform/notifications/push_notifications.dart';
-import '../../../widgets/app_cards.dart';
 import '../../../widgets/app_scaffold.dart';
 import '../../auth/data/auth_error_message.dart';
 import '../../auth/data/auth_service.dart';
@@ -15,9 +14,14 @@ import '../../profile/models/customer_profile.dart';
 import '../../profile/presentation/profile_edit_controller.dart';
 import '../data/notification_preferences_repository.dart';
 import 'widgets/about_zivo_sheet.dart';
-import 'widgets/edit_field_sheet.dart';
-import 'widgets/setting_card.dart';
-import 'widgets/toggle_card.dart';
+import 'widgets/account_danger_zone.dart';
+import 'widgets/account_section.dart';
+import 'widgets/email_edit_sheet.dart';
+import 'widgets/name_edit_sheet.dart';
+import 'widgets/notifications_section.dart';
+import 'widgets/phone_edit_sheet.dart';
+import 'widgets/preferences_section.dart';
+import 'widgets/support_section.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({
@@ -41,6 +45,13 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
+  /// Shared shape for every modal bottom sheet this screen opens (the
+  /// profile-edit sheets and the About sheet) — pulled out once instead of
+  /// repeated at each call site.
+  static const _sheetShape = RoundedRectangleBorder(
+    borderRadius: BorderRadius.vertical(top: Radius.circular(TwRadius.hero)),
+  );
+
   NotificationPreferences _preferences = NotificationPreferences.defaults;
   CustomerProfile? _profile;
   bool _profileLoading = true;
@@ -135,7 +146,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   /// Number / Date of Birth sheets: updates the displayed profile in place
   /// and shows the standard confirmation `SnackBar`. A `null`/unsuccessful
   /// result (sheet dismissed without saving, or save failed) is a no-op —
-  /// [EditFieldSheet] only pops itself with a result on success.
+  /// the edit sheet only pops itself with a result on success.
   void _applyProfileEditResult(ProfileEditResult? result) {
     if (!mounted || result == null || !result.isSuccess) return;
     setState(() {
@@ -146,107 +157,40 @@ class _SettingsScreenState extends State<SettingsScreen> {
     ).showSnackBar(const SnackBar(content: Text('Profile updated')));
   }
 
-  Future<void> _editName() async {
-    final result = await showModalBottomSheet<ProfileEditResult>(
+  /// Opens [builder] as a modal profile-edit bottom sheet using this
+  /// screen's shared [_sheetShape]. Factored out because [_editName],
+  /// [_editPhone], and [_editEmail] otherwise repeat the same
+  /// `showModalBottomSheet` call shape with only the sheet widget differing.
+  Future<ProfileEditResult?> _showProfileEditSheet(WidgetBuilder builder) {
+    return showModalBottomSheet<ProfileEditResult>(
       context: context,
       isScrollControlled: true,
       showDragHandle: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(
-          top: Radius.circular(TwRadius.hero),
-        ),
-      ),
-      builder: (sheetContext) => EditFieldSheet(
-        title: 'Edit name',
-        controller: _profileEditController,
-        fields: [
-          EditFieldSpec(
-            initialValue: _profile?.firstName ?? '',
-            label: 'First name',
-            textCapitalization: TextCapitalization.words,
-            prefixIcon: Icons.person_outline,
-            errorMessages: const ['Enter your first name.'],
-          ),
-          EditFieldSpec(
-            initialValue: _profile?.lastName ?? '',
-            label: 'Last name',
-            textCapitalization: TextCapitalization.words,
-            prefixIcon: Icons.person_outline,
-            errorMessages: const ['Enter your last name.'],
-          ),
-        ],
-        onSave: (values) => _profileEditController.updateName(
-          firstName: values[0],
-          lastName: values[1],
-        ),
-      ),
+      shape: _sheetShape,
+      builder: builder,
+    );
+  }
+
+  Future<void> _editName() async {
+    final result = await _showProfileEditSheet(
+      (sheetContext) =>
+          NameEditSheet(profile: _profile, controller: _profileEditController),
     );
     _applyProfileEditResult(result);
   }
 
   Future<void> _editPhone() async {
-    final result = await showModalBottomSheet<ProfileEditResult>(
-      context: context,
-      isScrollControlled: true,
-      showDragHandle: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(
-          top: Radius.circular(TwRadius.hero),
-        ),
-      ),
-      builder: (sheetContext) => EditFieldSheet(
-        title: 'Edit phone number',
-        controller: _profileEditController,
-        fields: [
-          EditFieldSpec(
-            initialValue: _profile?.phone ?? '',
-            label: 'Phone number',
-            hintText: '+252 …',
-            keyboardType: TextInputType.phone,
-            prefixIcon: Icons.phone_outlined,
-            errorMessages: const [
-              'Enter your phone number.',
-              'Please enter a valid phone number.',
-            ],
-          ),
-        ],
-        onSave: (values) => _profileEditController.updatePhone(values[0]),
-      ),
+    final result = await _showProfileEditSheet(
+      (sheetContext) =>
+          PhoneEditSheet(profile: _profile, controller: _profileEditController),
     );
     _applyProfileEditResult(result);
   }
 
   Future<void> _editEmail() async {
-    final result = await showModalBottomSheet<ProfileEditResult>(
-      context: context,
-      isScrollControlled: true,
-      showDragHandle: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(
-          top: Radius.circular(TwRadius.hero),
-        ),
-      ),
-      builder: (sheetContext) => EditFieldSheet(
-        title: 'Edit email address',
-        controller: _profileEditController,
-        helperText:
-            "We'll send a confirmation link to your new email address. "
-            "The change only applies once you confirm it.",
-        fields: [
-          EditFieldSpec(
-            initialValue: _email ?? '',
-            label: 'Email address',
-            keyboardType: TextInputType.emailAddress,
-            prefixIcon: Icons.email_outlined,
-            errorMessages: const [
-              'Enter your email address.',
-              'Please enter a valid email address.',
-              "That's already your email address.",
-            ],
-          ),
-        ],
-        onSave: (values) => _profileEditController.updateEmail(values[0]),
-      ),
+    final result = await _showProfileEditSheet(
+      (sheetContext) =>
+          EmailEditSheet(email: _email, controller: _profileEditController),
     );
     if (!mounted || result == null || !result.isSuccess) return;
     // updateEmail's contract leaves `profile` null on success -- the change
@@ -436,11 +380,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     showModalBottomSheet<void>(
       context: context,
       showDragHandle: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(
-          top: Radius.circular(TwRadius.hero),
-        ),
-      ),
+      shape: _sheetShape,
       builder: (context) => const AboutZivoSheet(),
     );
   }
@@ -455,188 +395,48 @@ class _SettingsScreenState extends State<SettingsScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Notifications', style: TwText.sectionTitle),
-            const SizedBox(height: TwSpacing.headerToContent),
-            OutlinedCard(
-              padding: EdgeInsets.zero,
-              borderRadius: TwRadius.card,
-              child: Column(
-                children: [
-                  ToggleCard(
-                    title: 'Push Notifications',
-                    subtitle: 'Get notifications about your orders',
-                    value: _preferences.pushNotifications,
-                    onChanged: _setPushNotifications,
-                  ),
-                  const Divider(height: 1),
-                  ToggleCard(
-                    title: 'Email Notifications',
-                    subtitle: 'Receive updates via email',
-                    value: _preferences.emailNotifications,
-                    onChanged: (value) => _updatePreferences(
-                      _preferences.copyWith(emailNotifications: value),
-                    ),
-                  ),
-                  const Divider(height: 1),
-                  ToggleCard(
-                    title: 'Promotional Emails',
-                    subtitle: 'Get exclusive deals and offers',
-                    value: _preferences.promotionalEmails,
-                    onChanged: (value) => _updatePreferences(
-                      _preferences.copyWith(promotionalEmails: value),
-                    ),
-                  ),
-                  const Divider(height: 1),
-                  ToggleCard(
-                    title: 'Order Updates',
-                    subtitle: 'Receive order status updates',
-                    value: _preferences.orderUpdates,
-                    onChanged: (value) => _updatePreferences(
-                      _preferences.copyWith(orderUpdates: value),
-                    ),
-                  ),
-                ],
+            NotificationsSection(
+              preferences: _preferences,
+              onPushNotificationsChanged: _setPushNotifications,
+              onEmailNotificationsChanged: (value) => _updatePreferences(
+                _preferences.copyWith(emailNotifications: value),
+              ),
+              onPromotionalEmailsChanged: (value) => _updatePreferences(
+                _preferences.copyWith(promotionalEmails: value),
+              ),
+              onOrderUpdatesChanged: (value) => _updatePreferences(
+                _preferences.copyWith(orderUpdates: value),
               ),
             ),
             const SizedBox(height: TwSpacing.sectionGap),
-            const Text('Account', style: TwText.sectionTitle),
-            const SizedBox(height: TwSpacing.headerToContent),
-            OutlinedCard(
-              padding: EdgeInsets.zero,
-              borderRadius: TwRadius.card,
-              child: Column(
-                children: [
-                  SettingCard(
-                    title: 'Name',
-                    subtitle: _profileLoading
-                        ? 'Loading…'
-                        : _nameSubtitle(_profile),
-                    icon: Icons.person_outline,
-                    onTap: _editName,
-                  ),
-                  const Divider(height: 1),
-                  SettingCard(
-                    title: 'Phone Number',
-                    subtitle: _profileLoading
-                        ? 'Loading…'
-                        : ((_profile?.phone.isNotEmpty ?? false)
-                              ? _profile!.phone
-                              : 'Not added yet'),
-                    icon: Icons.phone_outlined,
-                    onTap: _editPhone,
-                  ),
-                  const Divider(height: 1),
-                  SettingCard(
-                    title: 'Date of Birth',
-                    subtitle: _profileLoading
-                        ? 'Loading…'
-                        : _dobSubtitle(_profile?.dob),
-                    icon: Icons.cake_outlined,
-                    onTap: _editDob,
-                  ),
-                  const Divider(height: 1),
-                  // Now honestly navigable: unlike before issue #13's
-                  // Settings migration, an editable email flow exists
-                  // (`_editEmail`) so this row no longer has to stay inert.
-                  SettingCard(
-                    title: 'Email Address',
-                    subtitle: (_email?.isNotEmpty ?? false)
-                        ? _email!
-                        : 'Not available',
-                    icon: Icons.email_outlined,
-                    onTap: _editEmail,
-                  ),
-                  const Divider(height: 1),
-                  SettingCard(
-                    title: 'Change Password',
-                    subtitle: 'Update your password',
-                    icon: Icons.lock_outlined,
-                    onTap: () => context.push(AppRoutes.resetPassword),
-                  ),
-                ],
-              ),
+            AccountSection(
+              nameSubtitle: _profileLoading
+                  ? 'Loading…'
+                  : _nameSubtitle(_profile),
+              phoneSubtitle: _profileLoading
+                  ? 'Loading…'
+                  : ((_profile?.phone.isNotEmpty ?? false)
+                        ? _profile!.phone
+                        : 'Not added yet'),
+              dobSubtitle: _profileLoading
+                  ? 'Loading…'
+                  : _dobSubtitle(_profile?.dob),
+              emailSubtitle: (_email?.isNotEmpty ?? false)
+                  ? _email!
+                  : 'Not available',
+              onEditName: _editName,
+              onEditPhone: _editPhone,
+              onEditDob: _editDob,
+              onEditEmail: _editEmail,
             ),
             const SizedBox(height: TwSpacing.sectionGap),
-            const Text('Preferences', style: TwText.sectionTitle),
-            const SizedBox(height: TwSpacing.headerToContent),
-            OutlinedCard(
-              padding: EdgeInsets.zero,
-              borderRadius: TwRadius.card,
-              child: Column(
-                children: [
-                  // No language/currency/theme infrastructure exists yet;
-                  // these stay non-interactive "coming soon" rows rather
-                  // than implying settings that don't do anything (#10).
-                  const SettingCard(
-                    title: 'Language',
-                    subtitle: 'Coming soon',
-                    icon: Icons.language_outlined,
-                  ),
-                  const Divider(height: 1),
-                  const SettingCard(
-                    title: 'Currency',
-                    subtitle: 'Coming soon',
-                    icon: Icons.attach_money_outlined,
-                  ),
-                  const Divider(height: 1),
-                  const SettingCard(
-                    title: 'Theme',
-                    subtitle: 'Coming soon',
-                    icon: Icons.brightness_7_outlined,
-                  ),
-                ],
-              ),
-            ),
+            const PreferencesSection(),
             const SizedBox(height: TwSpacing.sectionGap),
-            const Text('Support', style: TwText.sectionTitle),
-            const SizedBox(height: TwSpacing.headerToContent),
-            OutlinedCard(
-              padding: EdgeInsets.zero,
-              borderRadius: TwRadius.card,
-              child: Column(
-                children: [
-                  SettingCard(
-                    title: 'About Us',
-                    subtitle: 'Learn about Zivo',
-                    icon: Icons.info_outlined,
-                    onTap: _showAboutSheet,
-                  ),
-                  const Divider(height: 1),
-                  // Real in-app Privacy Policy / Terms screens now exist
-                  // (issue #37) — see PrivacyPolicyScreen/
-                  // TermsOfServiceScreen for the drafted text and their doc
-                  // comments for the remaining app-store hosted-URL gap.
-                  SettingCard(
-                    title: 'Privacy Policy',
-                    subtitle: 'How we handle your data',
-                    icon: Icons.privacy_tip_outlined,
-                    onTap: () => context.push(AppRoutes.privacyPolicy),
-                  ),
-                  const Divider(height: 1),
-                  SettingCard(
-                    title: 'Terms & Conditions',
-                    subtitle: 'Rules for using Zivo',
-                    icon: Icons.description_outlined,
-                    onTap: () => context.push(AppRoutes.termsOfService),
-                  ),
-                ],
-              ),
-            ),
+            SupportSection(onAboutUsTap: _showAboutSheet),
             const SizedBox(height: TwSpacing.sectionGap),
-            PrimaryButton(
-              label: 'Logout',
-              onPressed: _logout,
-              color: TwColors.error,
-            ),
-            const SizedBox(height: TwSpacing.x3_5),
-            Center(
-              child: TextButton(
-                onPressed: _confirmDeleteAccount,
-                child: const Text(
-                  'Delete Account',
-                  style: TextStyle(color: TwColors.error),
-                ),
-              ),
+            AccountDangerZone(
+              onLogoutTap: _logout,
+              onDeleteAccountTap: _confirmDeleteAccount,
             ),
             const SizedBox(height: TwSpacing.x6),
           ],
