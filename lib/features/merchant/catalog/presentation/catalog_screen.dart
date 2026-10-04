@@ -1,12 +1,14 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../app/app_scope.dart';
 import '../../../../config/tailwind.dart';
 import '../../../../platform/localization/app_money.dart';
 import '../../shared/merchant_media_store.dart';
 import '../../shared/merchant_photo_field.dart';
+import '../../store/presentation/merchant_store_controller.dart';
 import '../../store/models/merchant_vertical.dart';
 import '../models/merchant_catalog_item.dart';
 import 'catalog_item_form.dart';
@@ -14,23 +16,44 @@ import 'merchant_catalog_controller.dart';
 
 /// "Catalog" screen (ported from `merchant_app`, originally issue #133,
 /// unified into the main app by issue #232): list, add, edit, delete, and
-/// toggle availability for the merchant's own items in [storeId] --
-/// `menu_items` / `grocery_products` / `pharmacy_products` depending on
-/// [vertical].
+/// toggle availability for the merchant's own items -- `menu_items` /
+/// `grocery_products` / `pharmacy_products` depending on the vertical.
+///
+/// Reached either from `MyStoreScreen`'s "Manage catalog" button (which
+/// already has the loaded [vertical]/[storeId]/[storeName] to hand), or
+/// directly via `AppRoutes.merchantCatalog` (deep link / browser URL) -- a
+/// go_router destination, like `RestaurantScreen` (issue #288). [vertical]
+/// and [storeId] are `null` in that second case, and this screen resolves
+/// the signed-in merchant's own store itself, the same way
+/// `OrdersScreen`/`MyStoreScreen` do (a merchant is modeled as owning at
+/// most one store).
 class CatalogScreen extends StatefulWidget {
   const CatalogScreen({
     super.key,
-    required this.vertical,
-    required this.storeId,
-    required this.storeName,
+    this.vertical,
+    this.storeId,
+    this.storeName,
+    this.ownerId,
+    this.storeController,
     this.controller,
     this.media,
     this.photoPicker,
   });
 
-  final MerchantVertical vertical;
-  final String storeId;
-  final String storeName;
+  /// Supplied together by `MyStoreScreen`; `null` on a cold open/deep link,
+  /// in which case this screen resolves them itself (see [storeController]).
+  final MerchantVertical? vertical;
+  final String? storeId;
+  final String? storeName;
+
+  /// The signed-in merchant's `profiles.id` (== `auth.uid()`). Only used
+  /// when [vertical]/[storeId] are not supplied -- defaults to the current
+  /// Supabase session's user id (via `AppScope`).
+  final String? ownerId;
+
+  /// Overridable for tests; only used when [vertical]/[storeId] are not
+  /// supplied. Defaults to a real Supabase-backed controller.
+  final MerchantStoreController? storeController;
 
   /// Overridable for tests; defaults to a real Supabase-backed controller.
   final MerchantCatalogController? controller;
@@ -46,10 +69,20 @@ class CatalogScreen extends StatefulWidget {
 }
 
 class _CatalogScreenState extends State<CatalogScreen> {
-  late final MerchantCatalogController _controller;
-  late final bool _ownsController;
+  MerchantStoreController? _ownStoreController;
+  bool _ownsStoreController = false;
+  MerchantCatalogController? _controller;
+  bool _ownsController = false;
   late final MerchantMediaStore _media;
+  String? _resolvedOwnerId;
+  late SupabaseClient _supabaseClient;
   bool _dependenciesResolved = false;
+
+  MerchantVertical? get _vertical =>
+      widget.vertical ?? _ownStoreController?.store?.vertical;
+  String? get _storeId => widget.storeId ?? _ownStoreController?.store?.id;
+  String get _storeName =>
+      widget.storeName ?? _ownStoreController?.store?.name ?? 'My store';
 
   // Resolved here rather than in field initializers / initState: reading
   // the Supabase client off `AppScope.of(context)` (issue #285) needs a
@@ -61,36 +94,89 @@ class _CatalogScreenState extends State<CatalogScreen> {
     if (_dependenciesResolved) return;
     _dependenciesResolved = true;
 
-    _controller =
-        widget.controller ??
-        MerchantCatalogController.supabase(
-          AppScope.of(context).supabaseClient,
-          vertical: widget.vertical,
-          storeId: widget.storeId,
-        );
-    _ownsController = widget.controller == null;
+    _supabaseClient = AppScope.of(context).supabaseClient;
     _media = widget.media ?? SupabaseMerchantMediaStore();
 
-    // Start the load before attaching the listener -- see
-    // `MyStoreScreen.initState`'s comment for why the order matters.
-    if (!_controller.hasLoaded && !_controller.isLoading) {
-      unawaited(_controller.load());
+    final injectedController = widget.controller;
+    if (injectedController != null) {
+      _controller = injectedController;
+      _ownsController = false;
+      // Start the load before attaching the listener -- see
+      // `MyStoreScreen.initState`'s comment for why the order matters.
+      if (!injectedController.hasLoaded && !injectedController.isLoading) {
+        unawaited(injectedController.load());
+      }
+      injectedController.addListener(_onControllerChanged);
+      return;
     }
-    _controller.addListener(_onControllerChanged);
+
+    final vertical = widget.vertical;
+    final storeId = widget.storeId;
+    if (vertical != null && storeId != null) {
+      _initController(vertical, storeId);
+      return;
+    }
+
+    // Cold open/deep link: resolve the merchant's own store first.
+    _resolvedOwnerId = widget.ownerId ?? _supabaseClient.auth.currentUser?.id;
+    final ownerId = _resolvedOwnerId;
+    if (ownerId == null) {
+      return;
+    }
+    final storeController =
+        widget.storeController ??
+        MerchantStoreController.supabase(_supabaseClient);
+    _ownStoreController = storeController;
+    _ownsStoreController = widget.storeController == null;
+    if (!storeController.hasLoaded && !storeController.isLoading) {
+      unawaited(storeController.load(ownerId));
+    }
+    storeController.addListener(_onStoreChanged);
+    _maybeInitControllerFromOwnStore();
   }
 
   @override
   void dispose() {
-    _controller.removeListener(_onControllerChanged);
+    _ownStoreController?.removeListener(_onStoreChanged);
+    if (_ownsStoreController) {
+      _ownStoreController?.dispose();
+    }
+    _controller?.removeListener(_onControllerChanged);
     if (_ownsController) {
-      _controller.dispose();
+      _controller?.dispose();
     }
     super.dispose();
+  }
+
+  void _onStoreChanged() {
+    _maybeInitControllerFromOwnStore();
+    setState(() {});
+  }
+
+  void _maybeInitControllerFromOwnStore() {
+    if (_controller != null) return;
+    final store = _ownStoreController?.store;
+    if (store == null) return;
+    _initController(store.vertical, store.id);
+  }
+
+  void _initController(MerchantVertical vertical, String storeId) {
+    final controller = MerchantCatalogController.supabase(
+      _supabaseClient,
+      vertical: vertical,
+      storeId: storeId,
+    );
+    _controller = controller;
+    _ownsController = true;
+    controller.addListener(_onControllerChanged);
+    unawaited(controller.load());
   }
 
   void _onControllerChanged() => setState(() {});
 
   Future<void> _openForm({MerchantCatalogItem? initial}) {
+    final vertical = _vertical!;
+    final storeId = _storeId!;
     return showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
@@ -100,9 +186,9 @@ class _CatalogScreenState extends State<CatalogScreen> {
         ),
       ),
       builder: (_) => CatalogItemForm(
-        controller: _controller,
-        vertical: widget.vertical,
-        storeId: widget.storeId,
+        controller: _controller!,
+        vertical: vertical,
+        storeId: storeId,
         media: _media,
         photoPicker: widget.photoPicker,
         initial: initial,
@@ -129,7 +215,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
       ),
     );
     if (confirmed != true) return;
-    final deleted = await _controller.deleteItem(item);
+    final deleted = await _controller!.deleteItem(item);
     final imageUrl = item.imageUrl;
     if (deleted && imageUrl != null) {
       // Best-effort: a leftover file never blocks the merchant.
@@ -141,11 +227,20 @@ class _CatalogScreenState extends State<CatalogScreen> {
     }
   }
 
+  /// Once a self-resolved [_ownStoreController] has finished loading (found
+  /// a store or not), there is no further self-resolution step left to wait
+  /// on -- so [_body] should show the "no store" state rather than spin
+  /// forever.
+  bool get _selfResolutionFinished {
+    if (_resolvedOwnerId == null) return true;
+    return _ownStoreController?.hasLoaded ?? false;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.storeName),
+        title: Text(_storeName),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(TwSpacing.x5),
           child: Padding(
@@ -159,22 +254,36 @@ class _CatalogScreenState extends State<CatalogScreen> {
           ),
         ),
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _openForm(),
-        icon: const Icon(Icons.add),
-        label: const Text('Add item'),
-      ),
+      floatingActionButton: _controller == null
+          ? null
+          : FloatingActionButton.extended(
+              onPressed: () => _openForm(),
+              icon: const Icon(Icons.add),
+              label: const Text('Add item'),
+            ),
       body: _body(),
     );
   }
 
   Widget _body() {
-    if (_controller.isLoading && !_controller.hasLoaded) {
+    final controller = _controller;
+    if (controller == null) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(TwSpacing.x6),
+          child: _selfResolutionFinished
+              ? const _NoStoreView()
+              : const CircularProgressIndicator(),
+        ),
+      );
+    }
+
+    if (controller.isLoading && !controller.hasLoaded) {
       return const Center(child: CircularProgressIndicator());
     }
 
-    final loadError = _controller.loadError;
-    if (loadError != null && _controller.items.isEmpty) {
+    final loadError = controller.loadError;
+    if (loadError != null && controller.items.isEmpty) {
       return Center(
         child: Padding(
           padding: const EdgeInsets.all(TwSpacing.x6),
@@ -190,7 +299,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
               Text(loadError, textAlign: TextAlign.center),
               const SizedBox(height: TwSpacing.x4),
               FilledButton(
-                onPressed: () => unawaited(_controller.load()),
+                onPressed: () => unawaited(controller.load()),
                 child: const Text('Try again'),
               ),
             ],
@@ -199,7 +308,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
       );
     }
 
-    if (_controller.hasLoaded && _controller.items.isEmpty) {
+    if (controller.hasLoaded && controller.items.isEmpty) {
       return Center(
         child: Padding(
           padding: const EdgeInsets.all(TwSpacing.x6),
@@ -234,7 +343,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
     }
 
     return RefreshIndicator(
-      onRefresh: () => _controller.load(),
+      onRefresh: () => controller.load(),
       child: ListView.separated(
         padding: const EdgeInsets.fromLTRB(
           TwSpacing.screenX,
@@ -242,19 +351,51 @@ class _CatalogScreenState extends State<CatalogScreen> {
           TwSpacing.screenX,
           TwSpacing.x12 * 2,
         ),
-        itemCount: _controller.items.length,
+        itemCount: controller.items.length,
         separatorBuilder: (_, _) => const SizedBox(height: TwSpacing.x2),
         itemBuilder: (context, index) {
-          final item = _controller.items[index];
+          final item = controller.items[index];
           return _CatalogItemTile(
             item: item,
             onEdit: () => _openForm(initial: item),
             onDelete: () => unawaited(_confirmDelete(item)),
             onToggleAvailability: () =>
-                unawaited(_controller.toggleAvailability(item)),
+                unawaited(controller.toggleAvailability(item)),
           );
         },
       ),
+    );
+  }
+}
+
+/// Shown when a cold open/deep link to `AppRoutes.merchantCatalog` resolves
+/// a signed-in merchant with no store yet (or no session at all) -- mirrors
+/// `OrdersScreen._NoStoreView`.
+class _NoStoreView extends StatelessWidget {
+  const _NoStoreView();
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(
+          Icons.storefront_outlined,
+          size: 48,
+          color: Theme.of(context).disabledColor,
+        ),
+        const SizedBox(height: TwSpacing.x4),
+        const Text(
+          'Set up your store first',
+          style: TextStyle(fontWeight: FontWeight.bold),
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: TwSpacing.x1),
+        const Text(
+          'Set up your store from the "My Store" tab to manage its catalog.',
+          textAlign: TextAlign.center,
+        ),
+      ],
     );
   }
 }

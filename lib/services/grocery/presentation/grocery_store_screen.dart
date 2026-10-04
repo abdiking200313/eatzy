@@ -1,7 +1,9 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../../app/app_routes.dart';
 import '../../../app/app_scope.dart';
 import '../../../config/theme.dart';
 import '../../../widgets/app_cards.dart';
@@ -12,7 +14,6 @@ import '../../../widgets/store_hero_app_bar.dart';
 import '../../../widgets/app_search_bar.dart';
 import '../models/grocery_models.dart';
 import 'grocery_controller.dart';
-import 'grocery_product_details_screen.dart';
 import 'widgets/grocery_product_card.dart';
 
 /// A single store's product catalog — reached by tapping a store on
@@ -214,20 +215,29 @@ class _GroceryStoreScreenState extends State<GroceryStoreScreen> {
   }
 
   void _openDetails(GroceryProduct product) {
-    final inCart = _controller.cart
-        .where((line) => line.product.id == product.id)
-        .fold<double>(0, (total, line) => total + line.quantity);
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) => GroceryProductDetailsScreen(
-          product: product,
-          inCartQuantity: inCart,
-          onAddToCart: (steps) => _add(product, steps: steps),
-          storeType: widget.storeType,
-        ),
-      ),
-    );
+    context.push(_productDetailsRoute(widget.storeId, product.id));
   }
+
+  /// `AppRoutes.groceryProductDetails`'s per-[GroceryStoreType] siblings --
+  /// mirrors `GroceryStoreType.storeRoutePattern`'s own
+  /// grocery/freshMeat/electronics split, since this screen (and its
+  /// product-details destination) is shared across all three store types,
+  /// each with its own URL prefix (issue #288).
+  String _productDetailsRoute(String storeId, String productId) =>
+      switch (widget.storeType) {
+        GroceryStoreType.grocery => AppRoutes.groceryProductDetails(
+          storeId,
+          productId,
+        ),
+        GroceryStoreType.freshMeat => AppRoutes.freshMeatProductDetails(
+          storeId,
+          productId,
+        ),
+        GroceryStoreType.electronics => AppRoutes.electronicsProductDetails(
+          storeId,
+          productId,
+        ),
+      };
 
   Future<void> _add(GroceryProduct product, {int steps = 1}) async {
     var result = _controller.addProduct(product, steps: steps);

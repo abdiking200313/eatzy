@@ -230,7 +230,13 @@ void main() {
           child: Scaffold(
             body: ListView(
               padding: const EdgeInsets.all(16),
-              children: [MenuItemCard(item: longItem, onAddToCart: _doNothing)],
+              children: [
+                MenuItemCard(
+                  restaurantId: restaurant.id,
+                  item: longItem,
+                  onAddToCart: _doNothing,
+                ),
+              ],
             ),
           ),
         ),

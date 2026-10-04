@@ -1,9 +1,12 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../../app/app_scope.dart';
 import '../../../../config/tailwind.dart';
 import '../../../../platform/localization/app_money.dart';
+import '../../store/presentation/merchant_store_controller.dart';
 import '../models/merchant_order.dart';
 import '../models/merchant_order_vertical.dart';
 import 'merchant_orders_controller.dart';
@@ -14,43 +17,143 @@ import 'merchant_orders_controller.dart';
 /// current status, and the accept/reject/advance actions that call
 /// `advance_*_order_status` (issue #131) -- no direct table writes.
 ///
-/// Reads its order live from [controller] (by [orderId]) rather than taking
-/// a snapshot, so a status change made from this screen -- or from a
-/// pull-to-refresh back on the list -- is reflected immediately without
-/// needing to pop and re-push.
+/// Reads its order live from a [MerchantOrdersController] (by [orderId])
+/// rather than taking a snapshot, so a status change made from this screen
+/// -- or from a pull-to-refresh back on the list -- is reflected
+/// immediately without needing to pop and re-push.
+///
+/// Reached either from `OrdersScreen`'s own already-loaded [controller]
+/// (passed directly so a tap from that list shows instantly), or directly
+/// via `AppRoutes.merchantOrderDetailPath` (deep link / browser URL) -- a
+/// go_router destination, like `RestaurantScreen` (issue #288), which only
+/// has [orderId] to go on and so resolves the signed-in merchant's own store
+/// and orders itself, the same way `OrdersScreen`/`MyStoreScreen` do.
 class OrderDetailScreen extends StatefulWidget {
   const OrderDetailScreen({
     super.key,
-    required this.controller,
     required this.orderId,
+    this.ownerId,
+    this.storeController,
+    this.controller,
   });
 
-  final MerchantOrdersController controller;
   final String orderId;
+
+  /// The signed-in merchant's `profiles.id` (== `auth.uid()`). Only used
+  /// when [controller] is not supplied -- defaults to the current Supabase
+  /// session's user id (via `AppScope`).
+  final String? ownerId;
+
+  /// Overridable for tests; only used when [controller] is not supplied.
+  /// Defaults to a real Supabase-backed controller.
+  final MerchantStoreController? storeController;
+
+  /// When supplied (by `OrdersScreen`'s already-loaded list, or by a widget
+  /// test), this screen reads straight from it instead of resolving its own
+  /// store/orders. When omitted (a direct/deep-linked open), the screen
+  /// resolves the signed-in merchant's store and its own
+  /// [MerchantOrdersController] before looking up [orderId].
+  final MerchantOrdersController? controller;
 
   @override
   State<OrderDetailScreen> createState() => _OrderDetailScreenState();
 }
 
 class _OrderDetailScreenState extends State<OrderDetailScreen> {
+  MerchantStoreController? _ownStoreController;
+  bool _ownsStoreController = false;
+  MerchantOrdersController? _ordersController;
+  bool _ownsOrdersController = false;
+  String? _resolvedOwnerId;
+  late SupabaseClient _supabaseClient;
+  bool _dependenciesResolved = false;
+
+  // Resolved here rather than in field initializers / initState: reading
+  // the Supabase client off `AppScope.of(context)` (issue #285) needs a
+  // `BuildContext` that is allowed to look up an `InheritedWidget`, which
+  // `didChangeDependencies` is and `initState` is not.
   @override
-  void initState() {
-    super.initState();
-    widget.controller.addListener(_onControllerChanged);
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_dependenciesResolved) return;
+    _dependenciesResolved = true;
+
+    final injectedController = widget.controller;
+    if (injectedController != null) {
+      _ordersController = injectedController;
+      injectedController.addListener(_onOrdersChanged);
+      return;
+    }
+
+    final services = AppScope.of(context);
+    _supabaseClient = services.supabaseClient;
+    _resolvedOwnerId = widget.ownerId ?? _supabaseClient.auth.currentUser?.id;
+    final ownerId = _resolvedOwnerId;
+    if (ownerId == null) {
+      return;
+    }
+
+    final storeController =
+        widget.storeController ??
+        MerchantStoreController.supabase(_supabaseClient);
+    _ownStoreController = storeController;
+    _ownsStoreController = widget.storeController == null;
+    if (!storeController.hasLoaded && !storeController.isLoading) {
+      unawaited(storeController.load(ownerId));
+    }
+    storeController.addListener(_onStoreChanged);
+    _maybeCreateOrdersController();
   }
 
   @override
   void dispose() {
-    widget.controller.removeListener(_onControllerChanged);
+    _ownStoreController?.removeListener(_onStoreChanged);
+    if (_ownsStoreController) {
+      _ownStoreController?.dispose();
+    }
+    _ordersController?.removeListener(_onOrdersChanged);
+    if (_ownsOrdersController) {
+      _ordersController?.dispose();
+    }
     super.dispose();
   }
 
-  void _onControllerChanged() => setState(() {});
+  void _onStoreChanged() {
+    _maybeCreateOrdersController();
+    setState(() {});
+  }
+
+  void _onOrdersChanged() => setState(() {});
+
+  void _maybeCreateOrdersController() {
+    if (_ordersController != null) return;
+    final store = _ownStoreController?.store;
+    if (store == null) return;
+    final controller = MerchantOrdersController.supabase(
+      _supabaseClient,
+      vertical: store.vertical,
+      storeId: store.id,
+    );
+    _ordersController = controller;
+    _ownsOrdersController = true;
+    controller.addListener(_onOrdersChanged);
+    unawaited(controller.load());
+  }
+
+  /// Once a self-resolved [_ownStoreController] has finished loading (found
+  /// a store or not), there is no further self-resolution step left for
+  /// [build] to wait on -- so it should show the "order not found" state
+  /// rather than spin forever.
+  bool get _selfResolutionFinished {
+    if (_resolvedOwnerId == null) return true;
+    return _ownStoreController?.hasLoaded ?? false;
+  }
 
   Future<void> _advance(String newStatus) async {
-    final order = widget.controller.orderById(widget.orderId);
-    if (order == null) return;
-    final succeeded = await widget.controller.advanceStatus(order, newStatus);
+    final controller = _ordersController;
+    final order = controller?.orderById(widget.orderId);
+    if (controller == null || order == null) return;
+    final succeeded = await controller.advanceStatus(order, newStatus);
     if (!mounted) return;
     if (succeeded) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -62,7 +165,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
       );
     } else {
       final message =
-          widget.controller.saveError ??
+          controller.saveError ??
           'The order status could not be updated. Please try again.';
       ScaffoldMessenger.of(
         context,
@@ -72,14 +175,31 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final order = widget.controller.orderById(widget.orderId);
+    final ordersController = _ordersController;
+    if (ordersController == null) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Order')),
+        body: _selfResolutionFinished
+            ? const _OrderGoneMessage()
+            : const Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (ordersController.isLoading && !ordersController.hasLoaded) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Order')),
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    final order = ordersController.orderById(widget.orderId);
     return Scaffold(
       appBar: AppBar(title: const Text('Order')),
       body: order == null
           ? const _OrderGoneMessage()
           : _OrderDetailBody(
               order: order,
-              isSaving: widget.controller.isSaving,
+              isSaving: ordersController.isSaving,
               onAdvance: (status) => unawaited(_advance(status)),
             ),
     );

@@ -1,8 +1,10 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../../app/app_routes.dart';
 import '../../../../app/app_scope.dart';
 import '../../../../config/tailwind.dart';
 import '../../../../platform/localization/app_money.dart';
@@ -12,7 +14,6 @@ import '../data/merchant_orders_repository.dart';
 import '../models/merchant_order.dart';
 import '../models/merchant_order_vertical.dart';
 import 'merchant_orders_controller.dart';
-import 'order_detail_screen.dart';
 
 /// "Orders" screen (ported from `merchant_app`, originally issue #134,
 /// unified into the main app by issue #232): the signed-in merchant's
@@ -305,14 +306,13 @@ class _OrdersListView extends StatelessWidget {
           final order = controller.orders[index];
           return _OrderTile(
             order: order,
-            onTap: () => Navigator.of(context).push(
-              MaterialPageRoute<void>(
-                builder: (_) => OrderDetailScreen(
-                  controller: controller,
-                  orderId: order.id,
-                ),
-              ),
-            ),
+            // The detail route is reached by id only (so it's deep-linkable
+            // on its own) and resolves its own MerchantOrdersController, so
+            // it has no link back to this screen's controller -- refresh on
+            // return so a status change made there shows up here too.
+            onTap: () => context
+                .push(AppRoutes.merchantOrderDetailPath(order.id))
+                .then((_) => unawaited(controller.load())),
           );
         },
       ),
