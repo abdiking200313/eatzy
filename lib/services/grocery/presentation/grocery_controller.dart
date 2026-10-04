@@ -3,28 +3,19 @@ import 'dart:collection';
 
 import 'package:flutter/foundation.dart';
 
-import '../../../app/service_module.dart';
-import '../../../platform/activity/models/activity_item.dart';
 import '../../../platform/activity/presentation/activity_controller.dart';
-import '../../../platform/error_reporting/error_reporter.dart';
 import '../../shared/data/cart_storage.dart';
-import '../../shared/data/idempotency_key.dart';
-import '../../shared/data/rpc_helpers.dart';
 import '../../shared/data/service_pricing_repository.dart';
-import '../../shared/presentation/confirm_order_flow.dart';
 import '../../shared/models/delivery_details.dart';
 import '../../shared/models/service_pricing.dart';
 import '../../shared/presentation/loadable_state_mixin.dart';
 import '../data/grocery_repository.dart';
 import '../models/grocery_models.dart';
+import 'grocery_cart.dart';
+import 'grocery_catalog.dart';
+import 'grocery_checkout.dart';
 
-enum GroceryAddResult {
-  added,
-  quantityIncreased,
-  unavailable,
-  storeConflict,
-  stockLimitReached,
-}
+export 'grocery_cart.dart' show GroceryAddResult;
 
 class GroceryController extends ChangeNotifier with LoadableState {
   GroceryController({
@@ -36,18 +27,21 @@ class GroceryController extends ChangeNotifier with LoadableState {
     ServicePricingRepository? pricingRepository,
     DateTime Function()? now,
     this.storeType = GroceryStoreType.grocery,
-  }) : _repository = repository,
-       _storage = storage,
-       _catalogRepository =
-           catalogRepository ??
-           (repository is GroceryCatalogRepository
-               ? repository as GroceryCatalogRepository
-               : null),
-       _orderRepository = orderRepository,
-       _activityController = activityController ?? ActivityController.instance,
-       _pricingRepository =
+  }) : _pricingRepository =
            pricingRepository ?? SupabaseServicePricingRepository(),
-       _now = now ?? DateTime.now;
+       _cart = GroceryCart(storage: storage),
+       _catalog = GroceryCatalog(
+         repository: repository,
+         storeType: storeType,
+         catalogRepository: catalogRepository,
+         now: now,
+         staleAfter: catalogStaleAfter,
+       ),
+       _checkout = GroceryCheckout(
+         orderRepository: orderRepository,
+         activityController: activityController ?? ActivityController.instance,
+         storeType: storeType,
+       );
 
   /// Which category this controller serves. Grocery, Fresh Meat and
   /// Electronics share this engine but each has its own controller, so each
@@ -66,101 +60,56 @@ class GroceryController extends ChangeNotifier with LoadableState {
   /// [load]'s `forceRefresh`) always bypasses this.
   static const Duration catalogStaleAfter = Duration(minutes: 5);
 
-  static const List<GroceryDeliverySlot> deliverySlots = [
-    GroceryDeliverySlot(
-      id: 'today-afternoon',
-      label: 'Today',
-      detail: '2:00 PM – 4:00 PM',
-    ),
-    GroceryDeliverySlot(
-      id: 'today-evening',
-      label: 'Today',
-      detail: '6:00 PM – 8:00 PM',
-    ),
-    GroceryDeliverySlot(
-      id: 'tomorrow-morning',
-      label: 'Tomorrow',
-      detail: '9:00 AM – 11:00 AM',
-    ),
-  ];
+  static const List<GroceryDeliverySlot> deliverySlots =
+      defaultGroceryDeliverySlots;
 
-  final GroceryRepository _repository;
-  final CartStorage<GroceryCartLine> _storage;
-  final GroceryCatalogRepository? _catalogRepository;
-  final GroceryOrderRepository? _orderRepository;
-  final ActivityController _activityController;
   final ServicePricingRepository _pricingRepository;
-  final DateTime Function() _now;
-  final List<GroceryStore> _stores = [];
-  final List<GroceryDeliverySlot> _deliverySlots = [];
-  final Map<String, GroceryCartLine> _cart = {};
 
-  /// Store IDs individually fetched via [loadStore] (as opposed to via the
-  /// every-store [load]). Consulted by [hasLoadedStore] so a screen scoped
-  /// to one store doesn't need the full multi-store catalog loaded first.
-  final Set<String> _loadedStoreIds = {};
+  /// Cart contents, quantity-step rules and persistence — see [GroceryCart].
+  final GroceryCart _cart;
 
-  static const String _guestCartOwner = 'guest';
+  /// Store/product catalog loading and caching — see [GroceryCatalog].
+  final GroceryCatalog _catalog;
 
-  bool _hasLoaded = false;
-  DateTime? _lastLoadedAt;
-  bool _slotsLoading = false;
-  String? _slotLoadError;
-  GroceryOrderConfirmation? _lastConfirmation;
-  bool _isSubmitting = false;
+  /// Checkout validation, order placement and submission state — see
+  /// [GroceryCheckout].
+  final GroceryCheckout _checkout;
 
-  final CartWriteQueue _cartWriteQueue = CartWriteQueue(
-    label: 'GroceryController',
-  );
-  String? _cartOwnerId;
-  int _cartLoadGeneration = 0;
-  bool _isCartLoading = false;
-
-  UnmodifiableListView<GroceryStore> get stores =>
-      UnmodifiableListView(_stores);
-  UnmodifiableListView<GroceryCartLine> get cart =>
-      UnmodifiableListView(_cart.values.toList(growable: false));
-  bool get hasLoaded => _hasLoaded;
+  UnmodifiableListView<GroceryStore> get stores => _catalog.stores;
+  UnmodifiableListView<GroceryCartLine> get cart => _cart.lines;
+  bool get hasLoaded => _catalog.hasLoaded;
 
   /// Whether [storeId] can be found in [stores]: either the full catalog
   /// has been loaded at least once (via [load]), or that specific store was
   /// individually loaded via [loadStore]. `GroceryStoreScreen` gates on this
   /// instead of [hasLoaded] so a direct/deep link to one store doesn't wait
   /// on (or force) an every-store load first.
-  bool hasLoadedStore(String storeId) =>
-      _hasLoaded || _loadedStoreIds.contains(storeId);
+  bool hasLoadedStore(String storeId) => _catalog.hasLoadedStore(storeId);
 
   /// Whether the loaded stores/catalog are old enough that [load] should
   /// treat them as needing a refetch: never loaded, or last loaded at least
   /// [catalogStaleAfter] ago. Stock/price changes made server-side only
   /// reach the client on the next refetch, so this keeps a session that
   /// stays open a long time from trusting an indefinitely old snapshot.
-  bool get isStale {
-    final lastLoadedAt = _lastLoadedAt;
-    return lastLoadedAt == null ||
-        _now().difference(lastLoadedAt) >= catalogStaleAfter;
-  }
+  bool get isStale => _catalog.isStale;
 
-  bool get slotsLoading => _slotsLoading;
-  String? get slotLoadError => _slotLoadError;
+  bool get slotsLoading => _catalog.slotsLoading;
+  String? get slotLoadError => _catalog.slotLoadError;
   UnmodifiableListView<GroceryDeliverySlot> get availableDeliverySlots =>
-      UnmodifiableListView(
-        _catalogRepository == null ? deliverySlots : _deliverySlots,
-      );
+      _catalog.availableDeliverySlots;
   bool get isEmpty => _cart.isEmpty;
   bool get isNotEmpty => _cart.isNotEmpty;
-  int get itemCount => _cart.length;
-  GroceryOrderConfirmation? get lastConfirmation => _lastConfirmation;
+  int get itemCount => _cart.itemCount;
+  GroceryOrderConfirmation? get lastConfirmation => _checkout.lastConfirmation;
 
   /// Whether a [confirmOrder] call is currently in flight. The checkout
   /// screen disables its submit button while this is true — see issue #59 —
   /// and [confirmOrder] itself also refuses to start a second submission
   /// while this is true, as a belt-and-braces guard against a double-tap or
   /// a second programmatic call racing the first one.
-  bool get isSubmitting => _isSubmitting;
-  String? get cartOwnerId => _cartOwnerId;
-  bool get isCartLoading => _isCartLoading;
-  String get _cartStorageOwner => _cartOwnerId ?? _guestCartOwner;
+  bool get isSubmitting => _checkout.isSubmitting;
+  String? get cartOwnerId => _cart.ownerId;
+  bool get isCartLoading => _cart.isLoading;
 
   /// Resolves once every cart write queued so far has been persisted. Cart
   /// mutations persist fire-and-forget so callers don't need to await them;
@@ -168,16 +117,15 @@ class GroceryController extends ChangeNotifier with LoadableState {
   /// (e.g. before loading a second controller from the same storage) should
   /// await this first.
   @visibleForTesting
-  Future<void> get pendingCartWrite => _cartWriteQueue.pending;
-  String? get storeId =>
-      _cart.isEmpty ? null : _cart.values.first.product.storeId;
+  Future<void> get pendingCartWrite => _cart.pendingWrite;
+  String? get storeId => _cart.storeId;
 
   String? get storeName {
     final selectedStoreId = storeId;
     if (selectedStoreId == null) {
       return null;
     }
-    for (final store in _stores) {
+    for (final store in _catalog.stores) {
       if (store.id == selectedStoreId) {
         return store.name;
       }
@@ -185,7 +133,7 @@ class GroceryController extends ChangeNotifier with LoadableState {
     return null;
   }
 
-  int get subtotal => _cart.values.fold(0, (total, line) => total + line.total);
+  int get subtotal => _cart.subtotal;
 
   /// The last successfully loaded delivery-fee config for this vertical, or
   /// `null` if none has loaded yet — see [ServicePricingRepository.peek].
@@ -211,27 +159,13 @@ class GroceryController extends ChangeNotifier with LoadableState {
   /// `CartController.loadForOwner`: a monotonically increasing generation
   /// guards against a stale read finishing after a later account switch.
   Future<void> loadForOwner(String? ownerId) async {
-    final generation = ++_cartLoadGeneration;
-    _cartOwnerId = ownerId;
-    _cart.clear();
-    _isCartLoading = true;
-    notifyListeners();
-
-    final loadedLines = await readCartLogged(
-      _storage,
-      _cartStorageOwner,
-      label: 'GroceryController',
+    final completed = await _cart.loadForOwner(
+      ownerId,
+      onChanged: notifyListeners,
     );
-    if (generation != _cartLoadGeneration) {
-      return;
+    if (completed) {
+      unawaited(_loadPricing());
     }
-
-    _cart
-      ..clear()
-      ..addEntries(loadedLines.map((line) => MapEntry(line.product.id, line)));
-    _isCartLoading = false;
-    notifyListeners();
-    unawaited(_loadPricing());
   }
 
   /// Warms (or refreshes) [pricing] in the background; never throws.
@@ -254,18 +188,11 @@ class GroceryController extends ChangeNotifier with LoadableState {
     if (isLoading) {
       return;
     }
-    if (!forceRefresh && _hasLoaded && !isStale) {
+    if (!forceRefresh && _catalog.hasLoaded && !_catalog.isStale) {
       return;
     }
     await runLoad(
-      fetch: () async {
-        final stores = await _repository.fetchStores();
-        _stores
-          ..clear()
-          ..addAll(stores.where((store) => store.storeType == storeType));
-        _hasLoaded = true;
-        _lastLoadedAt = _now();
-      },
+      fetch: _catalog.load,
       onError: (error, stackTrace) =>
           'Groceries could not be loaded. Please try again.',
     );
@@ -283,58 +210,24 @@ class GroceryController extends ChangeNotifier with LoadableState {
   /// the full catalog it fetches already contains every store, this one
   /// included.
   Future<void> loadStore(String storeId, {bool forceRefresh = false}) async {
-    final catalogRepository = _catalogRepository;
-    if (catalogRepository == null) {
+    if (_catalog.catalogRepository == null) {
       return load(forceRefresh: forceRefresh);
     }
     if (isLoading) {
       return;
     }
-    if (!forceRefresh && hasLoadedStore(storeId) && !isStale) {
+    if (!forceRefresh && hasLoadedStore(storeId) && !_catalog.isStale) {
       return;
     }
     await runLoad(
-      fetch: () async {
-        final store = await catalogRepository.fetchStore(storeId);
-        if (store != null) {
-          final index = _stores.indexWhere(
-            (existing) => existing.id == store.id,
-          );
-          if (index == -1) {
-            _stores.add(store);
-          } else {
-            _stores[index] = store;
-          }
-          _loadedStoreIds.add(storeId);
-        }
-        _lastLoadedAt = _now();
-      },
+      fetch: () => _catalog.loadStore(storeId),
       onError: (error, stackTrace) =>
           'This store could not be loaded. Please try again.',
     );
   }
 
   Future<void> loadDeliverySlots() async {
-    final selectedStoreId = storeId;
-    final catalogRepository = _catalogRepository;
-    if (selectedStoreId == null || catalogRepository == null || _slotsLoading) {
-      return;
-    }
-
-    _slotsLoading = true;
-    _slotLoadError = null;
-    notifyListeners();
-    try {
-      final slots = await catalogRepository.fetchDeliverySlots(selectedStoreId);
-      _deliverySlots
-        ..clear()
-        ..addAll(slots);
-    } on Object {
-      _slotLoadError = 'Delivery slots could not be loaded.';
-    } finally {
-      _slotsLoading = false;
-      notifyListeners();
-    }
+    await _catalog.loadDeliverySlots(storeId, onChanged: notifyListeners);
   }
 
   /// Adds [steps] quantity steps of [product] (one item, or 0.5 kg per
@@ -345,92 +238,46 @@ class GroceryController extends ChangeNotifier with LoadableState {
     bool replaceStoreCart = false,
     int steps = 1,
   }) {
-    assert(steps >= 1, 'steps must be at least 1');
-    if (!product.isAvailable) {
-      return GroceryAddResult.unavailable;
-    }
-
-    if (_cart.isNotEmpty && storeId != product.storeId && !replaceStoreCart) {
-      return GroceryAddResult.storeConflict;
-    }
-
-    if (replaceStoreCart && storeId != product.storeId) {
-      _cart.clear();
-    }
-
-    final existing = _cart[product.id];
-    final nextQuantity =
-        (existing?.quantity ?? 0) + product.quantityStep * steps;
-    if (nextQuantity > product.availableQuantity) {
-      return GroceryAddResult.stockLimitReached;
-    }
-
-    _cart[product.id] = GroceryCartLine(
-      product: product,
-      quantity: _normalizeQuantity(nextQuantity),
+    final result = _cart.addProduct(
+      product,
+      replaceStoreCart: replaceStoreCart,
+      steps: steps,
     );
-    _lastConfirmation = null;
-    notifyListeners();
-    unawaited(_persistCart());
-    return existing == null
-        ? GroceryAddResult.added
-        : GroceryAddResult.quantityIncreased;
+    if (result == GroceryAddResult.added ||
+        result == GroceryAddResult.quantityIncreased) {
+      _checkout.resetConfirmation();
+      notifyListeners();
+    }
+    return result;
   }
 
   bool setQuantity(String productId, double quantity) {
-    final existing = _cart[productId];
-    if (existing == null) {
-      return false;
-    }
-
-    if (quantity <= 0) {
-      _cart.remove(productId);
+    final changed = _cart.setQuantity(productId, quantity);
+    if (changed) {
       notifyListeners();
-      unawaited(_persistCart());
-      return true;
     }
-
-    final product = existing.product;
-    final steps = quantity / product.quantityStep;
-    final isValidStep = (steps - steps.round()).abs() < 0.0001;
-    if (!isValidStep || quantity > product.availableQuantity) {
-      return false;
-    }
-
-    _cart[productId] = existing.copyWith(
-      quantity: _normalizeQuantity(quantity),
-    );
-    notifyListeners();
-    unawaited(_persistCart());
-    return true;
+    return changed;
   }
 
   bool increment(String productId) {
-    final existing = _cart[productId];
-    if (existing == null) {
-      return false;
+    final changed = _cart.increment(productId);
+    if (changed) {
+      notifyListeners();
     }
-    return setQuantity(
-      productId,
-      existing.quantity + existing.product.quantityStep,
-    );
+    return changed;
   }
 
   bool decrement(String productId) {
-    final existing = _cart[productId];
-    if (existing == null) {
-      return false;
+    final changed = _cart.decrement(productId);
+    if (changed) {
+      notifyListeners();
     }
-    return setQuantity(
-      productId,
-      existing.quantity - existing.product.quantityStep,
-    );
+    return changed;
   }
 
   void remove(String productId) {
-    if (_cart.remove(productId) != null) {
+    if (_cart.remove(productId)) {
       notifyListeners();
-      unawaited(_persistCart());
     }
   }
 
@@ -438,22 +285,18 @@ class GroceryController extends ChangeNotifier with LoadableState {
     required GroceryDeliverySlot? slot,
     required GrocerySubstitutionPreference? substitutionPreference,
   }) {
-    final errors = <String>[];
-    if (_cart.isEmpty) {
-      errors.add('Add at least one grocery item.');
-    }
-    if (slot == null) {
-      errors.add('Choose a delivery slot.');
-    }
-    if (substitutionPreference == null) {
-      errors.add('Choose a substitution preference.');
-    }
-    return errors;
+    return _checkout.validate(
+      cartIsEmpty: _cart.isEmpty,
+      slot: slot,
+      substitutionPreference: substitutionPreference,
+    );
   }
 
-  /// Validates the cart/slot/preference and, once valid, places the
-  /// order through the shared [confirmDemoOrder] flow, records activity,
-  /// and clears the cart.
+  /// Validates the cart/slot/preference and, once valid, places the order —
+  /// see [GroceryCheckout.confirmOrder], which this delegates to after
+  /// snapshotting the current cart/pricing state (so the snapshot is taken
+  /// before [GroceryCheckout] clears the cart, exactly as before
+  /// extraction).
   ///
   /// A no-op — without touching submission state — while a previous call is
   /// still in flight (see [isSubmitting]): this is a belt-and-braces guard
@@ -476,25 +319,15 @@ class GroceryController extends ChangeNotifier with LoadableState {
     String? idempotencyKey,
     DateTime? now,
   }) {
-    if (_isSubmitting) {
-      return Future.value(GroceryCheckoutResult.invalid(const []));
-    }
-
     final errors = validateCheckout(
       slot: slot,
       substitutionPreference: substitutionPreference,
     );
-    final createdAt = now ?? DateTime.now();
     // Snapshot cart-derived values before the shared flow clears the cart.
-    // These are only used for the no-repository (demo) fallback below —
-    // once a real repository is configured, the RPC's returned totals
-    // (issue #60) are used instead.
-    final confirmedStoreId = storeId;
-    final confirmedStoreName = storeName;
-    final confirmedSubtotal = subtotal;
-    final confirmedDeliveryFee = deliveryFee;
-    final confirmedAmount = total;
-    final confirmedItems = _cart.values
+    // These are only used for the no-repository (demo) fallback -- once a
+    // real repository is configured, the RPC's returned totals (issue #60)
+    // are used instead.
+    final confirmedItems = _cart.lines
         .map(
           (line) => GroceryOrderLineInput(
             productId: line.product.id,
@@ -502,102 +335,28 @@ class GroceryController extends ChangeNotifier with LoadableState {
           ),
         )
         .toList(growable: false);
-    final resolvedIdempotencyKey = idempotencyKey ?? generateIdempotencyKey();
-    GroceryOrderConfirmation? confirmation;
 
-    if (errors.isNotEmpty) {
-      return Future.value(GroceryCheckoutResult.invalid(errors));
-    }
-
-    _isSubmitting = true;
-    notifyListeners();
-
-    return confirmDemoOrder<GroceryCheckoutResult, List<String>, PlacedOrder>(
-      validation: errors,
-      isValid: (validation) => validation.isEmpty,
-      onInvalid: (validation) => GroceryCheckoutResult.invalid(validation),
-      placeOrder: () =>
-          _orderRepository?.placeOrder(
-            GroceryOrderRequest(
-              storeId: confirmedStoreId!,
-              deliverySlotId: slot!.id,
-              delivery: delivery,
-              substitutionPreference: substitutionPreference!,
-              items: confirmedItems,
-              idempotencyKey: resolvedIdempotencyKey,
-            ),
-          ) ??
-          Future.value(null),
-      // `?? 0` only matters if pricing has never loaded (issue #279) — this
-      // demo-only fallback (no real repository configured) never represents
-      // a real charge either way.
-      fallbackOrder: () => PlacedOrder(
-        orderId: 'grocery-${createdAt.microsecondsSinceEpoch}',
-        subtotal: confirmedSubtotal,
-        deliveryFee: confirmedDeliveryFee ?? 0,
-        tax: 0,
-        total:
-            confirmedAmount ??
-            (confirmedSubtotal + (confirmedDeliveryFee ?? 0)),
-      ),
-      onSaveFailed: (error, stackTrace) {
-        ErrorReporting.instance.reportError(
-          error,
-          stackTrace,
-          context: 'GroceryController.confirmOrder',
-        );
-        return GroceryCheckoutResult.invalid([
-          describeOrderSaveError(
-            error,
-            'The grocery order could not be saved. Please try again.',
-          ),
-        ]);
-      },
-      // `order.total` is the RPC's authoritative, server-computed total
-      // (issue #60) — not the client-computed `confirmedAmount`, which can
-      // be stale if a product price changed between the cart being built
-      // and this checkout being confirmed.
-      recordActivity: (order) {
-        confirmation = GroceryOrderConfirmation(
-          orderId: order.orderId,
-          createdAt: createdAt,
-          amount: order.total,
-          slot: slot!,
-          substitutionPreference: substitutionPreference!,
-        );
-        _activityController.record(
-          ActivityItem(
-            id: order.orderId,
-            serviceId: ServiceId.grocery,
-            title: confirmedStoreName ?? 'Grocery order',
-            subtitle: '${slot.label}, ${slot.detail}',
-            status: 'Confirmed',
-            occurredAt: createdAt,
-            amount: order.total,
-            detailsRoute: storeType.listRoute,
-            paymentMethod: 'cash_on_delivery',
-            paymentStatus: 'pending_collection',
-          ),
-        );
-      },
-      clearCart: () {
-        _cart.clear();
-        return _persistCart();
-      },
-      onConfirmed: (order) {
-        _lastConfirmation = confirmation;
-        notifyListeners();
-        return GroceryCheckoutResult.confirmed(confirmation!);
-      },
-    ).whenComplete(() {
-      _isSubmitting = false;
-      notifyListeners();
-    });
+    return _checkout.confirmOrder(
+      validationErrors: errors,
+      storeId: storeId,
+      storeName: storeName,
+      subtotal: subtotal,
+      deliveryFee: deliveryFee,
+      total: total,
+      items: confirmedItems,
+      delivery: delivery,
+      slot: slot,
+      substitutionPreference: substitutionPreference,
+      clearCart: _cart.clearAndPersist,
+      idempotencyKey: idempotencyKey,
+      now: now,
+      onChanged: notifyListeners,
+    );
   }
 
   @visibleForTesting
   void clear() {
-    _cart.clear();
+    _cart.clearInMemory();
     resetSessionState();
   }
 
@@ -605,21 +364,8 @@ class GroceryController extends ChangeNotifier with LoadableState {
   /// cart itself is handled separately by [loadForOwner], which reloads
   /// (rather than simply clearing) the incoming owner's persisted cart.
   void resetSessionState() {
-    _deliverySlots.clear();
-    _lastConfirmation = null;
+    _catalog.resetDeliverySlots();
+    _checkout.resetConfirmation();
     notifyListeners();
-  }
-
-  double _normalizeQuantity(double quantity) =>
-      (quantity * 100).roundToDouble() / 100;
-
-  Future<void> _persistCart() {
-    final owner = _cartStorageOwner;
-    final snapshot = _cart.values.toList(growable: false);
-    return _queueCartWrite(() => _storage.write(owner, snapshot));
-  }
-
-  Future<void> _queueCartWrite(Future<void> Function() write) {
-    return _cartWriteQueue.enqueue(write);
   }
 }
