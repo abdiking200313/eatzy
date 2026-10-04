@@ -1,10 +1,13 @@
+import 'dart:async';
 import 'dart:convert';
 
+import 'package:chowflow/app/app_routes.dart';
 import 'package:chowflow/config/theme.dart';
 import 'package:chowflow/features/auth/data/auth_service.dart';
 import 'package:chowflow/features/auth/presentation/register_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:intl/intl.dart';
@@ -267,7 +270,7 @@ void main() {
 
   testWidgets(
     'valid input calls signUpWithEmailPassword with the trimmed field '
-    'values',
+    'values, then navigates to the main app with no error message',
     (tester) async {
       http.Request? capturedRequest;
       final mockClient = MockClient((request) async {
@@ -277,11 +280,29 @@ void main() {
       final now = DateTime.now();
       final expectedDob = DateTime(now.year - 18, now.month, now.day);
 
+      // A real GoRouter, not a plain MaterialApp -- issue #295: the
+      // post-sign-up `context.go` call needs a GoRouter ancestor to resolve,
+      // and this is the test that exercises it the way production code does
+      // (tapping "Create account" through to a route change), rather than
+      // just asserting the auth service was called.
+      final router = GoRouter(
+        initialLocation: AppRoutes.register,
+        routes: [
+          GoRoute(
+            path: AppRoutes.register,
+            builder: (_, _) =>
+                RegisterScreen(authService: _capturingAuthService(mockClient)),
+          ),
+          GoRoute(
+            path: AppRoutes.mainApp,
+            builder: (_, _) => const Scaffold(body: Text('main app')),
+          ),
+        ],
+      );
+      addTearDown(router.dispose);
+
       await tester.pumpWidget(
-        MaterialApp(
-          theme: buildAppTheme(),
-          home: RegisterScreen(authService: _capturingAuthService(mockClient)),
-        ),
+        MaterialApp.router(theme: buildAppTheme(), routerConfig: router),
       );
       await tester.pump();
 
@@ -327,6 +348,43 @@ void main() {
       expect(data['lastname'], 'Doe');
       expect(data['phone'], '+1 555 123 4567');
       expect(data['dob'], DateFormat('yyyy-MM-dd').format(expectedDob));
+
+      // Navigation actually happened, and no error SnackBar was shown.
+      expect(find.text('main app'), findsOneWidget);
+      expect(find.textContaining('Registration failed'), findsNothing);
+      expect(tester.takeException(), isNull);
     },
   );
+
+  // Issue #295: the post-sign-up `context.go` call was moved outside the
+  // try/catch around `signUpWithEmailPassword` so that a navigation failure
+  // after a successful sign-up no longer gets reported as a sign-up
+  // failure. Reproduced here the same way the original bug was: a
+  // `RegisterScreen` with no GoRouter ancestor, so the post-success
+  // `context.go` call throws -- caught in a nested zone (rather than via
+  // `tester.takeException()`) because this exception surfaces from an
+  // async gap after the awaited sign-up call, which `flutter_test` treats
+  // as an uncaught zone error that would otherwise fail the test outright.
+  testWidgets('does not show a failed message when navigation throws after a '
+      'successful sign-up', (tester) async {
+    final mockClient = MockClient((request) async => _signUpSessionResponse());
+
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: buildAppTheme(),
+        home: RegisterScreen(authService: _capturingAuthService(mockClient)),
+      ),
+    );
+    await tester.pump();
+
+    await _fillForm(tester);
+
+    Object? navigationError;
+    await runZonedGuarded(() async {
+      await _submit(tester);
+    }, (error, stack) => navigationError = error);
+
+    expect(navigationError, isNotNull);
+    expect(find.textContaining('Registration failed'), findsNothing);
+  });
 }

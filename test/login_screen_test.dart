@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:chowflow/app/app_routes.dart';
@@ -184,6 +185,7 @@ void main() {
         expect(find.text('merchant dashboard'), findsOneWidget);
         expect(find.text('customer home'), findsNothing);
         expect(MerchantSessionGate.isMerchantRole, isTrue);
+        expect(find.textContaining('Login failed'), findsNothing);
       },
     );
 
@@ -195,6 +197,7 @@ void main() {
       await pumpLoginAndSignIn(tester, client: client);
 
       expect(find.text('merchant dashboard'), findsOneWidget);
+      expect(find.textContaining('Login failed'), findsNothing);
     });
 
     testWidgets(
@@ -208,8 +211,54 @@ void main() {
         expect(find.text('customer home'), findsOneWidget);
         expect(find.text('merchant dashboard'), findsNothing);
         expect(MerchantSessionGate.isMerchantRole, isFalse);
+        expect(find.textContaining('Login failed'), findsNothing);
+        expect(tester.takeException(), isNull);
       },
     );
+
+    // Issue #295: the post-sign-in `context.go` call was moved outside the
+    // try/catch around `signInWithEmailPassword` so that a navigation
+    // failure after a successful sign-in no longer gets reported as a
+    // sign-in failure. Reproduced here with no GoRouter ancestor at all, so
+    // the post-success `context.go` call throws -- caught in a nested zone
+    // (rather than via `tester.takeException()`) because this exception
+    // surfaces from an async gap after the awaited sign-in call, which
+    // `flutter_test` treats as an uncaught zone error that would otherwise
+    // fail the test outright.
+    testWidgets('does not show a failed message when navigation throws after a '
+        'successful sign-in', (tester) async {
+      final client = clientWithRole('customer-2', 'customer');
+
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: buildAppTheme(),
+          home: LoginScreen(
+            authService: AuthService(client: client),
+            merchantRoleService: MerchantRoleService(client: client),
+          ),
+        ),
+      );
+      await tester.pump();
+
+      await tester.enterText(
+        find.widgetWithText(TextField, 'Email address').first,
+        'user@example.com',
+      );
+      await tester.enterText(
+        find.widgetWithText(TextField, 'Password').first,
+        'password123',
+      );
+      await tester.ensureVisible(find.text('Sign in'));
+
+      Object? navigationError;
+      await runZonedGuarded(() async {
+        await tester.tap(find.text('Sign in'));
+        await tester.pumpAndSettle();
+      }, (error, stack) => navigationError = error);
+
+      expect(navigationError, isNotNull);
+      expect(find.textContaining('Login failed'), findsNothing);
+    });
   });
 }
 

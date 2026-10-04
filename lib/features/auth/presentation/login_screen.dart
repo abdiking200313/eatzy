@@ -58,37 +58,40 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() => _isLoading = true);
     try {
       await _authService.signInWithEmailPassword(email, password);
-      if (!mounted) return;
-
-      // Issue #232: same sign-in form for every account -- a
-      // `merchant`/`admin` `profiles.role` lands on the merchant dashboard
-      // instead of the customer home, decided here right after a
-      // successful sign-in (and again on session-restore at app start, see
-      // `runStartupSequence`). A lookup failure fails closed into the
-      // customer experience rather than blocking the login. The router's own
-      // redirect (fired by the sign-in event) joins this same lookup, so it
-      // never routes to the customer home while the role is still unknown.
-      final userId = _authService.getCurrentUserId();
-      if (userId != null) {
-        await MerchantSessionGate.resolveFor(
-          userId,
-          roleService: _merchantRoleService,
+    } catch (error) {
+      if (mounted) {
+        _showMessage(
+          'Login failed: ${describeAuthError(error, context: 'Login')}',
         );
       }
-      if (!mounted) return;
-      context.go(
-        MerchantSessionGate.isMerchantRole
-            ? AppRoutes.merchantDashboard
-            : AppRoutes.mainApp,
-      );
-    } catch (error) {
-      if (!mounted) return;
-      _showMessage(
-        'Login failed: ${describeAuthError(error, context: 'Login')}',
-      );
+      return;
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
+
+    if (!mounted) return;
+
+    // Issue #232: same sign-in form for every account -- a
+    // `merchant`/`admin` `profiles.role` lands on the merchant dashboard
+    // instead of the customer home, decided here right after a
+    // successful sign-in (and again on session-restore at app start, see
+    // `runStartupSequence`). A lookup failure fails closed into the
+    // customer experience rather than blocking the login. The router's own
+    // redirect (fired by the sign-in event) joins this same lookup, so it
+    // never routes to the customer home while the role is still unknown.
+    final userId = _authService.getCurrentUserId();
+    if (userId != null) {
+      await MerchantSessionGate.resolveFor(
+        userId,
+        roleService: _merchantRoleService,
+      );
+    }
+    if (!mounted) return;
+    context.go(
+      MerchantSessionGate.isMerchantRole
+          ? AppRoutes.merchantDashboard
+          : AppRoutes.mainApp,
+    );
   }
 
   void _showMessage(String message) {
