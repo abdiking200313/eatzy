@@ -78,23 +78,6 @@ void main() {
     expect(find.text('MVP confirmed'), findsOneWidget);
   });
 
-  test(
-    'ActivityItem.fromMap drops a legacy cleaning row instead of throwing',
-    () {
-      final item = ActivityItem.fromMap({
-        'id': 'legacy-cleaning-1',
-        'service_id': 'cleaning',
-        'title': 'Deep clean',
-        'status': 'completed',
-        'occurred_at': DateTime.utc(2026, 7, 27).toIso8601String(),
-        'amount': 54,
-        'details_route': '/cleaning',
-      });
-
-      expect(item, isNull);
-    },
-  );
-
   test('ActivityItem.fromMap falls back to ServiceId.unknown for a genuinely '
       'unsupported service instead of throwing', () {
     final item = ActivityItem.fromMap({

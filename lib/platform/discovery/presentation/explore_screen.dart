@@ -1,19 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import '../app/service_module.dart';
-import '../config/theme.dart';
-import '../platform/discovery/store_listing.dart';
-import '../platform/discovery/store_listing_repository.dart';
-import '../services/food/data/category_repository.dart';
-import '../services/food/models/category.dart';
-import '../widgets/app_cards.dart';
-import '../widgets/app_scaffold.dart';
-import '../widgets/app_search_bar.dart';
+import '../../../app/service_module.dart';
+import '../../../config/theme.dart';
+import '../../../services/food/data/category_repository.dart';
+import '../../../services/food/models/category.dart';
+import '../../../widgets/app_cards.dart';
+import '../../../widgets/app_scaffold.dart';
+import '../../../widgets/app_search_bar.dart';
+import '../store_listing.dart';
+import '../store_listing_repository.dart';
 
 /// The bottom-nav "Explore" tab: a search + discovery feed across all three
-/// verticals, distinct from `screens/categories.dart` (the "Services" page,
-/// a simple vertical picker reached from the home grid's "More" tile).
+/// verticals, distinct from `features/super_app/presentation/categories_screen.dart`
+/// (the "Services" page, a simple vertical picker reached from the home
+/// grid's "More" tile).
 ///
 /// There is deliberately no location/distance data anywhere in this app, so
 /// this stays a browse/search feed rather than a proximity feed (no map, no

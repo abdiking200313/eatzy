@@ -39,24 +39,15 @@ class ActivityItem {
   final String? paymentMethod;
   final String? paymentStatus;
 
-  /// Returns `null` for a row whose `service_id` is a legacy, no-longer
-  /// supported service (currently just `'cleaning'`, removed in #50) so it
-  /// is silently dropped from history views instead of breaking the whole
-  /// activity list.
-  ///
-  /// Any other unrecognized `service_id` falls back to [ServiceId.unknown]
-  /// rather than throwing (see #62): a single row with a service id this
-  /// client doesn't (yet) recognize should render as a generic activity
-  /// entry, not take down the rest of the list. Other malformed fields on
-  /// this row (missing title/status, an unparseable date/amount, etc.) still
-  /// throw a [FormatException] from this method — [ActivityRepository]
-  /// catches that per row and skips just the bad row, see
-  /// `activity_repository.dart`.
+  /// An unrecognized `service_id` falls back to [ServiceId.unknown] rather
+  /// than throwing (see #62): a single row with a service id this client
+  /// doesn't (yet) recognize should render as a generic activity entry, not
+  /// take down the rest of the list. Other malformed fields on this row
+  /// (missing title/status, an unparseable date/amount, etc.) still throw a
+  /// [FormatException] from this method — [ActivityRepository] catches that
+  /// per row and skips just the bad row, see `activity_repository.dart`.
   static ActivityItem? fromMap(Map<String, dynamic> map) {
     final rawServiceId = _requiredString(map, 'service_id');
-    if (rawServiceId == 'cleaning') {
-      return null;
-    }
     final serviceId = switch (rawServiceId) {
       'food' => ServiceId.food,
       'grocery' => ServiceId.grocery,

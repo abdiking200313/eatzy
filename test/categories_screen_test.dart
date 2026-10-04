@@ -1,5 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:chowflow/screens/categories.dart';
+import 'package:chowflow/features/super_app/presentation/categories_screen.dart';
 import 'package:chowflow/services/food/models/category.dart';
 import 'package:chowflow/services/food/presentation/widgets/categories_section.dart';
 import 'package:chowflow/services/food/presentation/widgets/section_header.dart';

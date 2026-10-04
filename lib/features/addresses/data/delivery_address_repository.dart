@@ -6,9 +6,10 @@ import '../models/delivery_address.dart';
 /// Data access for the shared `public.delivery_addresses` platform table
 /// (issue #78). This exists so the data layer for a real saved-addresses
 /// feature is in place and testable; wiring it into
-/// `lib/screens/addresses.dart` (today hardcoded demo data with a
-/// non-functional "Add New Address" button) is a deliberate fast-follow, not
-/// done by this change -- see the issue #78 PR description.
+/// `lib/features/addresses/presentation/addresses_screen.dart` (today
+/// hardcoded demo data with a non-functional "Add New Address" button) is a
+/// deliberate fast-follow, not done by this change -- see the issue #78 PR
+/// description.
 abstract interface class DeliveryAddressRepository {
   /// The signed-in profile's saved addresses, default address first, then
   /// most recently created first.
