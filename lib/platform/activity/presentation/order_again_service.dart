@@ -14,16 +14,24 @@ import '../models/activity_item.dart';
 /// replacing whatever the cart held (the Activity screen asks first when
 /// the cart isn't empty).
 class OrderAgainService {
+  /// [supabaseClient] is only needed to build the default
+  /// [SupabaseOrderAgainRepository] when [repository] isn't supplied (issue
+  /// #284 removed the previous `Supabase.instance.client` fallback) --
+  /// callers that always inject their own [repository] (every current test)
+  /// never need to pass one.
   OrderAgainService({
+    SupabaseClient? supabaseClient,
     OrderAgainRepository? repository,
     CartController? foodCart,
     GroceryController? grocery,
     PharmacyController? pharmacy,
-  }) : _repository = repository,
+  }) : _supabaseClient = supabaseClient,
+       _repository = repository,
        _foodCartOverride = foodCart,
        _groceryOverride = grocery,
        _pharmacyOverride = pharmacy;
 
+  final SupabaseClient? _supabaseClient;
   final OrderAgainRepository? _repository;
 
   // Resolved lazily: the app-wide singletons need Supabase, which an
@@ -37,9 +45,18 @@ class OrderAgainService {
   PharmacyController get _pharmacy =>
       _pharmacyOverride ?? PharmacyController.instance;
 
-  OrderAgainRepository get _source =>
-      _repository ??
-      SupabaseOrderAgainRepository(client: Supabase.instance.client);
+  OrderAgainRepository get _source {
+    final repository = _repository;
+    if (repository != null) return repository;
+    final client = _supabaseClient;
+    if (client == null) {
+      throw StateError(
+        'OrderAgainService requires either a repository or a '
+        'supabaseClient.',
+      );
+    }
+    return SupabaseOrderAgainRepository(client: client);
+  }
 
   /// Whether this row is a real order that can be placed again.
   static bool canReorder(ActivityItem item) =>

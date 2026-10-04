@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../app/app_scope.dart';
 import '../../../config/theme.dart';
 import '../../../platform/activity/data/activity_repository.dart';
 import '../../../platform/activity/data/order_again_repository.dart';
@@ -54,7 +54,8 @@ class TrackOrderScreen extends StatefulWidget {
 class _TrackOrderScreenState extends State<TrackOrderScreen> {
   Future<OrderDetails?>? _future;
   late final OrderAgainService _orderAgain =
-      widget.orderAgainService ?? OrderAgainService();
+      widget.orderAgainService ??
+      OrderAgainService(supabaseClient: AppScope.of(context).supabaseClient);
   bool _loadingReorder = false;
 
   @override
@@ -69,7 +70,7 @@ class _TrackOrderScreenState extends State<TrackOrderScreen> {
 
   OrderDetailsRepository get _repository =>
       widget.repository ??
-      SupabaseActivityRepository(client: Supabase.instance.client);
+      SupabaseActivityRepository(client: AppScope.of(context).supabaseClient);
 
   Future<OrderDetails?>? _load() {
     if (!_hasOrderReference) {

@@ -1,3 +1,4 @@
+import 'package:chowflow/app/app_scope.dart';
 import 'package:chowflow/app/service_module.dart';
 import 'package:chowflow/config/theme.dart';
 import 'package:chowflow/features/orders/presentation/track_order_screen.dart';
@@ -6,6 +7,8 @@ import 'package:chowflow/platform/activity/models/activity_item.dart';
 import 'package:chowflow/platform/activity/models/order_details.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+import 'helpers/app_scope_test_helpers.dart';
 
 ActivityItem _summary({
   String status = 'preparing',
@@ -49,13 +52,21 @@ Future<void> _pump(
   WidgetTester tester,
   OrderDetailsRepository repository,
 ) async {
+  // TrackOrderScreen always builds its own default OrderAgainService (no
+  // test here injects one), which now resolves its Supabase client from
+  // AppScope (issue #284) rather than `Supabase.instance.client` -- so every
+  // pump needs an AppScope ancestor even though `repository` above is
+  // injected directly.
   await tester.pumpWidget(
-    MaterialApp(
-      theme: buildAppTheme(),
-      home: TrackOrderScreen(
-        orderId: '3f2a9c1e-0000-4000-8000-000000000001',
-        serviceId: 'food',
-        repository: repository,
+    AppScope(
+      services: buildTestAppServices(),
+      child: MaterialApp(
+        theme: buildAppTheme(),
+        home: TrackOrderScreen(
+          orderId: '3f2a9c1e-0000-4000-8000-000000000001',
+          serviceId: 'food',
+          repository: repository,
+        ),
       ),
     ),
   );
@@ -177,7 +188,12 @@ void main() {
       'shows a "no order selected" empty state for the bare route, without '
       'crashing',
       (tester) async {
-        await tester.pumpWidget(const MaterialApp(home: TrackOrderScreen()));
+        await tester.pumpWidget(
+          AppScope(
+            services: buildTestAppServices(),
+            child: const MaterialApp(home: TrackOrderScreen()),
+          ),
+        );
         await tester.pumpAndSettle();
 
         expect(tester.takeException(), isNull);

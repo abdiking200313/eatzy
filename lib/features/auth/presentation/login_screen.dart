@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../app/app_routes.dart';
+import '../../../app/app_scope.dart';
 import '../../../app/merchant_session_gate.dart';
 import '../../../config/theme.dart';
 import '../../../widgets/app_cards.dart';
@@ -16,7 +17,7 @@ class LoginScreen extends StatefulWidget {
 
   /// Overrides the default [AuthService] used to submit sign-in requests.
   /// Only intended for tests — production code always uses the default,
-  /// which lazily reads `Supabase.instance.client`.
+  /// which lazily resolves `AppScope.of(context).supabaseClient`.
   final AuthService? authService;
 
   /// Overrides the default [MerchantRoleService] used to decide whether a
@@ -29,7 +30,9 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  AuthService get _authService => widget.authService ?? AuthService();
+  AuthService get _authService =>
+      widget.authService ??
+      AuthService(client: AppScope.of(context).supabaseClient);
   MerchantRoleService get _merchantRoleService =>
       widget.merchantRoleService ?? MerchantRoleService();
   final TextEditingController _emailController = TextEditingController();
