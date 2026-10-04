@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../app/app_routes.dart';
 import '../../../app/app_scope.dart';
@@ -107,8 +108,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
     }
 
     setState(() => _isLoading = true);
+    AuthResponse response;
     try {
-      final response = await _authService.signUpWithEmailPassword(
+      response = await _authService.signUpWithEmailPassword(
         email,
         password,
         firstName: firstName,
@@ -116,24 +118,27 @@ class _RegisterScreenState extends State<RegisterScreen> {
         phone: phone,
         dob: _dob!,
       );
-      if (!mounted) return;
-
-      if (response.session != null) {
-        context.go(AppRoutes.mainApp);
-        return;
-      }
-
-      await _showEmailConfirmationDialog(email);
-      if (!mounted) return;
-      context.go(AppRoutes.login);
     } catch (error) {
-      if (!mounted) return;
-      _showMessage(
-        'Registration failed: ${describeAuthError(error, context: 'Registration')}',
-      );
+      if (mounted) {
+        _showMessage(
+          'Registration failed: ${describeAuthError(error, context: 'Registration')}',
+        );
+      }
+      return;
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
+
+    if (!mounted) return;
+
+    if (response.session != null) {
+      context.go(AppRoutes.mainApp);
+      return;
+    }
+
+    await _showEmailConfirmationDialog(email);
+    if (!mounted) return;
+    context.go(AppRoutes.login);
   }
 
   Future<void> _showEmailConfirmationDialog(String email) {
