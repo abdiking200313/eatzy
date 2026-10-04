@@ -9,6 +9,13 @@ upstream_concept: 00-Index
 
 **Updated 2026-10-04 (board worker), see [[Status Log]] 2026-10-04 for full detail.** **Source of truth is always a live `list_issues`/`gh issue list --repo abdiking200313/eatzy --state open` call** — re-check before relying on this for anything that matters.
 
+## Update, 2026-10-04 (3rd run) — nothing eligible, same blockers rechecked, one new unlabeled issue noted
+
+- Eligibility check found the same 6 `todo` issues as the prior run minus #288 (closed last run): #29, #52, #276, #278, #298, #301. `waiting-on-you` empty.
+- **#276** re-checked: still no running Docker daemon in this sandbox (confirmed again) — PR #303 stays open/unmerged. **#278** stays blocked on #276. **#298** stays blocked on #222, which is still `needs-approval`. **#301** still not ready.
+- **New: #300** is open but has no `todo`/`waiting-on-you`/`needs-approval` label — same as #11, outside the board worker's protocol until a human labels it.
+- Net result: 0 issues moved this run.
+
 ## Update, 2026-10-04 (later run) — #288 merged (PR #326 was already sitting ready), rest still blocked
 
 - Eligibility check found only the same 7 `todo` issues as the prior run today (#29, #52, #276, #278, #288, #298, #301); `waiting-on-you` empty.

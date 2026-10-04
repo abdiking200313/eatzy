@@ -8,6 +8,14 @@ Reverse-chronological. Each session/major chunk of work gets an entry.
 
 ---
 
+## 2026-10-04, 3rd run (board worker — nothing eligible, same blockers rechecked)
+
+- Eligibility check: same 6 `todo` issues as the prior logged run minus #288 (now closed) — #29/#52 tracking, #276/#278/#298/#301 blocked. `waiting-on-you` empty.
+- **#276**: PR #303 still open/unmerged; sandbox still has no running Docker daemon (`docker info` confirms no `/var/run/docker.sock`) — blocked a 4th+ time, not retried per policy. **#278** stays blocked on #276.
+- **#298** stays blocked on #222, re-checked directly: still `needs-approval`. **#301** stays not-ready — still waits on #276/#278/#298 (and new **#300**) closing.
+- **New since last run**: **#300** is open but carries none of `todo`/`waiting-on-you`/`needs-approval` (just `agent:infra`+`severity:medium`) — same unlabeled-and-out-of-protocol pattern as #11, not board-worker-eligible. Worth a human look to label it if it's meant to be worked.
+- Net: 0 issues moved. Nothing else in the queue was unblocked.
+
 ## 2026-10-04, later run (board worker — #288 merged from an already-ready PR, rest still blocked)
 
 - Eligibility check: same 7 `todo` issues as the prior logged run (#29/#52 tracking, #276/#278/#298/#301 blocked, #288 open-with-PR). `waiting-on-you` empty.
