@@ -7,7 +7,14 @@ upstream_concept: 00-Index
 
 # Open Tasks
 
-**Updated 2026-09-25, 4th run (board worker), see [[Status Log]] 2026-09-24 (profile editing / registration fields) for full detail on the last real work — interactive, not this routine.** **Source of truth is always a live `list_issues`/`gh issue list --repo abdiking200313/eatzy --state open` call** — re-check before relying on this for anything that matters.
+**Updated 2026-10-04 (board worker), see [[Status Log]] 2026-10-04 for full detail.** **Source of truth is always a live `list_issues`/`gh issue list --repo abdiking200313/eatzy --state open` call** — re-check before relying on this for anything that matters.
+
+## Update, 2026-10-04 — #282-286 merged, #280 closed, #276 blocked on a sandbox limitation
+
+- Queue jumped from empty (just #29/#52) to 24 open `todo` issues since the last board-worker entry — a large new audit batch (#276-301) was filed and owner-approved directly between 2026-09-25 and 2026-10-03, outside this routine. Full detail on this run's work in [[Status Log]] 2026-10-04.
+- **Merged**: #282 (PR #308), #283 (PR #307), #284 (PR #309), #285 (PR #306), #286 (PR #310). **Closed directly**: #280 (composition-root tracking issue — all 5 phases now merged).
+- **Blocked, left open**: #276 — PR #303 exists (from a prior interactive session) but needs a `supabase db reset` replay neither that sandbox nor this one can run (no working Docker daemon; starting one by hand is refused as a Containment Escape). Commented on the issue; needs a human or a sandbox with real Docker. **#278 stays blocked on #276** (explicit dependency in its own issue body) — not yet picked up.
+- Queue now 18 open `todo`/`waiting-on-you` issues (16 concrete + #29/#52 tracking). Oldest unpicked, next run: #276 (still blocked, re-check first)/#278 (still blocked on #276), then #287 ([High] Firebase Crashlytics), #288-299 (mix of medium/low UI/logic/infra cleanup), #301 (explicitly waits on #276-299 all closing, not ready).
 
 ## Update, 2026-09-25 (4th run) — nothing eligible, queue unchanged
 
@@ -178,12 +185,19 @@ upstream_concept: 00-Index
 |---|---|---|
 | 29 | Deploy-readiness audit (tracking) | Umbrella/index issue — findings already filed as the `needs-approval` #30-83 batch |
 | 52 | Architecture, performance & cross-layer review (tracking) | Umbrella/index issue, same pattern as #21/#29 — its 31 child issues (#53-83ish) are the real work |
+| 278 | No automated tests for RLS policies and order RPCs | Explicitly depends on #276 merging first (its own issue body: "Do not start until that is merged") |
 
 **#128 (merchant self-service tracking) closed 2026-09-15 (75th run)** — all 7 children (#129-135) merged, entire epic complete. See the update note near the top of this file and [[Status Log]] 2026-09-15 "75th run". No longer in this table.
 
 **#74 unblocked and merged 2026-09-17** (PR #230) once #34 was resolved by the owner directly. No longer in this table — see the update note near the top of this file and [[Status Log]] 2026-09-17.
 
+**#280 (composition-root tracking) closed 2026-10-04** — all 5 phases (#281-285) merged, see the update note near the top of this file and [[Status Log]] 2026-10-04. No longer in this table.
+
+**#276 (baseline migration) is blocked but NOT tracking-only — it's a real, specific task genuinely stuck on a sandbox limitation** (no board-worker sandbox so far has a working Docker daemon to run `supabase db reset`), not an umbrella issue. See [[Status Log]] 2026-10-04. Re-check whether a future sandbox has Docker before assuming this is permanently stuck.
+
 ## Remaining `todo`, not yet picked up
+
+**As of 2026-10-04**: #276 (blocked on sandbox Docker availability, PR #303 open unmerged) → #278 (blocked on #276) → #287 ([High] Firebase Crashlytics) → #288 through #299 (mix of medium/low UI/logic/infra cleanup from the 2026-10-03 audit batch) → #301 (explicitly waits on #276-299 all closing). Only #29/#52 remain pure tracking-only. Re-check via `list_issues` before assuming this list is complete.
 
 **As of 2026-09-17**: none — #74 merged this run (PR #230), #34 closed by the owner directly. Only #29/#52 (tracking-only, no direct work) remain in the `todo`/`waiting-on-you` queue. Re-check via `list_issues` before assuming this list is complete — a new issue or approval could change it any time.
 
