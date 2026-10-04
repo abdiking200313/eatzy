@@ -5,12 +5,12 @@ import 'dart:developer' as developer;
 /// `PlatformDispatcher.instance.onError`, the `runZonedGuarded` error
 /// callback in `main.dart`) and any call site that would previously have
 /// silently swallowed an error (e.g. a `catch (Object)` block) should route
-/// through [ErrorReporting.instance] instead of logging directly, so wiring
-/// in a real crash-reporting SDK later (Firebase Crashlytics — deferred
-/// fast-follow once the owner supplies `google-services.json` /
-/// `GoogleService-Info.plist`) is a one-place change: replace the
-/// [ErrorReporter] assigned to [ErrorReporting.instance] with a
-/// Crashlytics-backed implementation, no call sites change.
+/// through [ErrorReporting.instance] instead of logging directly. Issue #287
+/// wired in a Firebase Crashlytics-backed implementation
+/// (`CrashlyticsErrorReporter` in `crashlytics_error_reporter.dart`),
+/// assigned to [ErrorReporting.instance] from `runStartupSequence`
+/// (`lib/platform/startup/startup_gate.dart`) in release/profile builds
+/// only -- no call site above had to change.
 abstract class ErrorReporter {
   /// Reports [error] with its [stack]. [context] is a short, free-form label
   /// describing where the error was caught (e.g. `'FlutterError'`,
@@ -18,8 +18,9 @@ abstract class ErrorReporter {
   void reportError(Object error, StackTrace stack, {String? context});
 }
 
-/// Default [ErrorReporter] used until a real crash-reporting SDK is wired
-/// in. Logs via `dart:developer`'s [developer.log], which — unlike
+/// Default [ErrorReporter], and what debug builds keep even after #287 --
+/// see `CrashlyticsErrorReporter`'s doc comment. Logs via `dart:developer`'s
+/// [developer.log], which — unlike
 /// `debugPrint` — is not a no-op in release builds and remains visible via
 /// `flutter logs` / `adb logcat` / Xcode's console after release.
 class LoggingErrorReporter implements ErrorReporter {
@@ -39,8 +40,8 @@ class LoggingErrorReporter implements ErrorReporter {
 }
 
 /// Process-wide [ErrorReporter] access point. Defaults to
-/// [LoggingErrorReporter]; a future Crashlytics fast-follow swaps
-/// [instance] for a Crashlytics-backed implementation during app startup
+/// [LoggingErrorReporter]; `runStartupSequence` swaps [instance] for a
+/// Crashlytics-backed implementation in release/profile builds (issue #287)
 /// instead of touching every call site that reports an error.
 class ErrorReporting {
   ErrorReporting._();

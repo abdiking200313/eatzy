@@ -27,6 +27,15 @@ plugins {
     // DSL convention this file already follows for the two plugins above;
     // actually applied in android/app/build.gradle.kts.
     id("com.google.gms.google-services") version "4.4.3" apply false
+    // Uploads crash/error reports and mapping info at build time (issue
+    // #287). Declared here (not applied) for the same reason as the
+    // google-services plugin above; actually applied in
+    // android/app/build.gradle.kts. Version picked to match the
+    // google-services plugin's release cadence above -- not verifiable
+    // against a real build in this sandbox (no Android SDK), so confirm it
+    // resolves during the owner's release build and bump if Gradle reports
+    // a newer one.
+    id("com.google.firebase.crashlytics") version "3.0.6" apply false
 }
 
 include(":app")

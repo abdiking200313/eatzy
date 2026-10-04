@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -14,6 +15,7 @@ import '../../services/grocery/models/grocery_models.dart';
 import '../../widgets/zivo_logo.dart';
 import '../activity/data/activity_repository.dart';
 import '../cache/catalog_queries.dart';
+import '../error_reporting/crashlytics_error_reporter.dart';
 import '../error_reporting/error_reporter.dart';
 import '../notifications/push_notifications.dart';
 import '../session/secure_session_storage.dart';
@@ -152,6 +154,36 @@ Future<StartupResult> runStartupSequence() async {
       await PushNotifications.instance.requestPermission().timeout(
         kStartupNetworkTimeout,
       );
+    }
+  });
+
+  // Firebase Crashlytics (issue #287): points `ErrorReporting.instance` at a
+  // Crashlytics-backed reporter in release/profile builds only, so crashes
+  // on users' phones stop being invisible; debug builds keep
+  // LoggingErrorReporter and explicitly disable collection. Runs after the
+  // push-notification step above (Android already has a Firebase app from
+  // it there), and initializes Firebase itself for iOS, where
+  // PushNotificationGateway deliberately stays unwired (issue #55) but
+  // Crashlytics' native iOS setup (dSYM upload script) is in #287's scope.
+  // No web/desktop support: `firebase_crashlytics` only ships
+  // Android/iOS/macOS plugins and this app only commits Firebase config
+  // (`google-services.json` / `GoogleService-Info.plist`) for Android/iOS.
+  await _runBestEffort('Crashlytics.configure', () async {
+    final supportsCrashlytics =
+        !kIsWeb &&
+        (defaultTargetPlatform == TargetPlatform.android ||
+            defaultTargetPlatform == TargetPlatform.iOS);
+    if (!supportsCrashlytics) return;
+
+    if (Firebase.apps.isEmpty) {
+      await Firebase.initializeApp().timeout(kStartupNetworkTimeout);
+    }
+    const client = FirebaseCrashlyticsClient();
+    if (kReleaseMode || kProfileMode) {
+      await client.setCrashlyticsCollectionEnabled(true);
+      ErrorReporting.instance = const CrashlyticsErrorReporter(client);
+    } else {
+      await client.setCrashlyticsCollectionEnabled(false);
     }
   });
 

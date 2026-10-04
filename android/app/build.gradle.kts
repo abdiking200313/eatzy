@@ -6,6 +6,11 @@ plugins {
     // Processes google-services.json into the resources firebase_core needs
     // (issue #47). Must come after the Android application plugin above.
     id("com.google.gms.google-services")
+    // Uploads crash/error reports (and, for a minified release build, the
+    // mapping file needed to de-obfuscate stack traces) at build time
+    // (issue #287). Must come after google-services above, per the
+    // FlutterFire Crashlytics setup docs.
+    id("com.google.firebase.crashlytics")
 }
 
 android {
