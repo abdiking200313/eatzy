@@ -29,7 +29,7 @@ class SuperAppHomeScreen extends StatefulWidget {
 }
 
 class _SuperAppHomeScreenState extends State<SuperAppHomeScreen> {
-  late final Stream<List<StoreListing>> _stores;
+  late Stream<List<StoreListing>> _stores;
 
   /// The cached listing shown on the first frame, before [_stores] emits.
   List<StoreListing>? _initialStores;
@@ -37,6 +37,10 @@ class _SuperAppHomeScreenState extends State<SuperAppHomeScreen> {
   @override
   void initState() {
     super.initState();
+    _loadStores();
+  }
+
+  void _loadStores() {
     final loader = widget.storeListingLoader;
     if (loader != null) {
       _stores = Stream.fromFuture(loader());
@@ -46,6 +50,8 @@ class _SuperAppHomeScreenState extends State<SuperAppHomeScreen> {
       _stores = query.watch();
     }
   }
+
+  void _retryStores() => setState(_loadStores);
 
   @override
   Widget build(BuildContext context) {
@@ -93,7 +99,11 @@ class _SuperAppHomeScreenState extends State<SuperAppHomeScreen> {
               ],
             ),
           ),
-          _PopularStores(stream: _stores, initialData: _initialStores),
+          _PopularStores(
+            stream: _stores,
+            initialData: _initialStores,
+            onRetry: _retryStores,
+          ),
           _RecentActivitySection(controller: controller),
         ],
       ),
@@ -507,9 +517,14 @@ class _TileLabel extends StatelessWidget {
 }
 
 class _PopularStores extends StatelessWidget {
-  const _PopularStores({required this.stream, this.initialData});
+  const _PopularStores({
+    required this.stream,
+    required this.onRetry,
+    this.initialData,
+  });
 
   final Stream<List<StoreListing>> stream;
+  final VoidCallback onRetry;
   final List<StoreListing>? initialData;
 
   @override
@@ -527,7 +542,14 @@ class _PopularStores extends StatelessWidget {
           );
         }
         final stores = snapshot.data ?? const <StoreListing>[];
-        if (snapshot.hasError || stores.isEmpty) {
+        // An error with nothing cached to fall back on (every vertical
+        // failed, see `StoreListingRepository`/issue #286) gets an error
+        // state with retry, matching `_FoodHomeError`/`_StoreListError`.
+        // A genuinely empty, non-error result just hides the section.
+        if (snapshot.hasError) {
+          return _PopularStoresError(onRetry: onRetry);
+        }
+        if (stores.isEmpty) {
           return const SizedBox.shrink();
         }
         // No fixed height: the row takes its tallest card's height, so the
@@ -554,6 +576,34 @@ class _PopularStores extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+}
+
+/// Mirrors `_FoodHomeError`/`_StoreListError`'s card+retry shape, but with a
+/// neutral accent rather than a service-specific one, since this section
+/// mixes stores from every vertical.
+class _PopularStoresError extends StatelessWidget {
+  const _PopularStoresError({required this.onRetry});
+
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: TwSpacing.screenX),
+      child: OutlinedCard(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.cloud_off_outlined, color: TwColors.primary),
+            const SizedBox(height: TwSpacing.x2),
+            const Text('Popular stores could not be loaded.'),
+            const SizedBox(height: TwSpacing.x4),
+            TextButton(onPressed: onRetry, child: const Text('Try again')),
+          ],
+        ),
+      ),
     );
   }
 }

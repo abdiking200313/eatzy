@@ -1,7 +1,7 @@
-import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../app/service_module.dart';
+import '../../error_reporting/error_reporter.dart';
 import '../models/activity_item.dart';
 import '../models/order_details.dart';
 
@@ -75,9 +75,10 @@ class SupabaseActivityRepository
           items.add(item);
         }
       } on FormatException catch (error, stackTrace) {
-        debugPrint(
-          'Skipping malformed customer_activity row (id: '
-          '${rowMap['id']}): $error\n$stackTrace',
+        ErrorReporting.instance.reportError(
+          error,
+          stackTrace,
+          context: 'SupabaseActivityRepository.fetchActivities',
         );
       }
     }
@@ -116,9 +117,10 @@ class SupabaseActivityRepository
     try {
       return ActivityItem.fromMap(rowMap);
     } on FormatException catch (error, stackTrace) {
-      debugPrint(
-        'Order lookup returned a malformed customer_activity row (id: '
-        '${rowMap['id']}): $error\n$stackTrace',
+      ErrorReporting.instance.reportError(
+        error,
+        stackTrace,
+        context: 'SupabaseActivityRepository.fetchOrderById',
       );
       return null;
     }

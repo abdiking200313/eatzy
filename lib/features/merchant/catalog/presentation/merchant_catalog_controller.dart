@@ -3,6 +3,7 @@ import 'dart:collection';
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../../platform/error_reporting/error_reporter.dart';
 import '../../../../services/shared/presentation/loadable_state_mixin.dart';
 import '../../store/models/merchant_vertical.dart';
 import '../data/merchant_catalog_repository.dart';
@@ -81,8 +82,10 @@ class MerchantCatalogController extends ChangeNotifier
         _hasLoaded = true;
       },
       onError: (error, stackTrace) {
-        debugPrint(
-          'MerchantCatalogController.load failed: $error\n$stackTrace',
+        ErrorReporting.instance.reportError(
+          error,
+          stackTrace,
+          context: 'MerchantCatalogController.load',
         );
         return 'Your catalog could not be loaded. Please try again.';
       },
@@ -97,8 +100,10 @@ class MerchantCatalogController extends ChangeNotifier
         _items.sort((a, b) => a.name.compareTo(b.name));
       },
       onError: (error, stackTrace) {
-        debugPrint(
-          'MerchantCatalogController.createItem failed: $error\n$stackTrace',
+        ErrorReporting.instance.reportError(
+          error,
+          stackTrace,
+          context: 'MerchantCatalogController.createItem',
         );
         return 'The item could not be added. Please try again.';
       },
@@ -118,8 +123,10 @@ class MerchantCatalogController extends ChangeNotifier
         _items.sort((a, b) => a.name.compareTo(b.name));
       },
       onError: (error, stackTrace) {
-        debugPrint(
-          'MerchantCatalogController.updateItem failed: $error\n$stackTrace',
+        ErrorReporting.instance.reportError(
+          error,
+          stackTrace,
+          context: 'MerchantCatalogController.updateItem',
         );
         return 'The item could not be saved. Please try again.';
       },
@@ -133,8 +140,10 @@ class MerchantCatalogController extends ChangeNotifier
         _items.removeWhere((existing) => existing.id == item.id);
       },
       onError: (error, stackTrace) {
-        debugPrint(
-          'MerchantCatalogController.deleteItem failed: $error\n$stackTrace',
+        ErrorReporting.instance.reportError(
+          error,
+          stackTrace,
+          context: 'MerchantCatalogController.deleteItem',
         );
         return 'The item could not be deleted. Please try again.';
       },
@@ -155,9 +164,10 @@ class MerchantCatalogController extends ChangeNotifier
         }
       },
       onError: (error, stackTrace) {
-        debugPrint(
-          'MerchantCatalogController.toggleAvailability failed: '
-          '$error\n$stackTrace',
+        ErrorReporting.instance.reportError(
+          error,
+          stackTrace,
+          context: 'MerchantCatalogController.toggleAvailability',
         );
         return 'Availability could not be updated. Please try again.';
       },

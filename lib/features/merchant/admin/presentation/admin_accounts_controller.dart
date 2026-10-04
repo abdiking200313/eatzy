@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../../platform/error_reporting/error_reporter.dart';
 import '../../../../services/shared/presentation/loadable_state_mixin.dart';
 import '../data/admin_accounts_repository.dart';
 import '../models/admin_account.dart';
@@ -95,7 +96,11 @@ class AdminAccountsController extends ChangeNotifier with SavableState {
       _hasMore = rows.length > pageSize;
     } on Object catch (error, stackTrace) {
       if (generation != _generation) return;
-      debugPrint('AdminAccountsController.load failed: $error\n$stackTrace');
+      ErrorReporting.instance.reportError(
+        error,
+        stackTrace,
+        context: 'AdminAccountsController.load',
+      );
       _accounts.clear();
       _hasMore = false;
       _loadError = error is AdminAccountsException
@@ -129,8 +134,10 @@ class AdminAccountsController extends ChangeNotifier with SavableState {
       _hasMore = rows.length > pageSize;
     } on Object catch (error, stackTrace) {
       if (generation != _generation) return;
-      debugPrint(
-        'AdminAccountsController.loadMore failed: $error\n$stackTrace',
+      ErrorReporting.instance.reportError(
+        error,
+        stackTrace,
+        context: 'AdminAccountsController.loadMore',
       );
       _loadMoreError = error is AdminAccountsException
           ? error.message
@@ -159,8 +166,10 @@ class AdminAccountsController extends ChangeNotifier with SavableState {
         }
       },
       onError: (error, stackTrace) {
-        debugPrint(
-          'AdminAccountsController.setRole failed: $error\n$stackTrace',
+        ErrorReporting.instance.reportError(
+          error,
+          stackTrace,
+          context: 'AdminAccountsController.setRole',
         );
         if (error is AdminAccountsException) return error.message;
         return 'The role could not be changed. Please try again.';

@@ -1,6 +1,6 @@
-import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../platform/error_reporting/error_reporter.dart';
 import '../models/delivery_address.dart';
 
 /// Data access for the shared `public.delivery_addresses` platform table
@@ -65,9 +65,10 @@ class SupabaseDeliveryAddressRepository implements DeliveryAddressRepository {
       try {
         addresses.add(DeliveryAddress.fromMap(rowMap));
       } on FormatException catch (error, stackTrace) {
-        debugPrint(
-          'Skipping malformed delivery_addresses row (id: '
-          '${rowMap['id']}): $error\n$stackTrace',
+        ErrorReporting.instance.reportError(
+          error,
+          stackTrace,
+          context: 'SupabaseDeliveryAddressRepository.fetchSavedAddresses',
         );
       }
     }

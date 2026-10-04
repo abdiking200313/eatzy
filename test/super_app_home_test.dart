@@ -12,6 +12,8 @@ import 'package:go_router/go_router.dart';
 
 Future<List<StoreListing>> _noStores() async => const <StoreListing>[];
 
+Future<List<StoreListing>> _failStores() => Future.error(StateError('offline'));
+
 void main() {
   testWidgets('super-app home exposes every service and Somalia locale', (
     tester,
@@ -254,6 +256,52 @@ void main() {
         find.descendant(of: find.byType(Card), matching: find.byType(Divider)),
         findsOneWidget,
       );
+    },
+  );
+
+  testWidgets(
+    'Popular Stores shows an error with a retry button when every vertical '
+    'fails, instead of silently disappearing (issue #286)',
+    (tester) async {
+      var attempts = 0;
+      Future<List<StoreListing>> loader() {
+        attempts++;
+        return attempts == 1 ? _failStores() : _noStores();
+      }
+
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: buildAppTheme(),
+          home: SuperAppHomeScreen(storeListingLoader: loader),
+        ),
+      );
+      await tester.pump();
+      await tester.pump();
+
+      // The "Popular Stores" section sits below the fold on the default test
+      // surface (same reason the Recent Activity tests below drag first).
+      for (
+        var attempt = 0;
+        attempt < 8 &&
+            find.text('Popular stores could not be loaded.').evaluate().isEmpty;
+        attempt++
+      ) {
+        await tester.drag(find.byType(ListView), const Offset(0, -300));
+        await tester.pump();
+      }
+
+      expect(find.text('Popular stores could not be loaded.'), findsOneWidget);
+      expect(find.text('Try again'), findsOneWidget);
+      // No raw exception text leaks into the UI.
+      expect(find.textContaining('StateError'), findsNothing);
+      expect(find.textContaining('offline'), findsNothing);
+
+      await tester.tap(find.text('Try again'));
+      await tester.pump();
+      await tester.pump();
+
+      expect(attempts, 2);
+      expect(find.text('Popular stores could not be loaded.'), findsNothing);
     },
   );
 }

@@ -2,6 +2,7 @@ import 'dart:collection';
 
 import 'package:flutter/foundation.dart';
 
+import '../../error_reporting/error_reporter.dart';
 import '../data/activity_repository.dart';
 import '../models/activity_item.dart';
 
@@ -60,7 +61,11 @@ class ActivityController extends ChangeNotifier {
       _hasLoaded = true;
     } on Object catch (error, stackTrace) {
       _loadError = 'Activity could not be loaded. Please try again.';
-      debugPrint('ActivityController.load failed: $error\n$stackTrace');
+      ErrorReporting.instance.reportError(
+        error,
+        stackTrace,
+        context: 'ActivityController.load',
+      );
     } finally {
       _isLoading = false;
       notifyListeners();

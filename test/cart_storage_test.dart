@@ -1,5 +1,5 @@
+import 'package:chowflow/platform/error_reporting/error_reporter.dart';
 import 'package:chowflow/services/shared/data/cart_storage.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences_platform_interface/in_memory_shared_preferences_async.dart';
 import 'package:shared_preferences_platform_interface/shared_preferences_async_platform_interface.dart';
@@ -8,25 +8,21 @@ import 'helpers/memory_cart_storage.dart';
 
 void main() {
   group('CartWriteQueue (issue #180)', () {
-    late List<String> logs;
-    late DebugPrintCallback originalDebugPrint;
+    late ErrorReporter originalReporter;
+    late _FakeErrorReporter fakeReporter;
 
     setUp(() {
-      logs = [];
-      originalDebugPrint = debugPrint;
-      debugPrint = (String? message, {int? wrapWidth}) {
-        if (message != null) {
-          logs.add(message);
-        }
-      };
+      originalReporter = ErrorReporting.instance;
+      fakeReporter = _FakeErrorReporter();
+      ErrorReporting.instance = fakeReporter;
     });
 
     tearDown(() {
-      debugPrint = originalDebugPrint;
+      ErrorReporting.instance = originalReporter;
     });
 
     test(
-      'a failed write is logged rather than becoming an unhandled error',
+      'a failed write is reported rather than becoming an unhandled error',
       () async {
         final queue = CartWriteQueue(label: 'TestController');
 
@@ -37,13 +33,13 @@ void main() {
           throw StateError('disk full');
         });
 
+        expect(fakeReporter.reported, hasLength(1));
+        expect(fakeReporter.reported.single.context, 'TestController.enqueue');
+        expect(fakeReporter.reported.single.error, isA<StateError>());
         expect(
-          logs,
-          contains(
-            contains('TestController: a cart write failed and was dropped'),
-          ),
+          fakeReporter.reported.single.error.toString(),
+          contains('disk full'),
         );
-        expect(logs.single, contains('disk full'));
       },
     );
 
@@ -60,16 +56,13 @@ void main() {
       });
 
       expect(persisted, [1]);
-      expect(
-        logs.where((line) => line.contains('cart write failed')),
-        hasLength(1),
-      );
+      expect(fakeReporter.reported, hasLength(1));
     });
 
-    test('a successful write logs nothing', () async {
+    test('a successful write reports nothing', () async {
       final queue = CartWriteQueue(label: 'TestController');
       await queue.enqueue(() async {});
-      expect(logs, isEmpty);
+      expect(fakeReporter.reported, isEmpty);
     });
 
     test('pending resolves once the queued write settles', () async {
@@ -86,24 +79,20 @@ void main() {
   });
 
   group('SharedPreferencesCartStorage.read (issue #180)', () {
-    late List<String> logs;
-    late DebugPrintCallback originalDebugPrint;
+    late ErrorReporter originalReporter;
+    late _FakeErrorReporter fakeReporter;
 
     setUp(() {
-      logs = [];
-      originalDebugPrint = debugPrint;
-      debugPrint = (String? message, {int? wrapWidth}) {
-        if (message != null) {
-          logs.add(message);
-        }
-      };
+      originalReporter = ErrorReporting.instance;
+      fakeReporter = _FakeErrorReporter();
+      ErrorReporting.instance = fakeReporter;
     });
 
     tearDown(() {
-      debugPrint = originalDebugPrint;
+      ErrorReporting.instance = originalReporter;
     });
 
-    test('no saved cart at all returns empty and logs nothing', () async {
+    test('no saved cart at all returns empty and reports nothing', () async {
       SharedPreferencesAsyncPlatform.instance =
           InMemorySharedPreferencesAsync.empty();
       final storage = SharedPreferencesCartStorage<_Item>(
@@ -115,10 +104,10 @@ void main() {
       final result = await storage.read('owner-1');
 
       expect(result, isEmpty);
-      expect(logs, isEmpty);
+      expect(fakeReporter.reported, isEmpty);
     });
 
-    test('a corrupted saved cart is distinguished in the log from "no saved '
+    test('a corrupted saved cart is reported distinctly from "no saved '
         'cart", and is discarded rather than crashing the read', () async {
       SharedPreferencesAsyncPlatform.instance =
           InMemorySharedPreferencesAsync.withData({
@@ -133,38 +122,30 @@ void main() {
       final result = await storage.read('owner-1');
 
       expect(result, isEmpty);
+      expect(fakeReporter.reported, hasLength(1));
       expect(
-        logs,
-        contains(
-          contains(
-            'SharedPreferencesCartStorage.read: the saved cart for '
-            '"test.cart.owner-1" could not be read',
-          ),
-        ),
+        fakeReporter.reported.single.context,
+        'SharedPreferencesCartStorage.read',
       );
     });
   });
 
   group('readCartLogged (issue #180)', () {
-    late List<String> logs;
-    late DebugPrintCallback originalDebugPrint;
+    late ErrorReporter originalReporter;
+    late _FakeErrorReporter fakeReporter;
 
     setUp(() {
-      logs = [];
-      originalDebugPrint = debugPrint;
-      debugPrint = (String? message, {int? wrapWidth}) {
-        if (message != null) {
-          logs.add(message);
-        }
-      };
+      originalReporter = ErrorReporting.instance;
+      fakeReporter = _FakeErrorReporter();
+      ErrorReporting.instance = fakeReporter;
     });
 
     tearDown(() {
-      debugPrint = originalDebugPrint;
+      ErrorReporting.instance = originalReporter;
     });
 
     test(
-      'a missing cart is not logged as a failure -- it is genuinely empty',
+      'a missing cart is not reported as a failure -- it is genuinely empty',
       () async {
         final storage = MemoryCartStorage<String>();
         final result = await readCartLogged(
@@ -174,12 +155,12 @@ void main() {
         );
 
         expect(result, isEmpty);
-        expect(logs, isEmpty);
+        expect(fakeReporter.reported, isEmpty);
       },
     );
 
-    test('a read that throws is logged distinctly from a missing cart, and '
-        'still resolves to an empty cart', () async {
+    test('a read that throws is reported distinctly from a missing cart, '
+        'and still resolves to an empty cart', () async {
       final storage = _ThrowingCartStorage<String>();
       final result = await readCartLogged(
         storage,
@@ -188,14 +169,10 @@ void main() {
       );
 
       expect(result, isEmpty);
+      expect(fakeReporter.reported, hasLength(1));
       expect(
-        logs,
-        contains(
-          contains(
-            'TestController.loadForOwner: reading the cart for owner '
-            '"owner-1" failed',
-          ),
-        ),
+        fakeReporter.reported.single.context,
+        'TestController.loadForOwner',
       );
     });
   });
@@ -217,4 +194,13 @@ class _ThrowingCartStorage<T> implements CartStorage<T> {
 
   @override
   Future<void> clear(String ownerId) async {}
+}
+
+class _FakeErrorReporter implements ErrorReporter {
+  final List<({Object error, StackTrace stack, String? context})> reported = [];
+
+  @override
+  void reportError(Object error, StackTrace stack, {String? context}) {
+    reported.add((error: error, stack: stack, context: context));
+  }
 }
