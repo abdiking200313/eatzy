@@ -40,12 +40,13 @@ class FoodCheckoutResult {
 /// live inline in `CheckoutScreen`'s `State` moves here. Because of that,
 /// this controller holds no cross-screen state of its own (no cart, no
 /// catalog) beyond the transient submission status for a single checkout
-/// attempt, so — deliberately unlike `GroceryController.instance` /
-/// `PharmacyController.instance` — it does not expose a static `instance`
-/// singleton: a shared singleton would leak a stale `submissionError`
-/// across separate visits to the checkout screen, which the previous
-/// per-`State` fields never did. `CheckoutScreen` constructs its own
-/// `FoodController` scoped to its own lifetime instead.
+/// attempt, so — deliberately unlike `AppServices.groceryController`/
+/// `AppServices.pharmacyController` (issue #283), which cache one controller
+/// per vertical for the app's lifetime — this controller is not cached
+/// anywhere: a shared instance would leak a stale `submissionError` across
+/// separate visits to the checkout screen, which the previous per-`State`
+/// fields never did. `CheckoutScreen` constructs its own `FoodController`
+/// scoped to its own lifetime instead.
 ///
 /// [orderRepository] is required (issue #282, composition root phase 2/5):
 /// there is no default Supabase-backed fallback here any more, since this

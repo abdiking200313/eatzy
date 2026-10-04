@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../../../app/app_routes.dart';
+import '../../../app/app_scope.dart';
 import '../../../config/theme.dart';
 import '../../../platform/localization/app_money.dart';
 import '../../../widgets/add_to_cart_button.dart';
@@ -59,8 +60,14 @@ class PharmacyCatalogScreen extends StatefulWidget {
 }
 
 class _PharmacyCatalogScreenState extends State<PharmacyCatalogScreen> {
+  /// Resolved once in [didChangeDependencies] (re-resolved in
+  /// [didUpdateWidget] if [PharmacyCatalogScreen.controller] changes) —
+  /// [AppScope.of] must not be called before the first
+  /// `didChangeDependencies`, so this can't be a getter that calls it
+  /// directly from `initState`.
+  PharmacyController? _resolvedController;
   PharmacyController get _controller =>
-      widget.controller ?? PharmacyController.instance;
+      widget.controller ?? _resolvedController!;
 
   final _searchController = TextEditingController();
   Timer? _debounce;
@@ -77,9 +84,17 @@ class _PharmacyCatalogScreenState extends State<PharmacyCatalogScreen> {
   late int _productCount;
   late String? _loadError;
 
+  bool _didInitializeController = false;
+
   @override
-  void initState() {
-    super.initState();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_didInitializeController) {
+      return;
+    }
+    _didInitializeController = true;
+    _resolvedController =
+        widget.controller ?? AppScope.of(context).pharmacyController;
     _loadStore();
   }
 
@@ -88,6 +103,8 @@ class _PharmacyCatalogScreenState extends State<PharmacyCatalogScreen> {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.storeId != widget.storeId ||
         oldWidget.controller != widget.controller) {
+      _resolvedController =
+          widget.controller ?? AppScope.of(context).pharmacyController;
       _searchController.clear();
       _loadStore();
     }

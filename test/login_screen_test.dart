@@ -13,7 +13,26 @@ import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import 'helpers/app_scope_test_helpers.dart';
+
 void main() {
+  // Issue #284: with no injected authService, LoginScreen now resolves its
+  // default AuthService via AppScope.of(context) instead of
+  // `Supabase.instance.client` -- this only exercises that AppScope-backed
+  // default is constructible and the screen still renders, not a real
+  // sign-in (nothing taps "Sign in" here).
+  testWidgets(
+    'renders using the AppScope-backed default AuthService when none is '
+    'injected',
+    (tester) async {
+      await pumpWithAppScope(tester, const LoginScreen());
+      await tester.pump();
+
+      expect(find.text('Welcome back'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    },
+  );
+
   group('sign-in form', () {
     testWidgets(
       'renders the sign-in form without overflow at 320x640 with a 1.4x '

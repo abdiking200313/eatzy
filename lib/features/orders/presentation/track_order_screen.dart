@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../app/app_scope.dart';
 import '../../../config/theme.dart';
 import '../../../platform/activity/data/activity_repository.dart';
 import '../../../platform/activity/data/order_again_repository.dart';
@@ -53,8 +54,12 @@ class TrackOrderScreen extends StatefulWidget {
 
 class _TrackOrderScreenState extends State<TrackOrderScreen> {
   Future<OrderDetails?>? _future;
+  // Evaluated lazily on first access (only from `_orderAgainPressed`, a
+  // button callback that never fires before this screen's first build), so
+  // `AppScope.of(context)` is safe to call here -- see issue #283.
   late final OrderAgainService _orderAgain =
-      widget.orderAgainService ?? OrderAgainService();
+      widget.orderAgainService ??
+      OrderAgainService(appServices: AppScope.of(context));
   bool _loadingReorder = false;
 
   @override

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../app/app_routes.dart';
+import '../../../app/app_scope.dart';
 import '../../../widgets/cart_view.dart';
 import '../../../widgets/checkout_view.dart';
 import 'pharmacy_controller.dart';
@@ -13,7 +14,8 @@ class PharmacyCartScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final pharmacyController = controller ?? PharmacyController.instance;
+    final pharmacyController =
+        controller ?? AppScope.of(context).pharmacyController;
 
     return AnimatedBuilder(
       animation: pharmacyController,

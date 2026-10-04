@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../models/grocery_models.dart';
+import '../../../app/app_scope.dart';
 import '../../../widgets/app_misc.dart';
 import '../../../widgets/cart_view.dart';
 import '../../../widgets/checkout_view.dart';
@@ -19,15 +20,14 @@ class GroceryCartScreen extends StatelessWidget {
   /// Grocery, Fresh Meat and Electronics each have their own cart.
   final GroceryStoreType storeType;
 
-  GroceryController get _controller =>
-      controller ?? GroceryController.forType(storeType);
-
   @override
   Widget build(BuildContext context) {
+    final resolvedController =
+        controller ?? AppScope.of(context).groceryController(storeType);
     return AnimatedBuilder(
-      animation: _controller,
+      animation: resolvedController,
       builder: (context, _) {
-        final controller = _controller;
+        final controller = resolvedController;
         return CartView(
           title: '${storeType.serviceName} cart',
           isEmpty: controller.isEmpty,

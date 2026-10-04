@@ -2,12 +2,10 @@ import 'dart:async';
 import 'dart:collection';
 
 import 'package:flutter/foundation.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../app/service_module.dart';
 import '../../../platform/activity/models/activity_item.dart';
 import '../../../platform/activity/presentation/activity_controller.dart';
-import '../../../platform/session/session_reset_registry.dart';
 import '../../shared/data/cart_storage.dart';
 import '../../shared/data/idempotency_key.dart';
 import '../../shared/data/rpc_helpers.dart';
@@ -54,42 +52,6 @@ class GroceryController extends ChangeNotifier with LoadableState {
   /// Electronics share this engine but each has its own controller, so each
   /// keeps its own cart and store list (owner decision, 2026-09-25).
   final GroceryStoreType storeType;
-
-  static final Map<GroceryStoreType, GroceryController> _instances = {};
-
-  /// The app-wide controller for [type], created on first use.
-  static GroceryController forType(GroceryStoreType type) =>
-      _instances.putIfAbsent(type, () => _create(type));
-
-  /// The Grocery category's controller.
-  static GroceryController get instance => forType(GroceryStoreType.grocery);
-
-  // Deliberately does not call load() here: constructing a controller must
-  // not issue catalog queries for users who never open that category.
-  // Callers (GroceryScreen and friends) trigger load() on demand.
-  static GroceryController _create(GroceryStoreType type) {
-    final client = Supabase.instance.client;
-    final catalog = SupabaseGroceryCatalogRepository(client: client);
-    final controller = GroceryController(
-      repository: catalog,
-      catalogRepository: catalog,
-      orderRepository: SupabaseGroceryOrderRepository(client: client),
-      storage: SharedPreferencesCartStorage<GroceryCartLine>(
-        // Grocery keeps its original key so existing saved carts survive.
-        keyPrefix: type == GroceryStoreType.grocery
-            ? 'zivo.cart.v1.grocery'
-            : 'zivo.cart.v1.grocery.${type.dbValue}',
-        toJson: (line) => line.toJson(),
-        fromJson: GroceryCartLine.fromJson,
-      ),
-      storeType: type,
-    );
-    SessionResetRegistry.instance.register((ownerId) {
-      controller.resetSessionState();
-      unawaited(controller.loadForOwner(ownerId));
-    });
-    return controller;
-  }
 
   /// The `service_pricing.service_id` this vertical's fee estimate is read
   /// from (issue #279) — see [ServicePricingRepository]. Fresh Meat and
