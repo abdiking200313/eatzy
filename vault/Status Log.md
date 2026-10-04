@@ -8,6 +8,17 @@ Reverse-chronological. Each session/major chunk of work gets an entry.
 
 ---
 
+## 2026-10-04, 4th run (board worker — #32/#222/#298 merged, #55 partial, #276/#278/#301 still blocked)
+
+- Eligibility check found **#32, #55, #222** newly `todo` (owner approved them outside this routine since the last run) alongside the already-known #276/#278/#298/#301 and tracking-only #29/#52 — 9 eligible issues, up from the prior run's 6.
+- **#222** (hardcoded Windows JDK path in `android/gradle.properties`) → PR #329, merged directly, no agent dispatch (trivial one-line deletion). 578/578 tests, `dart format`/`flutter analyze` clean.
+- **#32** (Android release signing) → PR #330, merged. `android/app/build.gradle.kts` `signingConfigs["release"]` now reads `android/key.properties` (already gitignored) when present, falls back to debug signing when absent (unchanged default behavior). Added `android/SIGNING.md` (keytool generation + backup steps) and `key.properties.example`. **Did not generate a real keystore** — explicit judgment call: creating the one credential that can never be regenerated/recovered inside a disposable cloud sandbox risks permanent loss if the container is destroyed before it's backed up. Documented as a manual owner follow-up instead.
+- **#298** (CI android-build job) → PR #331, merged after #222 per its explicit dependency. New `android-build` job (Temurin JDK 17, `flutter build apk --debug`, Gradle caching) **actually ran and passed on the PR itself** — not just added, verified working.
+- **#55** (iOS build never verified) → PR #332, merged, **issue intentionally left open**. Confirmed via direct check: this sandbox (Linux) has no `pod`/CocoaPods binary and no Xcode, so `ios/Podfile`/`Podfile.lock` (needs a real `flutter build ipa`) and `DEVELOPMENT_TEAM` (needs an actual Apple Developer Team ID — doesn't exist anywhere in this repo/environment) can't be done here. Did the safe static-only half instead: `CODE_SIGN_IDENTITY[sdk=iphoneos*]` modernized from deprecated `"iPhone Developer"` → `"Apple Development"` in all 3 build configs; `Info.plist` gained `ITSAppUsesNonExemptEncryption=false` (app only uses standard HTTPS/TLS, no proprietary encryption). Commented on the issue with the exact split of done vs. needs-a-Mac. Added a permanent note in the "not yet actionable" table below — don't re-attempt the Podfile/team-ID half from a Linux sandbox.
+- **#276** re-checked (5th+ time): `docker info` shows the CLI but still no running daemon/socket in this sandbox either — same confirmed blocker, no new comment posted since nothing changed. **#278** stays blocked on #276 (unchanged).
+- **#301**: followed its own "check #276-#299, comment which are blocking, don't touch files" instruction. Commented naming #276/#278/#298 as the open blockers at check time (#298 merged minutes later this same run, so only #276/#278 block it going forward). No files touched for #301 itself.
+- **Net: 3 issues closed (#32, #222, #298), 1 partial merge that intentionally left its issue open (#55), 3 confirmed-still-blocked (#276, #278, #301).** 7 issues touched (slightly over the nominal 6-issue cap — #276/#278/#301 were quick re-checks/comments, not full implementation cycles, so judged as still within the spirit of the cap).
+
 ## 2026-10-04, 3rd run (board worker — nothing eligible, same blockers rechecked)
 
 - Eligibility check: same 6 `todo` issues as the prior logged run minus #288 (now closed) — #29/#52 tracking, #276/#278/#298/#301 blocked. `waiting-on-you` empty.

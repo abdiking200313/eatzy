@@ -7,7 +7,18 @@ upstream_concept: 00-Index
 
 # Open Tasks
 
-**Updated 2026-10-04 (board worker), see [[Status Log]] 2026-10-04 for full detail.** **Source of truth is always a live `list_issues`/`gh issue list --repo abdiking200313/eatzy --state open` call** — re-check before relying on this for anything that matters.
+**Updated 2026-10-04 (board worker, 4th run), see [[Status Log]] 2026-10-04 "4th run" for full detail.** **Source of truth is always a live `list_issues`/`gh issue list --repo abdiking200313/eatzy --state open` call** — re-check before relying on this for anything that matters.
+
+## Update, 2026-10-04 (4th run) — #32/#222/#298 merged, #55 partial, #276/#278/#301 still blocked
+
+- Eligibility check found the queue had grown since the last logged run: **#32, #55, #222** (previously `needs-approval`, off-limits in every prior entry below) are now `todo` — the owner approved them at some point between runs, outside this routine. Combined with the already-known #276/#278/#298/#301 and tracking-only #29/#52, that's 9 eligible issues.
+- **#222** (hardcoded Windows JDK path) → PR #329, merged. Trivial one-line deletion, no agent dispatch needed.
+- **#32** (Android release signing) → PR #330, merged. Wired `signingConfigs["release"]` to read `android/key.properties` (gitignored) when present, falling back to debug signing otherwise; added `android/SIGNING.md` + `key.properties.example`. **Deliberately did not generate a real keystore** — doing so in a disposable sandbox risks permanent loss of the one credential that can never be regenerated; that step needs the owner on their own machine. See SIGNING.md.
+- **#298** (CI android-build job) → PR #331, merged, **after** #222 (explicit dependency in its own body). New `android-build` job actually ran and passed on the PR itself (Temurin 17 + `flutter build apk --debug`) — proof the job works, not just that it was added.
+- **#55** (iOS build never verified) → PR #332, merged, but **issue left open, not closed**. Confirmed this sandbox has no `pod`/CocoaPods and no Xcode (Linux), so the real blocker — generating `ios/Podfile`/`Podfile.lock` via an actual `flutter build ipa`, and setting a real `DEVELOPMENT_TEAM` — needs a Mac + an Apple Developer Program Team ID, neither available here. Did the safe static-only part instead: `CODE_SIGN_IDENTITY` modernized from deprecated `"iPhone Developer"` → `"Apple Development"` (3 build configs), `Info.plist` gained `ITSAppUsesNonExemptEncryption=false`. Commented on the issue with exactly what's done vs. what needs a human on a Mac.
+- **#276** re-checked a 5th+ time: still no running Docker daemon in any sandbox so far (`docker info` shows the CLI but no socket) — PR #303 stays open/unmerged, no new comment posted since nothing changed from the last confirmation. **#278** stays blocked on #276 (explicit dependency).
+- **#301**: per its own "stop and comment, don't touch files" instruction, checked #276-#299 and commented listing #276/#278/#298 as the still-open blockers (at the time of checking; #298 merged minutes later this same run, so only #276/#278 block it now). Did not touch any files.
+- **Net result: 3 issues closed (#32, #222, #298), 1 partial (#55, stays open with a clear status comment), #276/#278/#301 stay blocked on the same sandbox/dependency chain.** 7 issues touched this run (slightly over the nominal 6-issue cap, since #276/#278/#301 were quick re-checks/comments rather than full implementation cycles).
 
 ## Update, 2026-10-04 (3rd run) — nothing eligible, same blockers rechecked, one new unlabeled issue noted
 
@@ -211,7 +222,11 @@ upstream_concept: 00-Index
 
 **#276 (baseline migration) is blocked but NOT tracking-only — it's a real, specific task genuinely stuck on a sandbox limitation** (no board-worker sandbox so far has a working Docker daemon to run `supabase db reset`), not an umbrella issue. See [[Status Log]] 2026-10-04. Re-check whether a future sandbox has Docker before assuming this is permanently stuck.
 
+**#55 (iOS build never verified) is similarly blocked, not tracking-only — partial fix merged (PR #332, 2026-10-04 4th run), issue stays open.** The remaining work (`ios/Podfile`/`Podfile.lock` via a real `flutter build ipa`, a real `DEVELOPMENT_TEAM`) needs macOS/Xcode/CocoaPods and an Apple Developer Program Team ID — none exist in any board-worker sandbox so far (all Linux). Don't re-attempt the Podfile/team-ID half from a sandbox; only re-pick this up if a future sandbox is confirmed to be macOS-based, or the owner provides a Team ID some other way.
+
 ## Remaining `todo`, not yet picked up
+
+**As of 2026-10-04 (4th run)**: #276 (blocked on sandbox Docker availability, PR #303 open unmerged) → #278 (blocked on #276) → #301 (now blocked only on #276/#278, since #298 closed this run). **#55** stays open too — partial fix merged (PR #332), but the Podfile/DEVELOPMENT_TEAM half needs a human on a Mac; re-picking it up won't accomplish more until that happens, so don't re-attempt it from a Linux sandbox. #32/#222/#298 all closed this run. Only #29/#52 remain pure tracking-only. Queue is down to 6 open `todo` issues total (#29, #52, #55, #276, #278, #301). Re-check via `list_issues` before assuming this list is complete.
 
 **As of 2026-10-04 (later run)**: #276 (blocked on sandbox Docker availability, PR #303 open unmerged) → #278 (blocked on #276) → #298 (blocked on #222, still `needs-approval`) → #301 (explicitly waits on #276-299 all closing). #288 merged this run (PR #326). Only #29/#52 remain pure tracking-only. Re-check via `list_issues` before assuming this list is complete — note the queue is down to just 7 `todo` issues total now (not the 16-18 concrete ones from earlier 2026-10-04 entries), since most of the #276-301 batch besides #276/#278/#298/#301 has already been processed.
 
