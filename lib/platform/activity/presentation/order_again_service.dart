@@ -1,6 +1,5 @@
-import 'package:supabase_flutter/supabase_flutter.dart';
-
 import '../../../app/app_routes.dart';
+import '../../../app/app_services.dart';
 import '../../../app/service_module.dart';
 import '../../../services/food/presentation/cart_controller.dart';
 import '../../../services/grocery/models/grocery_models.dart';
@@ -15,31 +14,37 @@ import '../models/activity_item.dart';
 /// the cart isn't empty).
 class OrderAgainService {
   OrderAgainService({
+    AppServices? appServices,
     OrderAgainRepository? repository,
     CartController? foodCart,
     GroceryController? grocery,
     PharmacyController? pharmacy,
-  }) : _repository = repository,
+  }) : _appServices = appServices,
+       _repository = repository,
        _foodCartOverride = foodCart,
        _groceryOverride = grocery,
        _pharmacyOverride = pharmacy;
 
+  // Resolved lazily off [_appServices] (via `AppScope.of(context)` at the
+  // call site) so a caller that already holds every cart it needs (e.g. a
+  // test) never has to supply one -- see `_foodCart`/`_grocery`/`_pharmacy`
+  // below.
+  final AppServices? _appServices;
   final OrderAgainRepository? _repository;
 
-  // Resolved lazily: the app-wide singletons need Supabase, which an
-  // Activity screen that is only being rendered should not require.
   final CartController? _foodCartOverride;
   final GroceryController? _groceryOverride;
   final PharmacyController? _pharmacyOverride;
-  CartController get _foodCart => _foodCartOverride ?? CartController.instance;
+  CartController get _foodCart =>
+      _foodCartOverride ?? _appServices!.cartController;
   GroceryController _grocery(GroceryStoreType type) =>
-      _groceryOverride ?? GroceryController.forType(type);
+      _groceryOverride ?? _appServices!.groceryController(type);
   PharmacyController get _pharmacy =>
-      _pharmacyOverride ?? PharmacyController.instance;
+      _pharmacyOverride ?? _appServices!.pharmacyController;
 
   OrderAgainRepository get _source =>
       _repository ??
-      SupabaseOrderAgainRepository(client: Supabase.instance.client);
+      SupabaseOrderAgainRepository(client: _appServices!.supabaseClient);
 
   /// Whether this row is a real order that can be placed again.
   static bool canReorder(ActivityItem item) =>

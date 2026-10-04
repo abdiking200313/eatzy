@@ -11,8 +11,6 @@ import '../../config/theme.dart';
 import '../../features/onboarding/data/onboarding_preferences.dart';
 import '../../features/settings/data/notification_preferences_repository.dart';
 import '../../services/grocery/models/grocery_models.dart';
-import '../../services/grocery/presentation/grocery_controller.dart';
-import '../../services/pharmacy/presentation/pharmacy_controller.dart';
 import '../../widgets/zivo_logo.dart';
 import '../activity/data/activity_repository.dart';
 import '../cache/catalog_queries.dart';
@@ -167,14 +165,15 @@ Future<StartupResult> runStartupSequence() async {
   for (final type in GroceryStoreType.values) {
     await _runBestEffort(
       'GroceryController(${type.dbValue}).loadForOwner',
-      () => GroceryController.forType(
-        type,
-      ).loadForOwner(currentUserId).timeout(kStartupNetworkTimeout),
+      () => appServices
+          .groceryController(type)
+          .loadForOwner(currentUserId)
+          .timeout(kStartupNetworkTimeout),
     );
   }
   await _runBestEffort(
     'PharmacyController.loadForOwner',
-    () => PharmacyController.instance
+    () => appServices.pharmacyController
         .loadForOwner(currentUserId)
         .timeout(kStartupNetworkTimeout),
   );

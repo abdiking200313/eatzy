@@ -2,9 +2,9 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../app/app_routes.dart';
+import '../../../app/app_scope.dart';
 import '../../../config/theme.dart';
 import '../../../widgets/app_cards.dart';
 import '../../../widgets/app_scaffold.dart';
@@ -45,8 +45,8 @@ class PharmacyStoreListScreen extends StatefulWidget {
 
   /// The cart-owning controller the badge in the app bar reads from.
   /// Injectable the same way `PharmacyCatalogScreen.controller` is, so a
-  /// widget test never has to touch `PharmacyController.instance` (which
-  /// requires a live Supabase client).
+  /// widget test never has to go through `AppScope.of(context)` (which
+  /// requires a live Supabase client, via the ancestor `AppScope`).
   final PharmacyController? controller;
 
   @override
@@ -56,7 +56,7 @@ class PharmacyStoreListScreen extends StatefulWidget {
 
 class _PharmacyStoreListScreenState extends State<PharmacyStoreListScreen> {
   PharmacyController get _controller =>
-      widget.controller ?? PharmacyController.instance;
+      widget.controller ?? AppScope.of(context).pharmacyController;
 
   late Future<List<PharmacyStore>> _storesFuture;
   final _searchController = TextEditingController();
@@ -66,9 +66,18 @@ class _PharmacyStoreListScreenState extends State<PharmacyStoreListScreen> {
   /// `_storesFuture` list in the results section below until cleared.
   Future<List<PharmacyStore>>? _filteredStores;
 
+  bool _didInitializeStores = false;
+
   @override
-  void initState() {
-    super.initState();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // `_defaultQuery` (via `AppScope.of(context)`) must not run before the
+    // first `didChangeDependencies` -- this runs the equivalent of the old
+    // `initState`-time kick-off exactly once, here instead.
+    if (_didInitializeStores) {
+      return;
+    }
+    _didInitializeStores = true;
     _storesFuture = _loadStores();
   }
 
@@ -85,7 +94,7 @@ class _PharmacyStoreListScreenState extends State<PharmacyStoreListScreen> {
 
   Future<List<PharmacyStore>> _defaultQuery({String? searchQuery}) {
     return SupabasePharmacyStoreRepository(
-      client: Supabase.instance.client,
+      client: AppScope.of(context).supabaseClient,
     ).fetchStores(searchQuery: searchQuery);
   }
 

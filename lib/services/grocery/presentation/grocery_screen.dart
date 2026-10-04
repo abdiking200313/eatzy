@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../app/app_scope.dart';
 import '../../../config/theme.dart';
 import '../../../widgets/app_cards.dart';
 import '../../../widgets/app_scaffold.dart';
@@ -33,8 +34,14 @@ class GroceryScreen extends StatefulWidget {
 }
 
 class _GroceryScreenState extends State<GroceryScreen> {
+  /// Resolved once in [didChangeDependencies] (never reassigned after), so
+  /// the one-time load kick-off below can run there instead of `initState`
+  /// — [AppScope.of] must not be called before the first `didChangeDependencies`
+  /// — while every other use of [_controller] still works from `initState`
+  /// onward via this cached field.
+  GroceryController? _resolvedController;
   GroceryController get _controller =>
-      widget.controller ?? GroceryController.forType(widget.storeType);
+      widget.controller ?? _resolvedController!;
 
   final _searchController = TextEditingController();
 
@@ -48,22 +55,37 @@ class _GroceryScreenState extends State<GroceryScreen> {
   late String? _loadError;
   late int _storeCount;
 
+  bool _didInitializeController = false;
+
   @override
   void initState() {
     super.initState();
+    _searchController.addListener(_handleSearchChanged);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_didInitializeController) {
+      return;
+    }
+    _didInitializeController = true;
+    _resolvedController =
+        widget.controller ??
+        AppScope.of(context).groceryController(widget.storeType);
+
     // Kick off the load first: if it actually starts, its synchronous
     // prefix (setting `isLoading` and calling `notifyListeners()`) runs
     // immediately, before the first `await`. Snapshotting state after
     // that call — rather than listening first — means our own `setState`
     // only ever runs in response to a later, async notification, never
-    // re-entrantly during this `initState()`/first-build pass.
+    // re-entrantly during this `didChangeDependencies()`/first-build pass.
     if ((!_controller.hasLoaded || _controller.isStale) &&
         !_controller.isLoading) {
       unawaited(_controller.load());
     }
     _syncLoadState();
     _controller.addListener(_handleControllerChanged);
-    _searchController.addListener(_handleSearchChanged);
   }
 
   @override

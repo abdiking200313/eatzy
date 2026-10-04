@@ -2,12 +2,10 @@ import 'dart:async';
 import 'dart:collection';
 
 import 'package:flutter/foundation.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../app/service_module.dart';
 import '../../../platform/activity/models/activity_item.dart';
 import '../../../platform/activity/presentation/activity_controller.dart';
-import '../../../platform/session/session_reset_registry.dart';
 import '../../shared/data/cart_storage.dart';
 import '../../shared/data/idempotency_key.dart';
 import '../../shared/data/rpc_helpers.dart';
@@ -50,24 +48,6 @@ class PharmacyController extends ChangeNotifier with LoadableState {
        _pricingRepository =
            pricingRepository ?? SupabaseServicePricingRepository(),
        _now = now ?? DateTime.now;
-
-  static final PharmacyController instance = () {
-    final client = Supabase.instance.client;
-    final controller = PharmacyController(
-      repository: SupabasePharmacyCatalogRepository(client: client),
-      orderRepository: SupabasePharmacyOrderRepository(client: client),
-      activityController: ActivityController.instance,
-      storage: SharedPreferencesCartStorage<PharmacyCartItem>(
-        keyPrefix: 'zivo.cart.v1.pharmacy',
-        toJson: (item) => item.toJson(),
-        fromJson: PharmacyCartItem.fromJson,
-      ),
-    );
-    SessionResetRegistry.instance.register(
-      (ownerId) => unawaited(controller.loadForOwner(ownerId)),
-    );
-    return controller;
-  }();
 
   /// The `service_pricing.service_id` this vertical's fee estimate is read
   /// from (issue #279) — see [ServicePricingRepository].

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../app/app_routes.dart';
+import '../../../app/app_scope.dart';
 import '../../../config/theme.dart';
 import '../../../widgets/checkout_view.dart';
 import '../../shared/data/idempotency_key.dart';
@@ -47,12 +48,25 @@ class _GroceryCheckoutScreenState extends State<GroceryCheckoutScreen> {
   /// checkout (a new instance of this screen) gets a fresh key.
   final String _idempotencyKey = generateIdempotencyKey();
 
+  /// Resolved once in [didChangeDependencies] (never reassigned after) —
+  /// see `GroceryScreen._resolvedController` for why this can't happen in
+  /// `initState`.
+  GroceryController? _resolvedController;
   GroceryController get _controller =>
-      widget.controller ?? GroceryController.forType(widget.storeType);
+      widget.controller ?? _resolvedController!;
+
+  bool _didInitializeController = false;
 
   @override
-  void initState() {
-    super.initState();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_didInitializeController) {
+      return;
+    }
+    _didInitializeController = true;
+    _resolvedController =
+        widget.controller ??
+        AppScope.of(context).groceryController(widget.storeType);
     unawaited(_controller.loadDeliverySlots());
   }
 
