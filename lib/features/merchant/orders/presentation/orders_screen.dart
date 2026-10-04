@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../../app/app_scope.dart';
 import '../../../../config/tailwind.dart';
 import '../../../../platform/localization/app_money.dart';
 import '../../store/models/merchant_store.dart';
@@ -44,16 +45,29 @@ class OrdersScreen extends StatefulWidget {
 }
 
 class _OrdersScreenState extends State<OrdersScreen> {
-  late final MerchantStoreController _storeController =
-      widget.storeController ??
-      MerchantStoreController.supabase(Supabase.instance.client);
-  late final bool _ownsStoreController = widget.storeController == null;
+  late final SupabaseClient _supabaseClient;
+  late final MerchantStoreController _storeController;
+  late final bool _ownsStoreController;
+  bool _dependenciesResolved = false;
 
   MerchantOrdersController? _ordersController;
 
+  // Resolved here rather than in field initializers / initState: reading
+  // the Supabase client off `AppScope.of(context)` (issue #285) needs a
+  // `BuildContext` that is allowed to look up an `InheritedWidget`, which
+  // `didChangeDependencies` is and `initState` is not.
   @override
-  void initState() {
-    super.initState();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_dependenciesResolved) return;
+    _dependenciesResolved = true;
+
+    _supabaseClient = AppScope.of(context).supabaseClient;
+    _storeController =
+        widget.storeController ??
+        MerchantStoreController.supabase(_supabaseClient);
+    _ownsStoreController = widget.storeController == null;
+
     // Start the load before attaching the listener -- see
     // `MyStoreScreen.initState`'s comment (issue #133) for why the order
     // matters: `load`'s synchronous prefix runs immediately, and calling
@@ -93,7 +107,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
     final controller = MerchantOrdersController(
       repository:
           widget.ordersRepository ??
-          SupabaseMerchantOrdersRepository(client: Supabase.instance.client),
+          SupabaseMerchantOrdersRepository(client: _supabaseClient),
       vertical: store.vertical,
       storeId: store.id,
     );

@@ -1,3 +1,4 @@
+import 'package:chowflow/app/app_scope.dart';
 import 'package:chowflow/features/merchant/catalog/presentation/catalog_screen.dart';
 import 'package:chowflow/features/merchant/catalog/presentation/merchant_catalog_controller.dart';
 import 'package:chowflow/features/merchant/shared/merchant_media_store.dart';
@@ -10,6 +11,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'helpers/app_scope_test_helpers.dart';
 import 'helpers/fake_merchant_repositories.dart';
 
 /// A valid 1x1 PNG so `Image.memory` can decode the upload preview.
@@ -135,13 +137,16 @@ void main() {
     );
 
     await tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(
-          body: MyStoreScreen(
-            ownerId: 'merchant-1',
-            controller: controller,
-            media: media,
-            photoPicker: _fakePicker,
+      AppScope(
+        services: buildTestAppServices(),
+        child: MaterialApp(
+          home: Scaffold(
+            body: MyStoreScreen(
+              ownerId: 'merchant-1',
+              controller: controller,
+              media: media,
+              photoPicker: _fakePicker,
+            ),
           ),
         ),
       ),
@@ -171,14 +176,17 @@ void main() {
     );
 
     await tester.pumpWidget(
-      MaterialApp(
-        home: CatalogScreen(
-          vertical: MerchantVertical.grocery,
-          storeId: 'grocery-1',
-          storeName: 'Green Basket',
-          controller: controller,
-          media: media,
-          photoPicker: _fakePicker,
+      AppScope(
+        services: buildTestAppServices(),
+        child: MaterialApp(
+          home: CatalogScreen(
+            vertical: MerchantVertical.grocery,
+            storeId: 'grocery-1',
+            storeName: 'Green Basket',
+            controller: controller,
+            media: media,
+            photoPicker: _fakePicker,
+          ),
         ),
       ),
     );

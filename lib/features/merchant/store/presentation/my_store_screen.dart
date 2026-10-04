@@ -1,8 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../../app/app_scope.dart';
 import '../../../../config/tailwind.dart';
 import '../../catalog/presentation/catalog_screen.dart';
 import '../../shared/merchant_media_store.dart';
@@ -43,21 +43,33 @@ class MyStoreScreen extends StatefulWidget {
 }
 
 class _MyStoreScreenState extends State<MyStoreScreen> {
-  late final MerchantStoreController _controller =
-      widget.controller ??
-      MerchantStoreController.supabase(Supabase.instance.client);
-  late final bool _ownsController = widget.controller == null;
-  late final MerchantMediaStore _media =
-      widget.media ?? SupabaseMerchantMediaStore();
+  late final MerchantStoreController _controller;
+  late final bool _ownsController;
+  late final MerchantMediaStore _media;
+  bool _dependenciesResolved = false;
 
+  // Resolved here rather than in field initializers / initState: reading
+  // the Supabase client off `AppScope.of(context)` (issue #285) needs a
+  // `BuildContext` that is allowed to look up an `InheritedWidget`, which
+  // `didChangeDependencies` is and `initState` is not.
   @override
-  void initState() {
-    super.initState();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_dependenciesResolved) return;
+    _dependenciesResolved = true;
+
+    final services = AppScope.of(context);
+    _controller =
+        widget.controller ??
+        MerchantStoreController.supabase(services.supabaseClient);
+    _ownsController = widget.controller == null;
+    _media = widget.media ?? SupabaseMerchantMediaStore();
+
     // Start the load *before* attaching the listener: `load`'s synchronous
     // prefix (setting `isLoading` and calling `notifyListeners()`) runs
     // immediately, before its first `await`, and calling `setState` that
-    // early -- still inside this `initState`/first-build pass -- would
-    // throw. Mirrors the root app's `GroceryScreen.initState`.
+    // early -- still inside this `didChangeDependencies`/first-build pass --
+    // would throw. Mirrors the root app's `GroceryScreen.initState`.
     if (!_controller.hasLoaded && !_controller.isLoading) {
       unawaited(_controller.load(widget.ownerId));
     }

@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:chowflow/app/app_scope.dart';
 import 'package:chowflow/features/merchant/store/data/merchant_store_repository.dart';
 import 'package:chowflow/features/merchant/store/models/merchant_store.dart';
 import 'package:chowflow/features/merchant/store/models/merchant_vertical.dart';
@@ -8,6 +9,7 @@ import 'package:chowflow/features/merchant/store/presentation/my_store_screen.da
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'helpers/app_scope_test_helpers.dart';
 import 'helpers/fake_merchant_repositories.dart';
 
 /// A repository whose [fetchOwnStore] hangs until [complete] is called --
@@ -49,7 +51,10 @@ class _NeverCompletingStoreRepository implements MerchantStoreRepository {
 // unified into the main app by issue #232) against a fake repository -- no
 // Supabase network access in this sandbox.
 void main() {
-  Widget wrap(Widget child) => MaterialApp(home: Scaffold(body: child));
+  Widget wrap(Widget child) => AppScope(
+    services: buildTestAppServices(),
+    child: MaterialApp(home: Scaffold(body: child)),
+  );
 
   testWidgets('shows a loading indicator while the store loads', (
     tester,

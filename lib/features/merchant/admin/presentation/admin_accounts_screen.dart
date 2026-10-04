@@ -1,8 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../../app/app_scope.dart';
 import '../../../../config/tailwind.dart';
 import '../models/admin_account.dart';
 import 'admin_accounts_controller.dart';
@@ -36,22 +36,39 @@ class _AdminAccountsScreenState extends State<AdminAccountsScreen> {
   static const _searchDebounce = Duration(milliseconds: 350);
   static const _loadMoreThreshold = 240.0;
 
-  late final AdminAccountsController _controller =
-      widget.controller ??
-      AdminAccountsController.supabase(Supabase.instance.client);
-  late final bool _ownsController = widget.controller == null;
+  late final AdminAccountsController _controller;
+  late final bool _ownsController;
+  bool _dependenciesResolved = false;
 
   final _searchController = TextEditingController();
   final _scrollController = ScrollController();
   Timer? _debounce;
 
-  String? get _currentUserId =>
-      widget.currentUserId ?? Supabase.instance.client.auth.currentUser?.id;
+  String? _currentUserId;
 
   @override
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
+  }
+
+  // Resolved here rather than in field initializers / initState: reading
+  // the Supabase client off `AppScope.of(context)` (issue #285) needs a
+  // `BuildContext` that is allowed to look up an `InheritedWidget`, which
+  // `didChangeDependencies` is and `initState` is not.
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_dependenciesResolved) return;
+    _dependenciesResolved = true;
+
+    final services = AppScope.of(context);
+    _controller =
+        widget.controller ??
+        AdminAccountsController.supabase(services.supabaseClient);
+    _ownsController = widget.controller == null;
+    _currentUserId =
+        widget.currentUserId ?? services.supabaseClient.auth.currentUser?.id;
     unawaited(_controller.load());
   }
 
