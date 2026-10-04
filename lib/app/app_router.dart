@@ -13,6 +13,8 @@ import '../features/auth/presentation/reset_password_screen.dart';
 import '../features/legal/presentation/privacy_policy_screen.dart';
 import '../features/legal/presentation/terms_of_service_screen.dart';
 import '../features/merchant/auth/data/merchant_role_service.dart';
+import '../features/merchant/catalog/presentation/catalog_screen.dart';
+import '../features/merchant/orders/presentation/order_detail_screen.dart';
 import '../features/merchant/shell/presentation/merchant_shell.dart';
 import '../features/onboarding/data/onboarding_preferences.dart';
 import '../features/onboarding/presentation/welcome_screen.dart';
@@ -29,15 +31,18 @@ import '../services/food/presentation/food_cart_screen.dart';
 import '../services/food/presentation/food_categories_screen.dart';
 import '../services/food/presentation/food_explore_screen.dart';
 import '../services/food/presentation/food_home_screen.dart';
+import '../services/food/presentation/menu_item_details_screen.dart';
 import '../services/food/presentation/restaurant_screen.dart';
 import '../services/grocery/models/grocery_models.dart';
 import '../services/grocery/presentation/grocery_cart_screen.dart';
 import '../services/grocery/presentation/grocery_checkout_screen.dart';
+import '../services/grocery/presentation/grocery_product_details_screen.dart';
 import '../services/grocery/presentation/grocery_screen.dart';
 import '../services/grocery/presentation/grocery_store_screen.dart';
 import '../services/pharmacy/presentation/pharmacy_cart_screen.dart';
 import '../services/pharmacy/presentation/pharmacy_catalog_screen.dart';
 import '../services/pharmacy/presentation/pharmacy_checkout_screen.dart';
+import '../services/pharmacy/presentation/pharmacy_product_details_screen.dart';
 import '../services/pharmacy/presentation/pharmacy_store_list_screen.dart';
 import 'app_routes.dart';
 import 'main_app_screen.dart';
@@ -115,9 +120,21 @@ class AppRouter {
     ),
   };
 
-  /// Store list, store page, cart and checkout for one grocery-engine
-  /// category. Grocery, Fresh Meat and Electronics each get their own set,
-  /// with their own palette and their own cart (owner decision, 2026-09-25).
+  /// The per-[GroceryStoreType] product-details path, mirroring how
+  /// [GroceryStoreType.storeRoutePattern]/`cartRoute`/`checkoutRoute` give
+  /// each type (Grocery, Fresh Meat, Electronics) its own route family —
+  /// see `AppRoutes.groceryProduct`/`freshMeatProduct`/`electronicsProduct`.
+  static String _groceryProductRoutePattern(GroceryStoreType type) =>
+      switch (type) {
+        GroceryStoreType.grocery => AppRoutes.groceryProduct,
+        GroceryStoreType.freshMeat => AppRoutes.freshMeatProduct,
+        GroceryStoreType.electronics => AppRoutes.electronicsProduct,
+      };
+
+  /// Store list, store page, product details, cart and checkout for one
+  /// grocery-engine category. Grocery, Fresh Meat and Electronics each get
+  /// their own set, with their own palette and their own cart (owner
+  /// decision, 2026-09-25).
   static List<RouteBase> _groceryRoutes(GroceryStoreType type) {
     Widget themed(Widget child) => ZivoServiceTheme(
       serviceId: ServiceId.grocery,
@@ -133,6 +150,18 @@ class AppRouter {
         builder: (_, state) => themed(
           GroceryStoreScreen(
             storeId: state.pathParameters['storeId']!,
+            storeType: type,
+          ),
+        ),
+      ),
+      // Issue #288: was `Navigator.push(MaterialPageRoute(...))` from
+      // `GroceryStoreScreen._openDetails`.
+      GoRoute(
+        path: _groceryProductRoutePattern(type),
+        builder: (_, state) => themed(
+          GroceryProductDetailsScreen(
+            storeId: state.pathParameters['storeId']!,
+            productId: state.pathParameters['productId']!,
             storeType: type,
           ),
         ),
@@ -209,6 +238,22 @@ class AppRouter {
         );
       },
     ),
+    // Issue #288: was `Navigator.push(MaterialPageRoute(...))` from
+    // `OrdersScreen`. Sits alongside `merchantDashboard` so it inherits the
+    // same merchant-session gating (`_isMerchantReachableLocation` below and
+    // `isProtectedLocation`'s merchant sub-path check).
+    GoRoute(
+      path: AppRoutes.merchantOrderDetail,
+      builder: (_, state) =>
+          OrderDetailScreen(orderId: state.pathParameters['orderId']!),
+    ),
+    // Issue #288: was `Navigator.push(MaterialPageRoute(...))` from
+    // `MyStoreScreen`. No id path param -- resolves the merchant's own
+    // store/catalog from the merchant session, not a path param.
+    GoRoute(
+      path: AppRoutes.merchantCatalog,
+      builder: (_, _) => const CatalogScreen(),
+    ),
   ];
 
   // The persistent bottom-nav shell: Home/Explore/Activity/Profile plus the
@@ -247,6 +292,18 @@ class AppRouter {
               ),
             ),
           ),
+          // Issue #288: was `Navigator.push(MaterialPageRoute(...))` from
+          // `MenuItemCard`.
+          GoRoute(
+            path: AppRoutes.foodMenuItem,
+            builder: (_, state) => ZivoServiceTheme(
+              serviceId: ServiceId.food,
+              child: MenuItemDetailsScreen(
+                restaurantId: state.pathParameters['restaurantId']!,
+                itemId: state.pathParameters['itemId']!,
+              ),
+            ),
+          ),
         ],
       ),
       StatefulShellBranch(
@@ -267,6 +324,18 @@ class AppRouter {
                 storeId: state.pathParameters['storeId']!,
                 storeName: state.uri.queryParameters['name'],
                 storeImageUrl: state.uri.queryParameters['photoUrl'],
+              ),
+            ),
+          ),
+          // Issue #288: was `Navigator.push(MaterialPageRoute(...))` from
+          // `PharmacyCatalogScreen._openDetails`.
+          GoRoute(
+            path: AppRoutes.pharmacyProduct,
+            builder: (_, state) => ZivoServiceTheme(
+              serviceId: ServiceId.pharmacy,
+              child: PharmacyProductDetailsScreen(
+                storeId: state.pathParameters['storeId']!,
+                productId: state.pathParameters['productId']!,
               ),
             ),
           ),
@@ -410,6 +479,14 @@ class AppRouter {
         AppRoutes.isServicePath(location) ||
         AppRoutes.isRestaurantDetails(location) ||
         AppRoutes.isTrackOrderDetails(location) ||
+        // Issue #288: `merchantOrderDetail`/`merchantCatalog` carry path
+        // params (or sit one level under `merchantDashboard`), so the exact
+        // `_standaloneProtectedPages` lookup above never matches them on
+        // its own -- without this, a signed-out visitor hitting one of
+        // these URLs directly would skip the login redirect entirely,
+        // exactly the gap issue #288 called out for `Navigator.push`-only
+        // screens.
+        location.startsWith('${AppRoutes.merchantDashboard}/') ||
         const {
           AppRoutes.home,
           AppRoutes.categories,

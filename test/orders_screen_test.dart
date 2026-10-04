@@ -1,8 +1,11 @@
 import 'dart:async';
 
+import 'package:chowflow/app/app_routes.dart';
 import 'package:chowflow/app/app_scope.dart';
 import 'package:chowflow/features/merchant/orders/data/merchant_orders_repository.dart';
 import 'package:chowflow/features/merchant/orders/models/merchant_order.dart';
+import 'package:chowflow/features/merchant/orders/presentation/merchant_orders_controller.dart';
+import 'package:chowflow/features/merchant/orders/presentation/order_detail_screen.dart';
 import 'package:chowflow/features/merchant/orders/presentation/orders_screen.dart';
 import 'package:chowflow/features/merchant/store/data/merchant_store_repository.dart';
 import 'package:chowflow/features/merchant/store/models/merchant_store.dart';
@@ -10,6 +13,7 @@ import 'package:chowflow/features/merchant/store/models/merchant_vertical.dart';
 import 'package:chowflow/features/merchant/store/presentation/merchant_store_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 
 import 'helpers/app_scope_test_helpers.dart';
 import 'helpers/fake_merchant_repositories.dart';
@@ -110,6 +114,61 @@ void main() {
       MerchantStoreController(
         repository: FakeMerchantStoreRepository(initialStore: initial),
       );
+
+  /// Builds a real [GoRouter] with [AppRoutes.merchantDashboard] showing
+  /// [OrdersScreen] and [AppRoutes.merchantOrderDetail] showing
+  /// [OrderDetailScreen] -- needed since issue #288 turned `OrdersScreen`'s
+  /// order-tile tap into a `context.push(...)` instead of a plain
+  /// `Navigator.push`.
+  ///
+  /// The order-detail route builds its own [MerchantOrdersController] from
+  /// [ordersRepository] (there's no way to inject a fake orders repository
+  /// into `OrderDetailScreen`'s own self-resolution path -- only a whole
+  /// [MerchantOrdersController]), the same way a direct/deep-linked open
+  /// resolves its own orders in production. So, unlike before issue #288,
+  /// a status change made on the detail screen is a separate controller
+  /// from the list's and is only picked up there after an explicit reload
+  /// (e.g. pull-to-refresh), not immediately on pop -- see the "tapping an
+  /// order" test below.
+  Widget buildOrdersApp({
+    required MerchantStoreController storeController,
+    required MerchantOrdersRepository ordersRepository,
+  }) {
+    final router = GoRouter(
+      initialLocation: AppRoutes.merchantDashboard,
+      routes: [
+        GoRoute(
+          path: AppRoutes.merchantDashboard,
+          builder: (_, _) => OrdersScreen(
+            ownerId: 'merchant-1',
+            storeController: storeController,
+            ordersRepository: ordersRepository,
+          ),
+        ),
+        GoRoute(
+          path: AppRoutes.merchantOrderDetail,
+          builder: (_, state) {
+            final store = storeController.store!;
+            final detailController = MerchantOrdersController(
+              repository: ordersRepository,
+              vertical: store.vertical,
+              storeId: store.id,
+            );
+            unawaited(detailController.load());
+            return OrderDetailScreen(
+              orderId: state.pathParameters['orderId']!,
+              controller: detailController,
+            );
+          },
+        ),
+      ],
+    );
+    addTearDown(router.dispose);
+    return AppScope(
+      services: buildTestAppServices(),
+      child: MaterialApp.router(routerConfig: router),
+    );
+  }
 
   testWidgets('shows a loading indicator while the store loads', (
     tester,
@@ -249,13 +308,11 @@ void main() {
     final ordersRepository = FakeMerchantOrdersRepository(
       initialOrders: [confirmedOrder],
     );
+    final storeController = storeControllerWith(store);
     await tester.pumpWidget(
-      wrap(
-        OrdersScreen(
-          ownerId: 'merchant-1',
-          storeController: storeControllerWith(store),
-          ordersRepository: ordersRepository,
-        ),
+      buildOrdersApp(
+        storeController: storeController,
+        ordersRepository: ordersRepository,
       ),
     );
     await tester.pumpAndSettle();
@@ -263,6 +320,8 @@ void main() {
     await tester.tap(find.textContaining('Order #'));
     await tester.pumpAndSettle();
 
+    // Navigation actually reached the order-detail route.
+    expect(find.byType(OrderDetailScreen), findsOneWidget);
     // Line items and address/contact info are shown on the detail screen.
     expect(find.text('Sambusa'), findsOneWidget);
     expect(find.text('Amina'), findsOneWidget);
@@ -277,7 +336,11 @@ void main() {
     await tester.pageBack();
     await tester.pumpAndSettle();
 
-    // And the list, backed by the same controller, shows it too.
+    // Issue #288: the pushed `OrderDetailScreen` now builds its own
+    // `MerchantOrdersController` (see `buildOrdersApp`'s doc comment)
+    // instead of sharing the list's, so `OrdersScreen` reloads its own
+    // controller when the push's Future completes (on pop) to pick up a
+    // status change made on the detail screen -- no manual refresh needed.
     expect(find.text('Preparing'), findsOneWidget);
   });
 
@@ -292,19 +355,20 @@ void main() {
       final ordersRepository = FakeMerchantOrdersRepository(
         initialOrders: [confirmedOrder],
       );
+      final storeController = storeControllerWith(store);
       await tester.pumpWidget(
-        wrap(
-          OrdersScreen(
-            ownerId: 'merchant-1',
-            storeController: storeControllerWith(store),
-            ordersRepository: ordersRepository,
-          ),
+        buildOrdersApp(
+          storeController: storeController,
+          ordersRepository: ordersRepository,
         ),
       );
       await tester.pumpAndSettle();
 
       await tester.tap(find.textContaining('Order #'));
       await tester.pumpAndSettle();
+
+      // Navigation actually reached the order-detail route.
+      expect(find.byType(OrderDetailScreen), findsOneWidget);
 
       // Set the failure only now, so the initial order list load (which
       // also goes through this fake) still succeeds.

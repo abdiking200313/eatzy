@@ -1,6 +1,8 @@
+import 'package:chowflow/app/app_routes.dart';
 import 'package:chowflow/services/grocery/data/grocery_repository.dart';
 import 'package:chowflow/services/grocery/models/grocery_models.dart';
 import 'package:chowflow/services/grocery/presentation/grocery_controller.dart';
+import 'package:chowflow/services/grocery/presentation/grocery_product_details_screen.dart';
 import 'package:chowflow/services/grocery/presentation/grocery_screen.dart';
 import 'package:chowflow/services/grocery/presentation/grocery_store_screen.dart';
 import 'package:flutter/material.dart';
@@ -31,6 +33,21 @@ void main() {
           path: '/grocery/stores/:storeId',
           builder: (_, state) => GroceryStoreScreen(
             storeId: state.pathParameters['storeId']!,
+            controller: controller,
+          ),
+        ),
+        // Issue #288: `GroceryStoreScreen._openDetails` now does
+        // `context.push(AppRoutes.groceryProductDetails(...))` instead of a
+        // plain `Navigator.push`, so this local test router needs the
+        // product-details route registered too. This test only exercises
+        // the default `GroceryStoreType.grocery`, so only `groceryProduct`
+        // (not its `freshMeatProduct`/`electronicsProduct` siblings) is
+        // needed here.
+        GoRoute(
+          path: AppRoutes.groceryProduct,
+          builder: (_, state) => GroceryProductDetailsScreen(
+            storeId: state.pathParameters['storeId']!,
+            productId: state.pathParameters['productId']!,
             controller: controller,
           ),
         ),
@@ -96,6 +113,9 @@ void main() {
     await tester.tap(find.text('Bananas'));
     await tester.pumpAndSettle();
 
+    // Navigation actually reached the product-details route, not just a
+    // widget that happens to render the same text.
+    expect(find.byType(GroceryProductDetailsScreen), findsOneWidget);
     expect(find.text('Sold by weight, in 0.5 kg steps.'), findsOneWidget);
     expect(find.text('0.5 kg'), findsOneWidget);
     await tester.tap(find.byTooltip('Increase quantity'));

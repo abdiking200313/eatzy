@@ -41,6 +41,20 @@ class AppRoutes {
   // customer home for the same account -- see the router's redirect logic.
   static const merchantDashboard = '/merchant';
 
+  // A single order on the merchant dashboard (issue #288 — was opened via
+  // `Navigator.push(MaterialPageRoute(... OrderDetailScreen))` from
+  // `OrdersScreen`). Sits under [merchantDashboard] so it inherits the same
+  // merchant-session gating in `AppRouter._redirect` (see
+  // `_isMerchantReachableLocation` and `isProtectedLocation`).
+  static const merchantOrderDetail = '$merchantDashboard/orders/:orderId';
+
+  // The merchant's own catalog (issue #288 — was opened via
+  // `Navigator.push(MaterialPageRoute(... CatalogScreen))` from
+  // `MyStoreScreen`). No id path parameter: the merchant's own store/catalog
+  // is resolved from the merchant session, not a path param. Also sits
+  // under [merchantDashboard] for the same gating as [merchantOrderDetail].
+  static const merchantCatalog = '$merchantDashboard/catalog';
+
   // Food service
   static const food = '/food';
 
@@ -52,6 +66,14 @@ class AppRoutes {
   // issue #69.
   static const foodRestaurants = '$food/restaurants';
   static const foodRestaurant = '$foodRestaurants/:restaurantId';
+
+  // A single menu item within a restaurant (issue #288 — was opened via
+  // `Navigator.push(MaterialPageRoute(... MenuItemDetailsScreen))`, with no
+  // URL, no deep link, and no auth-redirect coverage). Nested under
+  // `foodRestaurant` rather than `foodRestaurants` because the pattern needs
+  // the `:restaurantId` placeholder segment itself, mirroring
+  // `foodRestaurant`'s own relationship to `foodRestaurants`.
+  static const foodMenuItem = '$foodRestaurant/item/:itemId';
   static const foodCategories = '$food/categories';
   static const foodExplore = '$food/explore';
   static const foodCart = '$food/cart';
@@ -71,16 +93,27 @@ class AppRoutes {
   static const groceryCart = '$grocery/cart';
   static const groceryCheckout = '$grocery/checkout';
 
+  // A single product within a store (issue #288 — was opened via
+  // `Navigator.push(MaterialPageRoute(... GroceryProductDetailsScreen))`).
+  // Fresh Meat and Electronics each need their own equivalent nested route
+  // (`freshMeatProduct`/`electronicsProduct` below) since `GroceryStoreScreen`
+  // is shared across all three `GroceryStoreType`s and each type already has
+  // its own store/cart/checkout path family -- see `GroceryStoreType`'s
+  // route getters in `grocery_models.dart`.
+  static const groceryProduct = '$groceryStore/product/:productId';
+
   // Fresh Meat and Electronics run on the grocery engine (filtered by
   // `grocery_stores.store_type`) but each has its own store pages, cart and
   // checkout, so each keeps a separate cart (owner decision, 2026-09-25).
   // See `GroceryStoreType`'s route getters.
   static const freshMeat = '$grocery/fresh-meat';
   static const freshMeatStore = '$freshMeat/stores/:storeId';
+  static const freshMeatProduct = '$freshMeatStore/product/:productId';
   static const freshMeatCart = '$freshMeat/cart';
   static const freshMeatCheckout = '$freshMeat/checkout';
   static const electronics = '$grocery/electronics';
   static const electronicsStore = '$electronics/stores/:storeId';
+  static const electronicsProduct = '$electronicsStore/product/:productId';
   static const electronicsCart = '$electronics/cart';
   static const electronicsCheckout = '$electronics/checkout';
 
@@ -94,6 +127,10 @@ class AppRoutes {
   // below.
   static const pharmacyStores = '$pharmacy/stores';
   static const pharmacyStore = '$pharmacyStores/:storeId';
+
+  // A single product within a pharmacy (issue #288 — was opened via
+  // `Navigator.push(MaterialPageRoute(... PharmacyProductDetailsScreen))`).
+  static const pharmacyProduct = '$pharmacyStore/product/:productId';
   static const pharmacyCart = '$pharmacy/cart';
   static const pharmacyCheckout = '$pharmacy/checkout';
 
@@ -133,14 +170,34 @@ class AppRoutes {
       location.startsWith('$foodRestaurants/') ||
       location.startsWith('$restaurants/');
 
+  static String foodMenuItemDetails(String restaurantId, String itemId) =>
+      '${restaurantDetails(restaurantId)}/item/${Uri.encodeComponent(itemId)}';
+
   static String groceryStoreDetails(String storeId) =>
       '$groceryStores/${Uri.encodeComponent(storeId)}';
 
   static bool isGroceryStoreDetails(String location) =>
       location.startsWith('$groceryStores/');
 
+  static String groceryProductDetails(String storeId, String productId) =>
+      '${groceryStoreDetails(storeId)}/product/${Uri.encodeComponent(productId)}';
+
+  static String freshMeatProductDetails(String storeId, String productId) =>
+      '$freshMeat/stores/${Uri.encodeComponent(storeId)}/product/'
+      '${Uri.encodeComponent(productId)}';
+
+  static String electronicsProductDetails(String storeId, String productId) =>
+      '$electronics/stores/${Uri.encodeComponent(storeId)}/product/'
+      '${Uri.encodeComponent(productId)}';
+
   static String pharmacyStoreDetails(String storeId) =>
       '$pharmacyStores/${Uri.encodeComponent(storeId)}';
+
+  static String pharmacyProductDetails(String storeId, String productId) =>
+      '${pharmacyStoreDetails(storeId)}/product/${Uri.encodeComponent(productId)}';
+
+  static String merchantOrderDetailPath(String orderId) =>
+      '$merchantDashboard/orders/${Uri.encodeComponent(orderId)}';
 
   static String trackOrderDetailsPath({
     required String serviceId,

@@ -1,10 +1,11 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../../../app/app_routes.dart';
 import '../../../../app/app_scope.dart';
 import '../../../../config/tailwind.dart';
-import '../../catalog/presentation/catalog_screen.dart';
 import '../../shared/merchant_media_store.dart';
 import '../../shared/merchant_photo_field.dart';
 import '../models/merchant_store.dart';
@@ -416,16 +417,7 @@ class _StoreFormState extends State<_StoreForm> {
   }
 
   void _openCatalog() {
-    final store = widget.controller.store ?? widget.store;
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) => CatalogScreen(
-          vertical: store.vertical,
-          storeId: store.id,
-          storeName: store.name,
-        ),
-      ),
-    );
+    context.push(AppRoutes.merchantCatalog);
   }
 
   @override

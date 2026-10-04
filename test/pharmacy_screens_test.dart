@@ -5,6 +5,7 @@ import 'package:chowflow/services/pharmacy/models/pharmacy_product.dart';
 import 'package:chowflow/services/pharmacy/models/pharmacy_store.dart';
 import 'package:chowflow/services/pharmacy/presentation/pharmacy_catalog_screen.dart';
 import 'package:chowflow/services/pharmacy/presentation/pharmacy_controller.dart';
+import 'package:chowflow/services/pharmacy/presentation/pharmacy_product_details_screen.dart';
 import 'package:chowflow/services/pharmacy/presentation/pharmacy_store_list_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -216,21 +217,45 @@ void main() {
       'quantity to the cart',
       (tester) async {
         final controller = buildPharmacyController();
+        const storeId = SeededPharmacyRepository.defaultStoreId;
 
-        await tester.pumpWidget(
-          MaterialApp(
-            home: PharmacyCatalogScreen(
-              storeId: SeededPharmacyRepository.defaultStoreId,
-              storeName: 'Pharmacy',
-              controller: controller,
+        // Issue #288: `PharmacyCatalogScreen._openDetails` now does
+        // `context.push(AppRoutes.pharmacyProductDetails(...))` instead of a
+        // plain `Navigator.push`, so this needs a real `GoRouter` ancestor
+        // with both the catalog and product-details routes registered --
+        // same pattern as `login_screen_test.dart`'s merchant-redirect group.
+        final router = GoRouter(
+          initialLocation: AppRoutes.pharmacyStoreDetails(storeId),
+          routes: [
+            GoRoute(
+              path: AppRoutes.pharmacyStore,
+              builder: (_, state) => PharmacyCatalogScreen(
+                storeId: state.pathParameters['storeId']!,
+                storeName: 'Pharmacy',
+                controller: controller,
+              ),
             ),
-          ),
+            GoRoute(
+              path: AppRoutes.pharmacyProduct,
+              builder: (_, state) => PharmacyProductDetailsScreen(
+                storeId: state.pathParameters['storeId']!,
+                productId: state.pathParameters['productId']!,
+                controller: controller,
+              ),
+            ),
+          ],
         );
+        addTearDown(router.dispose);
+
+        await tester.pumpWidget(MaterialApp.router(routerConfig: router));
         await tester.pumpAndSettle();
 
         await tester.tap(find.text('Paracetamol'));
         await tester.pumpAndSettle();
 
+        // Navigation actually reached the product-details route, not just a
+        // widget that happens to render the same text.
+        expect(find.byType(PharmacyProductDetailsScreen), findsOneWidget);
         expect(
           find.text('Everyday relief for mild pain and fever.'),
           findsOneWidget,

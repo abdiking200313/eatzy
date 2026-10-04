@@ -98,6 +98,7 @@ class RestaurantMenuView extends StatelessWidget {
                         index == category.items.length - 1 ? 0 : TwSpacing.x3,
                       ),
                       child: MenuItemCard(
+                        restaurantId: menu.restaurant.id,
                         item: item,
                         onAddToCart: (quantity) => onAddToCart(item, quantity),
                       ),

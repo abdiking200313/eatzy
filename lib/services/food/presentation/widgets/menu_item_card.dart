@@ -1,24 +1,32 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../../../app/app_routes.dart';
 import '../../../../config/theme.dart';
 import '../../../../platform/localization/app_money.dart';
 import '../../../../widgets/add_to_cart_button.dart';
 import '../../../../widgets/app_cards.dart';
 import '../../models/restaurant_menu.dart';
-import '../menu_item_details_screen.dart';
 
 class MenuItemCard extends StatelessWidget {
   const MenuItemCard({
     super.key,
+    required this.restaurantId,
     required this.item,
     required this.onAddToCart,
   });
 
+  /// The owning restaurant -- forwarded to
+  /// `AppRoutes.foodMenuItemDetails(restaurantId, item.id)` so tapping this
+  /// card opens the item's `MenuItemDetailsScreen` go_router route rather
+  /// than a plain `Navigator.push` (issue #288).
+  final String restaurantId;
+
   final MenuItem item;
 
   /// Called with the quantity to add: `1` from the inline add button, or
-  /// whatever was picked on [MenuItemDetailsScreen].
+  /// whatever was picked on the item's details page.
   final ValueChanged<int> onAddToCart;
 
   @override
@@ -30,12 +38,8 @@ class MenuItemCard extends StatelessWidget {
       borderColor: TwColors.border,
       borderRadius: TwRadius.card,
       padding: const EdgeInsets.all(TwSpacing.x3),
-      onTap: () => Navigator.of(context).push(
-        MaterialPageRoute<void>(
-          builder: (_) =>
-              MenuItemDetailsScreen(item: item, onAddToCart: onAddToCart),
-        ),
-      ),
+      onTap: () =>
+          context.push(AppRoutes.foodMenuItemDetails(restaurantId, item.id)),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [

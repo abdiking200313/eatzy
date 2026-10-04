@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../app/app_routes.dart';
 import '../../../app/app_scope.dart';
@@ -14,7 +15,6 @@ import '../../../widgets/cart_app_bar_action.dart';
 import '../../../widgets/store_hero_app_bar.dart';
 import '../../../widgets/app_search_bar.dart';
 import '../models/pharmacy_product.dart';
-import 'pharmacy_product_details_screen.dart';
 import 'pharmacy_controller.dart';
 
 /// How long to wait after the last keystroke before running a search query,
@@ -348,18 +348,7 @@ class _PharmacyCatalogScreenState extends State<PharmacyCatalogScreen> {
   }
 
   void _openDetails(PharmacyProduct product) {
-    final inCart = _controller.cartItems
-        .where((item) => item.product.id == product.id)
-        .fold<int>(0, (total, item) => total + item.quantity);
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) => PharmacyProductDetailsScreen(
-          product: product,
-          inCartQuantity: inCart,
-          onAddToCart: (quantity) => _addProduct(product, quantity: quantity),
-        ),
-      ),
-    );
+    context.push(AppRoutes.pharmacyProductDetails(widget.storeId, product.id));
   }
 
   Future<void> _addProduct(PharmacyProduct product, {int quantity = 1}) async {
