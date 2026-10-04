@@ -1,4 +1,7 @@
+import 'package:chowflow/app/app_scope.dart';
 import 'package:chowflow/config/theme.dart';
+import 'package:chowflow/services/food/data/food_repository.dart';
+import 'package:chowflow/services/food/models/food_models.dart';
 import 'package:chowflow/services/food/models/restaurant.dart';
 import 'package:chowflow/services/food/models/restaurant_menu.dart';
 import 'package:chowflow/services/food/presentation/cart_controller.dart';
@@ -7,6 +10,7 @@ import 'package:chowflow/services/food/presentation/widgets/menu_item_card.dart'
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'helpers/app_scope_test_helpers.dart';
 import 'helpers/memory_cart_storage.dart';
 
 void main() {
@@ -113,10 +117,14 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         theme: buildAppTheme(),
-        home: RestaurantScreen(
-          restaurantId: restaurant.id,
-          menuLoader: (_) async => menu,
-          cartController: cartController,
+        home: AppScope(
+          services: buildTestAppServices(cartController: cartController),
+          child: RestaurantScreen(
+            restaurantId: restaurant.id,
+            menuLoader: (_) async => menu,
+            cartController: cartController,
+            locationRepository: const _NoLocationsRepository(),
+          ),
         ),
       ),
     );
@@ -179,9 +187,13 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         theme: buildAppTheme(),
-        home: RestaurantScreen(
-          restaurantId: restaurant.id,
-          menuLoader: (_) => Future.error(StateError('failed')),
+        home: AppScope(
+          services: buildTestAppServices(),
+          child: RestaurantScreen(
+            restaurantId: restaurant.id,
+            menuLoader: (_) => Future.error(StateError('failed')),
+            locationRepository: const _NoLocationsRepository(),
+          ),
         ),
       ),
     );
@@ -231,3 +243,14 @@ void main() {
 }
 
 void _doNothing(int _) {}
+
+/// A [RestaurantLocationRepository] fake that never hits the network --
+/// avoids the test [AppServices]' placeholder-URL `SupabaseClient` making a
+/// real HTTP request for the tests above that don't care about locations.
+class _NoLocationsRepository implements RestaurantLocationRepository {
+  const _NoLocationsRepository();
+
+  @override
+  Future<List<RestaurantLocation>> fetchLocations(String restaurantId) async =>
+      const [];
+}

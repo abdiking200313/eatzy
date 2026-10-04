@@ -11,7 +11,9 @@ import 'package:chowflow/platform/activity/models/activity_item.dart';
 import 'package:chowflow/platform/activity/presentation/activity_controller.dart';
 import 'package:chowflow/platform/activity/presentation/activity_screen.dart';
 import 'package:chowflow/screens/addresses.dart';
+import 'package:chowflow/services/food/data/food_repository.dart';
 import 'package:chowflow/services/food/models/cart_item.dart';
+import 'package:chowflow/services/food/models/food_models.dart';
 import 'package:chowflow/services/food/presentation/cart_controller.dart';
 import 'package:chowflow/services/food/presentation/checkout_screen.dart';
 import 'package:chowflow/services/food/presentation/food_cart_screen.dart';
@@ -29,6 +31,7 @@ import 'package:chowflow/services/pharmacy/presentation/pharmacy_cart_screen.dar
 import 'package:chowflow/services/pharmacy/presentation/pharmacy_catalog_screen.dart';
 import 'package:chowflow/services/pharmacy/presentation/pharmacy_checkout_screen.dart';
 import 'package:chowflow/services/pharmacy/presentation/pharmacy_store_list_screen.dart';
+import 'package:chowflow/services/shared/data/rpc_helpers.dart';
 import 'package:chowflow/widgets/add_to_cart_button.dart';
 import 'package:chowflow/widgets/app_misc.dart';
 import 'package:chowflow/widgets/zivo_logo.dart';
@@ -123,7 +126,10 @@ void main() {
       testWidgets('checkout', (tester) async {
         await pumpNarrow(
           tester,
-          CheckoutScreen(cartController: await foodCart()),
+          CheckoutScreen(
+            cartController: await foodCart(),
+            orderRepository: const _UnusedFoodOrderRepository(),
+          ),
         );
 
         expect(find.text('Checkout'), findsOneWidget);
@@ -581,6 +587,19 @@ class _OneBigGroceryStoreRepository implements GroceryRepository {
       ],
     ),
   ];
+}
+
+/// The food checkout layout test never taps submit, so this should never
+/// actually be called; it throws loudly if it ever is, rather than silently
+/// succeeding with a fabricated order.
+class _UnusedFoodOrderRepository implements FoodOrderRepository {
+  const _UnusedFoodOrderRepository();
+
+  @override
+  Future<PlacedOrder> placeOrder(FoodOrderRequest request) =>
+      throw UnsupportedError(
+        'The layout test never submits the food checkout form.',
+      );
 }
 
 /// `PharmacyStoreListScreen` only needs a `PharmacyController` for the cart

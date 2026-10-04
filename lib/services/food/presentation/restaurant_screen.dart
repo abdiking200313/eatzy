@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../app/app_routes.dart';
+import '../../../app/app_scope.dart';
+import '../../../app/app_services.dart';
 import '../../../config/theme.dart';
 import '../../../platform/cache/catalog_queries.dart';
 import '../../../widgets/app_cards.dart';
@@ -53,6 +54,14 @@ class _RestaurantScreenState extends State<RestaurantScreen> {
   late Future<List<RestaurantLocation>> _locationsFuture;
   String? _selectedCategoryId;
 
+  /// Set in [didChangeDependencies] (never [initState] — `AppScope.of`
+  /// depends on an ancestor `InheritedWidget` that isn't safely readable
+  /// yet at that point, see issue #282) and used by every call site that
+  /// used to read `Supabase.instance.client`/`CartController.instance`
+  /// directly.
+  late AppServices _services;
+  bool _locationsLoadStarted = false;
+
   // The pinned category chip bar sits right below the collapsed app bar
   // (`kToolbarHeight`, since `StoreHeroAppBar` is `pinned: true`) once
   // scrolled past its `expandedHeight` hero. A section counts as "current"
@@ -68,8 +77,17 @@ class _RestaurantScreenState extends State<RestaurantScreen> {
   void initState() {
     super.initState();
     _startMenu();
-    _locationsFuture = _loadLocations();
     _scrollController.addListener(_syncSelectedCategoryFromScroll);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _services = AppScope.of(context);
+    if (!_locationsLoadStarted) {
+      _locationsLoadStarted = true;
+      _locationsFuture = _loadLocations();
+    }
   }
 
   /// An injected [RestaurantScreen.menuLoader] (tests) bypasses the cache;
@@ -122,7 +140,7 @@ class _RestaurantScreenState extends State<RestaurantScreen> {
       final repository =
           widget.locationRepository ??
           SupabaseRestaurantLocationRepository(
-            client: Supabase.instance.client,
+            client: _services.supabaseClient,
           );
       return await repository.fetchLocations(widget.restaurantId);
     } on Object {
@@ -169,7 +187,7 @@ class _RestaurantScreenState extends State<RestaurantScreen> {
     MenuItem menuItem,
     int quantity,
   ) async {
-    final controller = widget.cartController ?? CartController.instance;
+    final controller = widget.cartController ?? _services.cartController;
     final cartItem = CartItem(
       menuItemId: menuItem.id,
       restaurantId: menu.restaurant.id,
@@ -272,9 +290,9 @@ class _RestaurantScreenState extends State<RestaurantScreen> {
         },
       ),
       floatingActionButton: AnimatedBuilder(
-        animation: widget.cartController ?? CartController.instance,
+        animation: widget.cartController ?? _services.cartController,
         builder: (context, _) {
-          final controller = widget.cartController ?? CartController.instance;
+          final controller = widget.cartController ?? _services.cartController;
           if (controller.itemCount == 0) {
             return const SizedBox.shrink();
           }

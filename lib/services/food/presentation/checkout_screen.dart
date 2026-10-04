@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../app/app_routes.dart';
+import '../../../app/app_scope.dart';
 import '../../../platform/activity/presentation/activity_controller.dart';
 import '../../../widgets/checkout_view.dart';
 import '../../shared/data/idempotency_key.dart';
@@ -30,10 +31,14 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   final _noteController = TextEditingController();
 
   late final CartController _cartController =
-      widget.cartController ?? CartController.instance;
+      widget.cartController ?? AppScope.of(context).cartController;
   late final FoodController _foodController = FoodController(
     cartController: _cartController,
-    orderRepository: widget.orderRepository,
+    orderRepository:
+        widget.orderRepository ??
+        SupabaseFoodOrderRepository(
+          client: AppScope.of(context).supabaseClient,
+        ),
     activityController: widget.activityController,
   );
 

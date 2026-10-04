@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../app/app_routes.dart';
+import '../../../app/app_scope.dart';
 import '../../../widgets/app_misc.dart';
 import '../../../widgets/cart_view.dart';
 import '../../../widgets/checkout_view.dart';
@@ -12,14 +13,12 @@ class CartScreen extends StatelessWidget {
 
   final CartController? cartController;
 
-  CartController get _controller => cartController ?? CartController.instance;
-
   @override
   Widget build(BuildContext context) {
+    final controller = cartController ?? AppScope.of(context).cartController;
     return AnimatedBuilder(
-      animation: _controller,
+      animation: controller,
       builder: (context, _) {
-        final controller = _controller;
         void mutate(Future<void> Function() mutation) =>
             _runMutation(context, mutation);
 
