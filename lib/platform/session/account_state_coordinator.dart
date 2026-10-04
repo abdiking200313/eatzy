@@ -1,4 +1,8 @@
+import 'dart:async';
+
 import '../activity/presentation/activity_controller.dart';
+import '../error_reporting/crashlytics_error_reporter.dart';
+import '../error_reporting/error_reporter.dart';
 import 'session_reset_registry.dart';
 
 /// Clears account-scoped in-memory MVP state when the authenticated owner
@@ -13,6 +17,11 @@ import 'session_reset_registry.dart';
 /// grocery and pharmacy carts are persisted per-owner (like the food cart),
 /// so their registered callbacks reload the incoming owner's saved cart
 /// rather than merely clearing it.
+///
+/// Also sets the Crashlytics user identifier to the new owner id (issue
+/// #287), or clears it on sign-out -- a no-op in debug builds, where
+/// [ErrorReporting.instance] is still [LoggingErrorReporter] rather than
+/// [CrashlyticsErrorReporter].
 class AccountStateCoordinator {
   AccountStateCoordinator({
     required String? initialOwnerId,
@@ -36,6 +45,14 @@ class AccountStateCoordinator {
     _ownerId = nextOwnerId;
     _activityController.resetSessionState();
     _registry.notifyAll(nextOwnerId);
+    _updateCrashlyticsUserIdentifier(nextOwnerId);
     return true;
+  }
+
+  void _updateCrashlyticsUserIdentifier(String? ownerId) {
+    final reporter = ErrorReporting.instance;
+    if (reporter is CrashlyticsErrorReporter) {
+      unawaited(reporter.setUserIdentifier(ownerId));
+    }
   }
 }

@@ -1,6 +1,8 @@
 import 'package:chowflow/app/service_module.dart';
 import 'package:chowflow/platform/activity/models/activity_item.dart';
 import 'package:chowflow/platform/activity/presentation/activity_controller.dart';
+import 'package:chowflow/platform/error_reporting/crashlytics_error_reporter.dart';
+import 'package:chowflow/platform/error_reporting/error_reporter.dart';
 import 'package:chowflow/platform/session/account_state_coordinator.dart';
 import 'package:chowflow/platform/session/session_reset_registry.dart';
 import 'package:chowflow/services/pharmacy/data/pharmacy_repository.dart';
@@ -9,6 +11,48 @@ import 'package:flutter_test/flutter_test.dart';
 import 'helpers/controllers.dart';
 
 void main() {
+  group('Crashlytics user identifier (issue #287)', () {
+    late ErrorReporter originalReporter;
+
+    setUp(() {
+      originalReporter = ErrorReporting.instance;
+    });
+
+    tearDown(() {
+      ErrorReporting.instance = originalReporter;
+    });
+
+    test('is a no-op when ErrorReporting.instance is not a '
+        'CrashlyticsErrorReporter (e.g. a debug build)', () {
+      ErrorReporting.instance = const LoggingErrorReporter();
+      final coordinator = AccountStateCoordinator(
+        initialOwnerId: null,
+        activityController: ActivityController(),
+        registry: SessionResetRegistry(),
+      );
+
+      expect(() => coordinator.handleOwnerChanged('user-one'), returnsNormally);
+    });
+
+    test('sets the Crashlytics user identifier on sign-in and clears it on '
+        'sign-out, with no email or name ever passed', () async {
+      final client = _FakeCrashlyticsClient();
+      ErrorReporting.instance = CrashlyticsErrorReporter(client);
+      final coordinator = AccountStateCoordinator(
+        initialOwnerId: null,
+        activityController: ActivityController(),
+        registry: SessionResetRegistry(),
+      );
+
+      coordinator.handleOwnerChanged('user-one');
+      await Future<void>.value();
+      expect(client.userIdentifiers, ['user-one']);
+
+      coordinator.handleOwnerChanged(null);
+      await Future<void>.value();
+      expect(client.userIdentifiers, ['user-one', '']);
+    });
+  });
   test('an account change clears every account-scoped MVP state', () async {
     final activity = ActivityController();
     final grocery = buildGroceryController(activityController: activity);
@@ -76,4 +120,24 @@ void main() {
     expect(grocery.isNotEmpty, isTrue);
     expect(pharmacy.isCartNotEmpty, isTrue);
   });
+}
+
+class _FakeCrashlyticsClient implements CrashlyticsClient {
+  final List<String> userIdentifiers = [];
+
+  @override
+  Future<void> recordError(
+    Object exception,
+    StackTrace? stack, {
+    bool fatal = false,
+    String? reason,
+  }) async {}
+
+  @override
+  Future<void> setUserIdentifier(String identifier) async {
+    userIdentifiers.add(identifier);
+  }
+
+  @override
+  Future<void> setCrashlyticsCollectionEnabled(bool enabled) async {}
 }

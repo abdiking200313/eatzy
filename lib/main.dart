@@ -17,14 +17,12 @@ import 'services/food/presentation/cart_controller.dart';
 import 'widgets/error_fallback.dart';
 import 'widgets/zivo_logo.dart';
 
-// Global error handling scaffolding (issue #40). There is no crash-reporting
-// SDK wired in yet — Firebase Crashlytics is the owner's chosen SDK, deferred
-// to a fast-follow once `google-services.json` / `GoogleService-Info.plist`
-// exist for a real Firebase project (see the issue's follow-up decision) —
-// so every hook below reports through `ErrorReporting.instance`
-// (`lib/platform/error_reporting/error_reporter.dart`), which currently just
-// logs. Swapping in Crashlytics later only means replacing that one
-// instance, not touching these handlers.
+// Global error handling scaffolding (issue #40). Every hook below reports
+// through `ErrorReporting.instance`
+// (`lib/platform/error_reporting/error_reporter.dart`), which
+// `runStartupSequence` (`lib/platform/startup/startup_gate.dart`) points at
+// a Firebase Crashlytics-backed implementation in release/profile builds
+// (issue #287) -- these handlers never changed to wire that in.
 void main() {
   runZonedGuarded(
     () async {
