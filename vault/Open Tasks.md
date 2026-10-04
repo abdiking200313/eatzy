@@ -9,6 +9,15 @@ upstream_concept: 00-Index
 
 **Updated 2026-10-04 (board worker), see [[Status Log]] 2026-10-04 for full detail.** **Source of truth is always a live `list_issues`/`gh issue list --repo abdiking200313/eatzy --state open` call** — re-check before relying on this for anything that matters.
 
+## Update, 2026-10-04 (later run) — #288 merged (PR #326 was already sitting ready), rest still blocked
+
+- Eligibility check found only the same 7 `todo` issues as the prior run today (#29, #52, #276, #278, #288, #298, #301); `waiting-on-you` empty.
+- **#288** carried `agent-in-progress` with a real, already-open PR #326 (not the stale-label pattern) — a prior session had implemented it (5 `Navigator.push` call sites routed through `go_router`, 575/575 tests) and left it unmerged. `mergeable_state: clean`, `verify` CI already green. Squash-merged directly, no new work needed. **#288 closed.**
+- **#276** re-checked: this sandbox has the `docker` CLI but still no running daemon (`/var/run/docker.sock` absent) — same blocker as the prior run, confirmed a third time now. Still left open with PR #303 unmerged.
+- **#278** stays blocked on #276 (unchanged). **#298** stays blocked on #222, which is still `needs-approval` (not yet approved by the owner) — re-checked directly, not just assumed from the vault. **#301** stays not-ready (explicitly waits on #276-299 all closing, and #276/#278 are still open).
+- Only #29/#52 (tracking) had no direct work. **Net result: 1 issue closed (#288, via an already-ready PR), nothing else eligible.** Stopped well under the 6-issue cap since nothing else in the queue could move.
+- **Gap noted**: a `list_issues` CLOSED/UPDATED_AT check found #287 and #289-297/#299 (the rest of the #276-301 audit batch) were all already closed between 12:08 and 16:34 UTC today, none of it logged in this vault — done by other sessions (interactive and/or earlier board-worker runs today) between the last logged entry and this one. Not re-derived in detail here since it's not this run's work; `git log`/`list_issues` is ground truth if it matters later.
+
 ## Update, 2026-10-04 — #282-286 merged, #280 closed, #276 blocked on a sandbox limitation
 
 - Queue jumped from empty (just #29/#52) to 24 open `todo` issues since the last board-worker entry — a large new audit batch (#276-301) was filed and owner-approved directly between 2026-09-25 and 2026-10-03, outside this routine. Full detail on this run's work in [[Status Log]] 2026-10-04.
@@ -197,7 +206,9 @@ upstream_concept: 00-Index
 
 ## Remaining `todo`, not yet picked up
 
-**As of 2026-10-04**: #276 (blocked on sandbox Docker availability, PR #303 open unmerged) → #278 (blocked on #276) → #287 ([High] Firebase Crashlytics) → #288 through #299 (mix of medium/low UI/logic/infra cleanup from the 2026-10-03 audit batch) → #301 (explicitly waits on #276-299 all closing). Only #29/#52 remain pure tracking-only. Re-check via `list_issues` before assuming this list is complete.
+**As of 2026-10-04 (later run)**: #276 (blocked on sandbox Docker availability, PR #303 open unmerged) → #278 (blocked on #276) → #298 (blocked on #222, still `needs-approval`) → #301 (explicitly waits on #276-299 all closing). #288 merged this run (PR #326). Only #29/#52 remain pure tracking-only. Re-check via `list_issues` before assuming this list is complete — note the queue is down to just 7 `todo` issues total now (not the 16-18 concrete ones from earlier 2026-10-04 entries), since most of the #276-301 batch besides #276/#278/#298/#301 has already been processed.
+
+**As of 2026-10-04 (earlier run)**: #276 (blocked on sandbox Docker availability, PR #303 open unmerged) → #278 (blocked on #276) → #287 ([High] Firebase Crashlytics) → #288 through #299 (mix of medium/low UI/logic/infra cleanup from the 2026-10-03 audit batch) → #301 (explicitly waits on #276-299 all closing). Only #29/#52 remain pure tracking-only. Re-check via `list_issues` before assuming this list is complete.
 
 **As of 2026-09-17**: none — #74 merged this run (PR #230), #34 closed by the owner directly. Only #29/#52 (tracking-only, no direct work) remain in the `todo`/`waiting-on-you` queue. Re-check via `list_issues` before assuming this list is complete — a new issue or approval could change it any time.
 
