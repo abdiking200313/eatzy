@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -60,10 +62,18 @@ class _TrackOrderScreenState extends State<TrackOrderScreen> {
       OrderAgainService(appServices: AppScope.of(context));
   bool _loadingReorder = false;
 
+  // Live updates (issue #297): a tick/ping subscription that just triggers a
+  // refetch on every event rather than carrying the order itself -- see
+  // `OrderDetailsSource.watchOrder`. Kept alive across refetches (started
+  // once, not resubscribed per tick) and cancelled once the order reaches a
+  // final state, or there is nothing left for a merchant to change.
+  StreamSubscription<void>? _orderWatchSubscription;
+
   @override
   void initState() {
     super.initState();
     _future = _load();
+    _future?.then(_handleLoaded, onError: (_) {});
   }
 
   bool get _hasOrderReference =>
@@ -84,10 +94,33 @@ class _TrackOrderScreenState extends State<TrackOrderScreen> {
     );
   }
 
+  /// Starts (or stops) the live-update subscription based on the
+  /// just-loaded order's status. Runs after every load, not only the first,
+  /// since an order can become final (delivered/cancelled) between one
+  /// refetch and the next.
+  void _handleLoaded(OrderDetails? order) {
+    if (!mounted || !_hasOrderReference) return;
+    if (order == null || order.isFinal) {
+      _orderWatchSubscription?.cancel();
+      _orderWatchSubscription = null;
+      return;
+    }
+    _orderWatchSubscription ??= _repository
+        .watchOrder(orderId: widget.orderId!, serviceId: widget.serviceId!)
+        .listen((_) => _retry());
+  }
+
   void _retry() {
     setState(() {
       _future = _load();
     });
+    _future?.then(_handleLoaded, onError: (_) {});
+  }
+
+  @override
+  void dispose() {
+    _orderWatchSubscription?.cancel();
+    super.dispose();
   }
 
   @override

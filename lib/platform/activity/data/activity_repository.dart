@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../app/service_module.dart';
@@ -32,6 +34,14 @@ abstract interface class OrderDetailsSource {
     required String orderId,
     required String serviceId,
   });
+
+  /// A tick/ping stream, not the order data itself: emits an event every
+  /// time this order's row changes server-side (e.g. a merchant moving it
+  /// to `preparing`/`out_for_delivery`, see #131/#134), with no payload of
+  /// its own. Callers must refetch via [fetchOrderDetails] on every event
+  /// rather than trust any payload shape (issue #297). Never completes or
+  /// errors on its own; cancel the subscription to stop watching.
+  Stream<void> watchOrder({required String orderId, required String serviceId});
 }
 
 abstract interface class OrderDetailsRepository implements OrderDetailsSource {}
@@ -182,5 +192,49 @@ class SupabaseActivityRepository
       itemsKey: itemsTable,
       itemNameColumn: itemName,
     );
+  }
+
+  @override
+  Stream<void> watchOrder({
+    required String orderId,
+    required String serviceId,
+  }) {
+    // Same per-vertical table [fetchOrderDetails] reads back from; keyed by
+    // `serviceId` (the raw `customer_activity`/route value), not the parsed
+    // [ServiceId] enum, since that's what this method is called with.
+    final table = switch (serviceId) {
+      'food' => 'food_orders',
+      'grocery' => 'grocery_orders',
+      'pharmacy' => 'pharmacy_orders',
+      _ => null,
+    };
+    if (table == null) {
+      return const Stream<void>.empty();
+    }
+
+    late final RealtimeChannel channel;
+    final controller = StreamController<void>.broadcast(
+      onCancel: () => _client.removeChannel(channel),
+    );
+    // Filtered to this order's own row only (`id` is each order table's
+    // primary key, see `supabase/schema.sql`) -- a single realtime
+    // subscription per screen, not a firehose of every order on the table.
+    channel = _client
+        .channel('order-watch:$table:$orderId')
+        .onPostgresChanges(
+          event: PostgresChangeEvent.all,
+          schema: 'public',
+          table: table,
+          filter: PostgresChangeFilter(
+            type: PostgresChangeFilterType.eq,
+            column: 'id',
+            value: orderId,
+          ),
+          callback: (payload) {
+            if (!controller.isClosed) controller.add(null);
+          },
+        )
+        .subscribe();
+    return controller.stream;
   }
 }

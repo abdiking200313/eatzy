@@ -86,6 +86,13 @@ class OrderDetails {
 
   bool get isCancelled => status == 'cancelled';
 
+  /// Whether this order has reached an end state that the backend's
+  /// `is_legal_order_status_transition` never transitions out of
+  /// (`delivered`/`cancelled`). [TrackOrderScreen] stops subscribing to — or
+  /// cancels an existing subscription to — live updates once this is true,
+  /// since there is nothing left to watch for (see issue #297).
+  bool get isFinal => isCancelled || status == 'delivered';
+
   /// The forward status steps for this order's vertical, matching
   /// `is_legal_order_status_transition` in
   /// `20260830140000_add_order_status_transition_rpcs.sql`.

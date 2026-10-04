@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:chowflow/app/app_scope.dart';
 import 'package:chowflow/app/service_module.dart';
 import 'package:chowflow/config/theme.dart';
@@ -217,12 +219,87 @@ void main() {
       expect(find.text('Try again'), findsOneWidget);
     });
   });
+
+  group('TrackOrderScreen live updates (issue #297)', () {
+    testWidgets(
+      'a watchOrder tick triggers a refetch and the UI reflects the new '
+      'status',
+      (tester) async {
+        final repository = _FakeOrderDetailsRepository(
+          _details(_summary(status: 'preparing')),
+        );
+        await _pump(tester, repository);
+
+        expect(find.text('Preparing'), findsNWidgets(2));
+        expect(repository.watchOrderCallCount, 1);
+
+        // Simulate the merchant moving the order forward server-side, then
+        // a realtime event firing for it.
+        repository.order = _details(_summary(status: 'out_for_delivery'));
+        repository.emitOrderChanged();
+        await tester.pumpAndSettle();
+
+        expect(find.text('Out for delivery'), findsNWidgets(2));
+        // The status pill no longer reads "Preparing", but the timeline
+        // still shows it as a completed step -- see `TrackingCard`.
+        expect(find.text('Preparing'), findsOneWidget);
+        // Still just the one subscription -- ticks reuse it rather than
+        // resubscribing.
+        expect(repository.watchOrderCallCount, 1);
+      },
+    );
+
+    testWidgets('the subscription is cancelled when the screen is disposed', (
+      tester,
+    ) async {
+      final repository = _FakeOrderDetailsRepository(_details(_summary()));
+      await _pump(tester, repository);
+
+      expect(repository.watchOrderCallCount, 1);
+      expect(repository.watchCancelled, isFalse);
+
+      // Replace the whole tree so `TrackOrderScreen`'s State is disposed.
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pumpAndSettle();
+
+      expect(repository.watchCancelled, isTrue);
+    });
+
+    testWidgets('does not subscribe for an order already in a final state', (
+      tester,
+    ) async {
+      final delivered = _FakeOrderDetailsRepository(
+        _details(_summary(status: 'delivered')),
+      );
+      await _pump(tester, delivered);
+      expect(delivered.watchOrderCallCount, 0);
+
+      final cancelled = _FakeOrderDetailsRepository(
+        _details(_summary(status: 'cancelled')),
+      );
+      await _pump(tester, cancelled);
+      expect(cancelled.watchOrderCallCount, 0);
+    });
+  });
 }
 
 class _FakeOrderDetailsRepository implements OrderDetailsRepository {
-  const _FakeOrderDetailsRepository(this.order);
+  _FakeOrderDetailsRepository(this.order);
 
-  final OrderDetails order;
+  /// Mutable so a test can change the order returned by the *next*
+  /// [fetchOrderDetails] call, then push a [watchOrder] tick to simulate a
+  /// merchant-driven status change landing between refetches.
+  OrderDetails order;
+
+  /// How many times [watchOrder] has been called -- a test asserts this
+  /// stays `0` for an order that's already in a final state (issue #297).
+  int watchOrderCallCount = 0;
+
+  /// Set from the stream controller's `onCancel`, i.e. once nothing is
+  /// listening anymore -- `TrackOrderScreen.dispose` should cause this.
+  bool watchCancelled = false;
+
+  StreamController<void>? _watchController;
 
   @override
   Future<ActivityItem?> fetchOrderById({
@@ -235,6 +312,22 @@ class _FakeOrderDetailsRepository implements OrderDetailsRepository {
     required String orderId,
     required String serviceId,
   }) async => order;
+
+  @override
+  Stream<void> watchOrder({
+    required String orderId,
+    required String serviceId,
+  }) {
+    watchOrderCallCount++;
+    final controller = StreamController<void>.broadcast(
+      onCancel: () => watchCancelled = true,
+    );
+    _watchController = controller;
+    return controller.stream;
+  }
+
+  /// Simulates a realtime `postgres_changes` event firing.
+  void emitOrderChanged() => _watchController?.add(null);
 }
 
 class _NotFoundOrderDetailsRepository implements OrderDetailsRepository {
@@ -251,6 +344,12 @@ class _NotFoundOrderDetailsRepository implements OrderDetailsRepository {
     required String orderId,
     required String serviceId,
   }) async => null;
+
+  @override
+  Stream<void> watchOrder({
+    required String orderId,
+    required String serviceId,
+  }) => const Stream<void>.empty();
 }
 
 class _FailingOrderDetailsRepository implements OrderDetailsRepository {
@@ -267,4 +366,10 @@ class _FailingOrderDetailsRepository implements OrderDetailsRepository {
     required String orderId,
     required String serviceId,
   }) async => throw StateError('boom: order lookup failed');
+
+  @override
+  Stream<void> watchOrder({
+    required String orderId,
+    required String serviceId,
+  }) => const Stream<void>.empty();
 }
