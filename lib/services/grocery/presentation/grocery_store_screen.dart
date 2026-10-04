@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../../../app/app_scope.dart';
 import '../../../config/theme.dart';
 import '../../../widgets/app_cards.dart';
 import '../../../widgets/app_misc.dart';
@@ -37,8 +38,12 @@ class GroceryStoreScreen extends StatefulWidget {
 }
 
 class _GroceryStoreScreenState extends State<GroceryStoreScreen> {
+  /// Resolved once in [didChangeDependencies] (never reassigned after) —
+  /// see `GroceryScreen._resolvedController` for why this can't happen in
+  /// `initState`.
+  GroceryController? _resolvedController;
   GroceryController get _controller =>
-      widget.controller ?? GroceryController.forType(widget.storeType);
+      widget.controller ?? _resolvedController!;
 
   final _searchController = TextEditingController();
 
@@ -46,21 +51,36 @@ class _GroceryStoreScreenState extends State<GroceryStoreScreen> {
   late bool _hasLoaded;
   late String? _loadError;
 
+  bool _didInitializeController = false;
+
   @override
   void initState() {
     super.initState();
-    // See GroceryScreen.initState for why the load is kicked off before
-    // the first state snapshot is taken. Uses the store-scoped `loadStore`
-    // (not `load`) so viewing one store never pulls every other store's
-    // catalog too — including on a cold start/deep link straight to this
-    // screen, before `GroceryScreen`'s list has loaded anything.
+    _searchController.addListener(_handleSearchChanged);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_didInitializeController) {
+      return;
+    }
+    _didInitializeController = true;
+    _resolvedController =
+        widget.controller ??
+        AppScope.of(context).groceryController(widget.storeType);
+
+    // See GroceryScreen.didChangeDependencies for why the load is kicked
+    // off before the first state snapshot is taken. Uses the store-scoped
+    // `loadStore` (not `load`) so viewing one store never pulls every other
+    // store's catalog too — including on a cold start/deep link straight to
+    // this screen, before `GroceryScreen`'s list has loaded anything.
     if ((!_controller.hasLoadedStore(widget.storeId) || _controller.isStale) &&
         !_controller.isLoading) {
       unawaited(_controller.loadStore(widget.storeId));
     }
     _syncLoadState();
     _controller.addListener(_handleControllerChanged);
-    _searchController.addListener(_handleSearchChanged);
   }
 
   @override

@@ -1,5 +1,4 @@
 import 'package:flutter/foundation.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../platform/error_reporting/error_reporter.dart';
 import '../../auth/data/auth_error_message.dart';
@@ -40,13 +39,23 @@ class ProfileEditResult {
 /// birth / Email), mirroring the `FoodController`/`GroceryController`
 /// checkout-controller pattern (issue #13).
 class ProfileEditController extends ChangeNotifier {
+  /// [profileRepository] is required -- every caller (the `SettingsScreen`
+  /// composition-root call site included, see issue #284) is expected to
+  /// resolve a concrete repository itself (e.g. via `AppScope.of(context)`)
+  /// rather than this controller defaulting to `Supabase.instance.client`.
+  ///
+  /// [authService] stays optional: only [updateEmail] needs it, and several
+  /// existing callers/tests exercise only the `profiles`-backed updates
+  /// ([updateName]/[updatePhone]/[updateDob]) without ever constructing one.
+  /// Calling [updateEmail] without having provided one throws instead of
+  /// silently falling back to a real `AuthService()`.
   ProfileEditController({
-    ProfileRepository? profileRepository,
+    required ProfileRepository profileRepository,
     AuthService? authService,
-  }) : _profileRepository = profileRepository,
+  }) : _repository = profileRepository,
        _authService = authService;
 
-  final ProfileRepository? _profileRepository;
+  final ProfileRepository _repository;
   final AuthService? _authService;
 
   bool _isSubmitting = false;
@@ -60,11 +69,16 @@ class ProfileEditController extends ChangeNotifier {
   /// mapped onto field keys by the presentation layer.
   List<String> get fieldErrors => _fieldErrors;
 
-  ProfileRepository get _repository =>
-      _profileRepository ??
-      SupabaseProfileRepository(client: Supabase.instance.client);
-
-  AuthService get _auth => _authService ?? AuthService();
+  AuthService get _auth {
+    final authService = _authService;
+    if (authService == null) {
+      throw StateError(
+        'ProfileEditController.updateEmail requires an AuthService; none '
+        'was provided to this controller.',
+      );
+    }
+    return authService;
+  }
 
   static const String _saveFailureMessage =
       'Could not save your profile. Please try again.';

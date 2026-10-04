@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../../app/app_routes.dart';
+import '../../../app/app_scope.dart';
 import '../../../config/theme.dart';
 import '../../../widgets/app_cards.dart';
 import '../../../widgets/app_widgets.dart';
@@ -15,7 +16,7 @@ class RegisterScreen extends StatefulWidget {
 
   /// Overrides the default [AuthService] used to submit sign-up requests.
   /// Only intended for tests — production code always uses the default,
-  /// which lazily reads `Supabase.instance.client`.
+  /// which lazily resolves `AppScope.of(context).supabaseClient`.
   final AuthService? authService;
 
   @override
@@ -24,7 +25,9 @@ class RegisterScreen extends StatefulWidget {
 
 class _RegisterScreenState extends State<RegisterScreen> {
   // AuthService keeps the screen separate from the low-level Supabase calls.
-  AuthService get _authService => widget.authService ?? AuthService();
+  AuthService get _authService =>
+      widget.authService ??
+      AuthService(client: AppScope.of(context).supabaseClient);
   final TextEditingController _firstNameController = TextEditingController();
   final TextEditingController _lastNameController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
