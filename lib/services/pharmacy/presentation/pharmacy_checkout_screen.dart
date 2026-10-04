@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../app/app_routes.dart';
+import '../../../app/app_scope.dart';
 import '../../../widgets/checkout_view.dart';
 import '../../shared/data/idempotency_key.dart';
 import '../../shared/models/delivery_details.dart';
@@ -29,7 +30,7 @@ class _PharmacyCheckoutScreenState extends State<PharmacyCheckoutScreen> {
   final String _idempotencyKey = generateIdempotencyKey();
 
   PharmacyController get _controller =>
-      widget.controller ?? PharmacyController.instance;
+      widget.controller ?? AppScope.of(context).pharmacyController;
 
   @override
   void dispose() {
