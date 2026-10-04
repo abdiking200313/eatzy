@@ -1,7 +1,8 @@
 import 'dart:convert';
 
-import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import '../../../platform/error_reporting/error_reporter.dart';
 
 /// A per-module, per-owner keyed store for a list of cart-like items of
 /// type [T].
@@ -63,9 +64,10 @@ class SharedPreferencesCartStorage<T> implements CartStorage<T> {
       // it must not silently present as "no saved cart" either (issue
       // #180) -- a saved value existed here and failed to parse, which is
       // a materially different situation from there being nothing to load.
-      debugPrint(
-        'SharedPreferencesCartStorage.read: the saved cart for "$key" could '
-        'not be read and will be discarded: $error\n$stackTrace',
+      ErrorReporting.instance.reportError(
+        error,
+        stackTrace,
+        context: 'SharedPreferencesCartStorage.read',
       );
       await _preferences.remove(key);
       return const [];
@@ -110,9 +112,10 @@ Future<List<T>> readCartLogged<T>(
   try {
     return await storage.read(ownerId);
   } on Object catch (error, stackTrace) {
-    debugPrint(
-      '$label.loadForOwner: reading the cart for owner "$ownerId" failed '
-      'and will be treated as empty: $error\n$stackTrace',
+    ErrorReporting.instance.reportError(
+      error,
+      stackTrace,
+      context: '$label.loadForOwner',
     );
     return const [];
   }
@@ -160,8 +163,10 @@ class CartWriteQueue {
       try {
         await write();
       } on Object catch (error, stackTrace) {
-        debugPrint(
-          '$label: a cart write failed and was dropped: $error\n$stackTrace',
+        ErrorReporting.instance.reportError(
+          error,
+          stackTrace,
+          context: '$label.enqueue',
         );
       }
     }();

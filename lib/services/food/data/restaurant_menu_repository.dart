@@ -1,6 +1,6 @@
-import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../platform/error_reporting/error_reporter.dart';
 import '../models/restaurant.dart';
 import '../models/restaurant_menu.dart';
 
@@ -53,9 +53,10 @@ class RestaurantMenuRepository {
         // (see #62) — a bad price must never fall back to $0.00 (a real
         // charge with no on-screen warning), but nor should it block every
         // other item on the menu from being shown.
-        debugPrint(
-          'Skipping malformed menu_items row (id: ${row['id']}): '
-          '$error\n$stackTrace',
+        ErrorReporting.instance.reportError(
+          error,
+          stackTrace,
+          context: 'RestaurantMenuRepository._groupItemsByCategory',
         );
         continue;
       }

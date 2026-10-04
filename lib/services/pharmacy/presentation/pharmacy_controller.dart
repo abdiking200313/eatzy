@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import '../../../app/service_module.dart';
 import '../../../platform/activity/models/activity_item.dart';
 import '../../../platform/activity/presentation/activity_controller.dart';
+import '../../../platform/error_reporting/error_reporter.dart';
 import '../../shared/data/cart_storage.dart';
 import '../../shared/data/idempotency_key.dart';
 import '../../shared/data/rpc_helpers.dart';
@@ -496,8 +497,10 @@ class PharmacyController extends ChangeNotifier with LoadableState {
                 (confirmedSubtotal + (confirmedDeliveryFee ?? 0)),
           ),
           onSaveFailed: (error, stackTrace) {
-            debugPrint(
-              'PharmacyController.placeDemoOrder failed: $error\n$stackTrace',
+            ErrorReporting.instance.reportError(
+              error,
+              stackTrace,
+              context: 'PharmacyController.placeDemoOrder',
             );
             return PharmacyCheckoutResult.invalid(
               PharmacyCheckoutValidation({

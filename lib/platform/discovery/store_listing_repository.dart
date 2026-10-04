@@ -8,7 +8,39 @@ import '../../services/grocery/data/grocery_repository.dart';
 import '../../services/grocery/models/grocery_models.dart';
 import '../../services/pharmacy/data/pharmacy_repository.dart';
 import '../../services/pharmacy/models/pharmacy_store.dart';
+import '../error_reporting/error_reporter.dart';
 import 'store_listing.dart';
+
+/// Thrown by [StoreListingRepository.fetchStores] when every vertical it
+/// queried failed and there is nothing to show at all (e.g. Supabase is
+/// unreachable). Deliberately carries no raw exception detail -- the
+/// underlying error for each vertical is already reported individually
+/// through [ErrorReporting] before this is thrown -- so [toString] is always
+/// safe to surface directly in the UI (e.g. an error state with a Retry
+/// action), matching the `describeAuthError`-style sanitization used
+/// elsewhere in this app.
+///
+/// When only *some* verticals fail, [fetchStores] does not throw: it quietly
+/// returns the stores from whichever verticals did load, same as before —
+/// only the all-failed case is now distinguishable from "every vertical
+/// genuinely has nothing to show".
+class StoreListingUnavailableException implements Exception {
+  const StoreListingUnavailableException();
+
+  @override
+  String toString() =>
+      'Stores could not be loaded. Please check your connection and try '
+      'again.';
+}
+
+/// One vertical's fetch outcome: either the stores it loaded, or an empty
+/// list because it failed (the failure itself was already reported).
+class _VerticalFetch {
+  const _VerticalFetch({required this.stores, required this.failed});
+
+  final List<StoreListing> stores;
+  final bool failed;
+}
 
 /// Aggregates `Restaurant`/`GroceryStore`/`PharmacyStore` rows from their own
 /// per-vertical repositories into the shared [StoreListing] shape used by
@@ -34,25 +66,40 @@ class StoreListingRepository {
   /// verticals mixed together; otherwise only that vertical. [limit] caps
   /// the total returned count (applied after mixing, not per-vertical) —
   /// omit/null means no cap.
+  ///
+  /// Each vertical's failure is reported individually through
+  /// [ErrorReporting] rather than silently swallowed. When at least one
+  /// vertical (of the ones [filter] asked for) succeeds, this returns
+  /// whatever loaded, same as before a partial failure. Only when every
+  /// requested vertical fails does this throw
+  /// [StoreListingUnavailableException], so a real outage is distinguishable
+  /// from every vertical genuinely having nothing to show.
   Future<List<StoreListing>> fetchStores({
     ServiceId? filter,
     int? limit,
   }) async {
     final List<StoreListing> listings;
     if (filter == null) {
-      final results = await Future.wait<List<StoreListing>>([
+      final results = await Future.wait<_VerticalFetch>([
         _fetchFood(),
         _fetchGrocery(),
         _fetchPharmacy(),
       ]);
-      listings = _interleave(results);
+      if (results.every((result) => result.failed)) {
+        throw const StoreListingUnavailableException();
+      }
+      listings = _interleave([for (final result in results) result.stores]);
     } else {
-      listings = switch (filter) {
+      final result = switch (filter) {
         ServiceId.food => await _fetchFood(),
         ServiceId.grocery => await _fetchGrocery(),
         ServiceId.pharmacy => await _fetchPharmacy(),
-        ServiceId.unknown => const [],
+        ServiceId.unknown => const _VerticalFetch(stores: [], failed: false),
       };
+      if (result.failed) {
+        throw const StoreListingUnavailableException();
+      }
+      listings = result.stores;
     }
 
     if (limit == null || listings.length <= limit) {
@@ -61,30 +108,54 @@ class StoreListingRepository {
     return listings.sublist(0, limit);
   }
 
-  Future<List<StoreListing>> _fetchFood() async {
+  Future<_VerticalFetch> _fetchFood() async {
     try {
       final restaurants = await _restaurantRepository.fetchRestaurants();
-      return restaurants.map(_fromRestaurant).toList(growable: false);
-    } catch (_) {
-      return const [];
+      return _VerticalFetch(
+        stores: restaurants.map(_fromRestaurant).toList(growable: false),
+        failed: false,
+      );
+    } catch (error, stackTrace) {
+      ErrorReporting.instance.reportError(
+        error,
+        stackTrace,
+        context: 'StoreListingRepository._fetchFood',
+      );
+      return const _VerticalFetch(stores: [], failed: true);
     }
   }
 
-  Future<List<StoreListing>> _fetchGrocery() async {
+  Future<_VerticalFetch> _fetchGrocery() async {
     try {
       final stores = await _groceryRepository.fetchStores();
-      return stores.map(_fromGroceryStore).toList(growable: false);
-    } catch (_) {
-      return const [];
+      return _VerticalFetch(
+        stores: stores.map(_fromGroceryStore).toList(growable: false),
+        failed: false,
+      );
+    } catch (error, stackTrace) {
+      ErrorReporting.instance.reportError(
+        error,
+        stackTrace,
+        context: 'StoreListingRepository._fetchGrocery',
+      );
+      return const _VerticalFetch(stores: [], failed: true);
     }
   }
 
-  Future<List<StoreListing>> _fetchPharmacy() async {
+  Future<_VerticalFetch> _fetchPharmacy() async {
     try {
       final stores = await _pharmacyRepository.fetchStores();
-      return stores.map(_fromPharmacyStore).toList(growable: false);
-    } catch (_) {
-      return const [];
+      return _VerticalFetch(
+        stores: stores.map(_fromPharmacyStore).toList(growable: false),
+        failed: false,
+      );
+    } catch (error, stackTrace) {
+      ErrorReporting.instance.reportError(
+        error,
+        stackTrace,
+        context: 'StoreListingRepository._fetchPharmacy',
+      );
+      return const _VerticalFetch(stores: [], failed: true);
     }
   }
 

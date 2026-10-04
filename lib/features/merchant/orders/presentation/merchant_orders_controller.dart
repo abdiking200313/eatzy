@@ -3,6 +3,7 @@ import 'dart:collection';
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../../platform/error_reporting/error_reporter.dart';
 import '../../../../services/shared/presentation/loadable_state_mixin.dart';
 import '../../store/models/merchant_vertical.dart';
 import '../data/merchant_orders_repository.dart';
@@ -66,7 +67,11 @@ class MerchantOrdersController extends ChangeNotifier
         _hasLoaded = true;
       },
       onError: (error, stackTrace) {
-        debugPrint('MerchantOrdersController.load failed: $error\n$stackTrace');
+        ErrorReporting.instance.reportError(
+          error,
+          stackTrace,
+          context: 'MerchantOrdersController.load',
+        );
         return 'Your orders could not be loaded. Please try again.';
       },
     );
@@ -93,8 +98,10 @@ class MerchantOrdersController extends ChangeNotifier
         }
       },
       onError: (error, stackTrace) {
-        debugPrint(
-          'MerchantOrdersController.advanceStatus failed: $error\n$stackTrace',
+        ErrorReporting.instance.reportError(
+          error,
+          stackTrace,
+          context: 'MerchantOrdersController.advanceStatus',
         );
         if (error is OrderStatusTransitionException) {
           return error.message;

@@ -5,6 +5,7 @@ import '../../../app/service_module.dart';
 import 'cart_controller.dart';
 import '../../../platform/activity/models/activity_item.dart';
 import '../../../platform/activity/presentation/activity_controller.dart';
+import '../../../platform/error_reporting/error_reporter.dart';
 import '../../shared/data/idempotency_key.dart';
 import '../../shared/data/rpc_helpers.dart';
 import '../../shared/models/delivery_details.dart';
@@ -150,8 +151,10 @@ class FoodController extends ChangeNotifier {
                     (_cartController.tax ?? 0)),
           ),
           onSaveFailed: (error, stackTrace) {
-            debugPrint(
-              'FoodController.confirmOrder failed: $error\n$stackTrace',
+            ErrorReporting.instance.reportError(
+              error,
+              stackTrace,
+              context: 'FoodController.confirmOrder',
             );
             return FoodCheckoutResult.invalid([
               describeOrderSaveError(

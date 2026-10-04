@@ -1,20 +1,31 @@
-import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+
+import '../../../platform/error_reporting/error_reporter.dart';
 
 /// Maps a caught error from an auth/profile operation into a short,
 /// human-readable message that is safe to show in the UI.
 ///
 /// Raw exceptions (in particular [PostgrestException] and other backend
 /// errors) can contain internal endpoint, host, or database detail that
-/// should never reach a screenshot-able `SnackBar`. This function logs the
-/// raw error via [debugPrint] for diagnostics and returns a small, fixed set
-/// of user-facing messages instead.
+/// should never reach a screenshot-able `SnackBar`. This function reports
+/// the raw error via [ErrorReporting] for diagnostics and returns a small,
+/// fixed set of user-facing messages instead.
 ///
 /// [context] is a short label (e.g. `'Login'`, `'Registration'`) used only in
-/// the debug log line, to make the raw error easier to trace back to its
-/// call site.
-String describeAuthError(Object error, {required String context}) {
-  debugPrint('$context error: $error');
+/// the error report, to make the raw error easier to trace back to its call
+/// site. [stackTrace] is forwarded to the report when the caller has one
+/// (e.g. from `catch (error, stackTrace)`); callers that only catch the
+/// error (not the stack trace) can omit it.
+String describeAuthError(
+  Object error, {
+  required String context,
+  StackTrace? stackTrace,
+}) {
+  ErrorReporting.instance.reportError(
+    error,
+    stackTrace ?? StackTrace.current,
+    context: context,
+  );
 
   if (error is AuthException) {
     switch (error.code) {

@@ -4,6 +4,7 @@ import 'package:chowflow/platform/activity/data/activity_repository.dart';
 import 'package:chowflow/platform/activity/models/activity_item.dart';
 import 'package:chowflow/platform/activity/presentation/activity_controller.dart';
 import 'package:chowflow/platform/activity/presentation/activity_screen.dart';
+import 'package:chowflow/platform/error_reporting/error_reporter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -152,36 +153,29 @@ void main() {
     expect(repository.fetchCount, 2);
   });
 
-  test('load() logs the original exception and stack trace instead of '
-      'discarding them, while still setting the generic user-facing error '
-      '(issue #19)', () async {
-    final repository = _FailingActivityRepository(
-      StateError('boom: repository unreachable'),
-    );
+  test('load() reports the original exception and stack trace through '
+      'ErrorReporting instead of discarding them, while still setting the '
+      'generic user-facing error (issues #19, #286)', () async {
+    final error = StateError('boom: repository unreachable');
+    final repository = _FailingActivityRepository(error);
     final controller = ActivityController(repository: repository);
 
-    final originalDebugPrint = debugPrint;
-    final logged = <String>[];
-    debugPrint = (String? message, {int? wrapWidth}) {
-      if (message != null) logged.add(message);
-    };
+    final originalReporter = ErrorReporting.instance;
+    final fakeReporter = _FakeErrorReporter();
+    ErrorReporting.instance = fakeReporter;
     try {
       await controller.load();
     } finally {
-      debugPrint = originalDebugPrint;
+      ErrorReporting.instance = originalReporter;
     }
 
     expect(
       controller.loadError,
       'Activity could not be loaded. Please try again.',
     );
-    expect(
-      logged.any((line) => line.contains('boom: repository unreachable')),
-      isTrue,
-      reason:
-          'the real exception must be logged, not silently replaced by '
-          'the generic user-facing message',
-    );
+    expect(fakeReporter.reported, hasLength(1));
+    expect(fakeReporter.reported.single.error, error);
+    expect(fakeReporter.reported.single.context, 'ActivityController.load');
   });
 
   group('tapping an order row opens its order details', () {
@@ -286,5 +280,14 @@ class _FailingActivityRepository implements ActivityRepository {
   @override
   Future<List<ActivityItem>> fetchActivities({int limit = 100}) async {
     throw error;
+  }
+}
+
+class _FakeErrorReporter implements ErrorReporter {
+  final List<({Object error, StackTrace stack, String? context})> reported = [];
+
+  @override
+  void reportError(Object error, StackTrace stack, {String? context}) {
+    reported.add((error: error, stack: stack, context: context));
   }
 }

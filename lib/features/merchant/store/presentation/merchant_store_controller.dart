@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../../platform/error_reporting/error_reporter.dart';
 import '../../../../services/shared/presentation/loadable_state_mixin.dart';
 import '../data/merchant_store_repository.dart';
 import '../models/merchant_store.dart';
@@ -48,7 +49,11 @@ class MerchantStoreController extends ChangeNotifier
         _hasLoaded = true;
       },
       onError: (error, stackTrace) {
-        debugPrint('MerchantStoreController.load failed: $error\n$stackTrace');
+        ErrorReporting.instance.reportError(
+          error,
+          stackTrace,
+          context: 'MerchantStoreController.load',
+        );
         return 'Your store could not be loaded. Please try again.';
       },
     );
@@ -76,8 +81,10 @@ class MerchantStoreController extends ChangeNotifier
         );
       },
       onError: (error, stackTrace) {
-        debugPrint(
-          'MerchantStoreController.createStore failed: $error\n$stackTrace',
+        ErrorReporting.instance.reportError(
+          error,
+          stackTrace,
+          context: 'MerchantStoreController.createStore',
         );
         return 'Your store could not be created. Please try again.';
       },
@@ -110,8 +117,10 @@ class MerchantStoreController extends ChangeNotifier
         );
       },
       onError: (error, stackTrace) {
-        debugPrint(
-          'MerchantStoreController.updateStore failed: $error\n$stackTrace',
+        ErrorReporting.instance.reportError(
+          error,
+          stackTrace,
+          context: 'MerchantStoreController.updateStore',
         );
         return 'Your store could not be saved. Please try again.';
       },
