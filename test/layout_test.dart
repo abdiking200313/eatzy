@@ -1,6 +1,7 @@
 import 'package:chowflow/app/app_scope.dart';
 import 'package:chowflow/app/service_module.dart';
 import 'package:chowflow/config/theme.dart';
+import 'package:chowflow/features/addresses/presentation/addresses_screen.dart';
 import 'package:chowflow/features/orders/presentation/track_order_screen.dart';
 import 'package:chowflow/features/profile/data/profile_repository.dart';
 import 'package:chowflow/features/profile/models/customer_profile.dart';
@@ -10,7 +11,6 @@ import 'package:chowflow/features/support/presentation/support_screen.dart';
 import 'package:chowflow/platform/activity/models/activity_item.dart';
 import 'package:chowflow/platform/activity/presentation/activity_controller.dart';
 import 'package:chowflow/platform/activity/presentation/activity_screen.dart';
-import 'package:chowflow/screens/addresses.dart';
 import 'package:chowflow/services/food/data/food_repository.dart';
 import 'package:chowflow/services/food/models/cart_item.dart';
 import 'package:chowflow/services/food/models/food_models.dart';

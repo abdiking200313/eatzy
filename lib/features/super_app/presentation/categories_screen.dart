@@ -2,11 +2,11 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import '../app/service_module.dart';
-import '../config/theme.dart';
-import '../widgets/app_cards.dart';
-import '../widgets/app_misc.dart';
-import '../widgets/app_scaffold.dart';
+import '../../../app/service_module.dart';
+import '../../../config/theme.dart';
+import '../../../widgets/app_cards.dart';
+import '../../../widgets/app_misc.dart';
+import '../../../widgets/app_scaffold.dart';
 
 class CategoriesScreen extends StatelessWidget {
   const CategoriesScreen({super.key, this.showBackButton = true});

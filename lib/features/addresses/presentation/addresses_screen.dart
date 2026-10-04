@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import '../config/theme.dart';
-import '../widgets/app_cards.dart';
-import '../widgets/app_misc.dart';
-import '../widgets/app_scaffold.dart';
+
+import '../../../config/theme.dart';
+import '../../../widgets/app_cards.dart';
+import '../../../widgets/app_misc.dart';
+import '../../../widgets/app_scaffold.dart';
 
 class AddressesScreen extends StatelessWidget {
   const AddressesScreen({super.key});
