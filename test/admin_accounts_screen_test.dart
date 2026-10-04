@@ -1,3 +1,4 @@
+import 'package:chowflow/app/app_scope.dart';
 import 'package:chowflow/features/merchant/admin/data/admin_accounts_repository.dart';
 import 'package:chowflow/features/merchant/admin/models/admin_account.dart';
 import 'package:chowflow/features/merchant/admin/presentation/admin_accounts_controller.dart';
@@ -5,6 +6,7 @@ import 'package:chowflow/features/merchant/admin/presentation/admin_accounts_scr
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'helpers/app_scope_test_helpers.dart';
 import 'helpers/fake_merchant_repositories.dart';
 
 // Widget-tests the admin-only "Accounts" list (requested directly by the app
@@ -42,11 +44,14 @@ void main() {
       repository: repository ?? FakeAdminAccountsRepository(accounts: accounts),
     );
     await tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(
-          body: AdminAccountsScreen(
-            controller: controller,
-            currentUserId: me.id,
+      AppScope(
+        services: buildTestAppServices(),
+        child: MaterialApp(
+          home: Scaffold(
+            body: AdminAccountsScreen(
+              controller: controller,
+              currentUserId: me.id,
+            ),
           ),
         ),
       ),

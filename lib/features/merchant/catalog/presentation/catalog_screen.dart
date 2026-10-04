@@ -1,8 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../../app/app_scope.dart';
 import '../../../../config/tailwind.dart';
 import '../../../../platform/localization/app_money.dart';
 import '../../shared/merchant_media_store.dart';
@@ -46,20 +46,31 @@ class CatalogScreen extends StatefulWidget {
 }
 
 class _CatalogScreenState extends State<CatalogScreen> {
-  late final MerchantCatalogController _controller =
-      widget.controller ??
-      MerchantCatalogController.supabase(
-        Supabase.instance.client,
-        vertical: widget.vertical,
-        storeId: widget.storeId,
-      );
-  late final bool _ownsController = widget.controller == null;
-  late final MerchantMediaStore _media =
-      widget.media ?? SupabaseMerchantMediaStore();
+  late final MerchantCatalogController _controller;
+  late final bool _ownsController;
+  late final MerchantMediaStore _media;
+  bool _dependenciesResolved = false;
 
+  // Resolved here rather than in field initializers / initState: reading
+  // the Supabase client off `AppScope.of(context)` (issue #285) needs a
+  // `BuildContext` that is allowed to look up an `InheritedWidget`, which
+  // `didChangeDependencies` is and `initState` is not.
   @override
-  void initState() {
-    super.initState();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_dependenciesResolved) return;
+    _dependenciesResolved = true;
+
+    _controller =
+        widget.controller ??
+        MerchantCatalogController.supabase(
+          AppScope.of(context).supabaseClient,
+          vertical: widget.vertical,
+          storeId: widget.storeId,
+        );
+    _ownsController = widget.controller == null;
+    _media = widget.media ?? SupabaseMerchantMediaStore();
+
     // Start the load before attaching the listener -- see
     // `MyStoreScreen.initState`'s comment for why the order matters.
     if (!_controller.hasLoaded && !_controller.isLoading) {

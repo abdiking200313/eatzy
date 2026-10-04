@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:chowflow/app/app_routes.dart';
+import 'package:chowflow/app/app_scope.dart';
 import 'package:chowflow/features/auth/data/auth_service.dart';
 import 'package:chowflow/features/merchant/admin/models/admin_account.dart';
 import 'package:chowflow/features/merchant/admin/presentation/admin_accounts_controller.dart';
@@ -13,6 +14,7 @@ import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import 'helpers/app_scope_test_helpers.dart';
 import 'helpers/fake_merchant_repositories.dart';
 
 // Smoke-tests the merchant dashboard's nav shell (ported from
@@ -28,12 +30,11 @@ void main() {
       MerchantStoreController(repository: FakeMerchantStoreRepository());
 
   testWidgets('shows "My Store" destination by default', (tester) async {
-    await tester.pumpWidget(
-      MaterialApp(
-        home: MerchantShell(
-          ownerId: 'merchant-1',
-          myStoreController: fakeStoreController(),
-        ),
+    await pumpWithAppScope(
+      tester,
+      MerchantShell(
+        ownerId: 'merchant-1',
+        myStoreController: fakeStoreController(),
       ),
     );
     await tester.pumpAndSettle();
@@ -47,12 +48,11 @@ void main() {
   testWidgets('switching to Orders shows the Orders destination', (
     tester,
   ) async {
-    await tester.pumpWidget(
-      MaterialApp(
-        home: MerchantShell(
-          ownerId: 'merchant-1',
-          myStoreController: fakeStoreController(),
-        ),
+    await pumpWithAppScope(
+      tester,
+      MerchantShell(
+        ownerId: 'merchant-1',
+        myStoreController: fakeStoreController(),
       ),
     );
     await tester.pumpAndSettle();
@@ -70,13 +70,12 @@ void main() {
     'never shows the admin Accounts list to a plain merchant (issue: admin '
     'role management, 2026-09-18)',
     (tester) async {
-      await tester.pumpWidget(
-        MaterialApp(
-          home: MerchantShell(
-            ownerId: 'merchant-1',
-            myStoreController: fakeStoreController(),
-            isAdmin: false,
-          ),
+      await pumpWithAppScope(
+        tester,
+        MerchantShell(
+          ownerId: 'merchant-1',
+          myStoreController: fakeStoreController(),
+          isAdmin: false,
         ),
       );
       await tester.pumpAndSettle();
@@ -90,31 +89,30 @@ void main() {
 
   testWidgets('an admin sees only the Accounts list and sign out (issue: '
       'admin role management, 2026-09-18)', (tester) async {
-    await tester.pumpWidget(
-      MaterialApp(
-        home: MerchantShell(
-          ownerId: 'admin-1',
-          myStoreController: fakeStoreController(),
-          isAdmin: true,
-          adminAccountsController: AdminAccountsController(
-            repository: FakeAdminAccountsRepository(
-              accounts: const [
-                AdminAccount(
-                  id: 'admin-1',
-                  firstName: 'Owner',
-                  lastName: 'Admin',
-                  email: 'owner@example.com',
-                  role: 'admin',
-                ),
-                AdminAccount(
-                  id: 'profile-1',
-                  firstName: 'Amal',
-                  lastName: 'Hassan',
-                  email: 'amal@example.com',
-                  role: 'customer',
-                ),
-              ],
-            ),
+    await pumpWithAppScope(
+      tester,
+      MerchantShell(
+        ownerId: 'admin-1',
+        myStoreController: fakeStoreController(),
+        isAdmin: true,
+        adminAccountsController: AdminAccountsController(
+          repository: FakeAdminAccountsRepository(
+            accounts: const [
+              AdminAccount(
+                id: 'admin-1',
+                firstName: 'Owner',
+                lastName: 'Admin',
+                email: 'owner@example.com',
+                role: 'admin',
+              ),
+              AdminAccount(
+                id: 'profile-1',
+                firstName: 'Amal',
+                lastName: 'Hassan',
+                email: 'amal@example.com',
+                role: 'customer',
+              ),
+            ],
           ),
         ),
       ),
@@ -196,7 +194,12 @@ void main() {
       );
       addTearDown(router.dispose);
 
-      await tester.pumpWidget(MaterialApp.router(routerConfig: router));
+      await tester.pumpWidget(
+        AppScope(
+          services: buildTestAppServices(),
+          child: MaterialApp.router(routerConfig: router),
+        ),
+      );
       await tester.pumpAndSettle();
 
       await tester.tap(find.byTooltip('Sign out'));

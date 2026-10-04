@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:chowflow/app/app_scope.dart';
 import 'package:chowflow/features/merchant/catalog/data/merchant_catalog_repository.dart';
 import 'package:chowflow/features/merchant/catalog/models/merchant_catalog_item.dart';
 import 'package:chowflow/features/merchant/catalog/presentation/catalog_item_form.dart';
@@ -9,6 +10,7 @@ import 'package:chowflow/features/merchant/store/models/merchant_vertical.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'helpers/app_scope_test_helpers.dart';
 import 'helpers/fake_merchant_repositories.dart';
 
 /// A repository whose [fetchItems] hangs until [complete] is called -- see
@@ -64,7 +66,10 @@ void main() {
     isAvailable: true,
   );
 
-  Widget wrap(Widget child) => MaterialApp(home: child);
+  Widget wrap(Widget child) => AppScope(
+    services: buildTestAppServices(),
+    child: MaterialApp(home: child),
+  );
 
   testWidgets('shows a loading indicator while the catalog loads', (
     tester,

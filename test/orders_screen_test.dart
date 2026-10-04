@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:chowflow/app/app_scope.dart';
 import 'package:chowflow/features/merchant/orders/data/merchant_orders_repository.dart';
 import 'package:chowflow/features/merchant/orders/models/merchant_order.dart';
 import 'package:chowflow/features/merchant/orders/presentation/orders_screen.dart';
@@ -10,6 +11,7 @@ import 'package:chowflow/features/merchant/store/presentation/merchant_store_con
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'helpers/app_scope_test_helpers.dart';
 import 'helpers/fake_merchant_repositories.dart';
 
 /// A repository whose [fetchOrders] hangs until [complete] is called -- see
@@ -99,7 +101,10 @@ void main() {
     ],
   }, vertical: MerchantVertical.food);
 
-  Widget wrap(Widget child) => MaterialApp(home: Scaffold(body: child));
+  Widget wrap(Widget child) => AppScope(
+    services: buildTestAppServices(),
+    child: MaterialApp(home: Scaffold(body: child)),
+  );
 
   MerchantStoreController storeControllerWith(MerchantStore? initial) =>
       MerchantStoreController(

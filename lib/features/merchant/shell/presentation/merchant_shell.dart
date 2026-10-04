@@ -2,10 +2,11 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../app/app_routes.dart';
+import '../../../../app/app_scope.dart';
 import '../../../../app/merchant_session_gate.dart';
+import '../../../../config/tailwind.dart';
 import '../../../auth/data/auth_service.dart';
 import '../../admin/presentation/admin_accounts_controller.dart';
 import '../../admin/presentation/admin_accounts_screen.dart';
@@ -42,7 +43,9 @@ class MerchantShell extends StatefulWidget {
   });
 
   /// The signed-in merchant's `profiles.id` (== `auth.uid()`). Overridable
-  /// for tests; defaults to the current Supabase session's user id.
+  /// for tests; defaults to the current Supabase session's user id (from
+  /// [AppScope], see issue #285), or `null` if there is somehow no signed-in
+  /// user by the time this builds.
   final String? ownerId;
 
   /// Overridable for tests; defaults to a real [AuthService].
@@ -77,28 +80,43 @@ class MerchantShell extends StatefulWidget {
 class _MerchantShellState extends State<MerchantShell> {
   AuthService get _authService => widget.authService ?? AuthService();
 
-  late final String _ownerId =
-      widget.ownerId ?? Supabase.instance.client.auth.currentUser!.id;
-
-  late final MerchantStoreController _storeController =
-      widget.myStoreController ??
-      MerchantStoreController.supabase(Supabase.instance.client);
-  late final bool _ownsStoreController = widget.myStoreController == null;
-
-  late final bool _isAdmin = widget.isAdmin ?? MerchantSessionGate.isAdmin;
+  String? _ownerId;
+  MerchantStoreController? _storeController;
+  bool _ownsStoreController = false;
+  bool _isAdmin = false;
+  bool _dependenciesResolved = false;
 
   int _selectedIndex = 0;
 
-  // Lazy, and never touched for an admin: an admin sees only the Accounts
-  // screen, so no store controller (or its Supabase queries) is stood up.
-  late final List<Widget> _destinations = [
-    MyStoreScreen(ownerId: _ownerId, controller: _storeController),
-    OrdersScreen(
-      ownerId: _ownerId,
-      storeController: _storeController,
-      ordersRepository: widget.ordersRepository,
-    ),
-  ];
+  // Resolved here rather than in field initializers / initState: reading
+  // the Supabase client off `AppScope.of(context)` (issue #285) needs a
+  // `BuildContext` that is allowed to look up an `InheritedWidget`, which
+  // `didChangeDependencies` is and `initState` is not. Guarded by
+  // `_dependenciesResolved` so a later dependency change (unlikely here,
+  // since `AppServices` itself never changes) never re-creates the
+  // controller mid-session.
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_dependenciesResolved) return;
+    _dependenciesResolved = true;
+
+    final services = AppScope.of(context);
+    _ownerId = widget.ownerId ?? services.supabaseClient.auth.currentUser?.id;
+    _isAdmin = widget.isAdmin ?? MerchantSessionGate.isAdmin;
+
+    // Lazy, and never touched for an admin or a missing owner id: an admin
+    // sees only the Accounts screen, and a missing owner id means there is
+    // no merchant session to resolve "my store" for in the first place (see
+    // `build`'s sign-in prompt), so no store controller (or its Supabase
+    // queries) is stood up in either case.
+    if (!_isAdmin && _ownerId != null) {
+      _storeController =
+          widget.myStoreController ??
+          MerchantStoreController.supabase(services.supabaseClient);
+      _ownsStoreController = widget.myStoreController == null;
+    }
+  }
 
   Future<void> _signOut() async {
     await _authService.signOut();
@@ -107,14 +125,25 @@ class _MerchantShellState extends State<MerchantShell> {
 
   @override
   void dispose() {
-    if (!_isAdmin && _ownsStoreController) {
-      _storeController.dispose();
+    if (_ownsStoreController) {
+      _storeController?.dispose();
     }
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final ownerId = _ownerId;
+    // No signed-in user to resolve a merchant/admin session for -- this
+    // route is normally only reachable once `AppRouter` has already
+    // confirmed a session exists, but a session can still end (e.g. token
+    // expiry, manual sign-out from another tab) between that redirect check
+    // and this build. Show a safe prompt instead of crashing on a
+    // force-unwrapped `currentUser!.id`.
+    if (ownerId == null) {
+      return _SignedOutView(onSignIn: () => context.go(AppRoutes.login));
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: Text(_isAdmin ? 'Zivo Admin' : 'Zivo Merchant'),
@@ -129,9 +158,19 @@ class _MerchantShellState extends State<MerchantShell> {
       body: _isAdmin
           ? AdminAccountsScreen(
               controller: widget.adminAccountsController,
-              currentUserId: _ownerId,
+              currentUserId: ownerId,
             )
-          : IndexedStack(index: _selectedIndex, children: _destinations),
+          : IndexedStack(
+              index: _selectedIndex,
+              children: [
+                MyStoreScreen(ownerId: ownerId, controller: _storeController),
+                OrdersScreen(
+                  ownerId: ownerId,
+                  storeController: _storeController,
+                  ordersRepository: widget.ordersRepository,
+                ),
+              ],
+            ),
       bottomNavigationBar: _isAdmin
           ? null
           : NavigationBar(
@@ -151,6 +190,50 @@ class _MerchantShellState extends State<MerchantShell> {
                 ),
               ],
             ),
+    );
+  }
+}
+
+/// Shown instead of the dashboard when there is no signed-in user to resolve
+/// a merchant/admin session for (see `_MerchantShellState.build`'s doc
+/// comment) -- a safe fallback for the force-unwrap this replaced, not an
+/// expected steady state.
+class _SignedOutView extends StatelessWidget {
+  const _SignedOutView({required this.onSignIn});
+
+  final VoidCallback onSignIn;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(TwSpacing.x6),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.lock_outline_rounded,
+                size: 48,
+                color: Theme.of(context).disabledColor,
+              ),
+              const SizedBox(height: TwSpacing.x4),
+              const Text(
+                'Your session has ended',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: TwSpacing.x1),
+              const Text(
+                'Sign in again to get back to your store.',
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: TwSpacing.x6),
+              FilledButton(onPressed: onSignIn, child: const Text('Sign in')),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
