@@ -16,6 +16,7 @@ import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import 'helpers/app_scope_test_helpers.dart';
 import 'helpers/fake_push_notification_gateway.dart';
 import 'helpers/memory_notification_preferences_storage.dart';
 
@@ -192,6 +193,25 @@ Widget _pumpableSettingsScreen({
 }
 
 void main() {
+  // Issue #284: with no injected authService/profileRepository,
+  // SettingsScreen now resolves both defaults via AppScope.of(context)
+  // instead of `Supabase.instance.client`/`AuthService()`. The fake
+  // AppScope client has no real session, so both reads fail gracefully
+  // (already-guarded fallbacks) instead of crashing.
+  testWidgets('renders using the AppScope-backed defaults when no authService/'
+      'profileRepository is injected', (tester) async {
+    await pumpWithAppScope(
+      tester,
+      SettingsScreen(
+        notificationPreferencesStorage: MemoryNotificationPreferencesStorage(),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Not added yet'), findsWidgets);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets(
     'shows the signed-in user\'s real name, phone, date of birth, and '
     'email, not placeholders',

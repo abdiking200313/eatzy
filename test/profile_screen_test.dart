@@ -6,7 +6,28 @@ import 'package:chowflow/platform/error_reporting/error_reporter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'helpers/app_scope_test_helpers.dart';
+
 void main() {
+  // Issue #284: with no injected profileRepository, ProfileScreen now
+  // resolves its default SupabaseProfileRepository via AppScope.of(context)
+  // instead of `Supabase.instance.client`. The fake AppScope client has no
+  // real session, so the load fails and falls back to the empty state --
+  // same observable behavior as the "failed profile load" test below, just
+  // exercising the AppScope-backed default instead of an injected
+  // throwing repository.
+  testWidgets(
+    'renders the empty state using the AppScope-backed default repository '
+    'when none is injected',
+    (tester) async {
+      await pumpWithAppScope(tester, const ProfileScreen());
+      await tester.pumpAndSettle();
+
+      expect(find.text('Zivo customer'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    },
+  );
+
   testWidgets('profile shows customer identity without activity statistics', (
     tester,
   ) async {

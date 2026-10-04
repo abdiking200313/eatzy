@@ -10,6 +10,8 @@ import 'package:http/testing.dart';
 import 'package:intl/intl.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import 'helpers/app_scope_test_helpers.dart';
+
 // See test/login_screen_test.dart for why the injected client opts into the
 // implicit auth flow with auto-refresh disabled.
 const _testAuthOptions = AuthClientOptions(
@@ -118,6 +120,23 @@ Future<void> _submit(WidgetTester tester) async {
 }
 
 void main() {
+  // Issue #284: with no injected authService, RegisterScreen now resolves
+  // its default AuthService via AppScope.of(context) instead of
+  // `Supabase.instance.client` -- this only exercises that the
+  // AppScope-backed default is constructible and the screen still renders,
+  // not a real sign-up (nothing taps "Create account" here).
+  testWidgets(
+    'renders using the AppScope-backed default AuthService when none is '
+    'injected',
+    (tester) async {
+      await pumpWithAppScope(tester, const RegisterScreen());
+      await tester.pump();
+
+      expect(find.text('Create your account'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    },
+  );
+
   testWidgets('renders the sign-up form', (tester) async {
     await tester.pumpWidget(
       MaterialApp(

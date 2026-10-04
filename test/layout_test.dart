@@ -1,3 +1,4 @@
+import 'package:chowflow/app/app_scope.dart';
 import 'package:chowflow/app/service_module.dart';
 import 'package:chowflow/config/theme.dart';
 import 'package:chowflow/features/orders/presentation/track_order_screen.dart';
@@ -34,6 +35,7 @@ import 'package:chowflow/widgets/zivo_logo.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'helpers/app_scope_test_helpers.dart';
 import 'helpers/controllers.dart';
 import 'helpers/memory_cart_storage.dart';
 
@@ -57,16 +59,23 @@ void main() {
       addTearDown(() => tester.binding.setSurfaceSize(null));
 
       await tester.pumpWidget(
-        MaterialApp(
-          theme: buildAppTheme(),
-          home: MediaQuery(
-            data: const MediaQueryData(
-              size: Size(320, 640),
-              textScaler: TextScaler.linear(1.4),
+        // Several screens here (TrackOrderScreen, ProfileScreen,
+        // SettingsScreen) build an AppScope-backed default dependency
+        // (issue #284) when not given an explicit override, which needs an
+        // AppScope ancestor even for a plain layout/overflow check.
+        AppScope(
+          services: buildTestAppServices(),
+          child: MaterialApp(
+            theme: buildAppTheme(),
+            home: MediaQuery(
+              data: const MediaQueryData(
+                size: Size(320, 640),
+                textScaler: TextScaler.linear(1.4),
+              ),
+              child: serviceId == null
+                  ? screen
+                  : ZivoServiceTheme(serviceId: serviceId, child: screen),
             ),
-            child: serviceId == null
-                ? screen
-                : ZivoServiceTheme(serviceId: serviceId, child: screen),
           ),
         ),
       );

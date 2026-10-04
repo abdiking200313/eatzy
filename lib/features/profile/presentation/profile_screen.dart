@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../app/app_routes.dart';
+import '../../../app/app_scope.dart';
 import '../../../config/theme.dart';
 import '../../../platform/error_reporting/error_reporter.dart';
 import '../../../widgets/app_scaffold.dart';
@@ -36,7 +36,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
     try {
       final repository =
           widget.profileRepository ??
-          SupabaseProfileRepository(client: Supabase.instance.client);
+          SupabaseProfileRepository(
+            client: AppScope.of(context).supabaseClient,
+          );
       return await repository.fetchCurrentProfile();
     } on Object catch (error, stack) {
       // Falls back to the "Zivo customer" empty state below either way (see
@@ -72,7 +74,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<void> _logout(BuildContext context) async {
     try {
-      await AuthService().signOut();
+      await AuthService(client: AppScope.of(context).supabaseClient).signOut();
       if (context.mounted) context.go(AppRoutes.login);
     } catch (error) {
       if (!context.mounted) return;

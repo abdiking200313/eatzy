@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../app/app_routes.dart';
+import '../../../app/app_scope.dart';
 import '../../../config/theme.dart';
 import '../../../platform/notifications/push_notifications.dart';
 import '../../../widgets/app_cards.dart';
@@ -46,17 +46,27 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _profileLoading = true;
   String? _email;
 
-  late final ProfileEditController _profileEditController =
-      ProfileEditController(
-        profileRepository: widget.profileRepository,
-        authService: widget.authService,
-      );
+  // Assigned eagerly in didChangeDependencies (not via a lazy `late final`
+  // initializer, and not in initState -- AppScope.of(context) uses
+  // dependOnInheritedWidgetOfExactType, which Flutter forbids calling from
+  // initState) so it's only ever resolved once, while context is active.
+  // A lazy initializer would otherwise run on first access, which could be
+  // as late as dispose() if no sheet was ever opened, crashing with
+  // "Looking up a deactivated widget's ancestor is unsafe."
+  late final ProfileEditController _profileEditController;
+  bool _dependenciesInitialized = false;
 
-  AuthService get _authService => widget.authService ?? AuthService();
+  // Both getters below resolve the real Supabase-backed default from
+  // AppScope (issue #284) instead of reaching for `Supabase.instance.client`
+  // or `AuthService()` directly -- only evaluated when the widget's own
+  // override is absent (production; every test injects both).
+  AuthService get _authService =>
+      widget.authService ??
+      AuthService(client: AppScope.of(context).supabaseClient);
 
   ProfileRepository get _profileRepository =>
       widget.profileRepository ??
-      SupabaseProfileRepository(client: Supabase.instance.client);
+      SupabaseProfileRepository(client: AppScope.of(context).supabaseClient);
 
   NotificationPreferencesStorage get _preferencesStorage =>
       widget.notificationPreferencesStorage ??
@@ -66,8 +76,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
       widget.pushNotificationGateway ?? PushNotifications.instance;
 
   @override
-  void initState() {
-    super.initState();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_dependenciesInitialized) return;
+    _dependenciesInitialized = true;
+    _profileEditController = ProfileEditController(
+      profileRepository: _profileRepository,
+      authService: _authService,
+    );
     _email = _readCurrentUserEmail();
     _loadProfile();
     _loadPreferences();
@@ -79,11 +95,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
     super.dispose();
   }
 
-  // AuthService()'s default constructor reaches for Supabase.instance.client,
-  // which throws if Supabase was never initialized (e.g. a widget test that
-  // renders this screen without an injected authService). Guard every read
-  // the same way _loadProfile already guards the profile repository, so a
-  // screen shown without Supabase set up still renders instead of crashing.
+  // _authService's default construction reaches for AppScope.of(context),
+  // which asserts if this screen is rendered with no AppScope ancestor (e.g.
+  // a widget test that renders this screen without an injected authService
+  // and without wrapping it in AppScope). Guard every read the same way
+  // _loadProfile already guards the profile repository, so a screen shown
+  // without that setup still renders instead of crashing.
   String? _readCurrentUserEmail() {
     try {
       return _authService.getCurrentUserEmail();
