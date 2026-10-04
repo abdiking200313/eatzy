@@ -279,4 +279,10 @@ class _FakeOrderDetailsRepository implements OrderDetailsRepository {
     required String orderId,
     required String serviceId,
   }) async => order;
+
+  @override
+  Stream<void> watchOrder({
+    required String orderId,
+    required String serviceId,
+  }) => const Stream<void>.empty();
 }
