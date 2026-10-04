@@ -15,6 +15,10 @@ vault/.obsidian/
 # Local git worktrees created by isolated agent dispatches
 .claude/worktrees/
 
+# Throwaway local preview entry points for visual checks (issue #289) --
+# never commit one; use this prefix for a local-only preview main().
+lib/preview_*.dart
+
 # Per-environment --dart-define-from-file config (issue #277) -- real
 # Supabase URLs/keys are environment-specific and local-only; only the
 # *.json.example templates are committed.
