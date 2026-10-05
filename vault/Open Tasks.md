@@ -7,9 +7,19 @@ upstream_concept: 00-Index
 
 # Open Tasks
 
-**Updated 2026-10-05 (board worker, 1st run that day), see [[Status Log]] 2026-10-05 for full detail.** **Source of truth is always a live `list_issues`/`gh issue list --repo abdiking200313/eatzy --state open` call** — re-check before relying on this for anything that matters.
+**Updated 2026-10-05 (board worker, 2nd run that day), see [[Status Log]] 2026-10-05 for full detail.** **Source of truth is always a live `list_issues`/`gh issue list --repo abdiking200313/eatzy --state open` call** — re-check before relying on this for anything that matters.
 
-## Update, 2026-10-05 — nothing eligible, all 6 blockers reconfirmed, 0 issues processed
+## Update, 2026-10-05 (2nd run) — nothing eligible, all 6 blockers reconfirmed again, 0 issues processed
+
+- Eligibility check: identical 6 `todo` issues as the 1st run today, same `updated_at` timestamps on every one (#29, #52, #55, #276, #278, #301) — confirms literally nothing changed since that run logged its findings. `waiting-on-you` still empty.
+- **#276/#278**: re-checked Docker directly — CLI present (`docker info` shows client v29.6.2), still no running daemon (`/var/run/docker.sock` absent). Same confirmed blocker. PR #303 stays open/unmerged, no new comment (nothing changed since the last confirmation). #278 stays blocked on #276.
+- **#55**: this sandbox is Linux (`uname -a`), no `pod`/`xcodebuild` on `PATH` — same blocker as every prior run, not re-attempted.
+- **#301**: still blocked on #276/#278 per its own body, neither moved.
+- **#29/#52**: tracking-only, unchanged.
+- `master`'s only new commit since the 1st run today is that run's own vault-update commit (`ae69167`, PR #334) — no new issue landed that changes eligibility.
+- **Net result: 0 issues processed, queue fully unchanged for the second run in a row.** Cost only the cheap eligibility query plus the same three targeted re-checks (Docker, platform/iOS tooling, master HEAD) — no subagent dispatch needed.
+
+## Update, 2026-10-05 (1st run) — nothing eligible, all 6 blockers reconfirmed, 0 issues processed
 
 - Eligibility check: same 6 `todo` issues as the 2026-10-04 4th run's end state — #29, #52, #55, #276, #278, #301. `waiting-on-you` empty.
 - **#276/#278**: Docker still has no running daemon in this sandbox (`docker info` — CLI present, `/var/run/docker.sock` absent) — same blocker as every prior check. PR #303 stays open/unmerged, no new comment (nothing changed since the last confirmation). #278 stays blocked on #276.
