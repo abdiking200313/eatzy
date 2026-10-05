@@ -7,7 +7,16 @@ upstream_concept: 00-Index
 
 # Open Tasks
 
-**Updated 2026-10-05 (board worker, 4th run that day), see [[Status Log]] 2026-10-05 for full detail.** **Source of truth is always a live `list_issues`/`gh issue list --repo abdiking200313/eatzy --state open` call** — re-check before relying on this for anything that matters.
+**Updated 2026-10-05 (board worker, 5th run that day), see [[Status Log]] 2026-10-05 for full detail.** **Source of truth is always a live `list_issues`/`gh issue list --repo abdiking200313/eatzy --state open` call** — re-check before relying on this for anything that matters.
+
+## Update, 2026-10-05 (5th run) — nothing eligible, same 6 blockers reconfirmed a fifth time
+
+- Eligibility check: identical 6 `todo` issues as the 4th run (#29, #52, #55, #276, #278, #301), same `updated_at` on every one.
+- **#276/#278/#301**: Docker CLI present (v29.6.2), still no running daemon (`/var/run/docker.sock` absent) — same confirmed blocker. #278/#301 stay blocked on #276.
+- **#55**: re-checked its one comment directly — still the bot's own 2026-10-04 comment, no human reply since.
+- **#29/#52**: tracking-only, unchanged.
+- `master` gained only the 4th run's own vault-update commit (`7d89028`) plus one unrelated owner commit ignoring stray root-level build artifacts (`69ead72`, PR #345) — no new work that changes eligibility.
+- **Net result: 0 issues processed, fifth no-op run in a row.**
 
 ## Update, 2026-10-05 (4th run) — nothing eligible, same 6 blockers; major repo restructure found and logged
 
