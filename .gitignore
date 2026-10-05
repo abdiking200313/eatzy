@@ -21,3 +21,16 @@ vault/.obsidian/
 
 # Local-only working files that are not part of the repo
 _archive/
+
+# Flutter/Dart build output generated at the repo root by a sandbox that
+# ran `flutter pub get`/build commands before the flutter_app/ monorepo
+# split (2026-10-05) took effect in its checkout. The real app and its own
+# equivalent ignores now live under flutter_app/ — these root-level copies
+# are stray local artifacts only, never real content.
+/.dart_tool/
+/.flutter-plugins-dependencies
+/android/
+/ios/
+/linux/
+/macos/
+/windows/
