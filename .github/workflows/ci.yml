@@ -1,4 +1,4 @@
-name: CI
+name: Flutter CI
 
 on:
   pull_request:
@@ -10,6 +10,9 @@ jobs:
   verify:
     name: verify
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: flutter_app
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -17,7 +20,7 @@ jobs:
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version-file: .tool-versions
+          flutter-version-file: flutter_app/.tool-versions
           channel: stable
           cache: true
 
@@ -36,6 +39,9 @@ jobs:
   android-build:
     name: android-build
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: flutter_app
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -46,11 +52,14 @@ jobs:
           distribution: temurin
           java-version: "17"
           cache: gradle
+          cache-dependency-path: |
+            flutter_app/android/*.gradle*
+            flutter_app/android/**/gradle-wrapper.properties
 
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version-file: .tool-versions
+          flutter-version-file: flutter_app/.tool-versions
           channel: stable
           cache: true
 

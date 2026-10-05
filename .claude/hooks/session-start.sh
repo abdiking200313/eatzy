@@ -1,10 +1,10 @@
 #!/bin/bash
-# Installs the Flutter SDK (pinned in .tool-versions) so `dart format`,
+# Installs the Flutter SDK (pinned in flutter_app/.tool-versions) so `dart format`,
 # `flutter analyze`, and `flutter test` are available in this session,
 # matching the definition-of-done checks required by AGENTS.md.
 set -euo pipefail
 
-FLUTTER_VERSION="$(grep -m1 '^flutter ' "$CLAUDE_PROJECT_DIR/.tool-versions" | awk '{print $2}')"
+FLUTTER_VERSION="$(grep -m1 '^flutter ' "$CLAUDE_PROJECT_DIR/flutter_app/.tool-versions" | awk '{print $2}')"
 FLUTTER_HOME="/opt/flutter"
 
 if [ ! -x "$FLUTTER_HOME/bin/flutter" ]; then
@@ -28,6 +28,6 @@ if [ -n "${CLAUDE_ENV_FILE:-}" ]; then
   echo "export PATH=\"$FLUTTER_HOME/bin:\$PATH\"" >> "$CLAUDE_ENV_FILE"
 fi
 
-cd "$CLAUDE_PROJECT_DIR"
+cd "$CLAUDE_PROJECT_DIR/flutter_app"
 flutter --version
 flutter pub get

@@ -1,7 +1,7 @@
 version: 2
 updates:
   - package-ecosystem: "pub"
-    directory: "/"
+    directory: "/flutter_app"
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 5
@@ -9,6 +9,19 @@ updates:
       - "dependencies"
     groups:
       pub-minor-patch:
+        update-types:
+          - "minor"
+          - "patch"
+
+  - package-ecosystem: "npm"
+    directory: "/react_native_app"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+    groups:
+      npm-minor-patch:
         update-types:
           - "minor"
           - "patch"

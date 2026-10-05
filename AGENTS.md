@@ -2,9 +2,13 @@
 
 ## Repository authority
 
-- The Flutter project at the repository root is the canonical application.
-- Do not edit `chowflow_flutter/**`. It is a tracked starter/duplicate project and
-  is out of scope unless the user explicitly names it.
+- This is a monorepo. The Flutter project in `flutter_app/` is the canonical
+  application; `react_native_app/` is a new Expo + TypeScript app. Shared
+  backend (`supabase/`), docs (`docs/`, `vault/`) and CI (`.github/`) stay at
+  the repository root.
+- Unless stated otherwise, the `lib/`, `test/`, `pubspec.*` and platform paths
+  in this guide are relative to `flutter_app/`, and every `flutter`/`dart`
+  command must be run from inside `flutter_app/`.
 - Zivo is intended to be a modular super app. Food delivery is the first
   implemented service, not the complete product.
 - Planned service modules are food delivery, grocery delivery, and pharmacy
