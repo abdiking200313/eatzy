@@ -7,7 +7,17 @@ upstream_concept: 00-Index
 
 # Open Tasks
 
-**Updated 2026-10-04 (board worker, 4th run), see [[Status Log]] 2026-10-04 "4th run" for full detail.** **Source of truth is always a live `list_issues`/`gh issue list --repo abdiking200313/eatzy --state open` call** — re-check before relying on this for anything that matters.
+**Updated 2026-10-05 (board worker, 1st run that day), see [[Status Log]] 2026-10-05 for full detail.** **Source of truth is always a live `list_issues`/`gh issue list --repo abdiking200313/eatzy --state open` call** — re-check before relying on this for anything that matters.
+
+## Update, 2026-10-05 — nothing eligible, all 6 blockers reconfirmed, 0 issues processed
+
+- Eligibility check: same 6 `todo` issues as the 2026-10-04 4th run's end state — #29, #52, #55, #276, #278, #301. `waiting-on-you` empty.
+- **#276/#278**: Docker still has no running daemon in this sandbox (`docker info` — CLI present, `/var/run/docker.sock` absent) — same blocker as every prior check. PR #303 stays open/unmerged, no new comment (nothing changed since the last confirmation). #278 stays blocked on #276.
+- **#55**: re-read the issue — still 1 comment, no new human reply since PR #332's partial fix. Remaining work (real `Podfile`/`Podfile.lock` via `flutter build ipa`, a real `DEVELOPMENT_TEAM`) still needs macOS/Xcode/CocoaPods + an Apple Developer Team ID, none available in this (Linux) sandbox. Not re-attempted, per the existing note in this file.
+- **#301**: still blocked on #276/#278 per its own body; not re-checked further since neither of its blockers moved.
+- **#29/#52**: tracking-only, no direct work, unchanged.
+- Master had advanced (`b51c385` → `f152ba9`) since PR #303's base, but the added commits are entirely the already-logged 2026-10-04 4th-run work (#32/#222/#298/#55-partial + that run's own vault-update commit) — no new issue landed that changes eligibility.
+- **Net result: 0 issues processed, queue fully unchanged.** This run cost only the cheap eligibility query plus three targeted re-checks (Docker socket, PR #303, issue #55) — no subagent dispatch needed since nothing was actionable.
 
 ## Update, 2026-10-04 (4th run) — #32/#222/#298 merged, #55 partial, #276/#278/#301 still blocked
 
