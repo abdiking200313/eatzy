@@ -8,6 +8,15 @@ Reverse-chronological. Each session/major chunk of work gets an entry.
 
 ---
 
+## 2026-10-05, 4th run (board worker — nothing eligible, but found/logged an unlogged monorepo restructure)
+
+- Eligibility check: same 6 `todo` issues as the 3rd run (#29/#52/#55/#276/#278/#301), identical `updated_at`. `waiting-on-you` empty.
+- **New finding, not this routine's work**: between the 3rd run and this one, the owner (interactive session, Claude Opus 5.5 co-authored) restructured the repo into a monorepo — `flutter_app/` now holds the Flutter app, a new `react_native_app/` (Expo+TypeScript) was scaffolded (commits `3548dd2`/`d3b0b8e`). `AGENTS.md`, READMEs, CI, Dependabot, and the session-start hook were all updated for this by that commit; the vault was not. Added a "Repo root" section to [[Architecture]] and two gotcha entries to [[Multi-Agent Setup]] (`.claude/agents/*.md` scope paths still say bare `lib/` not `flutter_app/lib/`; this run's sandbox had stray untracked pre-restructure build artifacts — android/ios/linux/macos/windows/.dart_tool — at the old root, deletion of which was denied by the auto-mode classifier as "Irreversible Local Destruction," left in place rather than committed or force-deleted).
+- **#276/#278**: Docker daemon still absent — same confirmed blocker. PR #303 also now sits 36+ commits behind current `master` (predates the restructure), so it'll need a rebase whenever unblocked — moot for now.
+- **#55**: re-read its one comment directly (bot-authored, 2026-10-04) — no human reply since, same blocker.
+- **#301/#29/#52**: unchanged.
+- Net: 0 issues processed, 4th no-op run in a row — but this run's extra investigation (confirming the restructure, checking #55/PR #303 directly via a subagent) was worth the cost given it surfaced a real unlogged change.
+
 ## 2026-10-05, 3rd run (board worker — nothing eligible, blockers rechecked a third time)
 
 - Eligibility check: same 6 `todo` issues as the 2nd run today, identical `updated_at` on all 6 (#29/#52/#55/#276/#278/#301). `waiting-on-you` empty.

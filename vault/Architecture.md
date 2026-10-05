@@ -7,6 +7,12 @@ upstream_concept: 00-Index
 
 # Architecture
 
+## Repo root (changed 2026-10-05)
+
+The owner restructured the repo into a monorepo (`chore: restructure into monorepo with flutter_app/`, commit `3548dd2`, same day a new `react_native_app/` Expo+TypeScript app was scaffolded, commit `d3b0b8e` — both direct owner commits to `master`, outside this routine). Repo root is now: `flutter_app/` (the canonical Flutter app — everything below in this note is relative to it, same as `AGENTS.md` now states explicitly), `react_native_app/` (new, Expo+TypeScript, not otherwise covered by this vault yet), `supabase/`, `docs/`, `vault/`, `.github/`, `.claude/`, `.codex/` unchanged at root. CI/Dependabot were updated for the split (Flutter jobs run inside `flutter_app/`, a path-filtered RN workflow added, separate Dependabot entries per app).
+
+**Not yet updated for this**: `.claude/agents/*.md` (`ui-agent`/`logic-agent`'s file-scope definitions still say bare `lib/` etc., not `flutter_app/lib/`) — same class of staleness as the earlier flat-`lib/`-vs-domain-layout gotcha in [[Multi-Agent Setup]]. Check/fix those before trusting a dispatched agent's scope boundaries not to misfire on this.
+
 ## lib/ layout
 
 Domain-based, not layer-based. Top level:

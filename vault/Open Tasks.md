@@ -7,7 +7,16 @@ upstream_concept: 00-Index
 
 # Open Tasks
 
-**Updated 2026-10-05 (board worker, 3rd run that day), see [[Status Log]] 2026-10-05 for full detail.** **Source of truth is always a live `list_issues`/`gh issue list --repo abdiking200313/eatzy --state open` call** — re-check before relying on this for anything that matters.
+**Updated 2026-10-05 (board worker, 4th run that day), see [[Status Log]] 2026-10-05 for full detail.** **Source of truth is always a live `list_issues`/`gh issue list --repo abdiking200313/eatzy --state open` call** — re-check before relying on this for anything that matters.
+
+## Update, 2026-10-05 (4th run) — nothing eligible, same 6 blockers; major repo restructure found and logged
+
+- Eligibility check: identical 6 `todo` issues as the 3rd run (#29, #52, #55, #276, #278, #301), same `updated_at` on every one.
+- **Big non-issue finding**: `master` picked up a direct owner-driven monorepo restructure since the 3rd run (`flutter_app/` now holds the Flutter app, new `react_native_app/` scaffolded) — not reflected anywhere in this vault before now. Logged in [[Architecture]] "Repo root" and [[Multi-Agent Setup]] (stale `.claude/agents/*.md` scope paths, stray untracked build artifacts at the old root). Doesn't change any of the 6 issues' eligibility — see below.
+- **#276/#278**: still no running Docker daemon (confirmed again). PR #303 additionally now has a base 36+ commits behind current `master` (predates the restructure) — will need a rebase whenever it's eventually mergeable, but moot while the Docker blocker holds.
+- **#55**: re-checked its one comment directly — still the bot's own 2026-10-04 comment, no human reply since. Same blocker (Linux sandbox, no Xcode/CocoaPods).
+- **#301**: still blocked on #276/#278 per its own body. **#29/#52**: tracking-only, unchanged.
+- **Net result: 0 issues processed, fourth no-op run in a row** — but worth the extra investigation time this run since the restructure was a real, previously-unlogged change.
 
 ## Update, 2026-10-05 (3rd run) — nothing eligible, all 6 blockers reconfirmed a third time, 0 issues processed
 
