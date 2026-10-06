@@ -7,9 +7,19 @@ upstream_concept: 00-Index
 
 # Open Tasks
 
-**Updated 2026-10-05 (board worker, 5th run that day), see [[Status Log]] 2026-10-05 for full detail.** **Source of truth is always a live `list_issues`/`gh issue list --repo abdiking200313/eatzy --state open` call** — re-check before relying on this for anything that matters.
+**Updated 2026-10-06 (board worker, 2nd run that day), see [[Status Log]] 2026-10-06 for full detail.** **Source of truth is always a live `list_issues`/`gh issue list --repo abdiking200313/eatzy --state open` call** — re-check before relying on this for anything that matters.
 
-## Update, 2026-10-06 (board worker) — nothing eligible, same 6 blockers reconfirmed a sixth time
+## Update, 2026-10-06 (board worker, 2nd run) — nothing eligible, same 6 blockers reconfirmed a seventh time
+
+- Eligibility check: identical 6 `todo` issues as the prior run (#29, #52, #55, #276, #278, #301), same `updated_at` on every one. `waiting-on-you` still empty.
+- **#276/#278**: Docker CLI present (now v29.8.2, up from v29.6.2), still no running daemon (`/var/run/docker.sock` absent, `docker ps` fails to connect) — same confirmed blocker, re-verified directly. PR #303 stays open/unmerged. #278 stays blocked on #276.
+- **#301**: re-read directly — still explicitly blocked on #276-#299 all closing per its own body; #276/#278 are the only two of that range still open.
+- **#55**: re-checked its comments directly — still only the bot's own 2026-10-04 comment, no human reply since.
+- **#29/#52**: tracking-only, unchanged.
+- `master` gained only the prior run's own vault-update commit (`ab6e886`, PR #423) since that run — no new work that changes eligibility.
+- **Net result: 0 issues processed, seventh no-op run in a row.**
+
+## Update, 2026-10-06 (board worker, 1st run) — nothing eligible, same 6 blockers reconfirmed a sixth time
 
 - Eligibility check: identical 6 `todo` issues as the 5th run (#29, #52, #55, #276, #278, #301), same `updated_at` on every one. `waiting-on-you` still empty.
 - **#276/#278**: Docker CLI present (v29.6.2), still no running daemon (`/var/run/docker.sock` absent, `docker ps` fails to connect) — same confirmed blocker. PR #303 stays open/unmerged. #278 stays blocked on #276.
