@@ -7,7 +7,16 @@ upstream_concept: 00-Index
 
 # Open Tasks
 
-**Updated 2026-10-06 (board worker, 3rd run that day), see [[Status Log]] 2026-10-06 for full detail.** **Source of truth is always a live `list_issues`/`gh issue list --repo abdiking200313/eatzy --state open` call** — re-check before relying on this for anything that matters.
+**Updated 2026-10-06 (board worker, 4th run that day), see [[Status Log]] 2026-10-06 for full detail.** **Source of truth is always a live `list_issues`/`gh issue list --repo abdiking200313/eatzy --state open` call** — re-check before relying on this for anything that matters.
+
+## Update, 2026-10-06 (board worker, 4th run) — nothing eligible, same 6 blockers reconfirmed a ninth time
+
+- Eligibility check: identical 6 `todo` issues as the prior run (#29, #52, #55, #276, #278, #301). `waiting-on-you` still empty.
+- **#276/#278**: Docker CLI present (still v29.8.2), still no running daemon (`/var/run/docker.sock` absent, `docker info` fails to connect) — same confirmed blocker, re-verified directly. PR #303 stays open/unmerged. #278 stays blocked on #276.
+- **#55**: re-checked its comments directly — still only the bot's own 2026-10-04 comment, no human reply since.
+- **#29/#52**: tracking-only, unchanged.
+- `master` gained only the prior run's own vault-update commit (`1d9cf21`, PR #425) since that run — no new work that changes eligibility.
+- **Net result: 0 issues processed, ninth no-op run in a row.**
 
 ## Update, 2026-10-06 (board worker, 3rd run) — nothing eligible, same 6 blockers reconfirmed an eighth time
 
