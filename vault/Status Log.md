@@ -8,6 +8,12 @@ Reverse-chronological. Each session/major chunk of work gets an entry.
 
 ---
 
+## 2026-10-08, later run (RN Phase 0 smoke test — #349 Jest + RNTL setup implemented)
+
+- Implemented issue [#349](https://github.com/abdiking200313/eatzy/issues/349) (P0-07) directly (no subagent dispatch — straightforward enough for one pass): `jest-expo`/`@testing-library/react-native`/`jest` added to `react_native_app/package.json` (`npm test`), `jest.config.js`, and `src/test-utils/` (`fake-supabase-client.ts` — chainable/thenable fake for `.from()`/`.rpc()` with FIFO queues + a recorded call log; `render-with-providers.tsx` — `renderWithProviders`, the RN analogue of `app_scope_test_helpers.dart`'s `pumpWithAppScope`). Added a `Test` step to `.github/workflows/react-native.yml`. PR [#444](https://github.com/abdiking200313/eatzy/pull/444) — merged a moment after #348/#442 landed on `master`; rebased onto both before merging (additive `package.json`/`package-lock.json` conflict only, re-verified green after).
+- **Found, flagged in the PR, not fixed (out of #349's scope)**: `npx expo install` currently can't load `react_native_app/app.config.ts` on a clean checkout — `Cannot find module './src/platform/config/env'`, because Node can't resolve the nested relative `.ts` import without an extension-resolution hook, even though the config loader itself does handle the top-level `.ts` file. Reproduces independent of this issue; worked around by hand-picking dependency versions from `expo`'s own `bundledNativeModules.json`/published `peerDependencies` instead of running `expo install`. Will block any future `expo install <pkg>` in `react_native_app/` until someone fixes it — worth its own issue.
+- Also had to add `types: ["jest"]` to `react_native_app/tsconfig.json`: this project's `moduleResolution: "bundler"` doesn't auto-include ambient-only `@types` packages (confirmed nothing else currently relies on that auto-inclusion, so this is additive, not a behavior change for existing code).
+
 ## 2026-10-08 (interactive session — React Native migration automation built, nothing approved yet)
 
 - User asked to "approve everything" in `needs-approval` after the board worker's 18-run no-op streak; found it was 75 issues, the entire `react_native_app/` migration (phases P0-P10, filed 2026-10-05). Flagged the existing automation is Flutter-only and offered 3 options; user picked "fix the automation first." Full reasoning in [[Decisions Log]] 2026-10-08.
