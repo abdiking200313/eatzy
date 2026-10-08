@@ -152,12 +152,33 @@ module.exports = {
         header: '0 4px 12px rgba(15, 23, 42, 0.08)',
       },
 
+      // --- Outfit, bundled via app.json's `expo-font` config plugin from
+      // react_native_app/assets/fonts/Outfit-*.ttf (issue #353). Ports
+      // flutter_app/lib/config/tailwind.dart's `fontFamily: 'Outfit'` +
+      // `fontWeight` pairs and pubspec.yaml's weight -> filename mapping
+      // (w400 -> Regular, w500 -> Medium, w600 -> SemiBold, w700 -> Bold).
+      // Unlike Flutter's single `Outfit` family + `FontWeight` (resolved by
+      // the engine against the weight-tagged assets registered in
+      // pubspec.yaml), React Native has no automatic weight resolution for a
+      // custom font — each weight is its own family name here, so pair the
+      // matching `font-outfit*` class with every `text-*` type-scale class
+      // below (e.g. `className="text-text3xl font-outfitBold"`). See
+      // src/theme/tokens.ts's `fontFamily`/`typography` exports for the same
+      // pairing as plain JS values. ---
+      fontFamily: {
+        outfitRegular: ['Outfit-Regular'],
+        outfitMedium: ['Outfit-Medium'],
+        outfitSemiBold: ['Outfit-SemiBold'],
+        outfitBold: ['Outfit-Bold'],
+      },
+
       // --- TwText. Font sizes carry weight/line-height/letter-spacing like
       // the Dart TextStyles do; color is applied separately via the `text`/
       // `textMuted` color tokens above (Tailwind keeps color and type-scale
-      // utilities independent, unlike a Flutter TextStyle). `fontFamily:
-      // 'Outfit'` itself is not wired up here — loading/registering the
-      // bundled Outfit font is a separate task, not part of #352. ---
+      // utilities independent, unlike a Flutter TextStyle). Pair each class
+      // below with the `font-outfit*` class matching its `fontWeight` (see
+      // the `fontFamily` block above) — Tailwind's `fontSize` tuple format
+      // has no `fontFamily` slot of its own. ---
       fontSize: {
         text3xl: ['30px', { lineHeight: '1.15', fontWeight: '700' }],
         text2xl: ['26px', { lineHeight: '1.2', fontWeight: '700' }],
