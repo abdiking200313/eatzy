@@ -8,24 +8,15 @@ Reverse-chronological. Each session/major chunk of work gets an entry.
 
 ---
 
-## 2026-10-07, 4th run (board worker — nothing eligible, blockers rechecked a fifteenth time)
+## 2026-10-05 (2nd run) through 2026-10-08 (2nd run) — 16 consecutive no-op runs, same 6 blockers (consolidated per this file's own archival convention)
 
-- Eligibility check: same 6 `todo` issues as the 3rd run today, identical `updated_at` on all 6 (#29/#52/#55/#276/#278/#301). `waiting-on-you` empty.
-- **#276/#278**: Docker CLI present (v29.8.2), no running daemon (`/var/run/docker.sock` absent) — same blocker, re-confirmed directly via `docker info`. #278 stays blocked on #276.
-- **#55**: re-checked its one comment directly — still the bot's own 2026-10-04 comment, no human reply since.
-- **#29/#52**: unchanged, tracking-only.
-- `master`'s only new commit since the 3rd run was that run's own vault-update commit (`246c773`, PR #431) — no new work landed.
-- Net: 0 issues processed, fifteenth no-op run in a row. Cost only the cheap eligibility query plus the same two targeted re-checks (Docker, #55's comments) — no subagent dispatch needed.
-
-## 2026-10-05 (2nd run) through 2026-10-07 (3rd run) — 13 consecutive no-op runs, same 6 blockers (consolidated per this file's own archival convention)
-
-- 13 board-worker runs in a row found the identical 6 `todo` issues (#29/#52/#55/#276/#278/#301), `waiting-on-you` empty, nothing newly eligible each time. Each run's only new `master` commit was the immediately prior run's own vault-update PR (#423 through #430).
-- **#276/#278**: Docker CLI present throughout (v29.6.2 → v29.8.2 over this span), still no running daemon (`/var/run/docker.sock` absent) on every single check. #278 stays blocked on #276.
+- 16 board-worker runs in a row found the identical 6 `todo` issues (#29/#52/#55/#276/#278/#301), `waiting-on-you` empty, nothing newly eligible each time. Each run's only new `master` commit was the immediately prior run's own vault-update PR (#423 through #433).
+- **#276/#278**: Docker CLI present throughout (v29.6.2 → v29.8.2 over this span), still no running daemon (`/var/run/docker.sock` absent) on every single check, most recently re-confirmed directly 2026-10-08 (2nd run). #278 stays blocked on #276. PR #303 stays open/unmerged, base still `b51c385` — well behind current `master`, will need a rebase whenever it's eventually mergeable, moot while Docker stays blocked.
 - **#55**: re-checked directly every run — still only the bot's own 2026-10-04 comment, no human reply.
 - **#301**: re-checked a couple of times — still blocked on #276/#278 per its own body (the rest of #276-#299 is closed).
 - **#29/#52**: tracking-only, unchanged throughout.
-- **One real (non-eligibility-changing) finding mid-streak, 2026-10-05 4th run**: the owner restructured the repo into a monorepo between that day's 3rd and 4th runs (`flutter_app/` now holds the Flutter app, new `react_native_app/` Expo+TypeScript app scaffolded, commits `3548dd2`/`d3b0b8e`) — not this routine's own work, but logged into [[Architecture]] ("Repo root") and [[Multi-Agent Setup]] since it hadn't been reflected in the vault before. PR #303 (for #276) also now sits well behind current `master` from this point on and will need a rebase whenever it's eventually mergeable — moot while Docker stays blocked.
-- Net: 0 issues processed across all 13 runs.
+- **One real (non-eligibility-changing) finding mid-streak, 2026-10-05 4th run**: the owner restructured the repo into a monorepo between that day's 3rd and 4th runs (`flutter_app/` now holds the Flutter app, new `react_native_app/` Expo+TypeScript app scaffolded, commits `3548dd2`/`d3b0b8e`) — not this routine's own work, but logged into [[Architecture]] ("Repo root") and [[Multi-Agent Setup]] since it hadn't been reflected in the vault before.
+- Net: 0 issues processed across all 16 runs.
 
 ## 2026-10-04, 4th run (board worker — #32/#222/#298 merged, #55 partial, #276/#278/#301 still blocked)
 
