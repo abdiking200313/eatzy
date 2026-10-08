@@ -11,8 +11,9 @@ import { AppState, type AppStateStatus } from 'react-native';
 
 import { env } from '../config/env';
 import { EncryptedAsyncStorage } from '../session/secure-session-storage';
+import type { Database } from '../../types/database';
 
-export const supabase = createClient(env.supabaseUrl, env.supabaseAnonKey, {
+export const supabase = createClient<Database>(env.supabaseUrl, env.supabaseAnonKey, {
   auth: {
     storage: new EncryptedAsyncStorage(),
     autoRefreshToken: true,
