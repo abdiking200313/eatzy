@@ -1,0 +1,378 @@
+import 'dart:async';
+
+import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
+import '../../app/app_services.dart';
+import '../../app/merchant_session_gate.dart';
+import '../../config/env.dart';
+import '../../config/theme.dart';
+import '../../features/onboarding/data/onboarding_preferences.dart';
+import '../../features/settings/data/notification_preferences_repository.dart';
+import '../../services/grocery/models/grocery_models.dart';
+import '../../widgets/zivo_logo.dart';
+import '../activity/data/activity_repository.dart';
+import '../cache/catalog_queries.dart';
+import '../error_reporting/crashlytics_error_reporter.dart';
+import '../error_reporting/error_reporter.dart';
+import '../notifications/push_notifications.dart';
+import '../session/secure_session_storage.dart';
+
+/// How long any single startup network call is allowed to run before it is
+/// treated as failed (issue #41). Chosen to comfortably cover a slow mobile
+/// connection while still giving up well before a user assumes the app is
+/// permanently frozen.
+const Duration kStartupNetworkTimeout = Duration(seconds: 15);
+
+/// What [runStartupSequence] hands back on success: the single [AppServices]
+/// composition root (issue #281) the real app root needs. Kept as a named
+/// result (rather than returning the bare [AppServices]) so a future caller
+/// can add another field without changing the function's return type.
+class StartupResult {
+  const StartupResult({required this.appServices});
+
+  final AppServices appServices;
+}
+
+/// Runs every startup step that used to block `main()` before `runApp`
+/// (issue #41): `Supabase.initialize`, the onboarding-seen flag, the food /
+/// grocery / pharmacy cart loads, and (for a signed-in user) the initial
+/// activity load.
+///
+/// `Supabase.initialize` is the one call the rest of the app cannot function
+/// without, so its failure (including timing out) is fatal and rethrown --
+/// [StartupGate] turns that into a retry screen instead of a frozen splash.
+/// Every other step degrades instead of blocking: it is individually timed
+/// out and any error is reported via [ErrorReporting] and swallowed, so a
+/// slow/broken cart or activity load does not stop the user from reaching
+/// the app (they land with an empty cart / no recent activity instead,
+/// which the relevant screens already know how to display and retry).
+Future<StartupResult> runStartupSequence() async {
+  // Issue #277: `Env`'s production fallback (see its doc comment) means a
+  // local run/debug build with no --dart-define-from-file silently talks to
+  // real production data. Debug-build-only (kDebugMode), so a release build
+  // never prints this -- it is a developer nudge, not user-facing.
+  if (kDebugMode && Env.isUsingProductionDefault) {
+    debugPrint(
+      '⚠️ Running against PRODUCTION Supabase — no --dart-define-from-file '
+      'was passed. Use --dart-define-from-file=config/dev.json (copy '
+      'config/dev.json.example) to run against a non-production project.',
+    );
+  }
+
+  const supabaseUrl = Env.supabaseUrl;
+  try {
+    await Supabase.initialize(
+      url: supabaseUrl,
+      publishableKey: Env.supabaseAnonKey,
+      authOptions: FlutterAuthClientOptions(
+        localStorage: SecureSessionStorage(supabaseUrl: supabaseUrl),
+      ),
+    ).timeout(kStartupNetworkTimeout);
+  } on Object catch (error, stackTrace) {
+    ErrorReporting.instance.reportError(
+      error,
+      stackTrace,
+      context: 'Supabase.initialize',
+    );
+    rethrow;
+  }
+
+  // The composition root (issue #281): built once Supabase.initialize has
+  // succeeded, since AppServices.fromSingletons reads Supabase.instance.
+  // Wraps the same process-wide singletons every call site already used
+  // (CartController.instance, ActivityController.instance, etc.) -- this
+  // phase only adds a single bundled access point, it does not change which
+  // underlying objects are in use.
+  final appServices = AppServices.fromSingletons();
+
+  // Load the last-seen catalog from disk so the first screens render it on
+  // their first frame, then start refreshing it in the background while the
+  // rest of startup runs -- deliberately not awaited, so a slow network
+  // never delays reaching the app. Screens that need the data before the
+  // prefetch finishes join the same in-flight request (see QueryCache.fetch).
+  await _runBestEffort(
+    'QueryCache.hydrate',
+    () => appServices.queryCache.hydrate().timeout(kStartupNetworkTimeout),
+  );
+  unawaited(CatalogQueries.prefetchHome());
+
+  // Loaded once, up front, so AppRouter's synchronous redirect can gate a
+  // returning signed-out user past onboarding on this very first frame --
+  // see OnboardingLaunchGate and issue #15. A failure here only means a
+  // returning user might see onboarding again, so it falls back to `false`
+  // (show onboarding) rather than blocking startup.
+  await _runBestEffort('OnboardingLaunchGate.hasSeenOnboarding', () async {
+    OnboardingLaunchGate.hasSeenOnboarding =
+        await const SharedPreferencesOnboardingPreferences()
+            .hasSeenOnboarding()
+            .timeout(kStartupNetworkTimeout);
+  }, onFailure: () => OnboardingLaunchGate.hasSeenOnboarding = false);
+
+  final cartController = appServices.cartController;
+  final currentUserId = Supabase.instance.client.auth.currentUser?.id;
+
+  // Issue #232: resolve merchant/admin routing once at startup for a
+  // restored session, so AppRouter's synchronous redirect can send a
+  // merchant/admin account to the merchant dashboard on this very first
+  // frame instead of the customer home -- mirrors the OnboardingLaunchGate
+  // load above. Best-effort: a failed lookup falls back to `false`
+  // (customer routing), the same fail-closed behavior as
+  // MerchantRoleService.fetchRole itself.
+  if (currentUserId == null) {
+    MerchantSessionGate.reset();
+  } else {
+    await _runBestEffort(
+      'MerchantSessionGate.resolveFor',
+      () => MerchantSessionGate.resolveFor(
+        currentUserId,
+      ).timeout(kStartupNetworkTimeout),
+      onFailure: MerchantSessionGate.reset,
+    );
+  }
+
+  // Firebase init + an initial permission prompt (issue #47), Android only
+  // -- see PushNotificationGateway's doc comment. Best-effort like every
+  // other step here: a user with push notifications off (or a device that
+  // can't reach Firebase) still reaches the app normally, just without a
+  // token. Respects the #10 preference already on disk for a returning
+  // signed-in user instead of re-prompting regardless of their choice; a
+  // signed-out user (or one who has never set a preference) falls back to
+  // NotificationPreferences.defaults, which has push on.
+  await _runBestEffort('PushNotifications.initialize', () async {
+    await PushNotifications.instance.initialize().timeout(
+      kStartupNetworkTimeout,
+    );
+    final preferences = currentUserId == null
+        ? NotificationPreferences.defaults
+        : await SharedPreferencesNotificationPreferencesStorage()
+              .read(currentUserId)
+              .timeout(kStartupNetworkTimeout);
+    if (preferences.pushNotifications) {
+      await PushNotifications.instance.requestPermission().timeout(
+        kStartupNetworkTimeout,
+      );
+    }
+  });
+
+  // Firebase Crashlytics (issue #287): points `ErrorReporting.instance` at a
+  // Crashlytics-backed reporter in release/profile builds only, so crashes
+  // on users' phones stop being invisible; debug builds keep
+  // LoggingErrorReporter and explicitly disable collection. Runs after the
+  // push-notification step above (Android already has a Firebase app from
+  // it there), and initializes Firebase itself for iOS, where
+  // PushNotificationGateway deliberately stays unwired (issue #55) but
+  // Crashlytics' native iOS setup (dSYM upload script) is in #287's scope.
+  // No web/desktop support: `firebase_crashlytics` only ships
+  // Android/iOS/macOS plugins and this app only commits Firebase config
+  // (`google-services.json` / `GoogleService-Info.plist`) for Android/iOS.
+  await _runBestEffort('Crashlytics.configure', () async {
+    final supportsCrashlytics =
+        !kIsWeb &&
+        (defaultTargetPlatform == TargetPlatform.android ||
+            defaultTargetPlatform == TargetPlatform.iOS);
+    if (!supportsCrashlytics) return;
+
+    if (Firebase.apps.isEmpty) {
+      await Firebase.initializeApp().timeout(kStartupNetworkTimeout);
+    }
+    const client = FirebaseCrashlyticsClient();
+    if (kReleaseMode || kProfileMode) {
+      await client.setCrashlyticsCollectionEnabled(true);
+      ErrorReporting.instance = const CrashlyticsErrorReporter(client);
+    } else {
+      await client.setCrashlyticsCollectionEnabled(false);
+    }
+  });
+
+  await _runBestEffort(
+    'CartController.loadForOwner',
+    () => cartController
+        .loadForOwner(currentUserId)
+        .timeout(kStartupNetworkTimeout),
+  );
+  // Grocery, Fresh Meat and Electronics each keep their own cart.
+  for (final type in GroceryStoreType.values) {
+    await _runBestEffort(
+      'GroceryController(${type.dbValue}).loadForOwner',
+      () => appServices
+          .groceryController(type)
+          .loadForOwner(currentUserId)
+          .timeout(kStartupNetworkTimeout),
+    );
+  }
+  await _runBestEffort(
+    'PharmacyController.loadForOwner',
+    () => appServices.pharmacyController
+        .loadForOwner(currentUserId)
+        .timeout(kStartupNetworkTimeout),
+  );
+
+  appServices.activityController.configureRepository(
+    SupabaseActivityRepository(client: appServices.supabaseClient),
+  );
+  if (currentUserId != null) {
+    await _runBestEffort(
+      'ActivityController.load',
+      () =>
+          appServices.activityController.load().timeout(kStartupNetworkTimeout),
+    );
+  }
+
+  return StartupResult(appServices: appServices);
+}
+
+/// Runs [body], reporting and swallowing any failure (including a timeout)
+/// instead of letting it abort the rest of [runStartupSequence]. [onFailure]
+/// runs synchronously after a failure is reported, for callers that need to
+/// apply a fallback value.
+Future<void> _runBestEffort(
+  String context,
+  Future<void> Function() body, {
+  void Function()? onFailure,
+}) async {
+  try {
+    await body();
+  } on Object catch (error, stackTrace) {
+    ErrorReporting.instance.reportError(error, stackTrace, context: context);
+    onFailure?.call();
+  }
+}
+
+/// Root widget installed by `runApp` in place of the real app (issue #41):
+/// runs [runStartup] once mounted and shows a loading state while it's in
+/// flight, an error/retry state if it fails, or hands off to [onReady] with
+/// the composed [AppServices] (issue #281) once it succeeds -- so a slow or
+/// failed network call blocks a lightweight bootstrap screen instead of
+/// `runApp` itself, and a failure is always recoverable instead of leaving a
+/// permanently black/frozen screen.
+class StartupGate extends StatefulWidget {
+  const StartupGate({
+    super.key,
+    required this.onReady,
+    this.runStartup = runStartupSequence,
+  });
+
+  /// Builds the real app once startup succeeds.
+  final Widget Function(AppServices appServices) onReady;
+
+  /// Overridable for tests; defaults to [runStartupSequence].
+  final Future<StartupResult> Function() runStartup;
+
+  @override
+  State<StartupGate> createState() => _StartupGateState();
+}
+
+enum _StartupStatus { loading, failed }
+
+class _StartupGateState extends State<StartupGate> {
+  _StartupStatus _status = _StartupStatus.loading;
+  StartupResult? _result;
+
+  @override
+  void initState() {
+    super.initState();
+    unawaited(_start());
+  }
+
+  Future<void> _start() async {
+    setState(() {
+      _status = _StartupStatus.loading;
+      _result = null;
+    });
+    try {
+      final result = await widget.runStartup();
+      if (!mounted) return;
+      setState(() => _result = result);
+    } on Object catch (error, stackTrace) {
+      ErrorReporting.instance.reportError(
+        error,
+        stackTrace,
+        context: 'StartupGate',
+      );
+      if (!mounted) return;
+      setState(() => _status = _StartupStatus.failed);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final result = _result;
+    if (result != null) {
+      return widget.onReady(result.appServices);
+    }
+
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      theme: buildAppTheme(),
+      home: _status == _StartupStatus.failed
+          ? _StartupErrorView(onRetry: _start)
+          : const _StartupLoadingView(),
+    );
+  }
+}
+
+class _StartupLoadingView extends StatelessWidget {
+  const _StartupLoadingView();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: TwColors.bg,
+      body: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const ZivoLogo(),
+            const SizedBox(height: TwSpacing.x8),
+            const CircularProgressIndicator(),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _StartupErrorView extends StatelessWidget {
+  const _StartupErrorView({required this.onRetry});
+
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: TwColors.bg,
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(TwSpacing.x8),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(
+                Icons.wifi_off_rounded,
+                color: TwColors.textMuted,
+                size: 40,
+              ),
+              const SizedBox(height: TwSpacing.x4),
+              Text(
+                "Couldn't connect",
+                textAlign: TextAlign.center,
+                style: TwText.fontBoldBase,
+              ),
+              const SizedBox(height: TwSpacing.x2),
+              Text(
+                'Check your internet connection and try again.',
+                textAlign: TextAlign.center,
+                style: TwText.textSm.copyWith(color: TwColors.textMuted),
+              ),
+              const SizedBox(height: TwSpacing.x6),
+              FilledButton(onPressed: onRetry, child: const Text('Try again')),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}

@@ -7,7 +7,232 @@ upstream_concept: 00-Index
 
 # Open Tasks
 
-**Updated 2026-09-25, 4th run (board worker), see [[Status Log]] 2026-09-24 (profile editing / registration fields) for full detail on the last real work — interactive, not this routine.** **Source of truth is always a live `list_issues`/`gh issue list --repo abdiking200313/eatzy --state open` call** — re-check before relying on this for anything that matters.
+**Updated 2026-10-08 (board worker, 3rd run today)** — re-check before relying on this for anything that matters. **Source of truth is always a live `list_issues`/`gh issue list --repo abdiking200313/eatzy --state open` call.**
+
+## Update, 2026-10-08 (board worker, 3rd run today) — #351 confirmed genuinely in-progress elsewhere (real branch, no PR yet), nothing else eligible
+
+- Eligibility check: same 7 `todo`/`agent-in-progress`-or-not issues as the prior run (#29, #52, #55, #276, #278, #301, #351). `waiting-on-you` still empty.
+- **#351**: re-checked per the prior run's own "check fresh, don't assume" note — `list_branches` shows `agent/issue-351-crashlytics-error-boundary` exists (real commit, not just the label) but `issue_read` still shows `closed_by_pull_requests.total_count: 0` (no PR yet). This is genuine in-progress work by another session, not the 2026-09-14 stale-label pattern (that needs *neither* a branch *nor* a PR to apply) — left untouched this run too, per the "pick the oldest `todo` issue that isn't already `agent-in-progress`" rule. Check again fresh next run rather than assuming either way.
+- **#276/#278**: Docker CLI still present (v29.8.2), still no running daemon (`/var/run/docker.sock` absent, `docker info` fails to connect) — same confirmed blocker, re-verified directly. PR #303 stays open/unmerged. #278 stays blocked on #276.
+- **#55**: re-checked `get_comments` directly — still only the bot's own 2026-10-04 comment, no human reply since.
+- **#29/#52/#301**: unchanged, no direct work possible.
+- `master` gained only the prior run's own vault-update commit (`da1bfbe`, PR #448) since that run — no new work that changes eligibility.
+- **Net result: 0 issues processed this run** (the one candidate, #351, is legitimately claimed elsewhere).
+
+## Update, 2026-10-08 (board worker, later run) — RN Phase 0 smoke test effectively cleared; two sessions ran it concurrently
+
+- **#346-350 all merged**, **#351 (the last Phase 0 issue) is `agent-in-progress`** under a *different* concurrently-running session — not touched this run, re-check its real state (branch/PR vs. still just a label) fresh next time rather than assuming either way. Full detail, including exactly which PRs/issues collided and how each was reconciled, in [[Status Log]] 2026-10-08 "RN Phase 0 smoke test cleared".
+- **New, unlabeled issue** [#441](https://github.com/abdiking200313/eatzy/issues/441) (`app.config.ts` nested `.ts` import breaks `expo config`/`expo-doctor`/`expo install`, likely `eas build` too) — filed by the concurrent session, not yet `needs-approval` or anything else. Worth the user's attention; it'll keep blocking `expo install <pkg>` in `react_native_app/` until fixed.
+- **Not this routine's call**: whether to approve more of the batch (Phases 1-10, ~69 issues) now that Phase 0 has gone through real dispatches end to end and surfaced one genuine bug (#441) rather than failing outright. Leave `needs-approval` alone per the standing instruction below until the user decides.
+- The pre-existing 6 blocked/tracking issues (#29, #52, #55, #276, #278, #301) reconfirmed unchanged a 19th+ time — same Docker-daemon/no-human-reply blockers as every prior run.
+
+## Update, 2026-10-08 (interactive session) — Phase 0 of the React Native migration approved as a smoke test
+
+- **#346-351 (all 6 `react_native_app/` Phase 0 issues) relabeled `needs-approval` → `todo`** — see [[Decisions Log]] 2026-10-08. These are now board-worker-eligible and should route through `/build-rn` + `rn-*` agents per [[Conventions]] "App label rules", not the Flutter `/build` flow.
+- **The other 69 issues of the batch (Phases 1-10) stay `needs-approval` deliberately** — this is an explicit smoke test of brand-new, never-dispatched automation. Do not bulk-approve the rest just because a run finds the queue otherwise empty; wait for Phase 0 to actually clear cleanly first.
+- Next board-worker run should pick these up oldest-first (#346 first) same as any other `todo` issue — no special-casing needed beyond the label-based routing already documented.
+- The pre-existing 6 blocked/tracking issues (#29, #52, #55, #276, #278, #301) are unchanged — still blocked on sandbox Docker/macOS limitations, see the entries below.
+
+## Update, 2026-10-08 (board worker, 3rd run) — nothing eligible, same 6 blockers reconfirmed an eighteenth time
+
+- Eligibility check: identical 6 `todo` issues as every prior run (#29, #52, #55, #276, #278, #301). `waiting-on-you` still empty.
+- **#276/#278**: Docker CLI present (still v29.8.2), still no running daemon (`/var/run/docker.sock` absent, `docker info` fails to connect) — same confirmed blocker, re-verified directly. PR #303 stays open/unmerged (`mergeable_state: unknown`, base still `b51c385`, well behind current `master`). #278 stays blocked on #276.
+- **#55**: re-checked `get_comments` directly — still only the bot's own 2026-10-04 comment, no human reply since.
+- **#29/#52**: tracking-only, unchanged.
+- `master` gained only the prior run's own vault-update commit (`6cf20ce`, PR #434) since that run — no new work that changes eligibility.
+- **Net result: 0 issues processed, eighteenth no-op run in a row.**
+
+## Update, 2026-10-08 (board worker, 2nd run) — nothing eligible, same 6 blockers reconfirmed a seventeenth time
+
+- Eligibility check: identical 6 `todo` issues as every prior run (#29, #52, #55, #276, #278, #301). `waiting-on-you` still empty.
+- **#276/#278**: Docker CLI present (still v29.8.2), still no running daemon (`/var/run/docker.sock` absent, `docker info` fails to connect) — same confirmed blocker, re-verified directly. PR #303 stays open/unmerged, base still well behind current `master`. #278 stays blocked on #276.
+- **#55**: re-checked `get_comments` directly — still only the bot's own 2026-10-04 comment, no human reply since.
+- **#29/#52**: tracking-only, unchanged.
+- `master` gained only the prior run's own vault-update commit (`3e18588`, PR #433) since that run — no new work that changes eligibility.
+- **Net result: 0 issues processed, seventeenth no-op run in a row.**
+
+## Update, 2026-10-08 (board worker, 1st run) — nothing eligible, same 6 blockers reconfirmed a sixteenth time
+
+- Eligibility check: identical 6 `todo` issues as every prior run (#29, #52, #55, #276, #278, #301). `waiting-on-you` still empty.
+- **#276/#278**: Docker CLI present (still v29.8.2), still no running daemon (`/var/run/docker.sock` absent, `docker info` fails to connect) — same confirmed blocker, re-verified directly. #278 stays blocked on #276.
+- **#55**: re-checked `get_comments` directly — still only the bot's own 2026-10-04 comment, no human reply since.
+- **#29/#52**: tracking-only, unchanged.
+- `master` gained only the prior run's own vault-update commit (`83ffa87`, PR #432) since that run — no new work that changes eligibility.
+- **Net result: 0 issues processed, sixteenth no-op run in a row.**
+
+## Update, 2026-10-07 (board worker, 4th run) — nothing eligible, same 6 blockers reconfirmed a fifteenth time
+
+- Eligibility check: identical 6 `todo` issues as every prior run (#29, #52, #55, #276, #278, #301). `waiting-on-you` still empty.
+- **#276/#278**: Docker CLI present (still v29.8.2), still no running daemon (`/var/run/docker.sock` absent, `docker info` fails to connect) — same confirmed blocker, re-verified directly. #278 stays blocked on #276.
+- **#55**: re-checked `get_comments` directly — still only the bot's own 2026-10-04 comment, no human reply since.
+- **#29/#52**: tracking-only, unchanged.
+- `master` gained only the prior run's own vault-update commit (`246c773`, PR #431) since that run — no new work that changes eligibility.
+- **Net result: 0 issues processed, fifteenth no-op run in a row.**
+
+## Update, 2026-10-07 (board worker, 3rd run) — nothing eligible, same 6 blockers reconfirmed a fourteenth time
+
+- Eligibility check: identical 6 `todo` issues as every prior run (#29, #52, #55, #276, #278, #301). `waiting-on-you` still empty.
+- **#276/#278**: Docker CLI present (still v29.8.2), still no running daemon (`/var/run/docker.sock` absent, `docker info` fails to connect) — same confirmed blocker, re-verified directly. #278 stays blocked on #276.
+- **#55**: re-checked `get_comments` directly — still only the bot's own 2026-10-04 comment, no human reply since.
+- **#29/#52**: tracking-only, unchanged.
+- `master` gained only the prior run's own vault-update commit (`dcfe0b0`, PR #430) since that run — no new work that changes eligibility.
+- **Net result: 0 issues processed, fourteenth no-op run in a row.**
+
+## Update, 2026-10-07 (board worker, 2nd run) — nothing eligible, same 6 blockers reconfirmed a thirteenth time
+
+- Eligibility check: identical 6 `todo` issues as every prior run (#29, #52, #55, #276, #278, #301). `waiting-on-you` still empty.
+- **#276/#278**: Docker CLI present (still v29.8.2), still no running daemon (`/var/run/docker.sock` absent, `docker info` fails to connect) — same confirmed blocker, re-verified directly. #278 stays blocked on #276.
+- **#55**: re-checked `get_comments` directly — still only the bot's own 2026-10-04 comment, no human reply since.
+- **#29/#52**: tracking-only, unchanged.
+- `master` gained only the prior run's own vault-update commit (`3744c01`, PR #429) since that run — no new work that changes eligibility.
+- **Net result: 0 issues processed, thirteenth no-op run in a row.**
+
+## Update, 2026-10-07 (board worker, 1st run) — nothing eligible, same 6 blockers reconfirmed a twelfth time
+
+- Eligibility check: identical 6 `todo` issues as every prior run (#29, #52, #55, #276, #278, #301). `waiting-on-you` still empty.
+- **#276/#278**: Docker CLI present (still v29.8.2), still no running daemon (`/var/run/docker.sock` absent, `docker info` fails to connect) — same confirmed blocker, re-verified directly. PR #303 stays open/unmerged (`mergeable_state: unknown`, no new activity since 2026-10-03). #278 stays blocked on #276.
+- **#55**: re-checked `get_comments` directly — still only the bot's own 2026-10-04 comment, no human reply since.
+- **#301**: re-read directly — still explicitly blocked on #276/#278 (the only two of #276–#299 still open).
+- **#29/#52**: tracking-only, unchanged.
+- `master` gained only the prior run's own vault-update commit (`cd65949`, PR #428) since that run — no new work that changes eligibility.
+- **Net result: 0 issues processed, twelfth no-op run in a row.**
+
+## Update, 2026-10-06 (board worker, 6th run) — nothing eligible, same 6 blockers reconfirmed an eleventh time
+
+- Eligibility check: identical 6 `todo` issues as the prior run (#29, #52, #55, #276, #278, #301). `waiting-on-you` still empty.
+- **#276/#278**: Docker CLI present (still v29.8.2), still no running daemon (`/var/run/docker.sock` absent, `docker info` fails to connect) — same confirmed blocker, re-verified directly. #278 stays blocked on #276.
+- **#55**: re-checked its comments directly — still only the bot's own 2026-10-04 comment, no human reply since.
+- **#29/#52**: tracking-only, unchanged.
+- `master` gained only the prior run's own vault-update commit (`89bc89d`, PR #427) since that run — no new work that changes eligibility.
+- **Net result: 0 issues processed, eleventh no-op run in a row.**
+
+## Update, 2026-10-06 (board worker, 5th run) — nothing eligible, same 6 blockers reconfirmed a tenth time
+
+- Eligibility check: identical 6 `todo` issues as the prior run (#29, #52, #55, #276, #278, #301). `waiting-on-you` still empty.
+- **#276/#278**: Docker CLI present (still v29.8.2), still no running daemon (`/var/run/docker.sock` absent, `docker info` fails to connect) — same confirmed blocker, re-verified directly. PR #303 stays open/unmerged. #278 stays blocked on #276.
+- **#55**: re-checked its comments directly — still only the bot's own 2026-10-04 comment, no human reply since.
+- **#29/#52**: tracking-only, unchanged.
+- `master` gained only the prior run's own vault-update commit (`9a98d10`, PR #426) since that run — no new work that changes eligibility.
+- **Net result: 0 issues processed, tenth no-op run in a row.**
+
+## Update, 2026-10-06 (board worker, 4th run) — nothing eligible, same 6 blockers reconfirmed a ninth time
+
+- Eligibility check: identical 6 `todo` issues as the prior run (#29, #52, #55, #276, #278, #301). `waiting-on-you` still empty.
+- **#276/#278**: Docker CLI present (still v29.8.2), still no running daemon (`/var/run/docker.sock` absent, `docker info` fails to connect) — same confirmed blocker, re-verified directly. PR #303 stays open/unmerged. #278 stays blocked on #276.
+- **#55**: re-checked its comments directly — still only the bot's own 2026-10-04 comment, no human reply since.
+- **#29/#52**: tracking-only, unchanged.
+- `master` gained only the prior run's own vault-update commit (`1d9cf21`, PR #425) since that run — no new work that changes eligibility.
+- **Net result: 0 issues processed, ninth no-op run in a row.**
+
+## Update, 2026-10-06 (board worker, 3rd run) — nothing eligible, same 6 blockers reconfirmed an eighth time
+
+- Eligibility check: identical 6 `todo` issues as the prior run (#29, #52, #55, #276, #278, #301), same `updated_at` on every one. `waiting-on-you` still empty.
+- **#276/#278**: Docker CLI present (still v29.8.2), still no running daemon (`/var/run/docker.sock` absent, `docker info` fails to connect) — same confirmed blocker, re-verified directly. PR #303 stays open/unmerged. #278 stays blocked on #276.
+- **#55**: re-checked its comments directly — still only the bot's own 2026-10-04 comment, no human reply since.
+- **#29/#52**: tracking-only, unchanged.
+- `master` gained only the prior run's own vault-update commit (`9d832cf`, PR #424) since that run — no new work that changes eligibility.
+- **Net result: 0 issues processed, eighth no-op run in a row.**
+
+## Update, 2026-10-06 (board worker, 2nd run) — nothing eligible, same 6 blockers reconfirmed a seventh time
+
+- Eligibility check: identical 6 `todo` issues as the prior run (#29, #52, #55, #276, #278, #301), same `updated_at` on every one. `waiting-on-you` still empty.
+- **#276/#278**: Docker CLI present (now v29.8.2, up from v29.6.2), still no running daemon (`/var/run/docker.sock` absent, `docker ps` fails to connect) — same confirmed blocker, re-verified directly. PR #303 stays open/unmerged. #278 stays blocked on #276.
+- **#301**: re-read directly — still explicitly blocked on #276-#299 all closing per its own body; #276/#278 are the only two of that range still open.
+- **#55**: re-checked its comments directly — still only the bot's own 2026-10-04 comment, no human reply since.
+- **#29/#52**: tracking-only, unchanged.
+- `master` gained only the prior run's own vault-update commit (`ab6e886`, PR #423) since that run — no new work that changes eligibility.
+- **Net result: 0 issues processed, seventh no-op run in a row.**
+
+## Update, 2026-10-06 (board worker, 1st run) — nothing eligible, same 6 blockers reconfirmed a sixth time
+
+- Eligibility check: identical 6 `todo` issues as the 5th run (#29, #52, #55, #276, #278, #301), same `updated_at` on every one. `waiting-on-you` still empty.
+- **#276/#278**: Docker CLI present (v29.6.2), still no running daemon (`/var/run/docker.sock` absent, `docker ps` fails to connect) — same confirmed blocker. PR #303 stays open/unmerged. #278 stays blocked on #276.
+- **#55**: re-checked its comments directly — still only the bot's own 2026-10-04 comment, no human reply since.
+- **#29/#52**: tracking-only, unchanged.
+- `master` gained only the 5th run's own vault-update commit (`bcf34cc`, PR #422) since the 5th run — no new work that changes eligibility.
+- **Net result: 0 issues processed, sixth no-op run in a row.**
+
+## Update, 2026-10-05 (5th run) — nothing eligible, same 6 blockers reconfirmed a fifth time
+
+- Eligibility check: identical 6 `todo` issues as the 4th run (#29, #52, #55, #276, #278, #301), same `updated_at` on every one.
+- **#276/#278/#301**: Docker CLI present (v29.6.2), still no running daemon (`/var/run/docker.sock` absent) — same confirmed blocker. #278/#301 stay blocked on #276.
+- **#55**: re-checked its one comment directly — still the bot's own 2026-10-04 comment, no human reply since.
+- **#29/#52**: tracking-only, unchanged.
+- `master` gained only the 4th run's own vault-update commit (`7d89028`) plus one unrelated owner commit ignoring stray root-level build artifacts (`69ead72`, PR #345) — no new work that changes eligibility.
+- **Net result: 0 issues processed, fifth no-op run in a row.**
+
+## Update, 2026-10-05 (4th run) — nothing eligible, same 6 blockers; major repo restructure found and logged
+
+- Eligibility check: identical 6 `todo` issues as the 3rd run (#29, #52, #55, #276, #278, #301), same `updated_at` on every one.
+- **Big non-issue finding**: `master` picked up a direct owner-driven monorepo restructure since the 3rd run (`flutter_app/` now holds the Flutter app, new `react_native_app/` scaffolded) — not reflected anywhere in this vault before now. Logged in [[Architecture]] "Repo root" and [[Multi-Agent Setup]] (stale `.claude/agents/*.md` scope paths, stray untracked build artifacts at the old root). Doesn't change any of the 6 issues' eligibility — see below.
+- **#276/#278**: still no running Docker daemon (confirmed again). PR #303 additionally now has a base 36+ commits behind current `master` (predates the restructure) — will need a rebase whenever it's eventually mergeable, but moot while the Docker blocker holds.
+- **#55**: re-checked its one comment directly — still the bot's own 2026-10-04 comment, no human reply since. Same blocker (Linux sandbox, no Xcode/CocoaPods).
+- **#301**: still blocked on #276/#278 per its own body. **#29/#52**: tracking-only, unchanged.
+- **Net result: 0 issues processed, fourth no-op run in a row** — but worth the extra investigation time this run since the restructure was a real, previously-unlogged change.
+
+## Update, 2026-10-05 (3rd run) — nothing eligible, all 6 blockers reconfirmed a third time, 0 issues processed
+
+- Eligibility check: identical 6 `todo` issues as the 2nd run (#29, #52, #55, #276, #278, #301), same `updated_at` timestamps on every one — nothing changed since that run.
+- **#276/#278**: Docker CLI present, no running daemon — same confirmed blocker. PR #303 stays open/unmerged.
+- **#55**: still a Linux sandbox, no iOS tooling — same blocker.
+- **#301**: still blocked on #276/#278 per its own body.
+- **#29/#52**: tracking-only, unchanged.
+- `master`'s only new commit since the 2nd run was that run's own vault-update commit (`83c3b65`, PR #335) — no new issue landed that changes eligibility.
+- **Net result: 0 issues processed, third no-op run in a row.**
+
+## Update, 2026-10-05 (2nd run) — nothing eligible, all 6 blockers reconfirmed again, 0 issues processed
+
+- Eligibility check: identical 6 `todo` issues as the 1st run today, same `updated_at` timestamps on every one (#29, #52, #55, #276, #278, #301) — confirms literally nothing changed since that run logged its findings. `waiting-on-you` still empty.
+- **#276/#278**: re-checked Docker directly — CLI present (`docker info` shows client v29.6.2), still no running daemon (`/var/run/docker.sock` absent). Same confirmed blocker. PR #303 stays open/unmerged, no new comment (nothing changed since the last confirmation). #278 stays blocked on #276.
+- **#55**: this sandbox is Linux (`uname -a`), no `pod`/`xcodebuild` on `PATH` — same blocker as every prior run, not re-attempted.
+- **#301**: still blocked on #276/#278 per its own body, neither moved.
+- **#29/#52**: tracking-only, unchanged.
+- `master`'s only new commit since the 1st run today is that run's own vault-update commit (`ae69167`, PR #334) — no new issue landed that changes eligibility.
+- **Net result: 0 issues processed, queue fully unchanged for the second run in a row.** Cost only the cheap eligibility query plus the same three targeted re-checks (Docker, platform/iOS tooling, master HEAD) — no subagent dispatch needed.
+
+## Update, 2026-10-05 (1st run) — nothing eligible, all 6 blockers reconfirmed, 0 issues processed
+
+- Eligibility check: same 6 `todo` issues as the 2026-10-04 4th run's end state — #29, #52, #55, #276, #278, #301. `waiting-on-you` empty.
+- **#276/#278**: Docker still has no running daemon in this sandbox (`docker info` — CLI present, `/var/run/docker.sock` absent) — same blocker as every prior check. PR #303 stays open/unmerged, no new comment (nothing changed since the last confirmation). #278 stays blocked on #276.
+- **#55**: re-read the issue — still 1 comment, no new human reply since PR #332's partial fix. Remaining work (real `Podfile`/`Podfile.lock` via `flutter build ipa`, a real `DEVELOPMENT_TEAM`) still needs macOS/Xcode/CocoaPods + an Apple Developer Team ID, none available in this (Linux) sandbox. Not re-attempted, per the existing note in this file.
+- **#301**: still blocked on #276/#278 per its own body; not re-checked further since neither of its blockers moved.
+- **#29/#52**: tracking-only, no direct work, unchanged.
+- Master had advanced (`b51c385` → `f152ba9`) since PR #303's base, but the added commits are entirely the already-logged 2026-10-04 4th-run work (#32/#222/#298/#55-partial + that run's own vault-update commit) — no new issue landed that changes eligibility.
+- **Net result: 0 issues processed, queue fully unchanged.** This run cost only the cheap eligibility query plus three targeted re-checks (Docker socket, PR #303, issue #55) — no subagent dispatch needed since nothing was actionable.
+
+## Update, 2026-10-04 (4th run) — #32/#222/#298 merged, #55 partial, #276/#278/#301 still blocked
+
+- Eligibility check found the queue had grown since the last logged run: **#32, #55, #222** (previously `needs-approval`, off-limits in every prior entry below) are now `todo` — the owner approved them at some point between runs, outside this routine. Combined with the already-known #276/#278/#298/#301 and tracking-only #29/#52, that's 9 eligible issues.
+- **#222** (hardcoded Windows JDK path) → PR #329, merged. Trivial one-line deletion, no agent dispatch needed.
+- **#32** (Android release signing) → PR #330, merged. Wired `signingConfigs["release"]` to read `android/key.properties` (gitignored) when present, falling back to debug signing otherwise; added `android/SIGNING.md` + `key.properties.example`. **Deliberately did not generate a real keystore** — doing so in a disposable sandbox risks permanent loss of the one credential that can never be regenerated; that step needs the owner on their own machine. See SIGNING.md.
+- **#298** (CI android-build job) → PR #331, merged, **after** #222 (explicit dependency in its own body). New `android-build` job actually ran and passed on the PR itself (Temurin 17 + `flutter build apk --debug`) — proof the job works, not just that it was added.
+- **#55** (iOS build never verified) → PR #332, merged, but **issue left open, not closed**. Confirmed this sandbox has no `pod`/CocoaPods and no Xcode (Linux), so the real blocker — generating `ios/Podfile`/`Podfile.lock` via an actual `flutter build ipa`, and setting a real `DEVELOPMENT_TEAM` — needs a Mac + an Apple Developer Program Team ID, neither available here. Did the safe static-only part instead: `CODE_SIGN_IDENTITY` modernized from deprecated `"iPhone Developer"` → `"Apple Development"` (3 build configs), `Info.plist` gained `ITSAppUsesNonExemptEncryption=false`. Commented on the issue with exactly what's done vs. what needs a human on a Mac.
+- **#276** re-checked a 5th+ time: still no running Docker daemon in any sandbox so far (`docker info` shows the CLI but no socket) — PR #303 stays open/unmerged, no new comment posted since nothing changed from the last confirmation. **#278** stays blocked on #276 (explicit dependency).
+- **#301**: per its own "stop and comment, don't touch files" instruction, checked #276-#299 and commented listing #276/#278/#298 as the still-open blockers (at the time of checking; #298 merged minutes later this same run, so only #276/#278 block it now). Did not touch any files.
+- **Net result: 3 issues closed (#32, #222, #298), 1 partial (#55, stays open with a clear status comment), #276/#278/#301 stay blocked on the same sandbox/dependency chain.** 7 issues touched this run (slightly over the nominal 6-issue cap, since #276/#278/#301 were quick re-checks/comments rather than full implementation cycles).
+
+## Update, 2026-10-04 (3rd run) — nothing eligible, same blockers rechecked, one new unlabeled issue noted
+
+- Eligibility check found the same 6 `todo` issues as the prior run minus #288 (closed last run): #29, #52, #276, #278, #298, #301. `waiting-on-you` empty.
+- **#276** re-checked: still no running Docker daemon in this sandbox (confirmed again) — PR #303 stays open/unmerged. **#278** stays blocked on #276. **#298** stays blocked on #222, which is still `needs-approval`. **#301** still not ready.
+- **New: #300** is open but has no `todo`/`waiting-on-you`/`needs-approval` label — same as #11, outside the board worker's protocol until a human labels it.
+- Net result: 0 issues moved this run.
+
+## Update, 2026-10-04 (later run) — #288 merged (PR #326 was already sitting ready), rest still blocked
+
+- Eligibility check found only the same 7 `todo` issues as the prior run today (#29, #52, #276, #278, #288, #298, #301); `waiting-on-you` empty.
+- **#288** carried `agent-in-progress` with a real, already-open PR #326 (not the stale-label pattern) — a prior session had implemented it (5 `Navigator.push` call sites routed through `go_router`, 575/575 tests) and left it unmerged. `mergeable_state: clean`, `verify` CI already green. Squash-merged directly, no new work needed. **#288 closed.**
+- **#276** re-checked: this sandbox has the `docker` CLI but still no running daemon (`/var/run/docker.sock` absent) — same blocker as the prior run, confirmed a third time now. Still left open with PR #303 unmerged.
+- **#278** stays blocked on #276 (unchanged). **#298** stays blocked on #222, which is still `needs-approval` (not yet approved by the owner) — re-checked directly, not just assumed from the vault. **#301** stays not-ready (explicitly waits on #276-299 all closing, and #276/#278 are still open).
+- Only #29/#52 (tracking) had no direct work. **Net result: 1 issue closed (#288, via an already-ready PR), nothing else eligible.** Stopped well under the 6-issue cap since nothing else in the queue could move.
+- **Gap noted**: a `list_issues` CLOSED/UPDATED_AT check found #287 and #289-297/#299 (the rest of the #276-301 audit batch) were all already closed between 12:08 and 16:34 UTC today, none of it logged in this vault — done by other sessions (interactive and/or earlier board-worker runs today) between the last logged entry and this one. Not re-derived in detail here since it's not this run's work; `git log`/`list_issues` is ground truth if it matters later.
+
+## Update, 2026-10-04 — #282-286 merged, #280 closed, #276 blocked on a sandbox limitation
+
+- Queue jumped from empty (just #29/#52) to 24 open `todo` issues since the last board-worker entry — a large new audit batch (#276-301) was filed and owner-approved directly between 2026-09-25 and 2026-10-03, outside this routine. Full detail on this run's work in [[Status Log]] 2026-10-04.
+- **Merged**: #282 (PR #308), #283 (PR #307), #284 (PR #309), #285 (PR #306), #286 (PR #310). **Closed directly**: #280 (composition-root tracking issue — all 5 phases now merged).
+- **Blocked, left open**: #276 — PR #303 exists (from a prior interactive session) but needs a `supabase db reset` replay neither that sandbox nor this one can run (no working Docker daemon; starting one by hand is refused as a Containment Escape). Commented on the issue; needs a human or a sandbox with real Docker. **#278 stays blocked on #276** (explicit dependency in its own issue body) — not yet picked up.
+- Queue now 18 open `todo`/`waiting-on-you` issues (16 concrete + #29/#52 tracking). Oldest unpicked, next run: #276 (still blocked, re-check first)/#278 (still blocked on #276), then #287 ([High] Firebase Crashlytics), #288-299 (mix of medium/low UI/logic/infra cleanup), #301 (explicitly waits on #276-299 all closing, not ready).
 
 ## Update, 2026-09-25 (4th run) — nothing eligible, queue unchanged
 
@@ -178,12 +403,25 @@ upstream_concept: 00-Index
 |---|---|---|
 | 29 | Deploy-readiness audit (tracking) | Umbrella/index issue — findings already filed as the `needs-approval` #30-83 batch |
 | 52 | Architecture, performance & cross-layer review (tracking) | Umbrella/index issue, same pattern as #21/#29 — its 31 child issues (#53-83ish) are the real work |
+| 278 | No automated tests for RLS policies and order RPCs | Explicitly depends on #276 merging first (its own issue body: "Do not start until that is merged") |
 
 **#128 (merchant self-service tracking) closed 2026-09-15 (75th run)** — all 7 children (#129-135) merged, entire epic complete. See the update note near the top of this file and [[Status Log]] 2026-09-15 "75th run". No longer in this table.
 
 **#74 unblocked and merged 2026-09-17** (PR #230) once #34 was resolved by the owner directly. No longer in this table — see the update note near the top of this file and [[Status Log]] 2026-09-17.
 
+**#280 (composition-root tracking) closed 2026-10-04** — all 5 phases (#281-285) merged, see the update note near the top of this file and [[Status Log]] 2026-10-04. No longer in this table.
+
+**#276 (baseline migration) is blocked but NOT tracking-only — it's a real, specific task genuinely stuck on a sandbox limitation** (no board-worker sandbox so far has a working Docker daemon to run `supabase db reset`), not an umbrella issue. See [[Status Log]] 2026-10-04. Re-check whether a future sandbox has Docker before assuming this is permanently stuck.
+
+**#55 (iOS build never verified) is similarly blocked, not tracking-only — partial fix merged (PR #332, 2026-10-04 4th run), issue stays open.** The remaining work (`ios/Podfile`/`Podfile.lock` via a real `flutter build ipa`, a real `DEVELOPMENT_TEAM`) needs macOS/Xcode/CocoaPods and an Apple Developer Program Team ID — none exist in any board-worker sandbox so far (all Linux). Don't re-attempt the Podfile/team-ID half from a sandbox; only re-pick this up if a future sandbox is confirmed to be macOS-based, or the owner provides a Team ID some other way.
+
 ## Remaining `todo`, not yet picked up
+
+**As of 2026-10-04 (4th run)**: #276 (blocked on sandbox Docker availability, PR #303 open unmerged) → #278 (blocked on #276) → #301 (now blocked only on #276/#278, since #298 closed this run). **#55** stays open too — partial fix merged (PR #332), but the Podfile/DEVELOPMENT_TEAM half needs a human on a Mac; re-picking it up won't accomplish more until that happens, so don't re-attempt it from a Linux sandbox. #32/#222/#298 all closed this run. Only #29/#52 remain pure tracking-only. Queue is down to 6 open `todo` issues total (#29, #52, #55, #276, #278, #301). Re-check via `list_issues` before assuming this list is complete.
+
+**As of 2026-10-04 (later run)**: #276 (blocked on sandbox Docker availability, PR #303 open unmerged) → #278 (blocked on #276) → #298 (blocked on #222, still `needs-approval`) → #301 (explicitly waits on #276-299 all closing). #288 merged this run (PR #326). Only #29/#52 remain pure tracking-only. Re-check via `list_issues` before assuming this list is complete — note the queue is down to just 7 `todo` issues total now (not the 16-18 concrete ones from earlier 2026-10-04 entries), since most of the #276-301 batch besides #276/#278/#298/#301 has already been processed.
+
+**As of 2026-10-04 (earlier run)**: #276 (blocked on sandbox Docker availability, PR #303 open unmerged) → #278 (blocked on #276) → #287 ([High] Firebase Crashlytics) → #288 through #299 (mix of medium/low UI/logic/infra cleanup from the 2026-10-03 audit batch) → #301 (explicitly waits on #276-299 all closing). Only #29/#52 remain pure tracking-only. Re-check via `list_issues` before assuming this list is complete.
 
 **As of 2026-09-17**: none — #74 merged this run (PR #230), #34 closed by the owner directly. Only #29/#52 (tracking-only, no direct work) remain in the `todo`/`waiting-on-you` queue. Re-check via `list_issues` before assuming this list is complete — a new issue or approval could change it any time.
 

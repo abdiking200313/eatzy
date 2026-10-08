@@ -1,0 +1,217 @@
+class AppRoutes {
+  AppRoutes._();
+
+  // Public routes
+  static const root = '/';
+  static const welcome = '/welcome';
+
+  // The welcome/onboarding slides opened on purpose (the back button on
+  // login/register). A returning signed-out user is normally redirected
+  // from [welcome] straight to login (issue #15); this query flag is the
+  // one exception, so "back to onboarding" doesn't bounce off that
+  // redirect. Same route, same screen -- only the redirect reads the flag.
+  static const welcomeRevisitParam = 'revisit';
+  static const welcomeRevisit = '$welcome?$welcomeRevisitParam=true';
+
+  static const login = '/login';
+  static const register = '/register';
+  static const forgotPassword = '/forgot-password';
+
+  // Requires an active Supabase session (a normal login, or the temporary
+  // session created by tapping a password-recovery email link).
+  static const resetPassword = '/reset-password';
+
+  // There is deliberately no standalone `/onboarding/*` route. The
+  // onboarding slides (`OnboardingPage1/2/3`) only ever render as `PageView`
+  // children embedded inside `WelcomeScreen` -- a bare, direct route to one
+  // slide had no AppBar, skip button, or pagination and was a dead end for
+  // anyone who reached it (issue #15). Reach the real flow via [welcome].
+
+  // Login-required routes
+  static const mainApp = '/app';
+  static const home = '/home';
+  static const services = '/services';
+  static const activity = '/activity';
+
+  // The merchant dashboard (issue #232, superseding the standalone
+  // `merchant_app` project from issue #132): `AppRouter` sends a signed-in
+  // `merchant`/`admin` account here instead of [mainApp], right after
+  // sign-in and again on session-restore at app start. There is no
+  // customer-facing link to this route and no switcher back to the
+  // customer home for the same account -- see the router's redirect logic.
+  static const merchantDashboard = '/merchant';
+
+  // A single order on the merchant dashboard (issue #288 — was opened via
+  // `Navigator.push(MaterialPageRoute(... OrderDetailScreen))` from
+  // `OrdersScreen`). Sits under [merchantDashboard] so it inherits the same
+  // merchant-session gating in `AppRouter._redirect` (see
+  // `_isMerchantReachableLocation` and `isProtectedLocation`).
+  static const merchantOrderDetail = '$merchantDashboard/orders/:orderId';
+
+  // The merchant's own catalog (issue #288 — was opened via
+  // `Navigator.push(MaterialPageRoute(... CatalogScreen))` from
+  // `MyStoreScreen`). No id path parameter: the merchant's own store/catalog
+  // is resolved from the merchant session, not a path param. Also sits
+  // under [merchantDashboard] for the same gating as [merchantOrderDetail].
+  static const merchantCatalog = '$merchantDashboard/catalog';
+
+  // Food service
+  static const food = '/food';
+
+  // Not a navigable destination on its own — no screen renders a bare
+  // "/food/restaurants" list, `food` already serves that role. This exists
+  // only as a shared path-segment prefix for `foodRestaurant` (the
+  // registered per-restaurant route) and for `restaurantDetails`/
+  // `isRestaurantDetails` below. Intentionally has no matching GoRoute; see
+  // issue #69.
+  static const foodRestaurants = '$food/restaurants';
+  static const foodRestaurant = '$foodRestaurants/:restaurantId';
+
+  // A single menu item within a restaurant (issue #288 — was opened via
+  // `Navigator.push(MaterialPageRoute(... MenuItemDetailsScreen))`, with no
+  // URL, no deep link, and no auth-redirect coverage). Nested under
+  // `foodRestaurant` rather than `foodRestaurants` because the pattern needs
+  // the `:restaurantId` placeholder segment itself, mirroring
+  // `foodRestaurant`'s own relationship to `foodRestaurants`.
+  static const foodMenuItem = '$foodRestaurant/item/:itemId';
+  static const foodCategories = '$food/categories';
+  static const foodExplore = '$food/explore';
+  static const foodCart = '$food/cart';
+  static const foodCheckout = '$food/checkout';
+
+  // Grocery service
+  static const grocery = '/grocery';
+
+  // Not a navigable destination on its own — no screen renders a bare
+  // "/grocery/stores" list, `grocery` already serves that role (the store
+  // list screen). This exists only as a shared path-segment prefix for
+  // `groceryStore` (the registered per-store route) and for
+  // `groceryStoreDetails`/`isGroceryStoreDetails` below. Mirrors
+  // `foodRestaurants` in shape.
+  static const groceryStores = '$grocery/stores';
+  static const groceryStore = '$groceryStores/:storeId';
+  static const groceryCart = '$grocery/cart';
+  static const groceryCheckout = '$grocery/checkout';
+
+  // A single product within a store (issue #288 — was opened via
+  // `Navigator.push(MaterialPageRoute(... GroceryProductDetailsScreen))`).
+  // Fresh Meat and Electronics each need their own equivalent nested route
+  // (`freshMeatProduct`/`electronicsProduct` below) since `GroceryStoreScreen`
+  // is shared across all three `GroceryStoreType`s and each type already has
+  // its own store/cart/checkout path family -- see `GroceryStoreType`'s
+  // route getters in `grocery_models.dart`.
+  static const groceryProduct = '$groceryStore/product/:productId';
+
+  // Fresh Meat and Electronics run on the grocery engine (filtered by
+  // `grocery_stores.store_type`) but each has its own store pages, cart and
+  // checkout, so each keeps a separate cart (owner decision, 2026-09-25).
+  // See `GroceryStoreType`'s route getters.
+  static const freshMeat = '$grocery/fresh-meat';
+  static const freshMeatStore = '$freshMeat/stores/:storeId';
+  static const freshMeatProduct = '$freshMeatStore/product/:productId';
+  static const freshMeatCart = '$freshMeat/cart';
+  static const freshMeatCheckout = '$freshMeat/checkout';
+  static const electronics = '$grocery/electronics';
+  static const electronicsStore = '$electronics/stores/:storeId';
+  static const electronicsProduct = '$electronicsStore/product/:productId';
+  static const electronicsCart = '$electronics/cart';
+  static const electronicsCheckout = '$electronics/checkout';
+
+  // Pharmacy service
+  static const pharmacy = '/pharmacy';
+
+  // Not a navigable destination on its own — `pharmacy` already serves as
+  // the searchable pharmacy list (issue #141), mirroring `foodRestaurants`.
+  // This exists only as a shared path-segment prefix for `pharmacyStore`
+  // (the registered per-pharmacy route) and for `pharmacyStoreDetails`
+  // below.
+  static const pharmacyStores = '$pharmacy/stores';
+  static const pharmacyStore = '$pharmacyStores/:storeId';
+
+  // A single product within a pharmacy (issue #288 — was opened via
+  // `Navigator.push(MaterialPageRoute(... PharmacyProductDetailsScreen))`).
+  static const pharmacyProduct = '$pharmacyStore/product/:productId';
+  static const pharmacyCart = '$pharmacy/cart';
+  static const pharmacyCheckout = '$pharmacy/checkout';
+
+  // Legacy food routes kept for compatibility.
+  static const restaurants = '/restaurants';
+  static const restaurant = '$restaurants/:restaurantId';
+  static const categories = '/categories';
+  static const explore = '/explore';
+  static const cart = '/cart';
+  static const checkout = '/checkout';
+  static const profile = '/profile';
+  static const addresses = '/addresses';
+  static const settings = '/settings';
+  static const support = '/support';
+
+  // Static legal documents (issue #37), reached from Settings → Privacy
+  // Policy / Terms & Conditions. In-app content only — see
+  // `LegalDocumentScreen`'s doc comment for the app-store-hosting gap this
+  // does not close.
+  static const privacyPolicy = '/settings/privacy-policy';
+  static const termsOfService = '/settings/terms-of-service';
+
+  // Bare `/track-order` is kept for backward compatibility with any old
+  // deep link that has no order to point at — `TrackOrderScreen` renders a
+  // "no order selected" empty state for it rather than crashing (see
+  // issue #43). `trackOrderDetails` is the real, navigable form: reached
+  // from a "Track order" action on an `ActivityScreen` row via
+  // `trackOrderDetailsPath`, which keys the lookup by both the order's
+  // `service_id` and its `customer_activity` row id.
+  static const trackOrder = '/track-order';
+  static const trackOrderDetails = '$trackOrder/:serviceId/:orderId';
+
+  static String restaurantDetails(String restaurantId) =>
+      '$foodRestaurants/${Uri.encodeComponent(restaurantId)}';
+
+  static bool isRestaurantDetails(String location) =>
+      location.startsWith('$foodRestaurants/') ||
+      location.startsWith('$restaurants/');
+
+  static String foodMenuItemDetails(String restaurantId, String itemId) =>
+      '${restaurantDetails(restaurantId)}/item/${Uri.encodeComponent(itemId)}';
+
+  static String groceryStoreDetails(String storeId) =>
+      '$groceryStores/${Uri.encodeComponent(storeId)}';
+
+  static bool isGroceryStoreDetails(String location) =>
+      location.startsWith('$groceryStores/');
+
+  static String groceryProductDetails(String storeId, String productId) =>
+      '${groceryStoreDetails(storeId)}/product/${Uri.encodeComponent(productId)}';
+
+  static String freshMeatProductDetails(String storeId, String productId) =>
+      '$freshMeat/stores/${Uri.encodeComponent(storeId)}/product/'
+      '${Uri.encodeComponent(productId)}';
+
+  static String electronicsProductDetails(String storeId, String productId) =>
+      '$electronics/stores/${Uri.encodeComponent(storeId)}/product/'
+      '${Uri.encodeComponent(productId)}';
+
+  static String pharmacyStoreDetails(String storeId) =>
+      '$pharmacyStores/${Uri.encodeComponent(storeId)}';
+
+  static String pharmacyProductDetails(String storeId, String productId) =>
+      '${pharmacyStoreDetails(storeId)}/product/${Uri.encodeComponent(productId)}';
+
+  static String merchantOrderDetailPath(String orderId) =>
+      '$merchantDashboard/orders/${Uri.encodeComponent(orderId)}';
+
+  static String trackOrderDetailsPath({
+    required String serviceId,
+    required String orderId,
+  }) =>
+      '$trackOrder/${Uri.encodeComponent(serviceId)}/'
+      '${Uri.encodeComponent(orderId)}';
+
+  static bool isTrackOrderDetails(String location) =>
+      location.startsWith('$trackOrder/');
+
+  static bool isServicePath(String location) => const [
+    food,
+    grocery,
+    pharmacy,
+  ].any((prefix) => location == prefix || location.startsWith('$prefix/'));
+}

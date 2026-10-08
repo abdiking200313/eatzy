@@ -1,0 +1,41 @@
+pluginManagement {
+    val flutterSdkPath =
+        run {
+            val properties = java.util.Properties()
+            file("local.properties").inputStream().use { properties.load(it) }
+            val flutterSdkPath = properties.getProperty("flutter.sdk")
+            require(flutterSdkPath != null) { "flutter.sdk not set in local.properties" }
+            flutterSdkPath
+        }
+
+    includeBuild("$flutterSdkPath/packages/flutter_tools/gradle")
+
+    repositories {
+        google()
+        mavenCentral()
+        gradlePluginPortal()
+    }
+}
+
+plugins {
+    id("dev.flutter.flutter-plugin-loader") version "1.0.0"
+    id("com.android.application") version "8.11.1" apply false
+    id("org.jetbrains.kotlin.android") version "2.2.20" apply false
+    // Reads android/app/google-services.json (Firebase project zivo-41908,
+    // issue #47) and generates the resources firebase_core/firebase_messaging
+    // need at build time. Declared here (not applied) per the Gradle plugins
+    // DSL convention this file already follows for the two plugins above;
+    // actually applied in android/app/build.gradle.kts.
+    id("com.google.gms.google-services") version "4.4.3" apply false
+    // Uploads crash/error reports and mapping info at build time (issue
+    // #287). Declared here (not applied) for the same reason as the
+    // google-services plugin above; actually applied in
+    // android/app/build.gradle.kts. Version picked to match the
+    // google-services plugin's release cadence above -- not verifiable
+    // against a real build in this sandbox (no Android SDK), so confirm it
+    // resolves during the owner's release build and bump if Gradle reports
+    // a newer one.
+    id("com.google.firebase.crashlytics") version "3.0.6" apply false
+}
+
+include(":app")

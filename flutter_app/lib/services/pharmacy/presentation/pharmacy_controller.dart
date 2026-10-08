@@ -1,0 +1,561 @@
+import 'dart:async';
+import 'dart:collection';
+
+import 'package:flutter/foundation.dart';
+
+import '../../../app/service_module.dart';
+import '../../../platform/activity/models/activity_item.dart';
+import '../../../platform/activity/presentation/activity_controller.dart';
+import '../../../platform/error_reporting/error_reporter.dart';
+import '../../shared/data/cart_storage.dart';
+import '../../shared/data/idempotency_key.dart';
+import '../../shared/data/rpc_helpers.dart';
+import '../../shared/data/service_pricing_repository.dart';
+import '../../shared/models/delivery_details.dart';
+import '../../shared/models/service_pricing.dart';
+import '../../shared/presentation/confirm_order_flow.dart';
+import '../../shared/presentation/loadable_state_mixin.dart';
+import '../data/pharmacy_repository.dart';
+import '../models/pharmacy_cart_item.dart';
+import '../models/pharmacy_checkout.dart';
+import '../models/pharmacy_product.dart';
+
+enum PharmacyCartAddResult {
+  added,
+  quantityIncreased,
+  notOverTheCounter,
+  unavailable,
+  maximumStockReached,
+
+  /// The cart already holds items from a different pharmacy
+  /// (`PharmacyProduct.storeId`) and the caller did not pass
+  /// `replaceStoreCart: true` — mirrors `GroceryAddResult.storeConflict`.
+  /// Cart/checkout stay scoped to one pharmacy at a time (issue #141).
+  storeConflict,
+}
+
+class PharmacyController extends ChangeNotifier with LoadableState {
+  PharmacyController({
+    required PharmacyRepository repository,
+    required ActivityController activityController,
+    required CartStorage<PharmacyCartItem> storage,
+    PharmacyOrderRepository? orderRepository,
+    ServicePricingRepository? pricingRepository,
+    DateTime Function()? now,
+  }) : _repository = repository,
+       _activityController = activityController,
+       _storage = storage,
+       _orderRepository = orderRepository,
+       _pricingRepository =
+           pricingRepository ?? SupabaseServicePricingRepository(),
+       _now = now ?? DateTime.now;
+
+  /// The `service_pricing.service_id` this vertical's fee estimate is read
+  /// from (issue #279) — see [ServicePricingRepository].
+  static const String serviceId = 'pharmacy';
+
+  /// How long a successful catalog load is considered fresh before
+  /// [loadProducts] will silently refetch it again. A manual pull-to-refresh
+  /// (via [loadProducts]'s `forceRefresh`) always bypasses this.
+  static const Duration catalogStaleAfter = Duration(minutes: 5);
+
+  final PharmacyRepository _repository;
+  final ActivityController _activityController;
+  final CartStorage<PharmacyCartItem> _storage;
+  final PharmacyOrderRepository? _orderRepository;
+  final ServicePricingRepository _pricingRepository;
+  final DateTime Function() _now;
+  final List<PharmacyProduct> _products = [];
+  final List<PharmacyCartItem> _cartItems = [];
+
+  static const String _guestCartOwner = 'guest';
+
+  DateTime? _lastLoadedAt;
+  bool _isLoadingMore = false;
+  bool _hasMore = true;
+  bool _isSubmitting = false;
+
+  /// The pharmacy (`PharmacyStore.id`) [_products] was last loaded for, or
+  /// `null` before the first [loadProducts] call. Products are always
+  /// scoped to one pharmacy at a time (issue #141): switching stores (or
+  /// changing [_currentSearchQuery]) always refetches, regardless of
+  /// [isStale].
+  String? _currentStoreId;
+  String? _currentSearchQuery;
+
+  final CartWriteQueue _cartWriteQueue = CartWriteQueue(
+    label: 'PharmacyController',
+  );
+  String? _cartOwnerId;
+  int _cartLoadGeneration = 0;
+  bool _isCartLoading = false;
+
+  UnmodifiableListView<PharmacyProduct> get products =>
+      UnmodifiableListView(_products);
+  UnmodifiableListView<PharmacyCartItem> get cartItems =>
+      UnmodifiableListView(_cartItems);
+
+  /// Whether the loaded catalog is old enough that [loadProducts] should
+  /// treat it as needing a refetch: never loaded, or last loaded at least
+  /// [catalogStaleAfter] ago. Stock/price changes made server-side (e.g. an
+  /// item selling out) only reach the client on the next refetch, so this
+  /// keeps a session that stays open a long time from trusting an
+  /// indefinitely old snapshot.
+  bool get isStale {
+    final lastLoadedAt = _lastLoadedAt;
+    return lastLoadedAt == null ||
+        _now().difference(lastLoadedAt) >= catalogStaleAfter;
+  }
+
+  /// The pharmacy currently loaded into [products], or `null` before the
+  /// first [loadProducts] call.
+  String? get currentStoreId => _currentStoreId;
+
+  bool get isLoadingMore => _isLoadingMore;
+
+  /// Whether another page of products may exist. Starts `true` and flips
+  /// to `false` once a fetched page comes back shorter than the requested
+  /// page size (see [loadMore]).
+  bool get hasMore => _hasMore;
+  bool get isCartEmpty => _cartItems.isEmpty;
+  bool get isCartNotEmpty => _cartItems.isNotEmpty;
+
+  /// Whether a [placeDemoOrder] call is currently in flight. The checkout
+  /// screen disables its submit button while this is true — see issue #59 —
+  /// and [placeDemoOrder] itself also refuses to start a second submission
+  /// while this is true, as a belt-and-braces guard against a double-tap or
+  /// a second programmatic call racing the first one.
+  bool get isSubmitting => _isSubmitting;
+  int get itemCount =>
+      _cartItems.fold(0, (count, item) => count + item.quantity);
+  int get subtotal => _cartItems.fold(0, (total, item) => total + item.total);
+
+  /// The last successfully loaded delivery-fee config for this vertical, or
+  /// `null` if none has loaded yet — see [ServicePricingRepository.peek].
+  ServicePricing? get pricing => _pricingRepository.peek(serviceId);
+
+  /// `null` means pricing hasn't loaded yet: [total] is `null` too, and the
+  /// UI should show "Calculated at checkout" instead of a fabricated number.
+  /// An empty cart always reports `0` regardless, since there is nothing to
+  /// price.
+  int? get deliveryFee {
+    if (isCartEmpty) return 0;
+    return pricing?.deliveryFeeCents;
+  }
+
+  int? get total {
+    final fee = deliveryFee;
+    if (fee == null) return null;
+    return subtotal + fee;
+  }
+
+  String? get cartOwnerId => _cartOwnerId;
+  bool get isCartLoading => _isCartLoading;
+  String get _cartStorageOwner => _cartOwnerId ?? _guestCartOwner;
+
+  /// Resolves once every cart write queued so far has been persisted. Cart
+  /// mutations persist fire-and-forget so callers don't need to await them;
+  /// tests that need to observe the persisted result deterministically
+  /// (e.g. before loading a second controller from the same storage) should
+  /// await this first.
+  @visibleForTesting
+  Future<void> get pendingCartWrite => _cartWriteQueue.pending;
+
+  /// Loads the persisted pharmacy cart for [ownerId] (or the guest cart
+  /// when `null`), replacing whatever cart is currently in memory. Mirrors
+  /// `CartController.loadForOwner`: a monotonically increasing generation
+  /// guards against a stale read finishing after a later account switch.
+  Future<void> loadForOwner(String? ownerId) async {
+    final generation = ++_cartLoadGeneration;
+    _cartOwnerId = ownerId;
+    _cartItems.clear();
+    _isCartLoading = true;
+    notifyListeners();
+
+    final loadedItems = await readCartLogged(
+      _storage,
+      _cartStorageOwner,
+      label: 'PharmacyController',
+    );
+    if (generation != _cartLoadGeneration) {
+      return;
+    }
+
+    _cartItems
+      ..clear()
+      ..addAll(loadedItems);
+    _isCartLoading = false;
+    notifyListeners();
+    unawaited(_loadPricing());
+  }
+
+  /// Warms (or refreshes) [pricing] in the background; never throws.
+  Future<void> _loadPricing() async {
+    final loaded = await _pricingRepository.load(serviceId);
+    if (loaded != null) {
+      notifyListeners();
+    }
+  }
+
+  /// Loads the OTC catalog for [storeId], optionally narrowed by
+  /// [searchQuery] (a case-insensitive product-name substring match, run
+  /// server-side by the repository).
+  ///
+  /// By default this is a no-op once the same store/search scope is already
+  /// loaded and still fresh (see [isStale]), so cheap repeat calls (e.g.
+  /// from `initState`) don't refetch pointlessly. Switching to a different
+  /// [storeId] or [searchQuery] always refetches regardless of staleness —
+  /// showing another pharmacy's stale products (or an unfiltered list once
+  /// a search is entered) would be wrong, not just slow. Pass [forceRefresh]
+  /// to always refetch even within the same scope — this is what a
+  /// pull-to-refresh gesture should use, since it represents an explicit
+  /// user request for the latest stock/prices.
+  Future<void> loadProducts({
+    required String storeId,
+    String? searchQuery,
+    bool forceRefresh = false,
+  }) async {
+    if (isLoading) {
+      return;
+    }
+    final normalizedQuery = _normalizeSearchQuery(searchQuery);
+    final scopeChanged =
+        storeId != _currentStoreId || normalizedQuery != _currentSearchQuery;
+    if (!forceRefresh && !scopeChanged && _products.isNotEmpty && !isStale) {
+      return;
+    }
+
+    await runLoad(
+      fetch: () async {
+        final products = await _repository.fetchProducts(
+          storeId: storeId,
+          searchQuery: normalizedQuery,
+          limit: pharmacyProductsPageSize,
+        );
+        _products
+          ..clear()
+          ..addAll(products.where((product) => product.isOverTheCounter));
+        _hasMore = products.length >= pharmacyProductsPageSize;
+        _lastLoadedAt = _now();
+        _currentStoreId = storeId;
+        _currentSearchQuery = normalizedQuery;
+      },
+      onError: (error, stackTrace) =>
+          'The pharmacy catalog could not be loaded.',
+    );
+  }
+
+  /// Fetches and appends the next page of products for the store/search
+  /// scope [loadProducts] last loaded. No-ops while a load is already in
+  /// flight, once [hasMore] is `false`, or before any [loadProducts] call.
+  Future<void> loadMore() async {
+    final storeId = _currentStoreId;
+    if (isLoading || _isLoadingMore || !_hasMore || storeId == null) {
+      return;
+    }
+
+    _isLoadingMore = true;
+    notifyListeners();
+
+    try {
+      final nextPage = await _repository.fetchProducts(
+        storeId: storeId,
+        searchQuery: _currentSearchQuery,
+        limit: pharmacyProductsPageSize,
+        offset: _products.length,
+      );
+      _products.addAll(nextPage.where((product) => product.isOverTheCounter));
+      _hasMore = nextPage.length >= pharmacyProductsPageSize;
+    } on Object {
+      // Leave `_hasMore` as-is so the trailing "load more" control stays
+      // visible and a subsequent scroll/tap can retry.
+    } finally {
+      _isLoadingMore = false;
+      notifyListeners();
+    }
+  }
+
+  String? _normalizeSearchQuery(String? searchQuery) {
+    final trimmed = searchQuery?.trim();
+    return trimmed == null || trimmed.isEmpty ? null : trimmed;
+  }
+
+  /// Adds [product] to the cart.
+  ///
+  /// Returns [PharmacyCartAddResult.storeConflict] when the cart already
+  /// holds items from a different pharmacy and [replaceStoreCart] is
+  /// `false` — mirrors `GroceryController.addProduct`'s `replaceStoreCart`.
+  /// Pass `replaceStoreCart: true` (after user confirmation) to clear the
+  /// existing cart and add [product] instead, keeping checkout scoped to a
+  /// single pharmacy at a time (issue #141).
+  /// Adds [quantity] units of [product] -- all or nothing: if that would
+  /// exceed the stock, nothing is added and
+  /// [PharmacyCartAddResult.maximumStockReached] is returned.
+  PharmacyCartAddResult addProduct(
+    PharmacyProduct product, {
+    bool replaceStoreCart = false,
+    int quantity = 1,
+  }) {
+    assert(quantity >= 1, 'quantity must be at least 1');
+    if (!product.isOverTheCounter) {
+      return PharmacyCartAddResult.notOverTheCounter;
+    }
+    if (!product.isAvailable) {
+      return PharmacyCartAddResult.unavailable;
+    }
+
+    final hasStoreConflict =
+        _cartItems.isNotEmpty &&
+        _cartItems.first.product.storeId != product.storeId;
+    if (hasStoreConflict && !replaceStoreCart) {
+      return PharmacyCartAddResult.storeConflict;
+    }
+    if (hasStoreConflict) {
+      _cartItems.clear();
+    }
+
+    final index = _indexOf(product.id);
+    if (index == -1) {
+      if (quantity > product.stockQuantity) {
+        return PharmacyCartAddResult.maximumStockReached;
+      }
+      _cartItems.add(PharmacyCartItem(product: product, quantity: quantity));
+      notifyListeners();
+      unawaited(_persistCart());
+      return PharmacyCartAddResult.added;
+    }
+
+    final item = _cartItems[index];
+    if (item.quantity + quantity > product.stockQuantity) {
+      return PharmacyCartAddResult.maximumStockReached;
+    }
+
+    _cartItems[index] = item.copyWith(quantity: item.quantity + quantity);
+    notifyListeners();
+    unawaited(_persistCart());
+    return PharmacyCartAddResult.quantityIncreased;
+  }
+
+  void increment(String productId) {
+    final index = _indexOf(productId);
+    if (index == -1) {
+      return;
+    }
+
+    final item = _cartItems[index];
+    if (item.quantity >= item.product.stockQuantity) {
+      return;
+    }
+
+    _cartItems[index] = item.copyWith(quantity: item.quantity + 1);
+    notifyListeners();
+    unawaited(_persistCart());
+  }
+
+  void decrement(String productId) {
+    final index = _indexOf(productId);
+    if (index == -1) {
+      return;
+    }
+
+    final item = _cartItems[index];
+    if (item.quantity <= 1) {
+      removeProduct(productId);
+      return;
+    }
+
+    _cartItems[index] = item.copyWith(quantity: item.quantity - 1);
+    notifyListeners();
+    unawaited(_persistCart());
+  }
+
+  void removeProduct(String productId) {
+    final previousLength = _cartItems.length;
+    _cartItems.removeWhere((item) => item.product.id == productId);
+    if (_cartItems.length != previousLength) {
+      notifyListeners();
+      unawaited(_persistCart());
+    }
+  }
+
+  void clearCart() {
+    if (_cartItems.isEmpty) {
+      return;
+    }
+    _cartItems.clear();
+    notifyListeners();
+    unawaited(_persistCart());
+  }
+
+  /// Resets ephemeral MVP state on an account switch. Kept for API
+  /// compatibility; account switching itself is driven by [loadForOwner],
+  /// which reloads (rather than simply clearing) the incoming owner's
+  /// persisted cart.
+  void resetSessionState() => clearCart();
+
+  PharmacyCheckoutValidation validateCheckout() {
+    final errors = <String, String>{};
+
+    if (_cartItems.isEmpty) {
+      errors['cart'] = 'Add at least one OTC product before checkout.';
+    }
+    if (_cartItems.any(
+      (item) =>
+          !item.product.isOverTheCounter ||
+          !item.product.isAvailable ||
+          item.quantity > item.product.stockQuantity,
+    )) {
+      errors['stock'] =
+          'One or more products are not eligible for this OTC order.';
+    }
+
+    return PharmacyCheckoutValidation(Map.unmodifiable(errors));
+  }
+
+  /// Validates the cart/delivery details and, once valid, places the order
+  /// through the shared [confirmDemoOrder] flow, records activity, and
+  /// clears the cart.
+  ///
+  /// A no-op — without touching submission state — while a previous call is
+  /// still in flight (see [isSubmitting]): this is a belt-and-braces guard
+  /// against a double-tap or a second programmatic call racing the first
+  /// one, on top of the checkout screen already disabling its submit button
+  /// while [isSubmitting] is true (issue #59).
+  ///
+  /// [idempotencyKey] identifies this checkout *attempt* and is forwarded
+  /// to `place_pharmacy_order` so a retried submission (the same key)
+  /// returns the existing order instead of creating a duplicate and
+  /// decrementing stock again. Callers should generate one per attempt
+  /// (e.g. once per checkout screen visit) and keep passing the same value
+  /// across retries of that attempt; when omitted, a fresh key is generated
+  /// for this call only, which gives no protection against a retry that
+  /// calls this method again.
+  Future<PharmacyCheckoutResult> placeDemoOrder({
+    DeliveryDetails delivery = const DeliveryDetails(),
+    String? idempotencyKey,
+  }) {
+    if (_isSubmitting) {
+      return Future.value(
+        PharmacyCheckoutResult.invalid(const PharmacyCheckoutValidation({})),
+      );
+    }
+
+    final validation = validateCheckout();
+    if (!validation.isValid) {
+      return Future.value(PharmacyCheckoutResult.invalid(validation));
+    }
+
+    final confirmedAt = _now();
+    // Snapshot cart-derived values before the shared flow clears the cart.
+    // These are only used for the no-repository (demo) fallback below —
+    // once a real repository is configured, the RPC's returned totals
+    // (issue #60) are used instead.
+    final confirmedSubtotal = subtotal;
+    final confirmedDeliveryFee = isCartEmpty ? 0 : deliveryFee;
+    final confirmedTotal = total;
+    final confirmedItemCount = itemCount;
+    final confirmedItems = _cartItems
+        .map(
+          (item) => PharmacyOrderLineInput(
+            productId: item.product.id,
+            quantity: item.quantity,
+          ),
+        )
+        .toList(growable: false);
+    final resolvedIdempotencyKey = idempotencyKey ?? generateIdempotencyKey();
+
+    _isSubmitting = true;
+    notifyListeners();
+
+    return confirmDemoOrder<
+          PharmacyCheckoutResult,
+          PharmacyCheckoutValidation,
+          PlacedOrder
+        >(
+          validation: validation,
+          isValid: (validation) => validation.isValid,
+          onInvalid: (validation) => PharmacyCheckoutResult.invalid(validation),
+          placeOrder: () =>
+              _orderRepository?.placeOrder(
+                PharmacyOrderRequest(
+                  delivery: delivery,
+                  items: confirmedItems,
+                  idempotencyKey: resolvedIdempotencyKey,
+                ),
+              ) ??
+              Future.value(null),
+          // `?? 0` only matters if pricing has never loaded (issue #279) —
+          // this demo-only fallback (no real repository configured) never
+          // represents a real charge either way.
+          fallbackOrder: () => PlacedOrder(
+            orderId: 'pharmacy-${confirmedAt.microsecondsSinceEpoch}',
+            subtotal: confirmedSubtotal,
+            deliveryFee: confirmedDeliveryFee ?? 0,
+            tax: 0,
+            total:
+                confirmedTotal ??
+                (confirmedSubtotal + (confirmedDeliveryFee ?? 0)),
+          ),
+          onSaveFailed: (error, stackTrace) {
+            ErrorReporting.instance.reportError(
+              error,
+              stackTrace,
+              context: 'PharmacyController.placeDemoOrder',
+            );
+            return PharmacyCheckoutResult.invalid(
+              PharmacyCheckoutValidation({
+                'order': describeOrderSaveError(
+                  error,
+                  'The pharmacy order could not be saved. Please try again.',
+                ),
+              }),
+            );
+          },
+          // `order.total` is the RPC's authoritative, server-computed total
+          // (issue #60) — not the client-computed `confirmedTotal`, which can
+          // be stale if a product price changed between the cart being built
+          // and this checkout being confirmed.
+          recordActivity: (order) {
+            _activityController.record(
+              ActivityItem(
+                id: order.orderId,
+                serviceId: ServiceId.pharmacy,
+                title: 'Pharmacy order',
+                subtitle:
+                    '$confirmedItemCount OTC '
+                    '${confirmedItemCount == 1 ? 'item' : 'items'}',
+                status: 'Confirmed',
+                occurredAt: confirmedAt,
+                amount: order.total,
+                detailsRoute: '/pharmacy',
+                paymentMethod: 'cash_on_delivery',
+                paymentStatus: 'pending_collection',
+              ),
+            );
+          },
+          clearCart: clearCart,
+          onConfirmed: (order) => PharmacyCheckoutResult.success(
+            orderId: order.orderId,
+            message: 'Your order was sent to the pharmacy. Pay on delivery.',
+          ),
+        )
+        .whenComplete(() {
+          _isSubmitting = false;
+          notifyListeners();
+        });
+  }
+
+  int _indexOf(String productId) {
+    return _cartItems.indexWhere((item) => item.product.id == productId);
+  }
+
+  Future<void> _persistCart() {
+    final owner = _cartStorageOwner;
+    final snapshot = List<PharmacyCartItem>.from(_cartItems);
+    return _queueCartWrite(() => _storage.write(owner, snapshot));
+  }
+
+  Future<void> _queueCartWrite(Future<void> Function() write) {
+    return _cartWriteQueue.enqueue(write);
+  }
+}

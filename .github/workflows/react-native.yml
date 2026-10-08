@@ -1,0 +1,43 @@
+name: React Native CI
+
+on:
+  pull_request:
+    paths:
+      - "react_native_app/**"
+      - ".github/workflows/react-native.yml"
+  push:
+    branches:
+      - master
+    paths:
+      - "react_native_app/**"
+      - ".github/workflows/react-native.yml"
+
+jobs:
+  rn-verify:
+    name: rn-verify
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: react_native_app
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: react_native_app/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Type-check
+        run: npx tsc --noEmit
+
+      - name: Test
+        run: npm test -- --ci

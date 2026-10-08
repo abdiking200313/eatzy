@@ -1,0 +1,549 @@
+import 'dart:async';
+
+import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
+import '../config/theme.dart';
+import '../features/addresses/presentation/addresses_screen.dart';
+import '../features/auth/presentation/forgot_password_screen.dart';
+import '../features/auth/presentation/login_screen.dart';
+import '../features/auth/presentation/register_screen.dart';
+import '../features/auth/presentation/reset_password_screen.dart';
+import '../features/legal/presentation/privacy_policy_screen.dart';
+import '../features/legal/presentation/terms_of_service_screen.dart';
+import '../features/merchant/auth/data/merchant_role_service.dart';
+import '../features/merchant/catalog/presentation/catalog_screen.dart';
+import '../features/merchant/orders/presentation/order_detail_screen.dart';
+import '../features/merchant/shell/presentation/merchant_shell.dart';
+import '../features/onboarding/data/onboarding_preferences.dart';
+import '../features/onboarding/presentation/welcome_screen.dart';
+import '../features/orders/presentation/track_order_screen.dart';
+import '../features/profile/presentation/profile_screen.dart';
+import '../features/settings/presentation/settings_screen.dart';
+import '../features/super_app/presentation/categories_screen.dart';
+import '../features/super_app/presentation/super_app_home_screen.dart';
+import '../features/support/presentation/support_screen.dart';
+import '../platform/activity/presentation/activity_screen.dart';
+import '../platform/discovery/presentation/explore_screen.dart';
+import '../services/food/presentation/checkout_screen.dart';
+import '../services/food/presentation/food_cart_screen.dart';
+import '../services/food/presentation/food_categories_screen.dart';
+import '../services/food/presentation/food_explore_screen.dart';
+import '../services/food/presentation/food_home_screen.dart';
+import '../services/food/presentation/menu_item_details_screen.dart';
+import '../services/food/presentation/restaurant_screen.dart';
+import '../services/grocery/models/grocery_models.dart';
+import '../services/grocery/presentation/grocery_cart_screen.dart';
+import '../services/grocery/presentation/grocery_checkout_screen.dart';
+import '../services/grocery/presentation/grocery_product_details_screen.dart';
+import '../services/grocery/presentation/grocery_screen.dart';
+import '../services/grocery/presentation/grocery_store_screen.dart';
+import '../services/pharmacy/presentation/pharmacy_cart_screen.dart';
+import '../services/pharmacy/presentation/pharmacy_catalog_screen.dart';
+import '../services/pharmacy/presentation/pharmacy_checkout_screen.dart';
+import '../services/pharmacy/presentation/pharmacy_product_details_screen.dart';
+import '../services/pharmacy/presentation/pharmacy_store_list_screen.dart';
+import 'app_routes.dart';
+import 'main_app_screen.dart';
+import 'merchant_session_gate.dart';
+import 'not_found_screen.dart';
+import 'service_module.dart';
+
+/// Maps a `customer_activity.service_id` path segment (`food`, `grocery`,
+/// or `pharmacy`) back to a [ServiceId] for [ZivoServiceTheme]ing the
+/// `trackOrderDetails` route. An unrecognized or missing segment falls back
+/// to [ServiceId.unknown] (neutral platform colors) rather than guessing a
+/// vertical — `TrackOrderScreen` itself independently treats a mismatched
+/// order lookup as "not found".
+ServiceId _serviceIdFromPathSegment(String? raw) => switch (raw) {
+  'food' => ServiceId.food,
+  'grocery' => ServiceId.grocery,
+  'pharmacy' => ServiceId.pharmacy,
+  _ => ServiceId.unknown,
+};
+
+class AppRouter {
+  AppRouter._();
+
+  static const _signedOutOnlyRoutes = {
+    AppRoutes.root,
+    AppRoutes.welcome,
+    AppRoutes.login,
+    AppRoutes.register,
+    AppRoutes.forgotPassword,
+  };
+
+  // These pages can be opened without a Supabase session.
+  static final List<RouteBase> _publicRoutes = [
+    GoRoute(path: AppRoutes.root, redirect: (_, _) => AppRoutes.welcome),
+    _page(AppRoutes.welcome, const WelcomeScreen()),
+    _page(AppRoutes.login, const LoginScreen()),
+    _page(AppRoutes.register, const RegisterScreen()),
+    _page(AppRoutes.forgotPassword, const ForgotPasswordScreen()),
+  ];
+
+  // The four bottom-nav tabs. Each is its own StatefulShellBranch below, so
+  // switching between them (and into a vertical, see _serviceBranches) keeps
+  // every branch's own navigator/scroll/future state alive and leaves the
+  // persistent bottom nav bar on screen — see issue #67.
+  static const Map<String, Widget> _shellTabPages = {
+    AppRoutes.mainApp: SuperAppHomeScreen(),
+    AppRoutes.explore: ExploreScreen(),
+    AppRoutes.activity: ActivityScreen(),
+    AppRoutes.profile: ProfileScreen(),
+  };
+
+  // Food, grocery, and pharmacy are also StatefulShellBranches of the same
+  // shell (not bottom-nav destinations themselves — they're reached by
+  // `context.go` from a service card). Keeping each vertical's whole
+  // sub-tree inside the shell, rather than as standalone top-level routes,
+  // is what keeps the bottom nav bar visible while browsing a vertical.
+  // foodExplore/foodRestaurant aren't listed here since they need custom
+  // GoRoutes (query params / path params) — see the food branch below.
+  static const Map<String, Widget> _foodPages = {
+    AppRoutes.food: ZivoServiceTheme(
+      serviceId: ServiceId.food,
+      child: FoodHomeScreen(),
+    ),
+    AppRoutes.foodCategories: ZivoServiceTheme(
+      serviceId: ServiceId.food,
+      child: FoodCategoriesScreen(),
+    ),
+    AppRoutes.foodCart: ZivoServiceTheme(
+      serviceId: ServiceId.food,
+      child: CartScreen(),
+    ),
+    AppRoutes.foodCheckout: ZivoServiceTheme(
+      serviceId: ServiceId.food,
+      child: CheckoutScreen(),
+    ),
+  };
+
+  /// The per-[GroceryStoreType] product-details path, mirroring how
+  /// [GroceryStoreType.storeRoutePattern]/`cartRoute`/`checkoutRoute` give
+  /// each type (Grocery, Fresh Meat, Electronics) its own route family —
+  /// see `AppRoutes.groceryProduct`/`freshMeatProduct`/`electronicsProduct`.
+  static String _groceryProductRoutePattern(GroceryStoreType type) =>
+      switch (type) {
+        GroceryStoreType.grocery => AppRoutes.groceryProduct,
+        GroceryStoreType.freshMeat => AppRoutes.freshMeatProduct,
+        GroceryStoreType.electronics => AppRoutes.electronicsProduct,
+      };
+
+  /// Store list, store page, product details, cart and checkout for one
+  /// grocery-engine category. Grocery, Fresh Meat and Electronics each get
+  /// their own set, with their own palette and their own cart (owner
+  /// decision, 2026-09-25).
+  static List<RouteBase> _groceryRoutes(GroceryStoreType type) {
+    Widget themed(Widget child) => ZivoServiceTheme(
+      serviceId: ServiceId.grocery,
+      palette: type.palette,
+      child: child,
+    );
+    return [
+      _page(type.listRoute, themed(GroceryScreen(storeType: type))),
+      _page(type.cartRoute, themed(GroceryCartScreen(storeType: type))),
+      _page(type.checkoutRoute, themed(GroceryCheckoutScreen(storeType: type))),
+      GoRoute(
+        path: type.storeRoutePattern,
+        builder: (_, state) => themed(
+          GroceryStoreScreen(
+            storeId: state.pathParameters['storeId']!,
+            storeType: type,
+          ),
+        ),
+      ),
+      // Issue #288: was `Navigator.push(MaterialPageRoute(...))` from
+      // `GroceryStoreScreen._openDetails`.
+      GoRoute(
+        path: _groceryProductRoutePattern(type),
+        builder: (_, state) => themed(
+          GroceryProductDetailsScreen(
+            storeId: state.pathParameters['storeId']!,
+            productId: state.pathParameters['productId']!,
+            storeType: type,
+          ),
+        ),
+      ),
+    ];
+  }
+
+  static const Map<String, Widget> _pharmacyPages = {
+    AppRoutes.pharmacy: ZivoServiceTheme(
+      serviceId: ServiceId.pharmacy,
+      child: PharmacyStoreListScreen(),
+    ),
+    AppRoutes.pharmacyCart: ZivoServiceTheme(
+      serviceId: ServiceId.pharmacy,
+      child: PharmacyCartScreen(),
+    ),
+    AppRoutes.pharmacyCheckout: ZivoServiceTheme(
+      serviceId: ServiceId.pharmacy,
+      child: PharmacyCheckoutScreen(),
+    ),
+  };
+
+  // Pages that intentionally stay outside the shell: pushed full-screen,
+  // with their own back button, and not part of the persistent bottom nav.
+  // Unaffected by issue #67 — only the four tabs and the three verticals
+  // above needed to move into the shell.
+  static const Map<String, Widget> _standaloneProtectedPages = {
+    AppRoutes.services: CategoriesScreen(),
+    AppRoutes.addresses: AddressesScreen(),
+    AppRoutes.settings: SettingsScreen(),
+    // Reachable both from Settings (normal session) and by tapping a
+    // password-recovery email link (temporary recovery session) — both
+    // already carry a valid Supabase session by the time this route loads.
+    AppRoutes.resetPassword: ResetPasswordScreen(),
+    AppRoutes.support: SupportScreen(),
+    AppRoutes.privacyPolicy: PrivacyPolicyScreen(),
+    AppRoutes.termsOfService: TermsOfServiceScreen(),
+    AppRoutes.trackOrder: ZivoServiceTheme(
+      serviceId: ServiceId.food,
+      child: TrackOrderScreen(),
+    ),
+    // The merchant dashboard (issue #232): a `merchant`/`admin` account is
+    // redirected here instead of `mainApp` by `_redirect` below. It is its
+    // own standalone protected page, not part of the customer bottom-nav
+    // shell -- see `MerchantShell`'s own doc comment.
+    AppRoutes.merchantDashboard: MerchantShell(),
+  };
+
+  static final List<RouteBase> _standaloneProtectedRoutes = [
+    ..._standaloneProtectedPages.entries.map(
+      (entry) => _page(entry.key, entry.value),
+    ),
+    GoRoute(path: AppRoutes.home, redirect: (_, _) => AppRoutes.mainApp),
+    GoRoute(path: AppRoutes.categories, redirect: (_, _) => AppRoutes.services),
+    GoRoute(path: AppRoutes.cart, redirect: (_, _) => AppRoutes.foodCart),
+    GoRoute(
+      path: AppRoutes.checkout,
+      redirect: (_, _) => AppRoutes.foodCheckout,
+    ),
+    GoRoute(path: AppRoutes.restaurants, redirect: (_, _) => AppRoutes.food),
+    GoRoute(
+      path: AppRoutes.restaurant,
+      redirect: (_, state) =>
+          AppRoutes.restaurantDetails(state.pathParameters['restaurantId']!),
+    ),
+    GoRoute(
+      path: AppRoutes.trackOrderDetails,
+      builder: (_, state) {
+        final serviceId = state.pathParameters['serviceId'];
+        final orderId = state.pathParameters['orderId'];
+        return ZivoServiceTheme(
+          serviceId: _serviceIdFromPathSegment(serviceId),
+          child: TrackOrderScreen(orderId: orderId, serviceId: serviceId),
+        );
+      },
+    ),
+    // Issue #288: was `Navigator.push(MaterialPageRoute(...))` from
+    // `OrdersScreen`. Sits alongside `merchantDashboard` so it inherits the
+    // same merchant-session gating (`_isMerchantReachableLocation` below and
+    // `isProtectedLocation`'s merchant sub-path check).
+    GoRoute(
+      path: AppRoutes.merchantOrderDetail,
+      builder: (_, state) =>
+          OrderDetailScreen(orderId: state.pathParameters['orderId']!),
+    ),
+    // Issue #288: was `Navigator.push(MaterialPageRoute(...))` from
+    // `MyStoreScreen`. No id path param -- resolves the merchant's own
+    // store/catalog from the merchant session, not a path param.
+    GoRoute(
+      path: AppRoutes.merchantCatalog,
+      builder: (_, _) => const CatalogScreen(),
+    ),
+  ];
+
+  // The persistent bottom-nav shell: Home/Explore/Activity/Profile plus the
+  // food/grocery/pharmacy verticals, each its own branch so branch-switching
+  // (via `context.go` or `navigationShell.goBranch`) never tears down the
+  // other branches' navigator state, and the nav bar built by MainAppScreen
+  // stays on screen the whole time. See issue #67.
+  static final StatefulShellRoute _shellRoute = StatefulShellRoute.indexedStack(
+    builder: (context, state, navigationShell) =>
+        MainAppScreen(navigationShell: navigationShell),
+    branches: [
+      for (final entry in _shellTabPages.entries)
+        StatefulShellBranch(routes: [_page(entry.key, entry.value)]),
+      StatefulShellBranch(
+        routes: [
+          ..._foodPages.entries.map((entry) => _page(entry.key, entry.value)),
+          GoRoute(
+            // Reads an optional ?categoryId=&categoryName= pair, set when
+            // reached from a category card in FoodCategoriesScreen, to
+            // pre-filter the list.
+            path: AppRoutes.foodExplore,
+            builder: (_, state) => ZivoServiceTheme(
+              serviceId: ServiceId.food,
+              child: FoodExploreScreen(
+                categoryId: state.uri.queryParameters['categoryId'],
+                categoryName: state.uri.queryParameters['categoryName'],
+              ),
+            ),
+          ),
+          GoRoute(
+            path: AppRoutes.foodRestaurant,
+            builder: (_, state) => ZivoServiceTheme(
+              serviceId: ServiceId.food,
+              child: RestaurantScreen(
+                restaurantId: state.pathParameters['restaurantId']!,
+              ),
+            ),
+          ),
+          // Issue #288: was `Navigator.push(MaterialPageRoute(...))` from
+          // `MenuItemCard`.
+          GoRoute(
+            path: AppRoutes.foodMenuItem,
+            builder: (_, state) => ZivoServiceTheme(
+              serviceId: ServiceId.food,
+              child: MenuItemDetailsScreen(
+                restaurantId: state.pathParameters['restaurantId']!,
+                itemId: state.pathParameters['itemId']!,
+              ),
+            ),
+          ),
+        ],
+      ),
+      StatefulShellBranch(
+        routes: [
+          for (final type in GroceryStoreType.values) ..._groceryRoutes(type),
+        ],
+      ),
+      StatefulShellBranch(
+        routes: [
+          ..._pharmacyPages.entries.map(
+            (entry) => _page(entry.key, entry.value),
+          ),
+          GoRoute(
+            path: AppRoutes.pharmacyStore,
+            builder: (_, state) => ZivoServiceTheme(
+              serviceId: ServiceId.pharmacy,
+              child: PharmacyCatalogScreen(
+                storeId: state.pathParameters['storeId']!,
+                storeName: state.uri.queryParameters['name'],
+                storeImageUrl: state.uri.queryParameters['photoUrl'],
+              ),
+            ),
+          ),
+          // Issue #288: was `Navigator.push(MaterialPageRoute(...))` from
+          // `PharmacyCatalogScreen._openDetails`.
+          GoRoute(
+            path: AppRoutes.pharmacyProduct,
+            builder: (_, state) => ZivoServiceTheme(
+              serviceId: ServiceId.pharmacy,
+              child: PharmacyProductDetailsScreen(
+                storeId: state.pathParameters['storeId']!,
+                productId: state.pathParameters['productId']!,
+              ),
+            ),
+          ),
+        ],
+      ),
+    ],
+  );
+
+  static final _authRefresh = _AuthStateRefresh();
+
+  static final GoRouter router = GoRouter(
+    initialLocation: AppRoutes.welcome,
+    refreshListenable: _authRefresh,
+    redirect: _redirect,
+    routes: [..._publicRoutes, _shellRoute, ..._standaloneProtectedRoutes],
+    // Replaces go_router's default error page for an unrecognized path
+    // (issue #40) with an on-brand screen that gives the user a way back.
+    errorBuilder: (_, _) => const NotFoundScreen(),
+  );
+
+  // A signed-in account's `profiles.role` decides whether it belongs on the
+  // customer home or the merchant dashboard, so it has to be known before
+  // this redirect answers. Otherwise the auth event fired by `signIn` is
+  // handled while the role is still the default "customer", `/login` (a
+  // signed-out-only route) redirects to the customer home, and a
+  // merchant/admin sees that home flash by until the lookup finishes. Stays
+  // synchronous (no extra frame) once the role is cached.
+  static FutureOr<String?> _redirect(
+    BuildContext context,
+    GoRouterState state,
+  ) => redirectFor(
+    userId: Supabase.instance.client.auth.currentSession?.user.id,
+    location: state.uri.path,
+    revisitWelcome: isWelcomeRevisit(state.uri),
+  );
+
+  /// True for `AppRoutes.welcomeRevisit`: the welcome slides opened on
+  /// purpose, which a returning user must not be redirected past.
+  static bool isWelcomeRevisit(Uri uri) =>
+      uri.queryParameters[AppRoutes.welcomeRevisitParam] == 'true';
+
+  /// [_redirect]'s logic with the Supabase session and route state passed
+  /// in, so it can be exercised without a live `Supabase.instance`.
+  /// [userId] is the signed-in user's id, or `null` when signed out.
+  static FutureOr<String?> redirectFor({
+    required String? userId,
+    required String location,
+    MerchantRoleService? roleService,
+    bool revisitWelcome = false,
+  }) {
+    String? decide() => resolveRedirect(
+      isLoggedIn: userId != null,
+      isProtected: isProtectedLocation(location),
+      location: location,
+      hasSeenOnboarding: OnboardingLaunchGate.hasSeenOnboarding,
+      revisitWelcome: revisitWelcome,
+      isMerchant: MerchantSessionGate.isMerchantRole,
+    );
+
+    if (userId != null && MerchantSessionGate.resolvedUserId != userId) {
+      return MerchantSessionGate.resolveFor(
+        userId,
+        roleService: roleService,
+      ).then((_) => decide());
+    }
+    return decide();
+  }
+
+  static String? resolveRedirect({
+    required bool isLoggedIn,
+    required bool isProtected,
+    required String location,
+    bool hasSeenOnboarding = false,
+    // The welcome slides were opened on purpose (see
+    // `AppRoutes.welcomeRevisit`), so a returning user is not bounced past
+    // them to login.
+    bool revisitWelcome = false,
+    // Issue #232 / #236: whether the signed-in account's `profiles.role`
+    // is `merchant`/`admin` (see `MerchantSessionGate`), resolved once at
+    // sign-in/session-restore rather than looked up on every redirect.
+    bool isMerchant = false,
+  }) {
+    if (!isLoggedIn && isProtected) {
+      return AppRoutes.login;
+    }
+
+    // Issue #236: a signed-in merchant/admin account is confined to
+    // `/merchant` (and any sub-path under it) for the entire session --
+    // *every* other location, not just the former login/welcome-only
+    // check, sends it back to the merchant dashboard instead. This
+    // supersedes #232's narrower `_signedOutOnlyRoutes` redirect, which
+    // only stopped a merchant account from landing back on a login screen
+    // and left every customer route (`/app`, `/food`, `/settings`, ...)
+    // reachable by direct navigation.
+    //
+    // `/reset-password` is explicitly exempted: it is also reachable
+    // through the temporary session created by tapping a password-recovery
+    // email link (`AuthChangeEvent.passwordRecovery`, handled below in
+    // `_AuthStateRefresh`), which is a different path from the normal
+    // sign-in/session-restore flow that resolves `isMerchant` in the first
+    // place. Without this exemption, a merchant/admin account whose cached
+    // `MerchantSessionGate.isMerchantRole` is still (possibly stale-)true
+    // from an earlier session in the same app run could never reach the
+    // reset-password screen.
+    if (isLoggedIn && isMerchant && !_isMerchantReachableLocation(location)) {
+      return AppRoutes.merchantDashboard;
+    }
+
+    if (isLoggedIn && _signedOutOnlyRoutes.contains(location)) {
+      return AppRoutes.mainApp;
+    }
+
+    // A returning signed-out user (this device already finished or skipped
+    // onboarding at least once, per [OnboardingLaunchGate]) skips straight
+    // past the welcome/onboarding slides on this and every later launch,
+    // landing on login instead of seeing the first-launch sequence again
+    // (issue #15).
+    if (!isLoggedIn &&
+        hasSeenOnboarding &&
+        !revisitWelcome &&
+        location == AppRoutes.welcome) {
+      return AppRoutes.login;
+    }
+
+    return null;
+  }
+
+  /// True when a merchant/admin session is allowed to stay on [location]
+  /// without being redirected to [AppRoutes.merchantDashboard] (issue #236):
+  /// the merchant dashboard itself, any sub-path under it, or the
+  /// password-reset screen (see [resolveRedirect]'s doc comment on why that
+  /// one is exempted).
+  static bool _isMerchantReachableLocation(String location) =>
+      location == AppRoutes.merchantDashboard ||
+      location.startsWith('${AppRoutes.merchantDashboard}/') ||
+      location == AppRoutes.resetPassword;
+
+  static bool isProtectedLocation(String location) {
+    return _standaloneProtectedPages.containsKey(location) ||
+        _shellTabPages.containsKey(location) ||
+        AppRoutes.isServicePath(location) ||
+        AppRoutes.isRestaurantDetails(location) ||
+        AppRoutes.isTrackOrderDetails(location) ||
+        // Issue #288: `merchantOrderDetail`/`merchantCatalog` carry path
+        // params (or sit one level under `merchantDashboard`), so the exact
+        // `_standaloneProtectedPages` lookup above never matches them on
+        // its own -- without this, a signed-out visitor hitting one of
+        // these URLs directly would skip the login redirect entirely,
+        // exactly the gap issue #288 called out for `Navigator.push`-only
+        // screens.
+        location.startsWith('${AppRoutes.merchantDashboard}/') ||
+        const {
+          AppRoutes.home,
+          AppRoutes.categories,
+          AppRoutes.cart,
+          AppRoutes.checkout,
+          AppRoutes.restaurants,
+        }.contains(location);
+  }
+
+  // Most routes only need a path and a screen, so keep that boilerplate here.
+  static GoRoute _page(String path, Widget screen) {
+    return GoRoute(path: path, builder: (_, _) => screen);
+  }
+
+  /// True when [path] is registered as an exact, static route (public or
+  /// protected). Only matches literal paths — it does not resolve dynamic
+  /// segments such as `:restaurantId`, since none of the callers this exists
+  /// for (route-registration contract tests) need that. Deliberately built
+  /// from the route lists directly rather than the `router` field, so it can
+  /// be used from a plain unit test without a Supabase session having been
+  /// initialized first.
+  static bool hasRegisteredRoute(String path) {
+    bool matches(RouteBase route) => route is GoRoute && route.path == path;
+    final shellRoutes = _shellRoute.branches.expand((branch) => branch.routes);
+    return _publicRoutes.any(matches) ||
+        _standaloneProtectedRoutes.any(matches) ||
+        shellRoutes.any(matches);
+  }
+}
+
+// Notifies GoRouter whenever Supabase restores, creates, or removes a session.
+class _AuthStateRefresh extends ChangeNotifier {
+  _AuthStateRefresh() {
+    _subscription = Supabase.instance.client.auth.onAuthStateChange.listen((
+      authState,
+    ) {
+      // Fired when the user taps a Supabase password-recovery email link
+      // and the app receives the resulting deep link. Send them straight to
+      // the reset-password screen instead of the normal signed-in redirect.
+      if (authState.event == AuthChangeEvent.passwordRecovery) {
+        AppRouter.router.go(AppRoutes.resetPassword);
+      }
+      // Issue #232: clear the cached merchant/admin routing decision on
+      // sign-out so a later, unrelated session-restore or sign-in always
+      // starts from a fresh lookup rather than a stale cached role.
+      if (authState.event == AuthChangeEvent.signedOut) {
+        MerchantSessionGate.reset();
+      }
+      notifyListeners();
+    });
+  }
+
+  late final StreamSubscription<AuthState> _subscription;
+
+  @override
+  void dispose() {
+    _subscription.cancel();
+    super.dispose();
+  }
+}

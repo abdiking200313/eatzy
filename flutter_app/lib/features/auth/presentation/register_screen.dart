@@ -1,0 +1,354 @@
+import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
+import '../../../app/app_routes.dart';
+import '../../../app/app_scope.dart';
+import '../../../config/theme.dart';
+import '../../../widgets/app_cards.dart';
+import '../../../widgets/app_widgets.dart';
+import '../../../widgets/zivo_logo.dart';
+import '../data/auth_error_message.dart';
+import '../data/auth_service.dart';
+
+class RegisterScreen extends StatefulWidget {
+  const RegisterScreen({super.key, this.authService});
+
+  /// Overrides the default [AuthService] used to submit sign-up requests.
+  /// Only intended for tests — production code always uses the default,
+  /// which lazily resolves `AppScope.of(context).supabaseClient`.
+  final AuthService? authService;
+
+  @override
+  State<RegisterScreen> createState() => _RegisterScreenState();
+}
+
+class _RegisterScreenState extends State<RegisterScreen> {
+  // AuthService keeps the screen separate from the low-level Supabase calls.
+  AuthService get _authService =>
+      widget.authService ??
+      AuthService(client: AppScope.of(context).supabaseClient);
+  final TextEditingController _firstNameController = TextEditingController();
+  final TextEditingController _lastNameController = TextEditingController();
+  final TextEditingController _phoneController = TextEditingController();
+  final TextEditingController _dobController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _confirmPasswordController =
+      TextEditingController();
+  DateTime? _dob;
+  bool _isLoading = false;
+
+  @override
+  void dispose() {
+    _firstNameController.dispose();
+    _lastNameController.dispose();
+    _phoneController.dispose();
+    _dobController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _pickDob() async {
+    final now = DateTime.now();
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _dob ?? DateTime(now.year - 18, now.month, now.day),
+      firstDate: DateTime(now.year - 120, now.month, now.day),
+      lastDate: now,
+    );
+    if (picked == null) return;
+    setState(() {
+      _dob = picked;
+      _dobController.text = DateFormat('MMM d, yyyy').format(picked);
+    });
+  }
+
+  Future<void> _register() async {
+    final firstName = _firstNameController.text.trim();
+    final lastName = _lastNameController.text.trim();
+    final phone = _phoneController.text.trim();
+    final email = _emailController.text.trim();
+    final password = _passwordController.text;
+    final confirmPassword = _confirmPasswordController.text;
+
+    if (firstName.isEmpty ||
+        lastName.isEmpty ||
+        phone.isEmpty ||
+        _dob == null ||
+        email.isEmpty ||
+        password.isEmpty ||
+        confirmPassword.isEmpty) {
+      _showMessage('Please fill in every field.');
+      return;
+    }
+    if (password.length < 6) {
+      _showMessage('Password must be at least 6 characters.');
+      return;
+    }
+
+    final emailRegex = RegExp(
+      r"^[a-zA-Z0-9.!#$%&'*+\-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+$",
+    );
+    if (!emailRegex.hasMatch(email)) {
+      _showMessage('Please enter a valid email address.');
+      return;
+    }
+    final phoneRegex = RegExp(r'^\+?[0-9\s-]{7,15}$');
+    if (!phoneRegex.hasMatch(phone)) {
+      _showMessage('Please enter a valid phone number.');
+      return;
+    }
+    if (password != confirmPassword) {
+      _showMessage('Passwords do not match.');
+      return;
+    }
+
+    setState(() => _isLoading = true);
+    AuthResponse response;
+    try {
+      response = await _authService.signUpWithEmailPassword(
+        email,
+        password,
+        firstName: firstName,
+        lastName: lastName,
+        phone: phone,
+        dob: _dob!,
+      );
+    } catch (error) {
+      if (mounted) {
+        _showMessage(
+          'Registration failed: ${describeAuthError(error, context: 'Registration')}',
+        );
+      }
+      return;
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+
+    if (!mounted) return;
+
+    if (response.session != null) {
+      context.go(AppRoutes.mainApp);
+      return;
+    }
+
+    await _showEmailConfirmationDialog(email);
+    if (!mounted) return;
+    context.go(AppRoutes.login);
+  }
+
+  Future<void> _showEmailConfirmationDialog(String email) {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) {
+        return AlertDialog(
+          icon: const Icon(
+            Icons.mark_email_read_outlined,
+            color: TwColors.primary,
+          ),
+          title: const Text('Confirm your email'),
+          content: Text(
+            'We sent a confirmation link to $email. '
+            'Open the link to activate your account, then sign in.',
+          ),
+          actions: [
+            FilledButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: const Text('Go to sign in'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showMessage(String message) {
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      resizeToAvoidBottomInset: true,
+      body: AuthPageBackground(
+        child: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(TwSpacing.x5),
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 460),
+                child: AutofillGroup(
+                  child: Column(
+                    children: [
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: IconButton.filled(
+                          tooltip: 'Back',
+                          onPressed: () {
+                            // With nothing behind this screen (it replaced
+                            // another route via `go`) reopen the onboarding
+                            // slides instead of doing nothing.
+                            if (context.canPop()) {
+                              context.pop();
+                            } else {
+                              context.go(AppRoutes.welcomeRevisit);
+                            }
+                          },
+                          style: IconButton.styleFrom(
+                            backgroundColor: TwColors.white,
+                            foregroundColor: TwColors.text,
+                          ),
+                          icon: const Icon(Icons.arrow_back_rounded),
+                        ),
+                      ),
+                      const SizedBox(height: TwSpacing.x4),
+                      const ZivoLogo(height: 44),
+                      const SizedBox(height: TwSpacing.x6),
+                      AuthCard(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Create your account', style: TwText.text3xl),
+                            const SizedBox(height: TwSpacing.x2),
+                            Text(
+                              'Join Zivo to order food, groceries and more, delivered to you.',
+                              style: TwText.textSm,
+                            ),
+                            const SizedBox(height: TwSpacing.sectionGap),
+                            AppTextField(
+                              controller: _firstNameController,
+                              label: 'First name',
+                              hint: 'Jane',
+                              prefixIcon: Icons.person_outline_rounded,
+                              textInputAction: TextInputAction.next,
+                              autofillHints: const [AutofillHints.givenName],
+                            ),
+                            const SizedBox(height: TwSpacing.x3_5),
+                            AppTextField(
+                              controller: _lastNameController,
+                              label: 'Last name',
+                              hint: 'Doe',
+                              prefixIcon: Icons.person_outline_rounded,
+                              textInputAction: TextInputAction.next,
+                              autofillHints: const [AutofillHints.familyName],
+                            ),
+                            const SizedBox(height: TwSpacing.x3_5),
+                            AppTextField(
+                              controller: _phoneController,
+                              label: 'Phone number',
+                              hint: '+1 555 123 4567',
+                              keyboardType: TextInputType.phone,
+                              prefixIcon: Icons.phone_outlined,
+                              textInputAction: TextInputAction.next,
+                              autofillHints: const [
+                                AutofillHints.telephoneNumber,
+                              ],
+                            ),
+                            const SizedBox(height: TwSpacing.x3_5),
+                            AppTextField(
+                              controller: _dobController,
+                              label: 'Date of birth',
+                              hint: 'Select your date of birth',
+                              prefixIcon: Icons.cake_outlined,
+                              readOnly: true,
+                              onTap: _pickDob,
+                            ),
+                            const SizedBox(height: TwSpacing.x3_5),
+                            AppTextField(
+                              controller: _emailController,
+                              label: 'Email address',
+                              hint: 'you@example.com',
+                              keyboardType: TextInputType.emailAddress,
+                              prefixIcon: Icons.mail_outline_rounded,
+                              textInputAction: TextInputAction.next,
+                              autofillHints: const [AutofillHints.email],
+                            ),
+                            const SizedBox(height: TwSpacing.x3_5),
+                            AppTextField(
+                              controller: _passwordController,
+                              label: 'Password',
+                              hint: 'At least 6 characters',
+                              prefixIcon: Icons.lock_outline_rounded,
+                              obscureText: true,
+                              textInputAction: TextInputAction.next,
+                              autofillHints: const [AutofillHints.newPassword],
+                            ),
+                            const SizedBox(height: TwSpacing.x3_5),
+                            AppTextField(
+                              controller: _confirmPasswordController,
+                              label: 'Confirm password',
+                              hint: 'Enter the password again',
+                              prefixIcon: Icons.verified_user_outlined,
+                              obscureText: true,
+                              textInputAction: TextInputAction.done,
+                              onSubmitted: (_) {
+                                if (!_isLoading) _register();
+                              },
+                            ),
+                            const SizedBox(height: TwSpacing.x3_5),
+                            Row(
+                              children: [
+                                const Icon(
+                                  Icons.shield_outlined,
+                                  size: 16,
+                                  color: TwColors.primary,
+                                ),
+                                const SizedBox(width: TwSpacing.x2),
+                                Expanded(
+                                  child: Text(
+                                    'Your account is protected by Supabase authentication.',
+                                    style: TwText.textXs.copyWith(
+                                      color: TwColors.textMuted,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: TwSpacing.x6),
+                            if (_isLoading)
+                              const Center(child: CircularProgressIndicator())
+                            else
+                              GradientActionButton(
+                                label: 'Create account',
+                                onPressed: _register,
+                                icon: const Icon(
+                                  Icons.arrow_forward_rounded,
+                                  color: TwColors.onPrimary,
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: TwSpacing.x5),
+                      Wrap(
+                        alignment: WrapAlignment.center,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        children: [
+                          Text(
+                            'Already have an account?',
+                            style: TwText.textSm,
+                          ),
+                          TextButton(
+                            onPressed: () => context.go(AppRoutes.login),
+                            child: Text('Sign in', style: TwText.link),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
