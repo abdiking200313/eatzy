@@ -376,7 +376,9 @@ values (
   'authenticated',
   'authenticated',
   'demo.customer@zivo.local',
-  crypt('zivo-local-demo-account', gen_salt('bf')),
+  -- Schema-qualified: Supabase installs pgcrypto in `extensions`, which is
+  -- not on the search_path the CLI seeds with (issue #278).
+  extensions.crypt('zivo-local-demo-account', extensions.gen_salt('bf')),
   now(),
   '{"provider": "email", "providers": ["email"]}'::jsonb,
   '{}'::jsonb,
