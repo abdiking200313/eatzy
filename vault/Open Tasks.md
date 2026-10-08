@@ -7,7 +7,14 @@ upstream_concept: 00-Index
 
 # Open Tasks
 
-**Updated 2026-10-08 (board worker, 3rd run today)** — re-check before relying on this for anything that matters. **Source of truth is always a live `list_issues`/`gh issue list --repo abdiking200313/eatzy --state open` call.**
+**Updated 2026-10-08 (interactive session) — #276 resolved** — re-check before relying on this for anything that matters. **Source of truth is always a live `list_issues`/`gh issue list --repo abdiking200313/eatzy --state open` call.**
+
+## Update, 2026-10-08 (interactive session) — #276 closed via PR #450, the 19-run Docker blocker corrected, #278 unblocked
+
+- **#276 closed.** The "no Docker daemon" story that blocked this for 19+ runs was only ever half-true — `dockerd` itself starts fine in an interactive session (the board worker's own unattended auto-mode classifier was the thing refusing to start it, not the environment). The real, permanent wall is one level deeper and applies regardless of session type: running a container built from a pulled image (what the Supabase CLI's local stack needs) hits a "Code from External" security boundary. See [[Multi-Agent Setup]]'s 2026-10-08 correction entry for the full detail and the workaround that actually closed this: a plain `apt`-installed local Postgres 16 + a hand-written `auth`/`storage` shim, replaying all 43 real migration files + `seed.sql` from a genuinely fresh database with zero errors. PR #450 merged (squash), `verify`/`android-build` both green, 578/578 Flutter tests. **#303 closed as superseded** (same diff, same author's work, just finished).
+- **#278 is no longer blocked**, and — important correction — was never going to need the Docker workaround at all: its own acceptance criteria puts the real verification in a *new CI job* on a GitHub-hosted runner (which has real Docker), not in any board-worker sandbox. Treat it as a normal implementable `todo` issue next run.
+- **#301 stays blocked** — needs #276 **and** #278 (and everything else through #299) closed first; only #278 remains open in that range now.
+- **#29/#52/#55/#351** unchanged — see prior entries below.
 
 ## Update, 2026-10-08 (board worker, 3rd run today) — #351 confirmed genuinely in-progress elsewhere (real branch, no PR yet), nothing else eligible
 
@@ -403,7 +410,7 @@ upstream_concept: 00-Index
 |---|---|---|
 | 29 | Deploy-readiness audit (tracking) | Umbrella/index issue — findings already filed as the `needs-approval` #30-83 batch |
 | 52 | Architecture, performance & cross-layer review (tracking) | Umbrella/index issue, same pattern as #21/#29 — its 31 child issues (#53-83ish) are the real work |
-| 278 | No automated tests for RLS policies and order RPCs | Explicitly depends on #276 merging first (its own issue body: "Do not start until that is merged") |
+| ~~278~~ | ~~No automated tests for RLS policies and order RPCs~~ | **No longer blocked, see the 2026-10-08 update near the top — #276 merged (PR #450). Pick up normally next run.** |
 
 **#128 (merchant self-service tracking) closed 2026-09-15 (75th run)** — all 7 children (#129-135) merged, entire epic complete. See the update note near the top of this file and [[Status Log]] 2026-09-15 "75th run". No longer in this table.
 
