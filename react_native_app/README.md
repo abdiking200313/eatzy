@@ -25,6 +25,100 @@ In the output, you'll find options to open the app in a
 
 You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
 
+## Development builds (EAS)
+
+This app includes native modules (e.g. `expo-secure-store` today, Firebase
+later) that Expo Go does not bundle, so day-to-day development uses a
+**development build** instead of Expo Go. A development build is a debug
+build of this app that still includes the Metro dev server / fast refresh via
+`expo-dev-client`, but can also load any native module you add.
+
+Builds are produced in the cloud with [EAS Build](https://docs.expo.dev/eas/index.md)
+— no local Android Studio or Xcode install is required to *build*, but you do
+still need an emulator (Android) or simulator (iOS) to *run* the result
+locally. Run every EAS CLI command as `npx eas-cli@latest <command>` (not a
+globally installed `eas`) so you always use a current client against the
+current project.
+
+### One-time setup
+
+1. `npx eas-cli@latest login` — sign in with the Expo account that owns this
+   project (ask a maintainer for access if you don't have one).
+2. Copy `.env.example` to `.env.development` and fill in a non-production
+   Supabase project's URL/anon key (see the comments in that file). Builds —
+   including EAS builds — fail fast with a named error if these are missing;
+   see `src/platform/config/env.ts`.
+
+### Build profiles (`eas.json`)
+
+| Profile | Purpose | Distribution |
+| --- | --- | --- |
+| `development` | Local development build with `expo-dev-client`, connects to your Metro dev server | `internal` (Android APK, iOS simulator build) |
+| `preview` | Installable build for manual/QA testing, no dev client | `internal` (Android APK) |
+| `production` | Store-ready build | `store` (Android App Bundle, auto-incrementing build number) |
+
+### Building a development build
+
+```bash
+# Android (installable .apk)
+npx eas-cli@latest build --profile development --platform android
+
+# iOS (simulator build — set ios.simulator: false in eas.json's
+# "development" profile first if you need a device build instead)
+npx eas-cli@latest build --profile development --platform ios
+```
+
+Each command queues a cloud build and prints a URL to track progress, then a
+download link when it finishes.
+
+### Installing it
+
+- **Android emulator**: download the `.apk` EAS gives you and drag it onto a
+  running emulator window, or run
+  `npx eas-cli@latest build:run --platform android` to install the latest
+  development build straight onto a running emulator/device.
+- **iOS simulator**: run
+  `npx eas-cli@latest build:run --platform ios` to install the latest
+  simulator build straight into a running simulator, or drag the downloaded
+  `.app`/`.tar.gz` onto the Simulator window.
+- Once installed, run `npx expo start --dev-client` and open the app — it
+  connects to your local Metro server like Expo Go did.
+
+Prefer building and installing locally instead (no EAS account/cloud build
+needed)? Use `npx expo run:android` or `npx expo run:ios` — both generate the
+native `android/`/`ios/` projects on the fly (Continuous Native Generation)
+and install straight onto a connected emulator/simulator, but require
+Android Studio / Xcode to already be installed locally.
+
+### Bundle identifier and signing
+
+Both platforms are configured in `app.json` with the same identifier the
+Flutter app (`flutter_app/`) already ships under:
+
+- `ios.bundleIdentifier`: `com.zivo.app`
+- `android.package`: `com.zivo.app`
+
+This is intentional, not incidental — reusing `flutter_app`'s existing
+identifier means this RN app must be signed with the **same release
+identities** when it ships to the stores:
+
+- **Android**: use the **same Play Console listing** as `flutter_app`, and let
+  **Play App Signing** manage the signing key (do not generate or commit a
+  separate keystore for this app). EAS Build will request/store Android
+  signing credentials for you (`npx eas-cli@latest credentials`) the first
+  time a `store`-distribution build runs; it is only needed for `production`
+  builds, not for `development`/`preview` builds, which EAS signs with an
+  internal debug/ad hoc identity instead.
+- **iOS**: use the **same Apple Developer Team** as `flutter_app` so
+  provisioning for `com.zivo.app` resolves to the existing App Store
+  Connect app record, not a new one. EAS Build manages provisioning
+  profiles/certificates for you once you log in with that team's Apple ID
+  (`npx eas-cli@latest credentials`).
+
+No signing secrets (keystores, provisioning profiles, API keys) are committed
+to this repository — EAS stores them for you, encrypted, once you provide
+them interactively.
+
 ## Get a fresh project
 
 When you're ready, run:
