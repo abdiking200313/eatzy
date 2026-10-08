@@ -15,8 +15,8 @@ import { ThemeTokenGallery } from '@/components/theme-token-gallery';
 export default function ThemePreviewScreen() {
   return (
     <ScrollView className="flex-1 bg-bg" contentContainerClassName="gap-x6 px-screenX py-x6">
-      <Text className="text-text3xl text-text">Theme tokens</Text>
-      <Text className="text-textSm text-textMuted">
+      <Text className="text-text3xl font-outfitBold text-text">Theme tokens</Text>
+      <Text className="text-textSm font-outfitRegular text-textMuted">
         Light and dark values from tailwind.config.js / src/theme/tokens.ts.
       </Text>
       <ThemeTokenGallery />

@@ -202,36 +202,69 @@ export const shadows = {
 } as const;
 
 /**
+ * Outfit, bundled via app.json's `expo-font` config plugin from
+ * react_native_app/assets/fonts/Outfit-*.ttf (issue #353). Ports
+ * flutter_app/lib/config/tailwind.dart's `fontFamily: 'Outfit'` +
+ * `fontWeight` pairs and pubspec.yaml's weight -> filename mapping
+ * (w400 -> Regular, w500 -> Medium, w600 -> SemiBold, w700 -> Bold).
+ * Unlike Flutter's single `Outfit` family + `FontWeight` (resolved by the
+ * engine against the weight-tagged assets registered in pubspec.yaml),
+ * React Native has no automatic weight resolution for a custom font — each
+ * weight is its own family name, matching the `font-outfit*` NativeWind
+ * classes in tailwind.config.js.
+ */
+export const fontFamily = {
+  regular: 'Outfit-Regular',
+  medium: 'Outfit-Medium',
+  semiBold: 'Outfit-SemiBold',
+  bold: 'Outfit-Bold',
+} as const;
+
+/**
  * TwText. Font sizes carry weight/line-height/letter-spacing like the Dart
  * TextStyles do; color is intentionally not baked in here (apply it
  * separately from `colors.light.text` / `colors.light.textMuted`, same as
- * the `text-text`/`text-textMuted` Tailwind classes do). `fontFamily:
- * 'Outfit'` itself is not wired up here — loading/registering the bundled
- * Outfit font is a separate task, not part of #352.
+ * the `text-text`/`text-textMuted` Tailwind classes do). `fontFamily` below
+ * is the plain-JS-value counterpart of tailwind.config.js's `font-outfit*`
+ * classes — pass it straight to a `TextStyle`/`StyleSheet` for code that
+ * needs a real value rather than a className (same rationale as the rest of
+ * this file, see the header comment).
  */
 export const typography = {
-  text3xl: { fontSize: 30, fontWeight: '700', lineHeight: 1.15 },
-  text2xl: { fontSize: 26, fontWeight: '700', lineHeight: 1.2 },
-  textXl: { fontSize: 22, fontWeight: '700', lineHeight: 1.25 },
-  textLg: { fontSize: 19, fontWeight: '500', lineHeight: 1.4 },
-  textBase: { fontSize: 17, fontWeight: '400', lineHeight: 1.4 },
-  textSm: { fontSize: 15, fontWeight: '400', lineHeight: 1.35 },
-  textXs: { fontSize: 13, fontWeight: '500', lineHeight: 1.3 },
-  fontBoldSm: { fontSize: 15, fontWeight: '600', lineHeight: 1.35 },
-  fontBoldBase: { fontSize: 17, fontWeight: '600', lineHeight: 1.4 },
-  button: { fontSize: 15, fontWeight: '600' },
-  link: { fontSize: 13, fontWeight: '600', lineHeight: 1.3 },
+  text3xl: { fontSize: 30, fontWeight: '700', lineHeight: 1.15, fontFamily: fontFamily.bold },
+  text2xl: { fontSize: 26, fontWeight: '700', lineHeight: 1.2, fontFamily: fontFamily.bold },
+  textXl: { fontSize: 22, fontWeight: '700', lineHeight: 1.25, fontFamily: fontFamily.bold },
+  textLg: { fontSize: 19, fontWeight: '500', lineHeight: 1.4, fontFamily: fontFamily.medium },
+  textBase: { fontSize: 17, fontWeight: '400', lineHeight: 1.4, fontFamily: fontFamily.regular },
+  textSm: { fontSize: 15, fontWeight: '400', lineHeight: 1.35, fontFamily: fontFamily.regular },
+  textXs: { fontSize: 13, fontWeight: '500', lineHeight: 1.3, fontFamily: fontFamily.medium },
+  fontBoldSm: {
+    fontSize: 15,
+    fontWeight: '600',
+    lineHeight: 1.35,
+    fontFamily: fontFamily.semiBold,
+  },
+  fontBoldBase: {
+    fontSize: 17,
+    fontWeight: '600',
+    lineHeight: 1.4,
+    fontFamily: fontFamily.semiBold,
+  },
+  button: { fontSize: 15, fontWeight: '600', fontFamily: fontFamily.semiBold },
+  link: { fontSize: 13, fontWeight: '600', lineHeight: 1.3, fontFamily: fontFamily.semiBold },
   sectionLabel: {
     fontSize: 13,
     fontWeight: '700',
     lineHeight: 1.3,
     letterSpacing: 0.6,
+    fontFamily: fontFamily.bold,
   },
   sectionTitle: {
     fontSize: 20,
     fontWeight: '600',
     lineHeight: 1.25,
     letterSpacing: -0.4,
+    fontFamily: fontFamily.semiBold,
   },
 } as const;
 
@@ -242,3 +275,4 @@ export type SpacingToken = keyof typeof spacing;
 export type RadiusToken = keyof typeof radius;
 export type ShadowToken = keyof typeof shadows;
 export type TypographyToken = keyof typeof typography;
+export type FontFamilyToken = keyof typeof fontFamily;
