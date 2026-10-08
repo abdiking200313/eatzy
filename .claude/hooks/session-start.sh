@@ -30,4 +30,17 @@ fi
 
 cd "$CLAUDE_PROJECT_DIR/flutter_app"
 flutter --version
-flutter pub get
+
+# `flutter pub get`'s per-package "X (Y available)" output is pure noise on
+# every session start (dozens of lines, unrelated to this session's actual
+# task) and costs context on every single session, not just the board
+# worker. Keep it, but only surface it when something actually goes wrong.
+PUB_GET_LOG="$(mktemp)"
+if ! flutter pub get > "$PUB_GET_LOG" 2>&1; then
+  echo "flutter pub get failed:" >&2
+  cat "$PUB_GET_LOG" >&2
+  rm -f "$PUB_GET_LOG"
+  exit 1
+fi
+rm -f "$PUB_GET_LOG"
+echo "Dependencies resolved."
