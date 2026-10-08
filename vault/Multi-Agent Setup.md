@@ -84,6 +84,26 @@ A cron routine ("eatzy board worker", every 5 hours) runs in Anthropic's cloud, 
 
 **This vault is committed inside the repo specifically so the board worker can read it too** — if updating the routine prompt, point it at `vault/00-Index.md` first so it doesn't re-explore the whole codebase cold every run.
 
+## React Native migration agents — added 2026-10-08
+
+The 75-issue `react_native_app/` migration batch (filed 2026-10-05, labeled `app:react-native`, phases P0-P10 porting the Flutter app to Expo/TypeScript) sat entirely in `needs-approval` with no automation built for it — the four existing subagents and the `/build` skill are Flutter/Dart-specific and don't know React Native, Expo, NativeWind, Zustand, or Jest+RNTL. The owner explicitly asked for this to be built before approving the batch (see [[Decisions Log]] 2026-10-08) rather than turning the board worker loose on 75 interdependent issues with the wrong tooling.
+
+**Three new subagents**, all `.claude/agents/*.md`, scoped to `react_native_app/` only:
+
+- **`rn-ui-agent`** — `src/components/**`, leaf screen `.tsx` files under `src/app/**` (not `_layout.tsx`), `tailwind.config.js`, `src/theme/tokens.ts`, presentational-only hooks. Model: sonnet.
+- **`rn-logic-agent`** — `src/app/**/_layout.tsx` (navigators + auth redirects), `src/platform/**` (env, Supabase client, session), `src/stores/**` (Zustand), any hook touching Supabase/TanStack Query/a store. Model: sonnet.
+- **`rn-qa-agent`** — `*.test.ts(x)`, `src/test-utils/**`, `e2e/**` (Maestro). Runs after the other two, not alongside — same reasoning as the Flutter `qa-agent`. Model: sonnet.
+
+No new `rn-supabase-agent` — this migration ports the client against the **already-live** Supabase schema (same backend, same `supabase/` directory, same RLS), so a new table/column/RPC should essentially never come up. If one genuinely does, it's still the existing `supabase-agent`'s job, same escalation path as the Flutter agents use.
+
+**Unowned by any RN subagent, same precedent as `pubspec.yaml`/native shells on the Flutter side**: `package.json`, `package-lock.json`, `app.json`, `app.config.ts`, `eas.json`, `tsconfig.json`, `eslint.config.js`, `babel.config.js`, `metro.config.js`, `.github/workflows/react-native.yml`. The orchestrator handles these directly.
+
+**New `/build-rn` skill** (`.claude/skills/build-rn/SKILL.md`) mirrors `/build`'s flow (read → clarify-if-ambiguous → task brief → scope → contracts → parallel dispatch → reconcile → qa → summarize → vault update) adapted for this batch's specifics: every issue already names its own Flutter source files to port (`## Ports from Flutter`), the Flutter tests that define correctness (`## Flutter tests to port or match`), and its own dependency list (`## Depends on`) — read those instead of re-deriving scope from scratch, and explicitly verify the `## Depends on` issues are merged before starting rather than trusting FIFO order alone (it happens to match the filed order for this batch, but don't rely on that holding forever). It also folds in every parallel-dispatch lesson already learned the hard way on the Flutter side (`isolation: "worktree"` whenever dispatching more than one agent at once, unique scratchpad filenames per dispatch, the "agent stops mid-CI-wait" and "self-merge instruction randomly denied" gotchas) so this new flow doesn't have to rediscover them.
+
+**Routing**: see [[Conventions]] "App label rules (`app:*`)" — an issue labeled `app:react-native` uses this flow instead of `/build`+the Flutter subagents; everything else is unchanged.
+
+**Not yet exercised against a real dispatch** — written and reviewed, but no issue from this batch has actually been approved/run through it yet as of this entry. Expect to find and fix a rough edge or two on the first real run, same as any new agent definition.
+
 ## Parallelism policy
 
 Within one task spanning layers, dispatch relevant agents in parallel (that's the whole point of the role split). Across *different* tasks: parallelize only when they touch genuinely disjoint files (e.g. a `lib/services/` refactor + a `supabase/` doc fix ran together safely); default to one-at-a-time when tasks might overlap or build on each other.

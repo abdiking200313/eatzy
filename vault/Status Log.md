@@ -8,6 +8,12 @@ Reverse-chronological. Each session/major chunk of work gets an entry.
 
 ---
 
+## 2026-10-08 (interactive session — React Native migration automation built, nothing approved yet)
+
+- User asked to "approve everything" in `needs-approval` after the board worker's 18-run no-op streak; found it was 75 issues, the entire `react_native_app/` migration (phases P0-P10, filed 2026-10-05). Flagged the existing automation is Flutter-only and offered 3 options; user picked "fix the automation first." Full reasoning in [[Decisions Log]] 2026-10-08.
+- Built: `rn-ui-agent`/`rn-logic-agent`/`rn-qa-agent` (`.claude/agents/`), `/build-rn` skill (`.claude/skills/build-rn/SKILL.md`), the `app:*` label routing rule in [[Conventions]] (the board-worker routine prompt already referenced this section by name since 2026-10-05 — it just never existed), and the agent roster in [[Multi-Agent Setup]] "React Native migration agents".
+- **Not done**: no issue in the batch relabeled `todo` yet, no real dispatch through `/build-rn` yet. Next step is the user's call — approve all 75, or Phase 0 (#346-351) first as a smoke test.
+
 ## 2026-10-05 (2nd run) through 2026-10-08 (3rd run) — 18 consecutive no-op runs, same 6 blockers (consolidated per this file's own archival convention)
 
 - 18 board-worker runs in a row found the identical 6 `todo` issues (#29/#52/#55/#276/#278/#301), `waiting-on-you` empty, nothing newly eligible each time. Each run's only new `master` commit was the immediately prior run's own vault-update PR (#423 through #434).
