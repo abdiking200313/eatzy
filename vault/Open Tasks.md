@@ -7,7 +7,17 @@ upstream_concept: 00-Index
 
 # Open Tasks
 
-**Updated 2026-10-08 (board worker, later run)** — re-check before relying on this for anything that matters. **Source of truth is always a live `list_issues`/`gh issue list --repo abdiking200313/eatzy --state open` call.**
+**Updated 2026-10-08 (board worker, 3rd run today)** — re-check before relying on this for anything that matters. **Source of truth is always a live `list_issues`/`gh issue list --repo abdiking200313/eatzy --state open` call.**
+
+## Update, 2026-10-08 (board worker, 3rd run today) — #351 confirmed genuinely in-progress elsewhere (real branch, no PR yet), nothing else eligible
+
+- Eligibility check: same 7 `todo`/`agent-in-progress`-or-not issues as the prior run (#29, #52, #55, #276, #278, #301, #351). `waiting-on-you` still empty.
+- **#351**: re-checked per the prior run's own "check fresh, don't assume" note — `list_branches` shows `agent/issue-351-crashlytics-error-boundary` exists (real commit, not just the label) but `issue_read` still shows `closed_by_pull_requests.total_count: 0` (no PR yet). This is genuine in-progress work by another session, not the 2026-09-14 stale-label pattern (that needs *neither* a branch *nor* a PR to apply) — left untouched this run too, per the "pick the oldest `todo` issue that isn't already `agent-in-progress`" rule. Check again fresh next run rather than assuming either way.
+- **#276/#278**: Docker CLI still present (v29.8.2), still no running daemon (`/var/run/docker.sock` absent, `docker info` fails to connect) — same confirmed blocker, re-verified directly. PR #303 stays open/unmerged. #278 stays blocked on #276.
+- **#55**: re-checked `get_comments` directly — still only the bot's own 2026-10-04 comment, no human reply since.
+- **#29/#52/#301**: unchanged, no direct work possible.
+- `master` gained only the prior run's own vault-update commit (`da1bfbe`, PR #448) since that run — no new work that changes eligibility.
+- **Net result: 0 issues processed this run** (the one candidate, #351, is legitimately claimed elsewhere).
 
 ## Update, 2026-10-08 (board worker, later run) — RN Phase 0 smoke test effectively cleared; two sessions ran it concurrently
 

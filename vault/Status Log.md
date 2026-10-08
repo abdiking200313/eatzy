@@ -8,6 +8,12 @@ Reverse-chronological. Each session/major chunk of work gets an entry.
 
 ---
 
+## 2026-10-08, 3rd run today (nothing eligible — #351 re-confirmed genuinely in-progress elsewhere)
+
+- Eligibility query: `todo`/`waiting-on-you` returned #29, #52, #55, #276, #278, #301, #351 — same 7 as the prior run. Per the prior run's own note to re-check #351 fresh rather than assume: `list_branches` shows a real `agent/issue-351-crashlytics-error-boundary` branch, but `issue_read` still shows zero linked PRs — genuine in-progress work by the other concurrent session, not a stale label, so left alone again.
+- Docker daemon still absent (`docker info`: CLI present, socket missing) — #276/#278 blocked unchanged. #55 still no human reply. #29/#52/#301 unchanged.
+- 0 issues processed. Full detail in [[Open Tasks]] "3rd run today".
+
 ## 2026-10-08, later run (RN Phase 0 smoke test cleared — #347/#348 merged, two concurrent-session duplicate PRs reconciled, #351 picked up elsewhere)
 
 - **Two board-worker-style sessions ran this exact Phase 0 batch concurrently for the first time** (this session, Claude-Session `session_01R9Hzg4pU6ybmNnBX7C27rt`, and another, `session_01QhLxV1QtydJ8QKCLXo3GLm` — not an interactive session, judging by its own PR bodies' wording and timing, more likely an overlapping routine fire or a second manually-started run). Neither was aware of the other; both picked up issues from the same eligible queue within minutes of each other. **New process finding for [[Multi-Agent Setup]] territory**: a `todo`+`agent-in-progress` issue with a *very recently* bumped `updated_at` and no branch/PR yet is not necessarily a stale label (the 2026-09-14 67th-run precedent) — it can also mean a sibling session just claimed it seconds ago. Checking `list_branches`/`list_pull_requests` before dispatching still correctly avoided wasted work in some cases (#347, #348) but not others, since both sessions dispatched before either's work existed on the remote yet.
