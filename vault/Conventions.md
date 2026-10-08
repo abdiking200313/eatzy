@@ -95,6 +95,15 @@ fully in-memory/test-double `AppServices`) and `pumpWithAppScope` (pumps a
 widget wrapped in `MaterialApp` + `AppScope`) rather than hand-rolling the
 wiring per test file.
 
+## App label rules (`app:*`) — added 2026-10-08
+
+The board-worker routine's own prompt ends with "follow the `app:*` label rules in `vault/Conventions.md`" (added 2026-10-05 when the 75-issue `react_native_app/` migration batch was filed, labeled `app:react-native`) — this section is that rule, finally written down after the owner noticed the whole batch was sitting in `needs-approval` with no automation ready for it (see [[Decisions Log]] 2026-10-08 and [[Multi-Agent Setup]] "React Native migration agents").
+
+- **An issue labeled `app:react-native`** is work inside `react_native_app/` (the Expo/TypeScript port of the Flutter app), not `flutter_app/`. Use the **`/build-rn`** skill (`.claude/skills/build-rn/SKILL.md`) and its subagents — `rn-ui-agent`, `rn-logic-agent`, `rn-qa-agent` — instead of `/build` and the Flutter-scoped `ui-agent`/`logic-agent`/`supabase-agent`/`qa-agent`. The existing `supabase-agent` still owns `supabase/` itself if an RN issue genuinely needs a schema change (expected to be rare — this migration ports against the already-live schema).
+- **Every issue in this batch names its own dependencies** under a `## Depends on` heading (issue numbers). Check those are already closed/merged before starting, even though the batch happens to be filed in exact dependency order (ascending issue number = build order) — don't rely on FIFO alone once this batch starts interleaving with unrelated issues or gets reordered.
+- An issue with no `app:*` label (everything before this batch, and anything filed against `flutter_app/`/`supabase/` going forward) is unchanged — plain `/build` + the original four Flutter subagents, as documented in [[Multi-Agent Setup]].
+- If a future `app:*` label shows up (e.g. an eventual `app:merchant-rn` or similar) with no rule here yet, don't guess a routing — comment on the issue and treat it the same as any other genuine ambiguity (relabel `waiting-on-you`, don't implement blind).
+
 ## Dependency versions
 
 38 packages have newer versions available as of the last check (including majors like `go_router` 13→17, `google_fonts` 6→8) — not urgent, deliberately deferred. Don't auto-upgrade without a reason; major bumps risk breaking changes.
