@@ -30,8 +30,13 @@ yarn-error.*
 .DS_Store
 *.pem
 
-# local env files
+# local env files (issue #346) — never commit real Supabase URLs/keys;
+# .env.example stays tracked as the placeholder template.
+.env
+.env.development
+.env.production
 .env*.local
+!.env.example
 
 # typescript
 *.tsbuildinfo
