@@ -38,6 +38,7 @@
     "@types/react": "~19.2.2",
     "eslint": "^9.0.0",
     "eslint-config-expo": "~57.0.2",
+    "supabase": "2.120.0",
     "typescript": "~6.0.3"
   },
   "scripts": {
@@ -46,7 +47,9 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "lint": "expo lint"
+    "lint": "expo lint",
+    "typecheck": "tsc --noEmit",
+    "gen:types": "supabase gen types typescript --project-id jzubookmbrtslocuzepe --schema public > src/types/database.ts"
   },
   "private": true
 }
