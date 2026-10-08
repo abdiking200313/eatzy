@@ -8,10 +8,10 @@ Reverse-chronological. Each session/major chunk of work gets an entry.
 
 ---
 
-## 2026-10-05 (2nd run) through 2026-10-08 (2nd run) — 16 consecutive no-op runs, same 6 blockers (consolidated per this file's own archival convention)
+## 2026-10-05 (2nd run) through 2026-10-08 (3rd run) — 18 consecutive no-op runs, same 6 blockers (consolidated per this file's own archival convention)
 
-- 16 board-worker runs in a row found the identical 6 `todo` issues (#29/#52/#55/#276/#278/#301), `waiting-on-you` empty, nothing newly eligible each time. Each run's only new `master` commit was the immediately prior run's own vault-update PR (#423 through #433).
-- **#276/#278**: Docker CLI present throughout (v29.6.2 → v29.8.2 over this span), still no running daemon (`/var/run/docker.sock` absent) on every single check, most recently re-confirmed directly 2026-10-08 (2nd run). #278 stays blocked on #276. PR #303 stays open/unmerged, base still `b51c385` — well behind current `master`, will need a rebase whenever it's eventually mergeable, moot while Docker stays blocked.
+- 18 board-worker runs in a row found the identical 6 `todo` issues (#29/#52/#55/#276/#278/#301), `waiting-on-you` empty, nothing newly eligible each time. Each run's only new `master` commit was the immediately prior run's own vault-update PR (#423 through #434).
+- **#276/#278**: Docker CLI present throughout (v29.6.2 → v29.8.2 over this span), still no running daemon (`/var/run/docker.sock` absent) on every single check, most recently re-confirmed directly 2026-10-08 (3rd run). #278 stays blocked on #276. PR #303 stays open/unmerged, base still `b51c385` — well behind current `master`, will need a rebase whenever it's eventually mergeable, moot while Docker stays blocked.
 - **#55**: re-checked directly every run — still only the bot's own 2026-10-04 comment, no human reply.
 - **#301**: re-checked a couple of times — still blocked on #276/#278 per its own body (the rest of #276-#299 is closed).
 - **#29/#52**: tracking-only, unchanged throughout.
