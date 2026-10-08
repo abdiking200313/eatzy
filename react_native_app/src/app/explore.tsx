@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ExternalLink } from '@/components/external-link';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
+import { ThemeTokenGallery } from '@/components/theme-token-gallery';
 import { Collapsible } from '@/components/ui/collapsible';
 import { WebBadge } from '@/components/web-badge';
 import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
@@ -117,6 +118,14 @@ export default function TabTwoScreen() {
               the powerful <ThemedText type="code">react-native-reanimated</ThemedText> library to
               animate opening this hint.
             </ThemedText>
+          </Collapsible>
+
+          <Collapsible title="Theme tokens (dev)">
+            <ThemedText type="small">
+              Eatzy&apos;s NativeWind color/spacing/radius/shadow/typography tokens, in light and
+              dark mode (issue #352).
+            </ThemedText>
+            <ThemeTokenGallery />
           </Collapsible>
         </ThemedView>
         {Platform.OS === 'web' && <WebBadge />}
