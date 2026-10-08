@@ -35,10 +35,27 @@ supabase db diff -f <name> # generate a new migration from a schema change
 `supabase start` requires Docker with outbound network access to pull the
 Supabase service images. This repo's CI/sandbox environments may not have
 that (Docker daemon present but image pulls blocked, or no Docker at all).
-Note that `supabase db reset` replays `migrations/` + `seed.sql` onto an empty
-database, and the earliest migrations assume base tables (`profiles`,
-`restaurants`, `menu_items`, ...) that no file in this repo creates any more —
-so a from-scratch replay does not work today (issue #34).
+`supabase db reset` replays `migrations/` + `seed.sql` onto an empty
+database; since the baseline migration (issue #276) and the
+`item_categories` replay guard added for issue #278, that from-scratch
+replay works.
+
+## Database tests (pgTAP)
+
+`tests/*.sql` are pgTAP tests for the RLS policies and SECURITY DEFINER RPCs
+(issue #278): tenant isolation, anon access, the `place_*_order` RPCs,
+merchant catalog writes / order transitions, and the admin/account RPCs.
+Each file runs in one transaction that is rolled back, so it leaves no data
+behind.
+
+```sh
+supabase db start
+supabase db reset   # optional: fresh replay of migrations + seed
+supabase test db
+```
+
+The `Supabase CI` workflow (`.github/workflows/supabase.yml`, job `db-test`)
+runs exactly these commands on every PR that touches `supabase/**`.
 
 ## Linking to the live project (manual, human-only)
 

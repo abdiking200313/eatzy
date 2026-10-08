@@ -1,0 +1,66 @@
+name: Supabase CI
+
+# Issue #278: replay the full migration chain onto an empty local database
+# and run the pgTAP RLS / RPC tests in supabase/tests/. Uses only the
+# runner's own throwaway Docker database -- no live project, no secrets.
+
+on:
+  pull_request:
+    paths:
+      - "supabase/**"
+      - ".github/workflows/supabase.yml"
+  push:
+    branches:
+      - master
+    paths:
+      - "supabase/**"
+      - ".github/workflows/supabase.yml"
+  workflow_dispatch:
+
+jobs:
+  db-test:
+    name: db-test
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Start local database
+        run: |
+          set -o pipefail
+          supabase db start 2>&1 | tee "$RUNNER_TEMP/1-db-start.log"
+
+      - name: Reset database (replay migrations + seed)
+        run: |
+          set -o pipefail
+          supabase db reset 2>&1 | tee "$RUNNER_TEMP/2-db-reset.log"
+
+      - name: Run pgTAP tests
+        run: |
+          set -o pipefail
+          supabase test db 2>&1 | tee "$RUNNER_TEMP/3-test-db.log"
+
+      # Re-publish the tail of whichever step failed as a check annotation,
+      # so the failure reason is visible on the PR's Checks summary without
+      # opening the raw log.
+      - name: Summarize failure
+        if: failure()
+        run: |
+          for f in "$RUNNER_TEMP"/*.log; do
+            [ -f "$f" ] || continue
+            msg=$(tail -n 60 "$f" | sed -e 's/%/%25/g' -e 's/\r/%0D/g' | awk 'BEGIN{ORS="%0A"} {print}')
+            echo "::error title=$(basename "$f")::${msg}"
+          done
+
+      - name: Stop local database
+        if: always()
+        run: supabase stop --no-backup
