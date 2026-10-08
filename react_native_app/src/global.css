@@ -1,3 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 :root {
   --font-display:
     Spline Sans, Inter, ui-sans-serif, system-ui, sans-serif, Apple Color Emoji, Segoe UI Emoji,
@@ -6,4 +10,67 @@
     ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, Courier New, monospace;
   --font-rounded: 'SF Pro Rounded', 'Hiragino Maru Gothic ProN', Meiryo, 'MS PGothic', sans-serif;
   --font-serif: Georgia, 'Times New Roman', serif;
+}
+
+/*
+ * Semantic color tokens consumed by tailwind.config.js (e.g. `bg-bg`,
+ * `text-text`, `border-border`). Values are `R G B` triplets (no `rgb()`
+ * wrapper) so Tailwind's `<alpha-value>` substitution keeps opacity
+ * modifiers (`bg-primary/50`) working.
+ *
+ * Light values port flutter_app/lib/config/tailwind.dart's TwColors 1:1.
+ * flutter_app has no dark ThemeData yet, so the `prefers-color-scheme: dark`
+ * block is this port's own choice (issue #352): neutrals/surfaces are
+ * inverted for a dark background, while the blue/green/red *brand* hues
+ * (primary/secondary/tertiary/error) are shifted one step lighter on their
+ * own Tailwind-style scale — e.g. primary moves from blue600 to blue500 —
+ * purely for contrast against a dark surface, matching common dark-theme
+ * practice. Flag for design review if a different dark palette is wanted.
+ */
+@layer base {
+  :root {
+    --color-bg: 250 251 252; /* #FAFBFC */
+    --color-bg-muted: 240 247 255; /* #F0F7FF (blue50) */
+    --color-card: 255 255 255; /* #FFFFFF */
+    --color-card-muted: 248 250 253; /* #F8FAFD */
+    --color-search-fill: 238 241 245; /* #EEF1F5 */
+    --color-border: 226 232 240; /* #E2E8F0 */
+    --color-border-strong: 203 213 225; /* #CBD5E1 */
+    --color-text: 15 23 42; /* #0F172A (slate900) */
+    --color-text-muted: 71 85 105; /* #475569 (slate600) */
+    --color-primary: 0 102 204; /* #0066CC (blue600) */
+    --color-primary-hover: 0 82 163; /* #0052A3 (blue700) */
+    --color-primary-soft: 240 247 255; /* #F0F7FF (blue50) */
+    --color-primary-accent: 0 127 255; /* #007FFF (blue500) */
+    --color-on-primary: 255 255 255; /* #FFFFFF */
+    --color-secondary: 0 127 255; /* #007FFF (blue500) */
+    --color-secondary-soft: 240 247 255; /* #F0F7FF (blue50) */
+    --color-tertiary: 16 185 129; /* #10B981 */
+    --color-error: 220 38 38; /* #DC2626 (red600) */
+    --color-error-soft: 254 226 226; /* #FEE2E2 (red100) */
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --color-bg: 11 18 32; /* #0B1220 */
+      --color-bg-muted: 17 26 46; /* #111A2E */
+      --color-card: 22 33 58; /* #16213A */
+      --color-card-muted: 28 42 71; /* #1C2A47 */
+      --color-search-fill: 28 42 71; /* #1C2A47 */
+      --color-border: 40 51 74; /* #28334A */
+      --color-border-strong: 58 70 100; /* #3A4664 */
+      --color-text: 241 245 249; /* #F1F5F9 */
+      --color-text-muted: 148 163 184; /* #94A3B8 */
+      --color-primary: 0 127 255; /* #007FFF (blue500, one step lighter) */
+      --color-primary-hover: 102 168 255; /* #66A8FF (blue400) */
+      --color-primary-soft: 22 52 92; /* #16345C (blue900) */
+      --color-primary-accent: 102 168 255; /* #66A8FF (blue400) */
+      --color-on-primary: 255 255 255; /* #FFFFFF */
+      --color-secondary: 102 168 255; /* #66A8FF (blue400) */
+      --color-secondary-soft: 22 52 92; /* #16345C (blue900) */
+      --color-tertiary: 52 211 153; /* #34D399 */
+      --color-error: 248 113 113; /* #F87171 */
+      --color-error-soft: 63 29 29; /* #3F1D1D */
+    }
+  }
 }
