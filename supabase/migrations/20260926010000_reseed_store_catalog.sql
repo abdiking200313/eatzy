@@ -54,6 +54,22 @@ delete from public.grocery_stores;
 delete from public.pharmacy_products;
 delete from public.pharmacy_stores;
 
+-- Fresh-replay guard (issue #278): the menus below reference five
+-- item_categories rows that were hand-created live before this migration
+-- and are only ever updated (never inserted) here, so `supabase db reset` on
+-- an empty database failed on `menu_items_categorie_id_fkey`. Insert
+-- placeholders for exactly those ids. `on conflict do nothing` makes this a
+-- no-op wherever the rows already exist (live), so live names/icons are
+-- never touched; the statements right after this one then rename/activate
+-- them exactly as before.
+insert into public.item_categories (id, name, icon_url, is_active) values
+  ('3bbd8109-fc36-4da8-9372-1239877d1f59', 'Sides', 'https://www.themealdb.com/images/category/side.png', true),
+  ('823e5e31-5ce9-4b7d-a97d-3bb55e9e3b4d', 'Burgers', 'https://www.themealdb.com/images/category/beef.png', true),
+  ('f23fae2d-30a5-43af-bdeb-472273c82eb1', 'Drinks', 'https://www.themealdb.com/images/category/miscellaneous.png', true),
+  ('99953348-36f2-47e4-92d7-aebdbbf1a7fa', 'Wraps & Sandwiches', 'https://www.themealdb.com/images/category/miscellaneous.png', true),
+  ('7ee364fa-ca84-44d8-a290-468867b5922c', 'Chicken', 'https://www.themealdb.com/images/category/chicken.png', true)
+on conflict (id) do nothing;
+
 -- Food categories: rename, add, and activate the ones the new menus use.
 update public.item_categories set name = 'Burgers' where id = '823e5e31-5ce9-4b7d-a97d-3bb55e9e3b4d';
 update public.item_categories set icon_url = 'https://www.themealdb.com/images/category/side.png' where id = '3bbd8109-fc36-4da8-9372-1239877d1f59';
