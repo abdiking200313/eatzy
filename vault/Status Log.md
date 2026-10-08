@@ -8,6 +8,16 @@ Reverse-chronological. Each session/major chunk of work gets an entry.
 
 ---
 
+## 2026-10-08, interactive session (#276 finally resolved, 19-run Docker assumption corrected)
+
+- User asked why the long-blocked issues couldn't move; walked through each one, then was asked to "remove" the Docker blocker specifically.
+- Tried starting `dockerd` directly as root in this interactive session — it came up clean, no block. The 19+ runs of "no Docker daemon" were really "the unattended board worker's own classifier refuses to start one," not a true environment gap.
+- Tried `docker run hello-world` next — denied by a different classifier ("Code from External": running containers from pulled images). This is the real, permanent wall, confirmed independent of session type, and not something to route around.
+- Since the user also has no local machine capable of running `supabase db reset`, verified PR #303's migration chain a different way: installed plain `postgresql-16` via `apt` (already present, not a pulled container image), hand-wrote a minimal `auth`/`storage` shim covering only what the repo's own migrations reference, and replayed all 43 migration files + `seed.sql` against a genuinely fresh database. Zero errors, including the one thing #303 could never prove (the `20260827100000` trigger fix actually applying past the `public.addresses` failure). Full detail and the reusable technique in [[Multi-Agent Setup]]'s 2026-10-08 correction entry.
+- Opened PR #450 (supersedes #303, rebased onto current `master`), ran the DoD checks locally (578/578 tests, format/analyze clean), waited on CI (`verify`+`android-build` both green), squash-merged. **#276 closed.** Commented on and closed #303 as superseded.
+- **#278 unblocked as a side effect** — and turns out it was never going to need this workaround anyway, since its own verification step is a new CI job on a GitHub-hosted runner (real Docker), not a local sandbox run. Ready to pick up as a normal `todo` issue.
+- Full detail in [[Open Tasks]]'s 2026-10-08 "interactive session" entry.
+
 ## 2026-10-08, 3rd run today (nothing eligible — #351 re-confirmed genuinely in-progress elsewhere)
 
 - Eligibility query: `todo`/`waiting-on-you` returned #29, #52, #55, #276, #278, #301, #351 — same 7 as the prior run. Per the prior run's own note to re-check #351 fresh rather than assume: `list_branches` shows a real `agent/issue-351-crashlytics-error-boundary` branch, but `issue_read` still shows zero linked PRs — genuine in-progress work by the other concurrent session, not a stale label, so left alone again.
