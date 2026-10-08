@@ -7,7 +7,14 @@ upstream_concept: 00-Index
 
 # Open Tasks
 
-**Updated 2026-10-08 (interactive session)** — re-check before relying on this for anything that matters. **Source of truth is always a live `list_issues`/`gh issue list --repo abdiking200313/eatzy --state open` call.**
+**Updated 2026-10-08 (board worker, later run)** — re-check before relying on this for anything that matters. **Source of truth is always a live `list_issues`/`gh issue list --repo abdiking200313/eatzy --state open` call.**
+
+## Update, 2026-10-08 (board worker, later run) — RN Phase 0 smoke test effectively cleared; two sessions ran it concurrently
+
+- **#346-350 all merged**, **#351 (the last Phase 0 issue) is `agent-in-progress`** under a *different* concurrently-running session — not touched this run, re-check its real state (branch/PR vs. still just a label) fresh next time rather than assuming either way. Full detail, including exactly which PRs/issues collided and how each was reconciled, in [[Status Log]] 2026-10-08 "RN Phase 0 smoke test cleared".
+- **New, unlabeled issue** [#441](https://github.com/abdiking200313/eatzy/issues/441) (`app.config.ts` nested `.ts` import breaks `expo config`/`expo-doctor`/`expo install`, likely `eas build` too) — filed by the concurrent session, not yet `needs-approval` or anything else. Worth the user's attention; it'll keep blocking `expo install <pkg>` in `react_native_app/` until fixed.
+- **Not this routine's call**: whether to approve more of the batch (Phases 1-10, ~69 issues) now that Phase 0 has gone through real dispatches end to end and surfaced one genuine bug (#441) rather than failing outright. Leave `needs-approval` alone per the standing instruction below until the user decides.
+- The pre-existing 6 blocked/tracking issues (#29, #52, #55, #276, #278, #301) reconfirmed unchanged a 19th+ time — same Docker-daemon/no-human-reply blockers as every prior run.
 
 ## Update, 2026-10-08 (interactive session) — Phase 0 of the React Native migration approved as a smoke test
 
