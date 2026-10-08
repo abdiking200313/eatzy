@@ -7,7 +7,14 @@ upstream_concept: 00-Index
 
 # Open Tasks
 
-**Updated 2026-10-08 (board worker, 3rd run)** — re-check before relying on this for anything that matters. **Source of truth is always a live `list_issues`/`gh issue list --repo abdiking200313/eatzy --state open` call.**
+**Updated 2026-10-08 (interactive session)** — re-check before relying on this for anything that matters. **Source of truth is always a live `list_issues`/`gh issue list --repo abdiking200313/eatzy --state open` call.**
+
+## Update, 2026-10-08 (interactive session) — Phase 0 of the React Native migration approved as a smoke test
+
+- **#346-351 (all 6 `react_native_app/` Phase 0 issues) relabeled `needs-approval` → `todo`** — see [[Decisions Log]] 2026-10-08. These are now board-worker-eligible and should route through `/build-rn` + `rn-*` agents per [[Conventions]] "App label rules", not the Flutter `/build` flow.
+- **The other 69 issues of the batch (Phases 1-10) stay `needs-approval` deliberately** — this is an explicit smoke test of brand-new, never-dispatched automation. Do not bulk-approve the rest just because a run finds the queue otherwise empty; wait for Phase 0 to actually clear cleanly first.
+- Next board-worker run should pick these up oldest-first (#346 first) same as any other `todo` issue — no special-casing needed beyond the label-based routing already documented.
+- The pre-existing 6 blocked/tracking issues (#29, #52, #55, #276, #278, #301) are unchanged — still blocked on sandbox Docker/macOS limitations, see the entries below.
 
 ## Update, 2026-10-08 (board worker, 3rd run) — nothing eligible, same 6 blockers reconfirmed an eighteenth time
 
