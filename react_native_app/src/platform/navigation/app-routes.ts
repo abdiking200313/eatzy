@@ -20,6 +20,10 @@ export const AppRoutes = {
   // `resolveRedirect`'s onboarding-skip rule. Same route, same screen --
   // only the redirect reads the flag.
   welcomeRevisitParam: 'revisit',
+  // Mirrors `AppRoutes.welcomeRevisit` -- reopens the welcome/onboarding
+  // slides with the revisit flag set, e.g. from the back button on
+  // login/register when there's nothing to pop back to.
+  welcomeRevisit: '/welcome?revisit=true',
   login: '/login',
   register: '/register',
   forgotPassword: '/forgot-password',
