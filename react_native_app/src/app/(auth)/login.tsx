@@ -15,6 +15,7 @@ import { ZivoLogo } from '@/components/zivo-logo';
 import { describeAuthError } from '@/features/auth/api/auth-error-message';
 import { authService } from '@/features/auth/api/auth-service';
 import { useSemanticColors } from '@/hooks/use-semantic-colors';
+import { ErrorReporting } from '@/platform/error-reporting/error-reporter';
 import { AppRoutes } from '@/platform/navigation/app-routes';
 import { merchantSessionGate } from '@/stores/merchant-session-gate';
 import { rawColors, spacing } from '@/theme/tokens';
@@ -86,6 +87,26 @@ export default function LoginScreen() {
   };
 
   const submit = handleSubmit(onValid, onInvalid);
+
+  // `submit()` is invoked fire-and-forget below (mirroring the Dart
+  // screen's own un-awaited `onPressed: _login`) -- a rejection from it can
+  // only come from the post-sign-in resolve+navigate code (`onValid`'s own
+  // try/catch already turns a sign-in failure into the "Login failed"
+  // message and returns normally; see this file's top comment and the
+  // Dart file's issue #295 comment for why that code sits outside the
+  // try/catch). Reporting rather than silently swallowing it here matches
+  // every other call site's `ErrorReporting` convention in this codebase
+  // (e.g. `onboarding-store.ts`) and keeps a genuinely unhandled promise
+  // rejection from ever reaching the runtime.
+  const handlePress = () => {
+    submit().catch((error: unknown) => {
+      ErrorReporting.instance.reportError(
+        error,
+        error instanceof Error ? error.stack : undefined,
+        'LoginScreen.handlePress',
+      );
+    });
+  };
 
   const handleBack = () => {
     // With nothing behind this screen (the app opened straight on login,
@@ -163,7 +184,7 @@ export default function LoginScreen() {
                     textInputAction="done"
                     autoComplete="password"
                     onSubmitted={() => {
-                      if (!isLoading) void submit();
+                      if (!isLoading) handlePress();
                     }}
                   />
                 )}
@@ -183,7 +204,7 @@ export default function LoginScreen() {
               ) : (
                 <GradientActionButton
                   label="Sign in"
-                  onPress={() => void submit()}
+                  onPress={handlePress}
                   icon={<MaterialIcons name="arrow-forward" size={20} color={colors.onPrimary} />}
                 />
               )}
