@@ -32,6 +32,20 @@ jest.mock('@/platform/supabase/client', () => ({
     },
   },
 }));
+// See `route-reachability.test.tsx`'s top comment for why
+// `@/platform/query/query-persistence` is mocked too -- this file mounts
+// the same real root `_layout.tsx`.
+jest.mock('@/platform/query/query-persistence', () => ({
+  queryPersistOptions: {
+    persister: {
+      persistClient: () => {},
+      restoreClient: () => Promise.resolve(undefined),
+      removeClient: () => Promise.resolve(undefined),
+    },
+    maxAge: 0,
+    dehydrateOptions: { shouldDehydrateQuery: () => false },
+  },
+}));
 
 // `expo-linking`'s real `useURL()` depends on native modules this sandbox
 // doesn't have; it's irrelevant to this file's one assertion (route
