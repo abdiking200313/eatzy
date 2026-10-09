@@ -109,7 +109,8 @@ describe('session redirect gate ((auth)/_layout.tsx and (app)/_layout.tsx, issue
 
     await renderRoute('/reset-password');
 
-    expect(await screen.findByText('/reset-password — not yet implemented')).toBeTruthy();
+    // Real screen since issue #368 (previously the generic placeholder).
+    expect(await screen.findByText('Set a new password')).toBeTruthy();
   });
 
   it('does not redirect yet while the session status is still loading', async () => {
