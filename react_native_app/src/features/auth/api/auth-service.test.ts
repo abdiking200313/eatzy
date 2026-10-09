@@ -1,11 +1,15 @@
 /**
  * Ports `flutter_app/test/auth_service_test.dart`'s sign-in cases (issue
  * #365), sign-up cases (issue #366, this file's own `signUp...` describe
- * block below), and the `resetPasswordForEmail`/`updatePassword` cases
- * (issue #368, this file's own `resetPasswordForEmail`/`updatePassword`
- * describe blocks below). `signOut`/`updateEmail`/`getCurrentUserEmail`
- * remain out of scope and are not ported here (see this file's sibling
- * `auth-service.ts`'s top comment).
+ * block below), the `resetPasswordForEmail`/`updatePassword` cases (issue
+ * #368, this file's own `resetPasswordForEmail`/`updatePassword` describe
+ * blocks below), and the `passwordRecoveryRedirectUrl` deep-link-scheme
+ * assertion (issue #369, this file's own top-level test below).
+ * `signOut`/`updateEmail`/`getCurrentUserEmail` remain out of scope and are
+ * not ported here (see this file's sibling `auth-service.ts`'s top
+ * comment) -- `AuthService` has no `signOut` method yet, so there is
+ * nothing to exercise; a future issue implementing it should add the
+ * matching test then.
  */
 import type { AuthApiError, AuthError, AuthResponse, AuthTokenResponsePassword, UserResponse } from '@supabase/supabase-js';
 
@@ -63,6 +67,17 @@ describe('AuthService', () => {
     const service = new AuthService({ auth });
 
     expect(service.getCurrentUserId()).toBeNull();
+  });
+
+  // Ports `auth_service_test.dart`'s `'passwordRecoveryRedirectUrl matches
+  // the configured deep link scheme'`. The Dart original asserts a static
+  // `AuthService.passwordRecoveryRedirectUrl` constant; this app's
+  // equivalent value lives on `password-recovery.ts` instead (see that
+  // module's own doc comment) and is asserted the same way here, cross-
+  // checked against `app.json`'s registered scheme the same way `deep-
+  // link-scheme.test.ts` does for the track-order deep link.
+  test('PASSWORD_RECOVERY_REDIRECT_URL matches the configured deep link scheme', () => {
+    expect(PASSWORD_RECOVERY_REDIRECT_URL).toBe('zivo://reset-callback');
   });
 
   test('signInWithEmailPassword establishes a session on valid credentials', async () => {
