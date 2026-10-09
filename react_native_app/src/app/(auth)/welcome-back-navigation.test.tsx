@@ -16,8 +16,9 @@
  * restore the exact text-based assertions the Dart test uses.
  *
  * See `src/route-reachability.test.tsx`'s top comment for why
- * `@/components/animated-icon` and `@/platform/supabase/client` are
- * mocked here too — this file mounts the same real root `_layout.tsx`.
+ * `@/components/animated-icon`, `@/platform/supabase/client`, and
+ * `@/platform/query/query-persistence` are mocked here too — this file
+ * mounts the same real root `_layout.tsx`.
  *
  * Each scenario below renders its own tree in a single `it`, explicitly
  * `unmount()`s before the test ends, and flushes/restores real timers in
@@ -39,6 +40,17 @@ jest.mock('@/platform/supabase/client', () => ({
     auth: {
       onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } }),
     },
+  },
+}));
+jest.mock('@/platform/query/query-persistence', () => ({
+  queryPersistOptions: {
+    persister: {
+      persistClient: () => {},
+      restoreClient: () => Promise.resolve(undefined),
+      removeClient: () => Promise.resolve(undefined),
+    },
+    maxAge: 0,
+    dehydrateOptions: { shouldDehydrateQuery: () => false },
   },
 }));
 

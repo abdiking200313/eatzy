@@ -20,8 +20,9 @@
  * screen or the merchant shell itself flash past.
  *
  * See `route-reachability.test.tsx`'s top comment for why
- * `@/components/animated-icon` and `@/platform/supabase/client` are
- * mocked -- this file mounts the same real root `_layout.tsx`.
+ * `@/components/animated-icon`, `@/platform/supabase/client`, and
+ * `@/platform/query/query-persistence` are mocked -- this file mounts the
+ * same real root `_layout.tsx`.
  */
 import { renderRouter, screen, waitFor } from 'expo-router/testing-library';
 
@@ -38,6 +39,17 @@ jest.mock('@/platform/supabase/client', () => ({
 }));
 jest.mock('@/stores/session-store', () => ({ useSessionStore: jest.fn() }));
 jest.mock('@/stores/merchant-session-gate', () => ({ useMerchantSessionGateStore: jest.fn() }));
+jest.mock('@/platform/query/query-persistence', () => ({
+  queryPersistOptions: {
+    persister: {
+      persistClient: () => {},
+      restoreClient: () => Promise.resolve(undefined),
+      removeClient: () => Promise.resolve(undefined),
+    },
+    maxAge: 0,
+    dehydrateOptions: { shouldDehydrateQuery: () => false },
+  },
+}));
 
 const mockedUseSessionStore = useSessionStore as unknown as jest.Mock;
 const mockedUseMerchantSessionGateStore = useMerchantSessionGateStore as unknown as jest.Mock;

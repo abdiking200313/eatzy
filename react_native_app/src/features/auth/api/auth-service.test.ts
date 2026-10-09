@@ -1,13 +1,23 @@
 /**
  * Ports `flutter_app/test/auth_service_test.dart`'s sign-in cases (issue
- * #365) and sign-up cases (issue #366, this file's own `signUp...` describe
- * block below). `signOut`/`resetPasswordForEmail`/`updatePassword`/
- * `updateEmail`/`getCurrentUserEmail` remain out of scope and are not
- * ported here (see this file's sibling `auth-service.ts`'s top comment).
+ * #365), sign-up cases (issue #366, this file's own `signUp...` describe
+ * block below), and the `resetPasswordForEmail`/`updatePassword` cases
+ * (issue #368, this file's own `resetPasswordForEmail`/`updatePassword`
+ * describe blocks below). `signOut`/`updateEmail`/`getCurrentUserEmail`
+ * remain out of scope and are not ported here (see this file's sibling
+ * `auth-service.ts`'s top comment).
  */
-import type { AuthApiError, AuthResponse, AuthTokenResponsePassword } from '@supabase/supabase-js';
+import type { AuthApiError, AuthError, AuthResponse, AuthTokenResponsePassword, UserResponse } from '@supabase/supabase-js';
 
-import { AuthService, type PasswordSignInSource, type PasswordSignUpSource } from './auth-service';
+import { PASSWORD_RECOVERY_REDIRECT_URL } from '@/platform/navigation/password-recovery';
+
+import {
+  AuthService,
+  type PasswordResetRequestSource,
+  type PasswordSignInSource,
+  type PasswordSignUpSource,
+  type PasswordUpdateSource,
+} from './auth-service';
 
 // `auth-service.ts` imports the real `@/platform/supabase/client` as its
 // default `auth` dependency, used only when a test doesn't inject its own
@@ -44,7 +54,12 @@ function errorResponse(code: string, status: number): AuthTokenResponsePassword 
 
 describe('AuthService', () => {
   test('getCurrentUserId is null before any sign-in', () => {
-    const auth: PasswordSignInSource & PasswordSignUpSource = { signInWithPassword: jest.fn(), signUp: jest.fn() };
+    const auth: PasswordSignInSource & PasswordSignUpSource & PasswordResetRequestSource & PasswordUpdateSource = {
+      signInWithPassword: jest.fn(),
+      signUp: jest.fn(),
+      resetPasswordForEmail: jest.fn(),
+      updateUser: jest.fn(),
+    };
     const service = new AuthService({ auth });
 
     expect(service.getCurrentUserId()).toBeNull();
@@ -52,7 +67,12 @@ describe('AuthService', () => {
 
   test('signInWithEmailPassword establishes a session on valid credentials', async () => {
     const signInWithPassword = jest.fn().mockResolvedValue(okResponse('mock-user-id', 'user@example.com'));
-    const auth: PasswordSignInSource & PasswordSignUpSource = { signInWithPassword, signUp: jest.fn() };
+    const auth: PasswordSignInSource & PasswordSignUpSource & PasswordResetRequestSource & PasswordUpdateSource = {
+      signInWithPassword,
+      signUp: jest.fn(),
+      resetPasswordForEmail: jest.fn(),
+      updateUser: jest.fn(),
+    };
     const service = new AuthService({ auth });
 
     const response = await service.signInWithEmailPassword('user@example.com', 'correct-password');
@@ -68,7 +88,12 @@ describe('AuthService', () => {
 
   test('signInWithEmailPassword throws the Supabase error for invalid credentials and leaves no session behind', async () => {
     const signInWithPassword = jest.fn().mockResolvedValue(errorResponse('invalid_credentials', 400));
-    const auth: PasswordSignInSource & PasswordSignUpSource = { signInWithPassword, signUp: jest.fn() };
+    const auth: PasswordSignInSource & PasswordSignUpSource & PasswordResetRequestSource & PasswordUpdateSource = {
+      signInWithPassword,
+      signUp: jest.fn(),
+      resetPasswordForEmail: jest.fn(),
+      updateUser: jest.fn(),
+    };
     const service = new AuthService({ auth });
 
     await expect(service.signInWithEmailPassword('user@example.com', 'wrong-password')).rejects.toMatchObject({
@@ -83,7 +108,12 @@ describe('AuthService', () => {
       .fn()
       .mockResolvedValueOnce(okResponse('mock-user-id', 'user@example.com'))
       .mockResolvedValueOnce(errorResponse('invalid_credentials', 400));
-    const auth: PasswordSignInSource & PasswordSignUpSource = { signInWithPassword, signUp: jest.fn() };
+    const auth: PasswordSignInSource & PasswordSignUpSource & PasswordResetRequestSource & PasswordUpdateSource = {
+      signInWithPassword,
+      signUp: jest.fn(),
+      resetPasswordForEmail: jest.fn(),
+      updateUser: jest.fn(),
+    };
     const service = new AuthService({ auth });
 
     await service.signInWithEmailPassword('user@example.com', 'correct-password');
@@ -137,7 +167,12 @@ describe('AuthService', () => {
 
     test('establishes a session for a brand-new user', async () => {
       const signUp = jest.fn().mockResolvedValue(signUpOkResponse('new-user-id', 'new@example.com'));
-      const auth: PasswordSignInSource & PasswordSignUpSource = { signInWithPassword: jest.fn(), signUp };
+      const auth: PasswordSignInSource & PasswordSignUpSource & PasswordResetRequestSource & PasswordUpdateSource = {
+        signInWithPassword: jest.fn(),
+        signUp,
+        resetPasswordForEmail: jest.fn(),
+        updateUser: jest.fn(),
+      };
       const service = new AuthService({ auth });
 
       const response = await service.signUpWithEmailPassword('new@example.com', 'a-strong-password', {
@@ -153,7 +188,12 @@ describe('AuthService', () => {
 
     test('forwards first/last name, phone, and dob as signup metadata', async () => {
       const signUp = jest.fn().mockResolvedValue(signUpOkResponse('new-user-id', 'new@example.com'));
-      const auth: PasswordSignInSource & PasswordSignUpSource = { signInWithPassword: jest.fn(), signUp };
+      const auth: PasswordSignInSource & PasswordSignUpSource & PasswordResetRequestSource & PasswordUpdateSource = {
+        signInWithPassword: jest.fn(),
+        signUp,
+        resetPasswordForEmail: jest.fn(),
+        updateUser: jest.fn(),
+      };
       const service = new AuthService({ auth });
 
       await service.signUpWithEmailPassword('new@example.com', 'a-strong-password', {
@@ -179,7 +219,12 @@ describe('AuthService', () => {
 
     test('returns a null session (pending email confirmation) without throwing', async () => {
       const signUp = jest.fn().mockResolvedValue(signUpNoSessionResponse('new-user-id', 'new@example.com'));
-      const auth: PasswordSignInSource & PasswordSignUpSource = { signInWithPassword: jest.fn(), signUp };
+      const auth: PasswordSignInSource & PasswordSignUpSource & PasswordResetRequestSource & PasswordUpdateSource = {
+        signInWithPassword: jest.fn(),
+        signUp,
+        resetPasswordForEmail: jest.fn(),
+        updateUser: jest.fn(),
+      };
       const service = new AuthService({ auth });
 
       const response = await service.signUpWithEmailPassword('new@example.com', 'a-strong-password', {
@@ -195,7 +240,12 @@ describe('AuthService', () => {
 
     test('throws the Supabase error for a duplicate email', async () => {
       const signUp = jest.fn().mockResolvedValue(signUpErrorResponse('user_already_exists', 422));
-      const auth: PasswordSignInSource & PasswordSignUpSource = { signInWithPassword: jest.fn(), signUp };
+      const auth: PasswordSignInSource & PasswordSignUpSource & PasswordResetRequestSource & PasswordUpdateSource = {
+        signInWithPassword: jest.fn(),
+        signUp,
+        resetPasswordForEmail: jest.fn(),
+        updateUser: jest.fn(),
+      };
       const service = new AuthService({ auth });
 
       await expect(
@@ -206,6 +256,83 @@ describe('AuthService', () => {
           dob: new Date(1995, 5, 15),
         }),
       ).rejects.toMatchObject({ code: 'user_already_exists', status: 422 });
+    });
+  });
+
+  describe('resetPasswordForEmail', () => {
+    test('requests a password reset with the recovery redirect URL', async () => {
+      const resetPasswordForEmail = jest.fn().mockResolvedValue({ data: {}, error: null });
+      const auth: PasswordSignInSource & PasswordSignUpSource & PasswordResetRequestSource & PasswordUpdateSource = {
+        signInWithPassword: jest.fn(),
+        signUp: jest.fn(),
+        resetPasswordForEmail,
+        updateUser: jest.fn(),
+      };
+      const service = new AuthService({ auth });
+
+      await service.resetPasswordForEmail('user@example.com');
+
+      expect(resetPasswordForEmail).toHaveBeenCalledWith('user@example.com', {
+        redirectTo: PASSWORD_RECOVERY_REDIRECT_URL,
+      });
+    });
+
+    test('propagates the Supabase error', async () => {
+      const error = { name: 'AuthApiError', message: 'Too many requests', status: 429 } as AuthError;
+      const resetPasswordForEmail = jest.fn().mockResolvedValue({ data: null, error });
+      const auth: PasswordSignInSource & PasswordSignUpSource & PasswordResetRequestSource & PasswordUpdateSource = {
+        signInWithPassword: jest.fn(),
+        signUp: jest.fn(),
+        resetPasswordForEmail,
+        updateUser: jest.fn(),
+      };
+      const service = new AuthService({ auth });
+
+      await expect(service.resetPasswordForEmail('user@example.com')).rejects.toBe(error);
+    });
+  });
+
+  describe('updatePassword', () => {
+    function updateUserOkResponse(userId: string, email: string): UserResponse {
+      const user = {
+        id: userId,
+        aud: 'authenticated',
+        email,
+        app_metadata: {},
+        user_metadata: {},
+        created_at: new Date().toISOString(),
+      };
+      return { data: { user }, error: null } as unknown as UserResponse;
+    }
+
+    test('updates the password for the current session', async () => {
+      const updateUser = jest.fn().mockResolvedValue(updateUserOkResponse('mock-user-id', 'user@example.com'));
+      const auth: PasswordSignInSource & PasswordSignUpSource & PasswordResetRequestSource & PasswordUpdateSource = {
+        signInWithPassword: jest.fn(),
+        signUp: jest.fn(),
+        resetPasswordForEmail: jest.fn(),
+        updateUser,
+      };
+      const service = new AuthService({ auth });
+
+      const response = await service.updatePassword('a-new-password');
+
+      expect(updateUser).toHaveBeenCalledWith({ password: 'a-new-password' });
+      expect(response.data.user?.id).toBe('mock-user-id');
+    });
+
+    test('propagates the Supabase error (e.g. no active session)', async () => {
+      const error = { name: 'AuthSessionMissingException', message: 'Auth session missing', status: 400 } as AuthError;
+      const updateUser = jest.fn().mockResolvedValue({ data: { user: null }, error });
+      const auth: PasswordSignInSource & PasswordSignUpSource & PasswordResetRequestSource & PasswordUpdateSource = {
+        signInWithPassword: jest.fn(),
+        signUp: jest.fn(),
+        resetPasswordForEmail: jest.fn(),
+        updateUser,
+      };
+      const service = new AuthService({ auth });
+
+      await expect(service.updatePassword('a-new-password')).rejects.toBe(error);
     });
   });
 });
