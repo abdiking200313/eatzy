@@ -15,32 +15,27 @@ import '../services/pharmacy/models/pharmacy_cart_item.dart';
 import '../services/pharmacy/presentation/pharmacy_controller.dart';
 import '../services/shared/data/cart_storage.dart';
 
-/// The app's composition root (issue #281, phase 1 of #280): a single plain
-/// Dart object holding every shared dependency a screen/controller needs,
-/// instead of each call site reaching for `Supabase.instance.client` or a
-/// process-wide `.instance` singleton directly.
+/// The app's composition root: a single plain Dart object holding every
+/// shared dependency a screen/controller needs, instead of each call site
+/// reaching for `Supabase.instance.client` or a process-wide `.instance`
+/// singleton directly.
 ///
 /// This is deliberately *not* a new state-management framework (no
 /// Riverpod/get_it/provider) — see `AGENTS.md`'s "do not introduce a new
 /// state management framework" rule. It's a plain constructor-injected
 /// bundle, exposed to the widget tree via [AppScope] (`app_scope.dart`).
 ///
-/// Phase 1 wired up the dependencies already identified in #280's audit as
-/// process-wide singletons that are safe to centralize without touching any
-/// vertical's screens/controllers: the Supabase client, [QueryCache],
+/// The eagerly-built fields below — the Supabase client, [QueryCache],
 /// [ErrorReporter], [SessionResetRegistry], [CartController], and
-/// [ActivityController]. `QueryCache.instance`, `ErrorReporting.instance`,
-/// `SessionResetRegistry.instance`, `CartController.instance`, and
-/// `ActivityController.instance` keep working exactly as before for every
-/// call site that hasn't migrated yet.
+/// [ActivityController] — are also reachable through their own
+/// `.instance` singletons, for any call site that reads them that way
+/// instead of through [AppScope].
 ///
-/// Phase 3 (#283) adds [groceryController]/[pharmacyController]: unlike the
-/// phase-1 fields above, these are built lazily (on first access, then
-/// cached) rather than eagerly in the constructor — a user who never opens
-/// grocery or pharmacy must not trigger their catalog queries just because
-/// [AppServices] exists. `GroceryController.forType`/`.instance` and
-/// `PharmacyController.instance` (the old per-vertical static singletons)
-/// have been removed; every call site reads these off [AppScope] instead.
+/// [groceryController]/[pharmacyController] are built lazily on first
+/// access and then cached, unlike the fields above — a user who never
+/// opens grocery or pharmacy must not trigger their catalog queries just
+/// because [AppServices] exists. Every call site reads them off
+/// [AppScope].
 class AppServices {
   AppServices({
     required this.supabaseClient,
@@ -74,8 +69,7 @@ class AppServices {
   /// One [GroceryController] per [GroceryStoreType] (Grocery, Fresh Meat,
   /// and Electronics each keep their own cart/catalog — see
   /// `GroceryController.storeType`), built lazily on first access and then
-  /// cached here for the lifetime of this [AppServices]. Mirrors what the
-  /// old `GroceryController.forType` static factory did, minus the
+  /// cached here for the lifetime of this [AppServices], rather than as a
   /// process-wide singleton.
   final Map<GroceryStoreType, GroceryController> _groceryControllers = {};
 
@@ -117,8 +111,7 @@ class AppServices {
   PharmacyController? _pharmacyController;
 
   /// The single pharmacy controller, built lazily on first access and then
-  /// cached here. Mirrors what the old `PharmacyController.instance` static
-  /// singleton did, minus the process-wide singleton.
+  /// cached here, rather than as a process-wide singleton.
   PharmacyController get pharmacyController =>
       _pharmacyController ??= _buildPharmacyController();
 

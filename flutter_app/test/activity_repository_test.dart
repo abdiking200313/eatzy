@@ -168,7 +168,7 @@ void main() {
           'occurred_at': DateTime.utc(2026, 8, 1).toIso8601String(),
           'amount': 18.5,
           'details_route': '/food',
-          // Issue #30: cash-on-delivery-only payment scaffolding.
+          // Cash-on-delivery-only payment scaffolding.
           'payment_method': 'cash_on_delivery',
           'payment_status': 'pending_collection',
         };
@@ -196,7 +196,7 @@ void main() {
         expect(order!.id, 'order-1');
         expect(order.title, 'Jollof Feast Order');
         expect(order.status, 'On the way');
-        // Issue #30: cash-on-delivery-only payment scaffolding, read back
+        // Cash-on-delivery-only payment scaffolding, read back
         // from the customer_activity view.
         expect(order.paymentMethod, 'cash_on_delivery');
         expect(order.paymentStatus, 'pending_collection');

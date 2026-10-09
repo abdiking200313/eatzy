@@ -84,9 +84,8 @@ class AppRouter {
   ];
 
   // The four bottom-nav tabs. Each is its own StatefulShellBranch below, so
-  // switching between them (and into a vertical, see _serviceBranches) keeps
-  // every branch's own navigator/scroll/future state alive and leaves the
-  // persistent bottom nav bar on screen — see issue #67.
+  // switching between them keeps every branch's own navigator/scroll/future
+  // state alive and leaves the persistent bottom nav bar on screen.
   static const Map<String, Widget> _shellTabPages = {
     AppRoutes.mainApp: SuperAppHomeScreen(),
     AppRoutes.explore: ExploreScreen(),
@@ -154,8 +153,6 @@ class AppRouter {
           ),
         ),
       ),
-      // Issue #288: was `Navigator.push(MaterialPageRoute(...))` from
-      // `GroceryStoreScreen._openDetails`.
       GoRoute(
         path: _groceryProductRoutePattern(type),
         builder: (_, state) => themed(
@@ -186,8 +183,6 @@ class AppRouter {
 
   // Pages that intentionally stay outside the shell: pushed full-screen,
   // with their own back button, and not part of the persistent bottom nav.
-  // Unaffected by issue #67 — only the four tabs and the three verticals
-  // above needed to move into the shell.
   static const Map<String, Widget> _standaloneProtectedPages = {
     AppRoutes.services: CategoriesScreen(),
     AppRoutes.addresses: AddressesScreen(),
@@ -203,8 +198,8 @@ class AppRouter {
       serviceId: ServiceId.food,
       child: TrackOrderScreen(),
     ),
-    // The merchant dashboard (issue #232): a `merchant`/`admin` account is
-    // redirected here instead of `mainApp` by `_redirect` below. It is its
+    // The merchant dashboard: a `merchant`/`admin` account is redirected
+    // here instead of `mainApp` by `_redirect` below. It is its
     // own standalone protected page, not part of the customer bottom-nav
     // shell -- see `MerchantShell`'s own doc comment.
     AppRoutes.merchantDashboard: MerchantShell(),
@@ -238,18 +233,16 @@ class AppRouter {
         );
       },
     ),
-    // Issue #288: was `Navigator.push(MaterialPageRoute(...))` from
-    // `OrdersScreen`. Sits alongside `merchantDashboard` so it inherits the
-    // same merchant-session gating (`_isMerchantReachableLocation` below and
+    // Sits alongside `merchantDashboard` so it inherits the same
+    // merchant-session gating (`_isMerchantReachableLocation` below and
     // `isProtectedLocation`'s merchant sub-path check).
     GoRoute(
       path: AppRoutes.merchantOrderDetail,
       builder: (_, state) =>
           OrderDetailScreen(orderId: state.pathParameters['orderId']!),
     ),
-    // Issue #288: was `Navigator.push(MaterialPageRoute(...))` from
-    // `MyStoreScreen`. No id path param -- resolves the merchant's own
-    // store/catalog from the merchant session, not a path param.
+    // No id path param -- resolves the merchant's own store/catalog from
+    // the merchant session, not a path param.
     GoRoute(
       path: AppRoutes.merchantCatalog,
       builder: (_, _) => const CatalogScreen(),
@@ -260,7 +253,7 @@ class AppRouter {
   // food/grocery/pharmacy verticals, each its own branch so branch-switching
   // (via `context.go` or `navigationShell.goBranch`) never tears down the
   // other branches' navigator state, and the nav bar built by MainAppScreen
-  // stays on screen the whole time. See issue #67.
+  // stays on screen the whole time.
   static final StatefulShellRoute _shellRoute = StatefulShellRoute.indexedStack(
     builder: (context, state, navigationShell) =>
         MainAppScreen(navigationShell: navigationShell),
@@ -292,8 +285,6 @@ class AppRouter {
               ),
             ),
           ),
-          // Issue #288: was `Navigator.push(MaterialPageRoute(...))` from
-          // `MenuItemCard`.
           GoRoute(
             path: AppRoutes.foodMenuItem,
             builder: (_, state) => ZivoServiceTheme(
@@ -327,8 +318,6 @@ class AppRouter {
               ),
             ),
           ),
-          // Issue #288: was `Navigator.push(MaterialPageRoute(...))` from
-          // `PharmacyCatalogScreen._openDetails`.
           GoRoute(
             path: AppRoutes.pharmacyProduct,
             builder: (_, state) => ZivoServiceTheme(
@@ -352,7 +341,7 @@ class AppRouter {
     redirect: _redirect,
     routes: [..._publicRoutes, _shellRoute, ..._standaloneProtectedRoutes],
     // Replaces go_router's default error page for an unrecognized path
-    // (issue #40) with an on-brand screen that gives the user a way back.
+    // with an on-brand screen that gives the user a way back.
     errorBuilder: (_, _) => const NotFoundScreen(),
   );
 
@@ -413,23 +402,18 @@ class AppRouter {
     // `AppRoutes.welcomeRevisit`), so a returning user is not bounced past
     // them to login.
     bool revisitWelcome = false,
-    // Issue #232 / #236: whether the signed-in account's `profiles.role`
-    // is `merchant`/`admin` (see `MerchantSessionGate`), resolved once at
-    // sign-in/session-restore rather than looked up on every redirect.
+    // Whether the signed-in account's `profiles.role` is `merchant`/`admin`
+    // (see `MerchantSessionGate`), resolved once at sign-in/session-restore
+    // rather than looked up on every redirect.
     bool isMerchant = false,
   }) {
     if (!isLoggedIn && isProtected) {
       return AppRoutes.login;
     }
 
-    // Issue #236: a signed-in merchant/admin account is confined to
-    // `/merchant` (and any sub-path under it) for the entire session --
-    // *every* other location, not just the former login/welcome-only
-    // check, sends it back to the merchant dashboard instead. This
-    // supersedes #232's narrower `_signedOutOnlyRoutes` redirect, which
-    // only stopped a merchant account from landing back on a login screen
-    // and left every customer route (`/app`, `/food`, `/settings`, ...)
-    // reachable by direct navigation.
+    // A signed-in merchant/admin account is confined to `/merchant` (and
+    // any sub-path under it) for the entire session -- every other
+    // location sends it back to the merchant dashboard instead.
     //
     // `/reset-password` is explicitly exempted: it is also reachable
     // through the temporary session created by tapping a password-recovery
@@ -437,9 +421,9 @@ class AppRouter {
     // `_AuthStateRefresh`), which is a different path from the normal
     // sign-in/session-restore flow that resolves `isMerchant` in the first
     // place. Without this exemption, a merchant/admin account whose cached
-    // `MerchantSessionGate.isMerchantRole` is still (possibly stale-)true
-    // from an earlier session in the same app run could never reach the
-    // reset-password screen.
+    // `MerchantSessionGate.isMerchantRole` is still true from an earlier
+    // session in the same app run could never reach the reset-password
+    // screen.
     if (isLoggedIn && isMerchant && !_isMerchantReachableLocation(location)) {
       return AppRoutes.merchantDashboard;
     }
@@ -451,8 +435,7 @@ class AppRouter {
     // A returning signed-out user (this device already finished or skipped
     // onboarding at least once, per [OnboardingLaunchGate]) skips straight
     // past the welcome/onboarding slides on this and every later launch,
-    // landing on login instead of seeing the first-launch sequence again
-    // (issue #15).
+    // landing on login instead of seeing the first-launch sequence again.
     if (!isLoggedIn &&
         hasSeenOnboarding &&
         !revisitWelcome &&
@@ -464,10 +447,9 @@ class AppRouter {
   }
 
   /// True when a merchant/admin session is allowed to stay on [location]
-  /// without being redirected to [AppRoutes.merchantDashboard] (issue #236):
-  /// the merchant dashboard itself, any sub-path under it, or the
-  /// password-reset screen (see [resolveRedirect]'s doc comment on why that
-  /// one is exempted).
+  /// without being redirected to [AppRoutes.merchantDashboard]: the merchant
+  /// dashboard itself, any sub-path under it, or the password-reset screen
+  /// (see [resolveRedirect]'s doc comment on why that one is exempted).
   static bool _isMerchantReachableLocation(String location) =>
       location == AppRoutes.merchantDashboard ||
       location.startsWith('${AppRoutes.merchantDashboard}/') ||
@@ -479,13 +461,11 @@ class AppRouter {
         AppRoutes.isServicePath(location) ||
         AppRoutes.isRestaurantDetails(location) ||
         AppRoutes.isTrackOrderDetails(location) ||
-        // Issue #288: `merchantOrderDetail`/`merchantCatalog` carry path
-        // params (or sit one level under `merchantDashboard`), so the exact
+        // `merchantOrderDetail`/`merchantCatalog` carry path params (or sit
+        // one level under `merchantDashboard`), so the exact
         // `_standaloneProtectedPages` lookup above never matches them on
         // its own -- without this, a signed-out visitor hitting one of
-        // these URLs directly would skip the login redirect entirely,
-        // exactly the gap issue #288 called out for `Navigator.push`-only
-        // screens.
+        // these URLs directly would skip the login redirect entirely.
         location.startsWith('${AppRoutes.merchantDashboard}/') ||
         const {
           AppRoutes.home,
@@ -529,9 +509,9 @@ class _AuthStateRefresh extends ChangeNotifier {
       if (authState.event == AuthChangeEvent.passwordRecovery) {
         AppRouter.router.go(AppRoutes.resetPassword);
       }
-      // Issue #232: clear the cached merchant/admin routing decision on
-      // sign-out so a later, unrelated session-restore or sign-in always
-      // starts from a fresh lookup rather than a stale cached role.
+      // Clear the cached merchant/admin routing decision on sign-out so a
+      // later, unrelated session-restore or sign-in always starts from a
+      // fresh lookup rather than a stale cached role.
       if (authState.event == AuthChangeEvent.signedOut) {
         MerchantSessionGate.reset();
       }

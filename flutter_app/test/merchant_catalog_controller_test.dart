@@ -6,8 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'helpers/fake_merchant_repositories.dart';
 
 // Unit-tests `MerchantCatalogController`'s CRUD + availability-toggle
-// bookkeeping (ported from `merchant_app`, originally issue #133, unified
-// into the main app by issue #232) against the fake repository.
+// bookkeeping against the fake repository.
 void main() {
   const item = MerchantCatalogItem(
     id: 'item-1',

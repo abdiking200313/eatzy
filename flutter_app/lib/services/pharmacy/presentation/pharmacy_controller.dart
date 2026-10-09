@@ -30,7 +30,7 @@ enum PharmacyCartAddResult {
   /// The cart already holds items from a different pharmacy
   /// (`PharmacyProduct.storeId`) and the caller did not pass
   /// `replaceStoreCart: true` — mirrors `GroceryAddResult.storeConflict`.
-  /// Cart/checkout stay scoped to one pharmacy at a time (issue #141).
+  /// Cart/checkout stay scoped to one pharmacy at a time.
   storeConflict,
 }
 
@@ -51,7 +51,7 @@ class PharmacyController extends ChangeNotifier with LoadableState {
        _now = now ?? DateTime.now;
 
   /// The `service_pricing.service_id` this vertical's fee estimate is read
-  /// from (issue #279) — see [ServicePricingRepository].
+  /// from — see [ServicePricingRepository].
   static const String serviceId = 'pharmacy';
 
   /// How long a successful catalog load is considered fresh before
@@ -77,7 +77,7 @@ class PharmacyController extends ChangeNotifier with LoadableState {
 
   /// The pharmacy (`PharmacyStore.id`) [_products] was last loaded for, or
   /// `null` before the first [loadProducts] call. Products are always
-  /// scoped to one pharmacy at a time (issue #141): switching stores (or
+  /// scoped to one pharmacy at a time: switching stores (or
   /// changing [_currentSearchQuery]) always refetches, regardless of
   /// [isStale].
   String? _currentStoreId;
@@ -121,8 +121,8 @@ class PharmacyController extends ChangeNotifier with LoadableState {
   bool get isCartNotEmpty => _cartItems.isNotEmpty;
 
   /// Whether a [placeDemoOrder] call is currently in flight. The checkout
-  /// screen disables its submit button while this is true — see issue #59 —
-  /// and [placeDemoOrder] itself also refuses to start a second submission
+  /// screen disables its submit button while this is true, and
+  /// [placeDemoOrder] itself also refuses to start a second submission
   /// while this is true, as a belt-and-braces guard against a double-tap or
   /// a second programmatic call racing the first one.
   bool get isSubmitting => _isSubmitting;
@@ -287,7 +287,7 @@ class PharmacyController extends ChangeNotifier with LoadableState {
   /// `false` — mirrors `GroceryController.addProduct`'s `replaceStoreCart`.
   /// Pass `replaceStoreCart: true` (after user confirmation) to clear the
   /// existing cart and add [product] instead, keeping checkout scoped to a
-  /// single pharmacy at a time (issue #141).
+  /// single pharmacy at a time.
   /// Adds [quantity] units of [product] -- all or nothing: if that would
   /// exceed the stock, nothing is added and
   /// [PharmacyCartAddResult.maximumStockReached] is returned.
@@ -420,7 +420,7 @@ class PharmacyController extends ChangeNotifier with LoadableState {
   /// still in flight (see [isSubmitting]): this is a belt-and-braces guard
   /// against a double-tap or a second programmatic call racing the first
   /// one, on top of the checkout screen already disabling its submit button
-  /// while [isSubmitting] is true (issue #59).
+  /// while [isSubmitting] is true.
   ///
   /// [idempotencyKey] identifies this checkout *attempt* and is forwarded
   /// to `place_pharmacy_order` so a retried submission (the same key)
@@ -449,7 +449,7 @@ class PharmacyController extends ChangeNotifier with LoadableState {
     // Snapshot cart-derived values before the shared flow clears the cart.
     // These are only used for the no-repository (demo) fallback below —
     // once a real repository is configured, the RPC's returned totals
-    // (issue #60) are used instead.
+    // are used instead.
     final confirmedSubtotal = subtotal;
     final confirmedDeliveryFee = isCartEmpty ? 0 : deliveryFee;
     final confirmedTotal = total;
@@ -484,8 +484,8 @@ class PharmacyController extends ChangeNotifier with LoadableState {
                 ),
               ) ??
               Future.value(null),
-          // `?? 0` only matters if pricing has never loaded (issue #279) —
-          // this demo-only fallback (no real repository configured) never
+          // `?? 0` only matters if pricing has never loaded -- this
+          // demo-only fallback (no real repository configured) never
           // represents a real charge either way.
           fallbackOrder: () => PlacedOrder(
             orderId: 'pharmacy-${confirmedAt.microsecondsSinceEpoch}',
@@ -512,7 +512,7 @@ class PharmacyController extends ChangeNotifier with LoadableState {
             );
           },
           // `order.total` is the RPC's authoritative, server-computed total
-          // (issue #60) — not the client-computed `confirmedTotal`, which can
+          // — not the client-computed `confirmedTotal`, which can
           // be stale if a product price changed between the cart being built
           // and this checkout being confirmed.
           recordActivity: (order) {

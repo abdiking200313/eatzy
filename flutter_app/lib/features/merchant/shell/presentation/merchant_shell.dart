@@ -15,11 +15,9 @@ import '../../orders/presentation/orders_screen.dart';
 import '../../store/presentation/merchant_store_controller.dart';
 import '../../store/presentation/my_store_screen.dart';
 
-/// The merchant dashboard's post-sign-in navigation shell (issue #232,
-/// ported from the standalone `merchant_app`'s `MerchantShell`, originally
-/// issue #132): a bottom nav with "My Store" (real store/catalog
-/// management, originally issue #133) and "Orders" (the incoming-order
-/// queue and fulfillment screens, originally issue #134).
+/// The merchant dashboard's post-sign-in navigation shell: a bottom nav
+/// with "My Store" (real store/catalog management) and "Orders" (the
+/// incoming-order queue and fulfillment screens).
 ///
 /// An `admin` account (see [MerchantSessionGate.isAdmin]) sees none of
 /// that: the shell shows only the "Accounts" role-management list
@@ -44,8 +42,8 @@ class MerchantShell extends StatefulWidget {
 
   /// The signed-in merchant's `profiles.id` (== `auth.uid()`). Overridable
   /// for tests; defaults to the current Supabase session's user id (from
-  /// [AppScope], see issue #285), or `null` if there is somehow no signed-in
-  /// user by the time this builds.
+  /// [AppScope]), or `null` if there is somehow no signed-in user by the
+  /// time this builds.
   final String? ownerId;
 
   /// Overridable for tests; defaults to a real [AuthService].
@@ -89,7 +87,7 @@ class _MerchantShellState extends State<MerchantShell> {
   int _selectedIndex = 0;
 
   // Resolved here rather than in field initializers / initState: reading
-  // the Supabase client off `AppScope.of(context)` (issue #285) needs a
+  // the Supabase client off `AppScope.of(context)` needs a
   // `BuildContext` that is allowed to look up an `InheritedWidget`, which
   // `didChangeDependencies` is and `initState` is not. Guarded by
   // `_dependenciesResolved` so a later dependency change (unlikely here,

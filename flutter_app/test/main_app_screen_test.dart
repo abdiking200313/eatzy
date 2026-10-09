@@ -8,7 +8,7 @@ void main() {
   // Profile), optionally with an extra branch representing a service
   // vertical (food/grocery/pharmacy) that isn't a bottom-nav destination of
   // its own — matching how app_router.dart wires MainAppScreen up to
-  // StatefulShellRoute.indexedStack for issue #67.
+  // StatefulShellRoute.indexedStack.
   GoRouter buildTestRouter({
     required Widget homeTab,
     String initialLocation = '/home',

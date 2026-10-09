@@ -69,9 +69,8 @@ class AccountSection extends StatelessWidget {
                 onTap: onEditDob,
               ),
               const Divider(height: 1),
-              // Now honestly navigable: unlike before issue #13's Settings
-              // migration, an editable email flow exists (onEditEmail) so
-              // this row no longer has to stay inert.
+              // An editable email flow exists (onEditEmail), so this row
+              // is navigable rather than inert.
               SettingCard(
                 title: 'Email Address',
                 subtitle: emailSubtitle,

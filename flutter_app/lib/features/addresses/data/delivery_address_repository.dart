@@ -3,13 +3,11 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../platform/error_reporting/error_reporter.dart';
 import '../models/delivery_address.dart';
 
-/// Data access for the shared `public.delivery_addresses` platform table
-/// (issue #78). This exists so the data layer for a real saved-addresses
-/// feature is in place and testable; wiring it into
-/// `lib/features/addresses/presentation/addresses_screen.dart` (today
-/// hardcoded demo data with a non-functional "Add New Address" button) is a
-/// deliberate fast-follow, not done by this change -- see the issue #78 PR
-/// description.
+/// Data access for the shared `public.delivery_addresses` platform table.
+/// This is the data layer for a real saved-addresses feature;
+/// `lib/features/addresses/presentation/addresses_screen.dart` does not yet
+/// consume it and still shows hardcoded demo data with a non-functional
+/// "Add New Address" button.
 abstract interface class DeliveryAddressRepository {
   /// The signed-in profile's saved addresses, default address first, then
   /// most recently created first.
@@ -59,7 +57,7 @@ class SupabaseDeliveryAddressRepository implements DeliveryAddressRepository {
 
     // Parse each row independently: one malformed row must not blank the
     // whole address list for the user -- same defensive approach as
-    // SupabaseActivityRepository.fetchActivities (issue #62).
+    // SupabaseActivityRepository.fetchActivities.
     final addresses = <DeliveryAddress>[];
     for (final row in rows) {
       final rowMap = Map<String, dynamic>.from(row);

@@ -154,8 +154,7 @@ class GroceryProduct {
   final String name;
   final String description;
 
-  /// Price in integer cents, per [pricingUnit] (each item, or per kilogram)
-  /// — see issue #8.
+  /// Price in integer cents, per [pricingUnit] (each item, or per kilogram).
   final int unitPrice;
   final GroceryPricingUnit pricingUnit;
   final GroceryStockState stockState;
@@ -348,7 +347,7 @@ class GroceryOrderConfirmation {
   final String orderId;
   final DateTime createdAt;
 
-  /// In integer cents — see issue #8.
+  /// In integer cents.
   final int amount;
   final GroceryDeliverySlot slot;
   final GrocerySubstitutionPreference substitutionPreference;
@@ -412,8 +411,8 @@ class GroceryOrderRequest {
   final GrocerySubstitutionPreference substitutionPreference;
   final List<GroceryOrderLineInput> items;
 
-  /// A client-generated token identifying this checkout attempt (issue
-  /// #59). `place_grocery_order` uses it, together with the caller's
+  /// A client-generated token identifying this checkout attempt.
+  /// `place_grocery_order` uses it, together with the caller's
   /// profile, to return the existing order instead of inserting a duplicate
   /// row and decrementing stock again when the same attempt is submitted
   /// more than once. `null` disables that protection for this call.

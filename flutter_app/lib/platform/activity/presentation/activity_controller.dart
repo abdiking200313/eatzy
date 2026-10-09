@@ -11,20 +11,19 @@ import '../models/activity_item.dart';
 /// This is a hand-rolled `ChangeNotifier` singleton (see [instance]) rather
 /// than a `@riverpod`/`AsyncNotifier`, which is otherwise this project's
 /// stated state-management convention. That is a deliberate, accepted
-/// exception -- not an oversight -- per the resolution of issue #19: a full
-/// Riverpod migration was judged a bigger refactor than the issue's scope
-/// warranted, and AGENTS.md itself says not to introduce a new state
-/// management framework for a localized task without an explicit
-/// architectural reason and user agreement. Revisit only with a fresh,
-/// explicit decision to migrate, not as an incidental side effect of an
-/// unrelated change.
+/// exception -- not an oversight: a full Riverpod migration would be a
+/// bigger refactor than any single localized change warrants, and
+/// AGENTS.md itself says not to introduce a new state management
+/// framework for a localized task without an explicit architectural
+/// reason and user agreement. Revisit only with a fresh, explicit decision
+/// to migrate, not as an incidental side effect of an unrelated change.
 class ActivityController extends ChangeNotifier {
   ActivityController({ActivityRepository? repository})
     : _repository = repository;
 
   /// Process-wide singleton, kept for every call site that hasn't migrated
   /// yet. New code should prefer `AppScope.of(context).activityController`
-  /// (`lib/app/app_scope.dart`, issue #281) instead of reaching for this
+  /// (`lib/app/app_scope.dart`) instead of reaching for this
   /// directly -- it resolves to the exact same object in production, just
   /// through the app's composition root rather than a global.
   static final ActivityController instance = ActivityController();

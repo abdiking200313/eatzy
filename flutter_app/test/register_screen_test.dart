@@ -123,9 +123,9 @@ Future<void> _submit(WidgetTester tester) async {
 }
 
 void main() {
-  // Issue #284: with no injected authService, RegisterScreen now resolves
-  // its default AuthService via AppScope.of(context) instead of
-  // `Supabase.instance.client` -- this only exercises that the
+  // With no injected authService, RegisterScreen resolves
+  // its default AuthService via AppScope.of(context) -- this only
+  // exercises that the
   // AppScope-backed default is constructible and the screen still renders,
   // not a real sign-up (nothing taps "Create account" here).
   testWidgets(
@@ -280,7 +280,7 @@ void main() {
       final now = DateTime.now();
       final expectedDob = DateTime(now.year - 18, now.month, now.day);
 
-      // A real GoRouter, not a plain MaterialApp -- issue #295: the
+      // A real GoRouter, not a plain MaterialApp -- the
       // post-sign-up `context.go` call needs a GoRouter ancestor to resolve,
       // and this is the test that exercises it the way production code does
       // (tapping "Create account" through to a route change), rather than
@@ -356,10 +356,10 @@ void main() {
     },
   );
 
-  // Issue #295: the post-sign-up `context.go` call was moved outside the
-  // try/catch around `signUpWithEmailPassword` so that a navigation failure
-  // after a successful sign-up no longer gets reported as a sign-up
-  // failure. Reproduced here the same way the original bug was: a
+  // The post-sign-up `context.go` call sits outside the
+  // try/catch around `signUpWithEmailPassword`, so a navigation failure
+  // after a successful sign-up does not get reported as a sign-up
+  // failure. Reproduced here with a
   // `RegisterScreen` with no GoRouter ancestor, so the post-success
   // `context.go` call throws -- caught in a nested zone (rather than via
   // `tester.takeException()`) because this exception surfaces from an

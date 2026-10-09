@@ -49,7 +49,7 @@ class GroceryController extends ChangeNotifier with LoadableState {
   final GroceryStoreType storeType;
 
   /// The `service_pricing.service_id` this vertical's fee estimate is read
-  /// from (issue #279) — see [ServicePricingRepository]. Fresh Meat and
+  /// from — see [ServicePricingRepository]. Fresh Meat and
   /// Electronics run on this same engine and share this same pricing row:
   /// `place_grocery_order` always reads `service_id = 'grocery'` regardless
   /// of [storeType], so this does not vary by [storeType] either.
@@ -103,8 +103,8 @@ class GroceryController extends ChangeNotifier with LoadableState {
   GroceryOrderConfirmation? get lastConfirmation => _checkout.lastConfirmation;
 
   /// Whether a [confirmOrder] call is currently in flight. The checkout
-  /// screen disables its submit button while this is true — see issue #59 —
-  /// and [confirmOrder] itself also refuses to start a second submission
+  /// screen disables its submit button while this is true, and
+  /// [confirmOrder] itself also refuses to start a second submission
   /// while this is true, as a belt-and-braces guard against a double-tap or
   /// a second programmatic call racing the first one.
   bool get isSubmitting => _checkout.isSubmitting;
@@ -295,14 +295,13 @@ class GroceryController extends ChangeNotifier with LoadableState {
   /// Validates the cart/slot/preference and, once valid, places the order —
   /// see [GroceryCheckout.confirmOrder], which this delegates to after
   /// snapshotting the current cart/pricing state (so the snapshot is taken
-  /// before [GroceryCheckout] clears the cart, exactly as before
-  /// extraction).
+  /// before [GroceryCheckout] clears the cart).
   ///
   /// A no-op — without touching submission state — while a previous call is
   /// still in flight (see [isSubmitting]): this is a belt-and-braces guard
   /// against a double-tap or a second programmatic call racing the first
   /// one, on top of the checkout screen already disabling its submit button
-  /// while [isSubmitting] is true (issue #59).
+  /// while [isSubmitting] is true.
   ///
   /// [idempotencyKey] identifies this checkout *attempt* and is forwarded
   /// to `place_grocery_order` so a retried submission (the same key)
@@ -325,8 +324,8 @@ class GroceryController extends ChangeNotifier with LoadableState {
     );
     // Snapshot cart-derived values before the shared flow clears the cart.
     // These are only used for the no-repository (demo) fallback -- once a
-    // real repository is configured, the RPC's returned totals (issue #60)
-    // are used instead.
+    // real repository is configured, the RPC's returned totals are used
+    // instead.
     final confirmedItems = _cart.lines
         .map(
           (line) => GroceryOrderLineInput(

@@ -1,7 +1,7 @@
 import 'dart:math';
 
 /// Generates a client-side `text` primary key for a table whose `id` column
-/// has no server-side default (ported from `merchant_app` with issue #232):
+/// has no server-side default:
 /// `grocery_stores`, `pharmacy_stores`, `grocery_products`, and
 /// `pharmacy_products` all declare `id text primary key` with nothing else,
 /// unlike `restaurants` / `menu_items`'s server-generated `uuid`

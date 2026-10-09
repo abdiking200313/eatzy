@@ -15,7 +15,7 @@ abstract interface class PharmacyRepository {
   /// Fetches OTC products stocked by [storeId] (`pharmacy_stores.id`),
   /// optionally narrowed by a case-insensitive [searchQuery] substring match
   /// on the product name, bounded to [limit] rows starting at [offset].
-  /// Products are always scoped to one pharmacy at a time (issue #141) —
+  /// Products are always scoped to one pharmacy at a time —
   /// there is no cross-pharmacy catalog query.
   Future<List<PharmacyProduct>> fetchProducts({
     required String storeId,
@@ -53,8 +53,8 @@ class SeededPharmacyRepository implements PharmacyRepository {
   const SeededPharmacyRepository();
 
   /// The single pharmacy every seeded product belongs to — named after the
-  /// same placeholder store id every pre-#129 `pharmacy_products` row was
-  /// backfilled to server-side.
+  /// placeholder store id every `pharmacy_products` row predating per-store
+  /// ownership was backfilled to server-side.
   static const defaultStoreId = 'legacy-pharmacy';
 
   static const products = <PharmacyProduct>[

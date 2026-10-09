@@ -9,9 +9,7 @@ import 'package:chowflow/features/merchant/store/data/merchant_store_repository.
 import 'package:chowflow/features/merchant/store/models/merchant_store.dart';
 import 'package:chowflow/features/merchant/store/models/merchant_vertical.dart';
 
-/// In-memory fakes for the merchant dashboard's repository interfaces
-/// (ported from `merchant_app`'s `test/fakes/fake_merchant_repositories.dart`,
-/// originally issue #133, unified into the main app by issue #232), so
+/// In-memory fakes for the merchant dashboard's repository interfaces, so
 /// widget/unit tests can exercise the controllers/screens without a live
 /// Supabase project or network access.
 

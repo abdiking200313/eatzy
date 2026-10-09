@@ -15,14 +15,14 @@ enum GroceryAddResult {
 }
 
 /// Owns the grocery cart itself: its contents, the quantity-step rules for
-/// adding/changing items, and persisting it to [CartStorage].
+/// adding/changing items, and persisting it to [CartStorage]. Cart/quantity
+/// rules are kept separate from catalog loading (see `GroceryCatalog`) and
+/// from checkout.
 ///
-/// Extracted from `GroceryController` (issue #293) to separate cart/quantity
-/// rules from catalog loading (see `GroceryCatalog`) and from checkout.
 /// `GroceryController` owns everything this class doesn't: when to call
 /// `notifyListeners`, pricing, and placing/confirming an order. This class
 /// never calls `notifyListeners` itself -- the controller does that around
-/// each mutating call, exactly as it did before extraction.
+/// each mutating call.
 class GroceryCart {
   GroceryCart({required CartStorage<GroceryCartLine> storage})
     : _storage = storage;

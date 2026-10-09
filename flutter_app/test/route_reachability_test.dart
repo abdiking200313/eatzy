@@ -1,5 +1,4 @@
-// Issue #71: "Twelve registered routes and ~600 lines of feature UI are
-// unreachable from anywhere in the app". This test asserts every path
+// This test asserts every path
 // registered in AppRouter is either linked from somewhere in lib/ (a real
 // context.push/context.go call site, or the literal path string) or is
 // explicitly documented below as intentionally deep-link-only, with a
@@ -19,7 +18,7 @@ final Map<String, String> _deepLinkOnlyRoutes = {
   AppRoutes.root: 'index route, always redirected to welcome by AppRouter',
 
   // Legacy redirect aliases, kept for backward-compat / old deep links.
-  // Issue #71 decision: keep these; a route existing only for old links is a
+  // Keep these; a route existing only for old links is a
   // normal reason for it to have no in-app link.
   AppRoutes.home: 'legacy alias, redirects to ${AppRoutes.mainApp}',
   AppRoutes.categories: 'legacy alias, redirects to ${AppRoutes.services}',
@@ -44,7 +43,7 @@ final Map<String, String> _deepLinkOnlyRoutes = {
   // with an old deep link that has no order to point at -- TrackOrderScreen
   // renders a "no order selected" empty state for it. The real, reachable
   // form is the parameterized `trackOrderDetails` route below, linked from
-  // the "Track order" action on an ActivityScreen row (issue #43).
+  // the "Track order" action on an ActivityScreen row.
   AppRoutes.trackOrder:
       'kept only for old deep links with no order id; see trackOrderDetails '
       'for the real reachable route (#43)',
@@ -145,7 +144,7 @@ void main() {
     }
     // Same pattern again: no call site pushes the raw `groceryStore`
     // template path -- GroceryScreen builds a concrete path via
-    // AppRoutes.groceryStoreDetails(id) (issue #140).
+    // AppRoutes.groceryStoreDetails(id).
     if (name == 'groceryStore' &&
         combinedSource.contains('groceryStoreDetails(')) {
       return true;

@@ -6,13 +6,12 @@ import 'package:shared_preferences_platform_interface/shared_preferences_async_p
 
 import 'helpers/app_scope_test_helpers.dart';
 
-/// Covers [AppServices.groceryController]/[AppServices.pharmacyController]
-/// (issue #283): these replace the old `GroceryController.forType`/
-/// `GroceryController.instance`/`PharmacyController.instance` static
-/// singletons, which were never directly unit-testable (their lazy
-/// initializers read `Supabase.instance.client`). Routing the same
-/// lazy-build-and-cache logic through [AppServices] -- which already takes
-/// an injected [SupabaseClient] -- makes it testable for the first time.
+/// Covers [AppServices.groceryController]/[AppServices.pharmacyController]:
+/// unlike a lazy-initializer static singleton (which reads
+/// `Supabase.instance.client` directly and so is never directly
+/// unit-testable), this lazy-build-and-cache logic runs through
+/// [AppServices] -- which already takes an injected [SupabaseClient] --
+/// making it testable.
 void main() {
   setUp(() {
     // `GroceryController`/`PharmacyController` persist their cart via

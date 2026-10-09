@@ -13,7 +13,7 @@ import '../platform/activity/presentation/activity_controller.dart';
 /// `app_router.dart` — it keeps every branch's own navigator (and therefore
 /// its scroll position, in-flight futures, and back stack) alive in an
 /// `IndexedStack` behind the scenes, so switching branches never rebuilds
-/// this widget or discards the other branches' state. See issue #67.
+/// this widget or discards the other branches' state.
 class MainAppScreen extends StatefulWidget {
   const MainAppScreen({
     super.key,
@@ -26,8 +26,8 @@ class MainAppScreen extends StatefulWidget {
   /// Called whenever the bottom navigation switches *to* the Activity tab
   /// (index [activityTabIndex]). Defaults to [ActivityController.instance]'s
   /// `load()` so the Activity feed picks up server-side status changes
-  /// (courier updates, etc. — see issue #64) instead of only ever showing
-  /// whatever was loaded at app startup. Overridable so tests can observe
+  /// (courier updates, etc.) instead of only ever showing whatever was
+  /// loaded at app startup. Overridable so tests can observe
   /// the reload without a real [ActivityController].
   final Future<void> Function()? onActivityTabFocused;
 

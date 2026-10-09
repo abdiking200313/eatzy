@@ -9,7 +9,7 @@ import 'setting_card.dart';
 ///
 /// No language/currency/theme infrastructure exists yet, so these stay
 /// non-interactive "coming soon" rows rather than implying settings that
-/// don't do anything (#10). That means this section needs no data or
+/// don't do anything. That means this section needs no data or
 /// callbacks from the screen, unlike [NotificationsSection]/[AccountSection].
 class PreferencesSection extends StatelessWidget {
   const PreferencesSection({super.key});

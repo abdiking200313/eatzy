@@ -26,7 +26,7 @@ class CartController extends ChangeNotifier {
 
   /// Process-wide singleton, kept for every call site that hasn't migrated
   /// yet. New code should prefer `AppScope.of(context).cartController`
-  /// (`lib/app/app_scope.dart`, issue #281) instead of reaching for this
+  /// (`lib/app/app_scope.dart`) instead of reaching for this
   /// directly -- it resolves to the exact same object in production, just
   /// through the app's composition root rather than a global.
   static final CartController instance = CartController(
@@ -40,7 +40,7 @@ class CartController extends ChangeNotifier {
   static const int maximumQuantity = 99;
 
   /// The `service_pricing.service_id` this vertical's fee/tax estimate is
-  /// read from (issue #279) — see [ServicePricingRepository].
+  /// read from — see [ServicePricingRepository].
   static const String serviceId = 'food';
 
   static const String _guestOwner = 'guest';
@@ -77,7 +77,7 @@ class CartController extends ChangeNotifier {
   ///
   /// Rounded with `.round()` at the point it combines with other integer-cent
   /// values, matching `place_food_order`'s own
-  /// `round(v_subtotal * v_tax_rate)::integer` (issue #60's migration).
+  /// `round(v_subtotal * v_tax_rate)::integer`.
   int? get tax {
     if (_items.isEmpty) return 0;
     final rate = pricing?.taxRate;

@@ -37,7 +37,7 @@ void main() {
     await tester.pumpWidget(MaterialApp.router(routerConfig: router));
     await tester.pump();
 
-    // Issue #143: the header greeting was removed entirely.
+    // The home header shows no greeting text.
     expect(find.text('Good morning'), findsNothing);
     expect(find.text('What do you need today?'), findsNothing);
     expect(find.text('Somalia • USD'), findsNothing);

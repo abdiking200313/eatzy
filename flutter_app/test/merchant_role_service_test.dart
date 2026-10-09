@@ -1,15 +1,12 @@
 import 'package:chowflow/features/merchant/auth/data/merchant_role_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-// Unit-tests the role-gating decision at the heart of issue #232's
-// acceptance criteria ("a role = 'merchant'/'admin' account signing in ...
-// lands on the merchant dashboard ... a role = 'customer' account's
-// experience is completely unchanged"), without needing a live Supabase
-// project/network access. Ported from `merchant_app`'s
-// `merchant_auth_service_test.dart` (originally issue #132); the sign-in/
-// sign-out and `NotAMerchantException` coverage from that file no longer
-// applies, since there is no second sign-in flow to reject a customer
-// account from any more -- see `MerchantRoleService`'s doc comment.
+// Unit-tests the role-gating decision ("a role = 'merchant'/'admin'
+// account signing in ... lands on the merchant dashboard ... a role =
+// 'customer' account's experience is completely unchanged"), without
+// needing a live Supabase project/network access. There is no second
+// sign-in flow to reject a customer account from -- see
+// `MerchantRoleService`'s doc comment.
 void main() {
   group('isAuthorizedMerchantRole', () {
     test('allows merchant', () {

@@ -27,17 +27,16 @@ const List<GroceryDeliverySlot> defaultGroceryDeliverySlots = [
 
 /// Owns the grocery store/product catalog: which stores have loaded, how
 /// stale that load is, and the delivery slots for the currently selected
-/// store.
+/// store. Catalog loading/caching is kept separate from cart/quantity
+/// rules (see `GroceryCart`) and from checkout.
 ///
-/// Extracted from `GroceryController` (issue #293) to separate catalog
-/// loading/caching from cart/quantity rules (see `GroceryCart`) and from
-/// checkout. [load] and [loadStore] are plain fetch-and-store methods with no
-/// loading-state bookkeeping of their own: `GroceryController` wraps them in
-/// its own `LoadableState.runLoad` exactly as it did before extraction, so
-/// `isLoading`/`loadError` keep working unchanged. [loadDeliverySlots] is the
-/// exception -- like before extraction, it manages its own loading flag and
-/// calls back into the controller (via [onChanged]) at the same two points,
-/// since it was never run through `runLoad`.
+/// [load] and [loadStore] are plain fetch-and-store methods with no
+/// loading-state bookkeeping of their own: `GroceryController` wraps them
+/// in its own `LoadableState.runLoad`, so `isLoading`/`loadError` keep
+/// working unchanged. [loadDeliverySlots] is the exception -- it manages
+/// its own loading flag and calls back into the controller (via
+/// [onChanged]) at the same two points, since it is never run through
+/// `runLoad`.
 class GroceryCatalog {
   GroceryCatalog({
     required GroceryRepository repository,

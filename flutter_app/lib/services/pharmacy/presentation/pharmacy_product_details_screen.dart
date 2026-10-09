@@ -15,8 +15,8 @@ import 'pharmacy_controller.dart';
 /// Full-screen details for one pharmacy product, reached either by tapping
 /// its row in `PharmacyCatalogScreen` or directly via
 /// `AppRoutes.pharmacyProductDetails` (deep link / browser URL). A
-/// go_router destination, like `RestaurantScreen`/`MenuItemDetailsScreen`
-/// (issue #288): it only takes [storeId]/[productId] and loads the product
+/// go_router destination, like `RestaurantScreen`/`MenuItemDetailsScreen`:
+/// it only takes [storeId]/[productId] and loads the product
 /// itself from the same [PharmacyController] catalog `PharmacyCatalogScreen`
 /// reads from, rather than taking the whole [PharmacyProduct] object.
 class PharmacyProductDetailsScreen extends StatefulWidget {

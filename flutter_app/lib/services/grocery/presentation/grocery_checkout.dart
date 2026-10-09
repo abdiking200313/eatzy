@@ -15,12 +15,11 @@ import '../models/grocery_models.dart';
 /// submission in flight ([isSubmitting]) and the last confirmed order
 /// ([lastConfirmation]).
 ///
-/// Extracted from `GroceryController` (issue #293) to separate checkout
-/// orchestration from cart/quantity rules (see `GroceryCart`) and catalog
-/// loading (see `GroceryCatalog`). `GroceryController` still owns the cart
-/// itself, pricing, and deciding when to call `notifyListeners`
-/// ([confirmOrder] takes an [onChanged] callback for exactly that, called at
-/// the same points the unextracted method did).
+/// This class owns checkout orchestration, separate from cart/quantity
+/// rules (see `GroceryCart`) and catalog loading (see `GroceryCatalog`).
+/// `GroceryController` still owns the cart itself, pricing, and deciding
+/// when to call `notifyListeners` ([confirmOrder] takes an [onChanged]
+/// callback for exactly that).
 class GroceryCheckout {
   GroceryCheckout({
     required GroceryOrderRepository? orderRepository,
@@ -38,8 +37,8 @@ class GroceryCheckout {
   GroceryOrderConfirmation? _lastConfirmation;
 
   /// Whether a [confirmOrder] call is currently in flight. The checkout
-  /// screen disables its submit button while this is true — see issue #59 —
-  /// and [confirmOrder] itself also refuses to start a second submission
+  /// screen disables its submit button while this is true, and
+  /// [confirmOrder] itself also refuses to start a second submission
   /// while this is true, as a belt-and-braces guard against a double-tap or
   /// a second programmatic call racing the first one.
   bool get isSubmitting => _isSubmitting;
@@ -130,7 +129,7 @@ class GroceryCheckout {
             ),
           ) ??
           Future.value(null),
-      // `?? 0` only matters if pricing has never loaded (issue #279) — this
+      // `?? 0` only matters if pricing has never loaded -- this
       // demo-only fallback (no real repository configured) never represents
       // a real charge either way.
       fallbackOrder: () => PlacedOrder(
@@ -154,7 +153,7 @@ class GroceryCheckout {
         ]);
       },
       // `order.total` is the RPC's authoritative, server-computed total
-      // (issue #60) — not the client-computed `total`, which can be stale
+      // — not the client-computed `total`, which can be stale
       // if a product price changed between the cart being built and this
       // checkout being confirmed.
       recordActivity: (order) {

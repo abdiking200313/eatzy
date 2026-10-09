@@ -37,10 +37,10 @@ abstract interface class OrderDetailsSource {
 
   /// A tick/ping stream, not the order data itself: emits an event every
   /// time this order's row changes server-side (e.g. a merchant moving it
-  /// to `preparing`/`out_for_delivery`, see #131/#134), with no payload of
-  /// its own. Callers must refetch via [fetchOrderDetails] on every event
-  /// rather than trust any payload shape (issue #297). Never completes or
-  /// errors on its own; cancel the subscription to stop watching.
+  /// to `preparing`/`out_for_delivery`), with no payload of its own.
+  /// Callers must refetch via [fetchOrderDetails] on every event rather
+  /// than trust any payload shape. Never completes or errors on its own;
+  /// cancel the subscription to stop watching.
   Stream<void> watchOrder({required String orderId, required String serviceId});
 }
 
@@ -75,7 +75,7 @@ class SupabaseActivityRepository
 
     // Parse each row independently: one malformed row (missing/blank field,
     // an unparseable date or amount, etc.) must not blank the whole activity
-    // list for the user. Skip and log just that row instead — see #62.
+    // list for the user. Skip and log just that row instead.
     final items = <ActivityItem>[];
     for (final row in rows) {
       final rowMap = Map<String, dynamic>.from(row);

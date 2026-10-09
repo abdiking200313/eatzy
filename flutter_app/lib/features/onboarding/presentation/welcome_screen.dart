@@ -34,7 +34,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
 
   // Any way out of this screen -- skipping, starting registration, or
   // logging in -- counts as "seen onboarding": a returning signed-out user
-  // should never be shown this sequence again (issue #15). Flips the
+  // should never be shown this sequence again. Flips the
   // in-memory gate immediately (so an OS back gesture within this session
   // doesn't re-show it) and persists it in the background for future
   // launches.

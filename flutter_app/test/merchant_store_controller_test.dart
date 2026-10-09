@@ -6,8 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'helpers/fake_merchant_repositories.dart';
 
 // Unit-tests `MerchantStoreController`'s loading/error/empty bookkeeping
-// (ported from `merchant_app`, originally issue #133, unified into the main
-// app by issue #232), against the fake repository rather than a live
+// against the fake repository rather than a live
 // Supabase project (no network access in this sandbox).
 void main() {
   group('load', () {

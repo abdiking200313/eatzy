@@ -19,7 +19,7 @@ import 'restaurant_screen.dart' show RestaurantMenuLoader;
 /// A full-screen "more info" page for a single menu item, reached either by
 /// tapping its card in `RestaurantScreen`'s menu or directly via
 /// `AppRoutes.foodMenuItemDetails` (deep link / browser URL). A go_router
-/// destination, like `RestaurantScreen` itself (issue #288): it only takes
+/// destination, like `RestaurantScreen` itself: it only takes
 /// [restaurantId]/[itemId] and loads the item itself from the same
 /// `CatalogQueries.restaurantMenu` cache `RestaurantScreen` reads from,
 /// rather than taking the whole [MenuItem] object. A thin wrapper around the
@@ -56,7 +56,7 @@ class _MenuItemDetailsScreenState extends State<MenuItemDetailsScreen> {
   RestaurantMenu? _initialMenu;
 
   /// Set in [didChangeDependencies] (never [initState]) — see
-  /// `RestaurantScreen._services`'s doc comment (issue #282).
+  /// `RestaurantScreen._services`'s doc comment.
   late AppServices _services;
   bool _dependenciesResolved = false;
 

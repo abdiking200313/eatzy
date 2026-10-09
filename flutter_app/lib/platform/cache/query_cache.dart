@@ -72,7 +72,7 @@ class QueryCache {
 
   /// Process-wide singleton, kept for every call site that hasn't migrated
   /// yet. New code should prefer `AppScope.of(context).queryCache`
-  /// (`lib/app/app_scope.dart`, issue #281) instead of reaching for this
+  /// (`lib/app/app_scope.dart`) instead of reaching for this
   /// directly -- it resolves to the exact same object in production, just
   /// through the app's composition root rather than a global.
   static final QueryCache instance = QueryCache();

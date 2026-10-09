@@ -4,8 +4,7 @@ import 'package:chowflow/features/merchant/store/models/merchant_vertical.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 // Unit-tests `MerchantOrder.fromMap`/`MerchantOrderLineItem.fromMap` against
-// the real per-vertical column shapes (ported from `merchant_app`,
-// originally issue #134, unified into the main app by issue #232) -- see
+// the real per-vertical column shapes -- see
 // `merchant_order_vertical.dart`'s header for exactly which migrations these
 // are verified against -- plus the pure status-vocabulary helpers.
 void main() {

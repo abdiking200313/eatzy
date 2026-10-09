@@ -21,7 +21,7 @@ import 'helpers/controllers.dart';
 import 'helpers/memory_cart_storage.dart';
 
 /// Checkout screens for every vertical, plus the shared `confirmDemoOrder`
-/// flow they all delegate to. The double-tap guard (issue #59) is
+/// flow they all delegate to. The double-tap guard is
 /// table-driven across food, grocery and pharmacy.
 void main() {
   const burger = CartItem(

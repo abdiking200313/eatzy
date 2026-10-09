@@ -4,9 +4,9 @@ import '../../../config/theme.dart';
 import '../../../widgets/app_cards.dart';
 import 'widgets/onboarding_page.dart';
 
-/// Screen 2 of the redesigned onboarding flow (issue #233): "Order In A Few
-/// Taps" — a single order-summary card. Sample/placeholder content for the
-/// mockup, not real order data.
+/// Screen 2 of the onboarding flow: "Order In A Few Taps" — a single
+/// order-summary card. Sample/placeholder content for the mockup, not real
+/// order data.
 class OnboardingPage2 extends StatelessWidget {
   const OnboardingPage2({super.key});
 

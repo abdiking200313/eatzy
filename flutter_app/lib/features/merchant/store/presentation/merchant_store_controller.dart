@@ -7,9 +7,8 @@ import '../data/merchant_store_repository.dart';
 import '../models/merchant_store.dart';
 import '../models/merchant_vertical.dart';
 
-/// `ChangeNotifier` controller for the "My Store" screen (ported from
-/// `merchant_app`, originally issue #133, unified into the main app by
-/// issue #232), following this repo's existing pattern (see
+/// `ChangeNotifier` controller for the "My Store" screen, following this
+/// repo's existing pattern (see
 /// `lib/services/grocery/presentation/grocery_controller.dart`): a
 /// `ChangeNotifier` with an injected Supabase-backed repository, not a new
 /// state-management framework.

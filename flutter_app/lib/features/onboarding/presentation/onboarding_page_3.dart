@@ -4,10 +4,10 @@ import '../../../config/theme.dart';
 import '../../../widgets/app_cards.dart';
 import 'widgets/onboarding_page.dart';
 
-/// Screen 3 of the redesigned onboarding flow (issue #233): "Know Exactly
-/// When It Lands" — a dark delivery-status card with a stage progress bar,
-/// plus a simple status timeline below it. Sample/placeholder content for
-/// the mockup, not real tracking data.
+/// Screen 3 of the onboarding flow: "Know Exactly When It Lands" — a dark
+/// delivery-status card with a stage progress bar, plus a simple status
+/// timeline below it. Sample/placeholder content for the mockup, not real
+/// tracking data.
 class OnboardingPage3 extends StatelessWidget {
   const OnboardingPage3({super.key});
 

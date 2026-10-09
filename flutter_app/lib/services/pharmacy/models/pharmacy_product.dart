@@ -15,16 +15,15 @@ class PharmacyProduct {
 
   final String id;
 
-  /// The pharmacy (`public.pharmacy_stores.id`) that stocks this product —
-  /// added in issue #129/#141 so the customer-facing catalog and cart can be
-  /// scoped to a single pharmacy at a time, the pharmacy counterpart of
-  /// `GroceryProduct.storeId`.
+  /// The pharmacy (`public.pharmacy_stores.id`) that stocks this product,
+  /// scoping the customer-facing catalog and cart to a single pharmacy at
+  /// a time — the pharmacy counterpart of `GroceryProduct.storeId`.
   final String storeId;
   final String name;
   final String description;
   final String category;
 
-  /// Price in integer cents — see issue #8.
+  /// Price in integer cents.
   final int unitPrice;
   final int stockQuantity;
   final PharmacySaleType saleType;

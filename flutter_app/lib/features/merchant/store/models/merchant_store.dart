@@ -1,9 +1,8 @@
 import 'merchant_vertical.dart';
 
 /// The signed-in merchant's own store row, from whichever vertical table it
-/// actually lives in (ported from `merchant_app`, originally issue #133,
-/// unified into the main app by issue #232). See `merchant_vertical.dart`
-/// for the per-vertical column mapping this is built from.
+/// actually lives in. See `merchant_vertical.dart` for the per-vertical
+/// column mapping this is built from.
 class MerchantStore {
   const MerchantStore({
     required this.id,

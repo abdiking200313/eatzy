@@ -6,8 +6,8 @@ import '../widgets/app_scaffold.dart';
 import 'app_routes.dart';
 
 /// Shown by [GoRouter]'s `errorBuilder` for an unrecognized path, replacing
-/// go_router's default error page (issue #40). Gives the user a way back to
-/// a known-good route instead of a dead end.
+/// go_router's default error page. Gives the user a way back to a
+/// known-good route instead of a dead end.
 class NotFoundScreen extends StatelessWidget {
   const NotFoundScreen({super.key});
 

@@ -14,15 +14,14 @@ import '../models/merchant_catalog_item.dart';
 import 'catalog_item_form.dart';
 import 'merchant_catalog_controller.dart';
 
-/// "Catalog" screen (ported from `merchant_app`, originally issue #133,
-/// unified into the main app by issue #232): list, add, edit, delete, and
-/// toggle availability for the merchant's own items -- `menu_items` /
-/// `grocery_products` / `pharmacy_products` depending on the vertical.
+/// "Catalog" screen: list, add, edit, delete, and toggle availability for
+/// the merchant's own items -- `menu_items` / `grocery_products` /
+/// `pharmacy_products` depending on the vertical.
 ///
 /// Reached either from `MyStoreScreen`'s "Manage catalog" button (which
 /// already has the loaded [vertical]/[storeId]/[storeName] to hand), or
 /// directly via `AppRoutes.merchantCatalog` (deep link / browser URL) -- a
-/// go_router destination, like `RestaurantScreen` (issue #288). [vertical]
+/// go_router destination, like `RestaurantScreen`. [vertical]
 /// and [storeId] are `null` in that second case, and this screen resolves
 /// the signed-in merchant's own store itself, the same way
 /// `OrdersScreen`/`MyStoreScreen` do (a merchant is modeled as owning at
@@ -85,7 +84,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
       widget.storeName ?? _ownStoreController?.store?.name ?? 'My store';
 
   // Resolved here rather than in field initializers / initState: reading
-  // the Supabase client off `AppScope.of(context)` (issue #285) needs a
+  // the Supabase client off `AppScope.of(context)` needs a
   // `BuildContext` that is allowed to look up an `InheritedWidget`, which
   // `didChangeDependencies` is and `initState` is not.
   @override

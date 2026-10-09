@@ -4,17 +4,16 @@ import 'package:chowflow/services/shared/models/service_pricing.dart';
 /// A [ServicePricingRepository] test double that never touches the network:
 /// [peek] returns whatever was pre-seeded (or later set via [set]) and
 /// [load] simply resolves to the same in-memory value, so controller tests
-/// can exercise real pricing math without a live Supabase client (issue
-/// #279).
+/// can exercise real pricing math without a live Supabase client.
 class FakeServicePricingRepository implements ServicePricingRepository {
   FakeServicePricingRepository([Map<String, ServicePricing>? seed])
     : _pricing = {...?seed};
 
   final Map<String, ServicePricing> _pricing;
 
-  /// Pre-seeded pricing for `'food'`, matching the historical hardcoded
-  /// `CartController` constants (499 cents / 10% tax) so existing tests that
-  /// don't care about pricing keep their previous numbers.
+  /// Pre-seeded pricing for `'food'`: 499 cents delivery / 10% tax, the
+  /// standard default so tests that don't care about pricing see
+  /// consistent numbers.
   factory FakeServicePricingRepository.food({
     int deliveryFeeCents = 499,
     double taxRate = 0.10,

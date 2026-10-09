@@ -17,12 +17,13 @@ import 'services/food/presentation/cart_controller.dart';
 import 'widgets/error_fallback.dart';
 import 'widgets/zivo_logo.dart';
 
-// Global error handling scaffolding (issue #40). Every hook below reports
-// through `ErrorReporting.instance`
+// Global error handling: every hook below reports through
+// `ErrorReporting.instance`
 // (`lib/platform/error_reporting/error_reporter.dart`), which
 // `runStartupSequence` (`lib/platform/startup/startup_gate.dart`) points at
-// a Firebase Crashlytics-backed implementation in release/profile builds
-// (issue #287) -- these handlers never changed to wire that in.
+// a Firebase Crashlytics-backed implementation in release/profile builds --
+// these handlers stay the same regardless of which `ErrorReporter`
+// implementation that resolves to.
 void main() {
   runZonedGuarded(
     () async {
@@ -59,22 +60,18 @@ void main() {
       // Lock the app to portrait orientation. This is the single
       // cross-platform source of truth; ios/Runner/Info.plist and
       // android/app/src/main/AndroidManifest.xml are also restricted to
-      // portrait for defense-in-depth (see issue #56).
+      // portrait for defense-in-depth.
       await SystemChrome.setPreferredOrientations([
         DeviceOrientation.portraitUp,
         DeviceOrientation.portraitDown,
       ]);
 
+      // `runApp` starts immediately with `StartupGate`, which runs
       // `Supabase.initialize`, the onboarding flag, and the cart/activity
-      // loads all used to run here, blocking `runApp` on unbounded network
-      // I/O with no timeout and no failure handling (issue #41): a slow or
-      // captive-portal connection hung the native splash screen forever,
-      // and a thrown `Supabase.initialize` meant `runApp` was never reached
-      // at all. `runApp` now starts immediately with `StartupGate`, which
-      // runs that same sequence itself (see
-      // `platform/startup/startup_gate.dart`) behind a loading state, each
-      // step individually timed out, and shows a retry screen instead of a
-      // permanently black/frozen one if it fails.
+      // loads itself (see `platform/startup/startup_gate.dart`) behind a
+      // loading state, each step individually timed out, showing a retry
+      // screen instead of a permanently black/frozen one if a step fails
+      // or hangs (e.g. a slow or captive-portal connection).
       runApp(
         StartupGate(
           onReady: (appServices) => AppScope(
@@ -97,7 +94,7 @@ void main() {
 class ZivoApp extends StatefulWidget {
   const ZivoApp({super.key, required this.appServices});
 
-  /// The composition root (issue #281) this app instance runs on. Passed
+  /// The composition root this app instance runs on. Passed
   /// explicitly rather than read via `AppScope.of(context)` because
   /// [_ZivoAppState.initState] needs it before this widget's own context has
   /// an `AppScope` ancestor available to `dependOnInheritedWidgetOfExactType`

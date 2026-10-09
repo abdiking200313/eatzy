@@ -4,8 +4,8 @@ import 'app_routes.dart';
 
 /// `unknown` is not a purchasable service module — it exists only as a
 /// fallback for activity/history rows whose `service_id` no longer matches
-/// a real module (e.g. a legacy or removed service, see issue #62). It is
-/// intentionally excluded from [ServiceRegistry.modules].
+/// a real module (e.g. a legacy or removed service). It is intentionally
+/// excluded from [ServiceRegistry.modules].
 enum ServiceId { food, grocery, pharmacy, unknown }
 
 class ServiceDescriptor {

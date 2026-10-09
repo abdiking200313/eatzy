@@ -53,7 +53,7 @@ class _AdminAccountsScreenState extends State<AdminAccountsScreen> {
   }
 
   // Resolved here rather than in field initializers / initState: reading
-  // the Supabase client off `AppScope.of(context)` (issue #285) needs a
+  // the Supabase client off `AppScope.of(context)` needs a
   // `BuildContext` that is allowed to look up an `InheritedWidget`, which
   // `didChangeDependencies` is and `initState` is not.
   @override

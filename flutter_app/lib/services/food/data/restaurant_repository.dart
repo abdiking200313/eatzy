@@ -10,8 +10,8 @@ class RestaurantRepository {
   /// Default page size for restaurant queries below.
   ///
   /// The home screen (`HomeScreen`) does not yet page through the plain
-  /// unfiltered listing — see issue #61 — so [limit]/[offset] here only
-  /// bound the worst case (every restaurant in the catalog fetched on every
+  /// unfiltered listing, so [limit]/[offset] here only bound the worst
+  /// case (every restaurant in the catalog fetched on every
   /// load). A real "load more"/infinite scroll contract for the home feed
   /// is left as a follow-up.
   static const int defaultPageSize = 50;

@@ -13,9 +13,8 @@ import 'memory_cart_storage.dart';
 
 /// Builds a [GroceryController] backed by [SeededGroceryRepository] (or a
 /// caller-supplied fake/[repository]) and a fresh in-memory
-/// [ActivityController] + [MemoryCartStorage] — the three-argument setup
-/// that used to be hand-copied verbatim across grocery widget/controller
-/// tests (issue #18). Pass [orderRepository], [activityController],
+/// [ActivityController] + [MemoryCartStorage] — shared setup for grocery
+/// widget/controller tests. Pass [orderRepository], [activityController],
 /// [storage] or [now] to override any one of the defaults, e.g. to share an
 /// [ActivityController] across controllers or to inspect its recorded
 /// items, or to reuse the same [storage] across a "simulated app reload".
@@ -37,11 +36,11 @@ GroceryController buildGroceryController({
     orderRepository: orderRepository,
     activityController: activityController ?? ActivityController(),
     storage: storage ?? MemoryCartStorage<GroceryCartLine>(),
-    // Pre-seeded with the historical hardcoded default (issue #279) so every
-    // existing test keeps seeing the same delivery fee without having to
-    // inject pricing itself; pass an explicit [pricingRepository] to test
-    // different pricing (or `FakeServicePricingRepository.unconfigured()` to
-    // test the "pricing never loaded" fallback).
+    // Pre-seeded with a standard default so a test doesn't have to
+    // inject pricing itself unless it cares; pass an explicit
+    // [pricingRepository] to test different pricing (or
+    // `FakeServicePricingRepository.unconfigured()` to test the "pricing
+    // never loaded" fallback).
     pricingRepository:
         pricingRepository ?? FakeServicePricingRepository.grocery(),
     now: now,
@@ -74,9 +73,8 @@ Future<GroceryController> buildLoadedGroceryController({
 
 /// Builds a [PharmacyController] backed by [SeededPharmacyRepository] (or a
 /// caller-supplied fake/[repository]) and a fresh in-memory
-/// [ActivityController] + [MemoryCartStorage] — the three-argument setup
-/// that used to be hand-copied verbatim across pharmacy widget/controller
-/// tests (issue #18). Pass [orderRepository], [activityController],
+/// [ActivityController] + [MemoryCartStorage] — shared setup for pharmacy
+/// widget/controller tests. Pass [orderRepository], [activityController],
 /// [storage] or [now] to override any one of the defaults, e.g. to share an
 /// [ActivityController] across controllers or to inspect its recorded
 /// items, or to reuse the same [storage] across a "simulated app reload".
@@ -98,9 +96,8 @@ PharmacyController buildPharmacyController({
     orderRepository: orderRepository,
     activityController: activityController ?? ActivityController(),
     storage: storage ?? MemoryCartStorage<PharmacyCartItem>(),
-    // See `buildGroceryController`'s identical note: pre-seeded with the
-    // historical hardcoded default (issue #279) unless the caller overrides
-    // it.
+    // See `buildGroceryController`'s identical note: pre-seeded with a
+    // standard default unless the caller overrides it.
     pricingRepository:
         pricingRepository ?? FakeServicePricingRepository.pharmacy(),
     now: now,

@@ -114,12 +114,12 @@ class TwRadius {
 class TwText {
   // Resolved once at first use (not per-build): building a `TextStyle` here
   // does allocation work, so it must not be redone by `build()` on every
-  // rebuild. See issue #65. `copyWith`-based variants below reuse the
-  // already-resolved base style instead of re-resolving.
+  // rebuild. `copyWith`-based variants below reuse the already-resolved
+  // base style instead of re-resolving.
   //
   // `fontFamily: 'Outfit'` references the Outfit TTFs bundled via
-  // `pubspec.yaml`'s `fonts:` section (issue #45) rather than fetching the
-  // font from fonts.gstatic.com at runtime via google_fonts.
+  // `pubspec.yaml`'s `fonts:` section rather than fetching the font from
+  // fonts.gstatic.com at runtime via google_fonts.
   static const TextStyle text3xl = TextStyle(
     fontFamily: 'Outfit',
     fontSize: 30,

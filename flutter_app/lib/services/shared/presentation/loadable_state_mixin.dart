@@ -43,8 +43,7 @@ mixin LoadableState on ChangeNotifier {
 /// create/update/delete counterpart of [LoadableState]. Kept separate from
 /// [LoadableState] so a screen can distinguish "still loading the initial
 /// data" from "a save/delete is in flight" (e.g. to disable just a submit
-/// button rather than the whole screen). Added alongside the merchant
-/// dashboard port (issue #232) but generally reusable by any
+/// button rather than the whole screen). Generally reusable by any
 /// [ChangeNotifier]-based controller with a save/create/update/delete path.
 mixin SavableState on ChangeNotifier {
   bool _isSaving = false;

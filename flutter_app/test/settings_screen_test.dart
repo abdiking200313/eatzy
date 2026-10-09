@@ -193,9 +193,9 @@ Widget _pumpableSettingsScreen({
 }
 
 void main() {
-  // Issue #284: with no injected authService/profileRepository,
-  // SettingsScreen now resolves both defaults via AppScope.of(context)
-  // instead of `Supabase.instance.client`/`AuthService()`. The fake
+  // With no injected authService/profileRepository,
+  // SettingsScreen resolves both defaults via AppScope.of(context).
+  // The fake
   // AppScope client has no real session, so both reads fail gracefully
   // (already-guarded fallbacks) instead of crashing.
   testWidgets('renders using the AppScope-backed defaults when no authService/'
@@ -318,14 +318,13 @@ void main() {
       await tester.pumpAndSettle();
 
       // Only Language/Currency/Theme remain unimplemented placeholders —
-      // Privacy Policy and Terms & Conditions now navigate to real screens
-      // (issue #37).
+      // Privacy Policy and Terms & Conditions navigate to real screens.
       expect(find.text('Coming soon'), findsNWidgets(3));
       // The real destinations (Name, Phone Number, Date of Birth, Email
       // Address, Change Password, About Us, Privacy Policy, Terms &
       // Conditions) should render the "this row navigates" chevron —
       // profile editing moved into Settings, so Name/Date of Birth/Email
-      // are now real destinations too (issue #13).
+      // are real destinations too.
       expect(find.byIcon(Icons.arrow_forward_ios), findsNWidgets(8));
 
       expect(tester.takeException(), isNull);

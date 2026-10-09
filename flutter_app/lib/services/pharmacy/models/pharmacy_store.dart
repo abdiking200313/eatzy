@@ -1,5 +1,5 @@
 /// A single pharmacy a customer can order OTC products from
-/// (`public.pharmacy_stores`, issue #129). The pharmacy vertical's
+/// (`public.pharmacy_stores`). The pharmacy vertical's
 /// counterpart of `GroceryStore`/`Restaurant`.
 class PharmacyStore {
   const PharmacyStore({

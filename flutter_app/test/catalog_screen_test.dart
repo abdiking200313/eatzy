@@ -52,9 +52,7 @@ class _NeverCompletingCatalogRepository implements MerchantCatalogRepository {
 }
 
 // Widget-tests the Catalog screen's explicit loading/empty/error/loaded
-// states, plus add/delete/toggle actions (ported from `merchant_app`,
-// originally issue #133's acceptance criteria, unified into the main app by
-// issue #232), against fake repositories.
+// states, plus add/delete/toggle actions, against fake repositories.
 void main() {
   const item = MerchantCatalogItem(
     id: 'item-1',

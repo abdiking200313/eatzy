@@ -2,8 +2,8 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 
-/// SDK-independent abstraction over Firebase Cloud Messaging (issue #47),
-/// mirroring how [ErrorReporter]
+/// SDK-independent abstraction over Firebase Cloud Messaging, mirroring
+/// how [ErrorReporter]
 /// (`lib/platform/error_reporting/error_reporter.dart`) wraps its own SDK
 /// choice: call sites (startup, the Settings notification toggle) depend on
 /// this interface, not on `firebase_messaging` directly, so tests can inject
@@ -28,12 +28,11 @@ abstract interface class PushNotificationGateway {
 /// `firebase_messaging`, reading `android/app/google-services.json` (Firebase
 /// project `zivo-41908`).
 ///
-/// **Android only** (issue #47's explicit scope): the owner has no Apple
-/// Developer account yet, so `ios/Runner/GoogleService-Info.plist` is
-/// committed but stays unwired (not referenced by
-/// `ios/Runner.xcodeproj/project.pbxproj`) until #55 resolves that. Every
-/// method below no-ops on any platform other than Android rather than
-/// touching the Firebase SDK at all, so nothing here reaches for the
+/// **Android only**: the owner has no Apple Developer account yet, so
+/// `ios/Runner/GoogleService-Info.plist` is committed but stays unwired
+/// (not referenced by `ios/Runner.xcodeproj/project.pbxproj`). See #55.
+/// Every method below no-ops on any platform other than Android rather
+/// than touching the Firebase SDK at all, so nothing here reaches for the
 /// unwired iOS config.
 class FirebaseMessagingGateway implements PushNotificationGateway {
   const FirebaseMessagingGateway();

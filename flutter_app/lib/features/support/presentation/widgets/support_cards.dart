@@ -6,7 +6,7 @@ import '../models/support_models.dart';
 
 /// A single help-topic row. Rendered bare so [SupportScreen] can compose
 /// several rows inside one shared `OutlinedCard` with internal dividers —
-/// "one card per list, not one card per row" (#21/#27).
+/// "one card per list, not one card per row".
 class HelpCard extends StatelessWidget {
   const HelpCard({super.key, required this.topic});
 
@@ -56,7 +56,7 @@ class HelpCard extends StatelessWidget {
 
 /// A single contact-option row. Rendered bare so [SupportScreen] can
 /// compose several rows inside one shared `OutlinedCard` with internal
-/// dividers — "one card per list, not one card per row" (#21/#27).
+/// dividers — "one card per list, not one card per row".
 class ContactCard extends StatelessWidget {
   const ContactCard({super.key, required this.topic});
 
@@ -102,7 +102,7 @@ class ContactCard extends StatelessWidget {
 
 /// A single FAQ entry. Rendered bare so [SupportScreen] can compose several
 /// entries inside one shared `OutlinedCard` with internal dividers — "one
-/// card per list, not one card per row" (#21/#27).
+/// card per list, not one card per row".
 class FaqCard extends StatelessWidget {
   const FaqCard({super.key, required this.item});
 

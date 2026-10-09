@@ -9,10 +9,9 @@ import '../../store/models/merchant_vertical.dart';
 import '../data/merchant_catalog_repository.dart';
 import '../models/merchant_catalog_item.dart';
 
-/// `ChangeNotifier` controller for the "Catalog" screen (ported from
-/// `merchant_app`, originally issue #133, unified into the main app by
-/// issue #232), following the same pattern as `MerchantStoreController` and
-/// the root app's `GroceryController`.
+/// `ChangeNotifier` controller for the "Catalog" screen, following the
+/// same pattern as `MerchantStoreController` and the root app's
+/// `GroceryController`.
 class MerchantCatalogController extends ChangeNotifier
     with LoadableState, SavableState {
   // These named parameters are constructed directly by tests (e.g.

@@ -5,7 +5,7 @@ import '../../../../platform/activity/models/order_details.dart';
 import '../../../../widgets/app_cards.dart';
 import 'timeline_step_row.dart';
 
-/// Order progress through the vertical's real status flow (issue #131's
+/// Order progress through the vertical's real status flow (the
 /// `advance_*_order_status` RPCs move an order along it).
 class TrackingCard extends StatelessWidget {
   const TrackingCard({super.key, required this.order});

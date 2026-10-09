@@ -12,10 +12,9 @@ import '../models/merchant_store.dart';
 import '../models/merchant_vertical.dart';
 import 'merchant_store_controller.dart';
 
-/// "My Store" screen (ported from `merchant_app`, originally issue #133,
-/// unified into the main app by issue #232): view and edit the signed-in
-/// merchant's own store profile (name, description, address, open/closed,
-/// image), or create one if they don't have one yet. Scoped entirely by
+/// "My Store" screen: view and edit the signed-in merchant's own store
+/// profile (name, description, address, open/closed, image), or create one
+/// if they don't have one yet. Scoped entirely by
 /// `owner_id` -- see `merchant_store_repository.dart`'s header for the RLS
 /// this mirrors.
 class MyStoreScreen extends StatefulWidget {
@@ -50,7 +49,7 @@ class _MyStoreScreenState extends State<MyStoreScreen> {
   bool _dependenciesResolved = false;
 
   // Resolved here rather than in field initializers / initState: reading
-  // the Supabase client off `AppScope.of(context)` (issue #285) needs a
+  // the Supabase client off `AppScope.of(context)` needs a
   // `BuildContext` that is allowed to look up an `InheritedWidget`, which
   // `didChangeDependencies` is and `initState` is not.
   @override

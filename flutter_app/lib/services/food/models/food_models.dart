@@ -29,8 +29,8 @@ class FoodOrderRequest {
   final DeliveryDetails delivery;
   final List<FoodOrderLineInput> items;
 
-  /// A client-generated token identifying this checkout attempt (issue
-  /// #59). `place_food_order` uses it, together with the caller's profile,
+  /// A client-generated token identifying this checkout attempt.
+  /// `place_food_order` uses it, together with the caller's profile,
   /// to return the existing order instead of inserting a duplicate when the
   /// same attempt is submitted more than once (a double-tap or a retry
   /// after a lost response). `null` disables that protection for this call.

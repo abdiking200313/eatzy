@@ -33,7 +33,7 @@ class PopularStoresSection extends StatelessWidget {
         }
         final stores = snapshot.data ?? const <StoreListing>[];
         // An error with nothing cached to fall back on (every vertical
-        // failed, see `StoreListingRepository`/issue #286) gets an error
+        // failed, see `StoreListingRepository`) gets an error
         // state with retry, matching `_FoodHomeError`/`_StoreListError`.
         // A genuinely empty, non-error result just hides the section.
         if (snapshot.hasError) {

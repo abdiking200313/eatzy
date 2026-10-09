@@ -6,7 +6,7 @@ import 'dart:math';
 /// 32-character lowercase hex string, which is all `place_food_order`,
 /// `place_grocery_order`, and `place_pharmacy_order` need to collapse a
 /// retried submission into the original order instead of creating a
-/// duplicate (issue #59).
+/// duplicate.
 ///
 /// Callers should generate this once per checkout *attempt* — e.g. when a
 /// checkout screen is first built — and keep reusing the same value for

@@ -7,8 +7,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'helpers/fake_merchant_repositories.dart';
 
 // Unit-tests `MerchantOrdersController`'s load/advance-status bookkeeping
-// (ported from `merchant_app`, originally issue #134, unified into the main
-// app by issue #232) against the fake repository, including the "illegal
+// against the fake repository, including the "illegal
 // transition surfaces a clear error, not a silent no-op" acceptance
 // criterion.
 void main() {

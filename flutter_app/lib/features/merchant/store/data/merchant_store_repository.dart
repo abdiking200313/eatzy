@@ -4,25 +4,23 @@ import '../../shared/merchant_slug_id.dart';
 import '../models/merchant_store.dart';
 import '../models/merchant_vertical.dart';
 
-/// Data access for the signed-in merchant's own store (ported from
-/// `merchant_app`, originally issue #133, unified into the main app by
-/// issue #232).
+/// Data access for the signed-in merchant's own store.
 ///
 /// Every method here is scoped by `owner_id`, both because the schema's RLS
 /// makes any other row unreachable
 /// (`supabase/migrations/20260830130000_add_merchant_catalog_write_policies.sql`:
 /// `owner_id = auth.uid()` on select/update/delete, plus a role check on
-/// insert) and, per issue #133, because the client itself should never
-/// attempt to query or mutate a store it does not own even if a bug in a
-/// future policy change made that briefly possible server-side.
+/// insert) and because the client itself should never attempt to query or
+/// mutate a store it does not own even if a bug in a future policy change
+/// made that briefly possible server-side.
 abstract interface class MerchantStoreRepository {
   /// Looks for a store owned by [ownerId] across all three verticals (food,
   /// then grocery, then pharmacy) and returns the first match, or `null` if
   /// the merchant does not have a store yet in any vertical. A merchant is
   /// modeled as owning at most one store per vertical, and in practice one
-  /// store total for v1 -- see `merchant_vertical.dart`'s header and issue
-  /// #133's own scope note ("don't invent a multi-store switcher unless the
-  /// data model already requires one").
+  /// store total for v1 -- see `merchant_vertical.dart`'s header ("don't
+  /// invent a multi-store switcher unless the data model already requires
+  /// one").
   Future<MerchantStore?> fetchOwnStore(String ownerId);
 
   /// Creates a new store for [ownerId] in [vertical]. Requires
@@ -152,8 +150,8 @@ class SupabaseMerchantStoreRepository implements MerchantStoreRepository {
         .from(vertical.storeTable)
         .update(payload)
         // Belt-and-braces client-side scoping on top of the server-side RLS
-        // predicate (issue #133: "the UI should also only ever query/mutate
-        // the caller's own store").
+        // predicate ("the UI should also only ever query/mutate the
+        // caller's own store").
         .eq('id', store.id)
         .eq('owner_id', ownerId)
         .select(_selectColumns(vertical).join(', '))

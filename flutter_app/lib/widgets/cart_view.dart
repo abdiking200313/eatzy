@@ -75,7 +75,7 @@ class CartView extends StatelessWidget {
   final List<CheckoutLine> feeLines;
 
   /// `null` when any fee/tax line is still [CheckoutLine.isPending] (pricing
-  /// hasn't loaded yet — issue #279): shown as "Calculated at checkout"
+  /// hasn't loaded yet): shown as "Calculated at checkout"
   /// instead of a fabricated number. Continuing to checkout is never blocked
   /// on this.
   final int? total;

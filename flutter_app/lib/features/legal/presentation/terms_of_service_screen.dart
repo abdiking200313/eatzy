@@ -2,14 +2,13 @@ import 'package:flutter/material.dart';
 
 import 'legal_document_screen.dart';
 
-/// Zivo's Terms of Service, reachable from Settings → Terms & Conditions
-/// (issue #37).
+/// Zivo's Terms of Service, reachable from Settings → Terms & Conditions.
 ///
 /// See `PrivacyPolicyScreen`'s doc comment for the same context on why this
 /// text exists and where it came from; this document is deliberately
 /// plain-language consumer-app terms, not boilerplate copied from another
-/// product, and stays in-app only — see the issue #37 PR description for
-/// the external-hosting gap this does not close.
+/// product, and stays in-app only — see `LegalDocumentScreen`'s doc
+/// comment for the external-hosting gap this does not close.
 class TermsOfServiceScreen extends StatelessWidget {
   const TermsOfServiceScreen({super.key});
 

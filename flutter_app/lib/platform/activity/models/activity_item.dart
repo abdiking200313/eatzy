@@ -22,13 +22,13 @@ class ActivityItem {
   final String status;
   final DateTime occurredAt;
 
-  /// In integer cents — see issue #8. Convert to decimal dollars only at
-  /// display time, via `AppMoney.formatCents(amount)`.
+  /// In integer cents. Convert to decimal dollars only at display time,
+  /// via `AppMoney.formatCents(amount)`.
   final int amount;
   final String detailsRoute;
 
-  /// Raw `payment_method` / `payment_status` values from the order row (see
-  /// issue #30 — cash-on-delivery-only launch scaffolding on
+  /// Raw `payment_method` / `payment_status` values from the order row
+  /// (cash-on-delivery-only launch scaffolding on
   /// `food_orders`/`grocery_orders`/`pharmacy_orders`). Null for an
   /// [ActivityItem] built locally right after placing an order rather than
   /// read back from `customer_activity`, or for a row from before this
@@ -40,7 +40,7 @@ class ActivityItem {
   final String? paymentStatus;
 
   /// An unrecognized `service_id` falls back to [ServiceId.unknown] rather
-  /// than throwing (see #62): a single row with a service id this client
+  /// than throwing: a single row with a service id this client
   /// doesn't (yet) recognize should render as a generic activity entry, not
   /// take down the rest of the list. Other malformed fields on this row
   /// (missing title/status, an unparseable date/amount, etc.) still throw a
@@ -82,8 +82,8 @@ class ActivityItem {
 
   /// A human-readable label for [paymentMethod], falling back to `null` when
   /// it hasn't been loaded (see the field doc). Only `cash_on_delivery` is a
-  /// real value today (issue #30); any other raw value still renders as
-  /// something readable instead of disappearing.
+  /// real value today; any other raw value still renders as something
+  /// readable instead of disappearing.
   String? get paymentMethodLabel => switch (paymentMethod) {
     null => null,
     'cash_on_delivery' => 'Cash on delivery',
@@ -92,7 +92,7 @@ class ActivityItem {
 
   /// The order details page for this order, or `null` for a
   /// [ServiceId.unknown] row: [fromMap] has already discarded its raw
-  /// `service_id` (see #62), so there is nothing real to key the lookup on.
+  /// `service_id`, so there is nothing real to key the lookup on.
   String? get orderDetailsPath {
     final rawServiceId = switch (serviceId) {
       ServiceId.food => 'food',

@@ -36,10 +36,10 @@ void main() {
             controller: controller,
           ),
         ),
-        // Issue #288: `GroceryStoreScreen._openDetails` now does
-        // `context.push(AppRoutes.groceryProductDetails(...))` instead of a
-        // plain `Navigator.push`, so this local test router needs the
-        // product-details route registered too. This test only exercises
+        // `GroceryStoreScreen._openDetails` does
+        // `context.push(AppRoutes.groceryProductDetails(...))`, so this
+        // local test router needs the product-details route registered
+        // too. This test only exercises
         // the default `GroceryStoreType.grocery`, so only `groceryProduct`
         // (not its `freshMeatProduct`/`electronicsProduct` siblings) is
         // needed here.

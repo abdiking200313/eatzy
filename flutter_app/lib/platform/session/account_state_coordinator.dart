@@ -18,8 +18,8 @@ import 'session_reset_registry.dart';
 /// so their registered callbacks reload the incoming owner's saved cart
 /// rather than merely clearing it.
 ///
-/// Also sets the Crashlytics user identifier to the new owner id (issue
-/// #287), or clears it on sign-out -- a no-op in debug builds, where
+/// Also sets the Crashlytics user identifier to the new owner id, or
+/// clears it on sign-out -- a no-op in debug builds, where
 /// [ErrorReporting.instance] is still [LoggingErrorReporter] rather than
 /// [CrashlyticsErrorReporter].
 class AccountStateCoordinator {

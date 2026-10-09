@@ -165,7 +165,7 @@ void main() {
           // Malformed: recipient_name blank, which throws inside
           // DeliveryAddress.fromMap. This row must be skipped, not blank
           // the whole list -- mirrors SupabaseActivityRepository's handling
-          // of a malformed customer_activity row (issue #62).
+          // of a malformed customer_activity row.
           {
             'id': 'addr-bad',
             'label': null,

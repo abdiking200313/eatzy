@@ -7,9 +7,9 @@ class AppRoutes {
 
   // The welcome/onboarding slides opened on purpose (the back button on
   // login/register). A returning signed-out user is normally redirected
-  // from [welcome] straight to login (issue #15); this query flag is the
-  // one exception, so "back to onboarding" doesn't bounce off that
-  // redirect. Same route, same screen -- only the redirect reads the flag.
+  // from [welcome] straight to login; this query flag is the one
+  // exception, so "back to onboarding" doesn't bounce off that redirect.
+  // Same route, same screen -- only the redirect reads the flag.
   static const welcomeRevisitParam = 'revisit';
   static const welcomeRevisit = '$welcome?$welcomeRevisitParam=true';
 
@@ -24,8 +24,9 @@ class AppRoutes {
   // There is deliberately no standalone `/onboarding/*` route. The
   // onboarding slides (`OnboardingPage1/2/3`) only ever render as `PageView`
   // children embedded inside `WelcomeScreen` -- a bare, direct route to one
-  // slide had no AppBar, skip button, or pagination and was a dead end for
-  // anyone who reached it (issue #15). Reach the real flow via [welcome].
+  // slide would have no AppBar, skip button, or pagination and would be a
+  // dead end for anyone who reached it directly. Reach the real flow via
+  // [welcome].
 
   // Login-required routes
   static const mainApp = '/app';
@@ -33,26 +34,22 @@ class AppRoutes {
   static const services = '/services';
   static const activity = '/activity';
 
-  // The merchant dashboard (issue #232, superseding the standalone
-  // `merchant_app` project from issue #132): `AppRouter` sends a signed-in
-  // `merchant`/`admin` account here instead of [mainApp], right after
+  // The merchant dashboard: `AppRouter` sends a signed-in `merchant`/`admin`
+  // account here instead of [mainApp], right after
   // sign-in and again on session-restore at app start. There is no
   // customer-facing link to this route and no switcher back to the
   // customer home for the same account -- see the router's redirect logic.
   static const merchantDashboard = '/merchant';
 
-  // A single order on the merchant dashboard (issue #288 — was opened via
-  // `Navigator.push(MaterialPageRoute(... OrderDetailScreen))` from
-  // `OrdersScreen`). Sits under [merchantDashboard] so it inherits the same
-  // merchant-session gating in `AppRouter._redirect` (see
-  // `_isMerchantReachableLocation` and `isProtectedLocation`).
+  // A single order on the merchant dashboard. Sits under [merchantDashboard]
+  // so it inherits the same merchant-session gating in `AppRouter._redirect`
+  // (see `_isMerchantReachableLocation` and `isProtectedLocation`).
   static const merchantOrderDetail = '$merchantDashboard/orders/:orderId';
 
-  // The merchant's own catalog (issue #288 — was opened via
-  // `Navigator.push(MaterialPageRoute(... CatalogScreen))` from
-  // `MyStoreScreen`). No id path parameter: the merchant's own store/catalog
-  // is resolved from the merchant session, not a path param. Also sits
-  // under [merchantDashboard] for the same gating as [merchantOrderDetail].
+  // The merchant's own catalog. No id path parameter: the merchant's own
+  // store/catalog is resolved from the merchant session, not a path param.
+  // Also sits under [merchantDashboard] for the same gating as
+  // [merchantOrderDetail].
   static const merchantCatalog = '$merchantDashboard/catalog';
 
   // Food service
@@ -62,17 +59,14 @@ class AppRoutes {
   // "/food/restaurants" list, `food` already serves that role. This exists
   // only as a shared path-segment prefix for `foodRestaurant` (the
   // registered per-restaurant route) and for `restaurantDetails`/
-  // `isRestaurantDetails` below. Intentionally has no matching GoRoute; see
-  // issue #69.
+  // `isRestaurantDetails` below. Intentionally has no matching GoRoute.
   static const foodRestaurants = '$food/restaurants';
   static const foodRestaurant = '$foodRestaurants/:restaurantId';
 
-  // A single menu item within a restaurant (issue #288 — was opened via
-  // `Navigator.push(MaterialPageRoute(... MenuItemDetailsScreen))`, with no
-  // URL, no deep link, and no auth-redirect coverage). Nested under
-  // `foodRestaurant` rather than `foodRestaurants` because the pattern needs
-  // the `:restaurantId` placeholder segment itself, mirroring
-  // `foodRestaurant`'s own relationship to `foodRestaurants`.
+  // A single menu item within a restaurant. Nested under `foodRestaurant`
+  // rather than `foodRestaurants` because the pattern needs the
+  // `:restaurantId` placeholder segment itself, mirroring `foodRestaurant`'s
+  // own relationship to `foodRestaurants`.
   static const foodMenuItem = '$foodRestaurant/item/:itemId';
   static const foodCategories = '$food/categories';
   static const foodExplore = '$food/explore';
@@ -93,9 +87,8 @@ class AppRoutes {
   static const groceryCart = '$grocery/cart';
   static const groceryCheckout = '$grocery/checkout';
 
-  // A single product within a store (issue #288 — was opened via
-  // `Navigator.push(MaterialPageRoute(... GroceryProductDetailsScreen))`).
-  // Fresh Meat and Electronics each need their own equivalent nested route
+  // A single product within a store. Fresh Meat and Electronics each need
+  // their own equivalent nested route
   // (`freshMeatProduct`/`electronicsProduct` below) since `GroceryStoreScreen`
   // is shared across all three `GroceryStoreType`s and each type already has
   // its own store/cart/checkout path family -- see `GroceryStoreType`'s
@@ -121,15 +114,14 @@ class AppRoutes {
   static const pharmacy = '/pharmacy';
 
   // Not a navigable destination on its own — `pharmacy` already serves as
-  // the searchable pharmacy list (issue #141), mirroring `foodRestaurants`.
-  // This exists only as a shared path-segment prefix for `pharmacyStore`
+  // the searchable pharmacy list, mirroring `foodRestaurants`. This exists
+  // only as a shared path-segment prefix for `pharmacyStore`
   // (the registered per-pharmacy route) and for `pharmacyStoreDetails`
   // below.
   static const pharmacyStores = '$pharmacy/stores';
   static const pharmacyStore = '$pharmacyStores/:storeId';
 
-  // A single product within a pharmacy (issue #288 — was opened via
-  // `Navigator.push(MaterialPageRoute(... PharmacyProductDetailsScreen))`).
+  // A single product within a pharmacy.
   static const pharmacyProduct = '$pharmacyStore/product/:productId';
   static const pharmacyCart = '$pharmacy/cart';
   static const pharmacyCheckout = '$pharmacy/checkout';
@@ -146,7 +138,7 @@ class AppRoutes {
   static const settings = '/settings';
   static const support = '/support';
 
-  // Static legal documents (issue #37), reached from Settings → Privacy
+  // Static legal documents, reached from Settings → Privacy
   // Policy / Terms & Conditions. In-app content only — see
   // `LegalDocumentScreen`'s doc comment for the app-store-hosting gap this
   // does not close.
@@ -155,8 +147,8 @@ class AppRoutes {
 
   // Bare `/track-order` is kept for backward compatibility with any old
   // deep link that has no order to point at — `TrackOrderScreen` renders a
-  // "no order selected" empty state for it rather than crashing (see
-  // issue #43). `trackOrderDetails` is the real, navigable form: reached
+  // "no order selected" empty state for it rather than crashing.
+  // `trackOrderDetails` is the real, navigable form: reached
   // from a "Track order" action on an `ActivityScreen` row via
   // `trackOrderDetailsPath`, which keys the lookup by both the order's
   // `service_id` and its `customer_activity` row id.

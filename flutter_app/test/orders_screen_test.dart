@@ -75,9 +75,8 @@ class _NeverCompletingStoreRepository implements MerchantStoreRepository {
 
 // Widget-tests the Orders screen's explicit loading/empty/error/loaded
 // states, the "no store yet" state, and accept/advance actions on a real
-// order (ported from `merchant_app`, originally issue #134's acceptance
-// criteria, unified into the main app by issue #232), against fake
-// repositories -- no Supabase network access in this sandbox.
+// order, against fake repositories -- no Supabase network access in this
+// sandbox.
 void main() {
   const store = MerchantStore(
     id: 'store-1',
@@ -117,19 +116,18 @@ void main() {
 
   /// Builds a real [GoRouter] with [AppRoutes.merchantDashboard] showing
   /// [OrdersScreen] and [AppRoutes.merchantOrderDetail] showing
-  /// [OrderDetailScreen] -- needed since issue #288 turned `OrdersScreen`'s
-  /// order-tile tap into a `context.push(...)` instead of a plain
-  /// `Navigator.push`.
+  /// [OrderDetailScreen] -- `OrdersScreen`'s order-tile tap does a
+  /// `context.push(...)`, not a plain `Navigator.push`, so a real router
+  /// is needed.
   ///
   /// The order-detail route builds its own [MerchantOrdersController] from
   /// [ordersRepository] (there's no way to inject a fake orders repository
   /// into `OrderDetailScreen`'s own self-resolution path -- only a whole
   /// [MerchantOrdersController]), the same way a direct/deep-linked open
-  /// resolves its own orders in production. So, unlike before issue #288,
-  /// a status change made on the detail screen is a separate controller
-  /// from the list's and is only picked up there after an explicit reload
-  /// (e.g. pull-to-refresh), not immediately on pop -- see the "tapping an
-  /// order" test below.
+  /// resolves its own orders in production. So a status change made on
+  /// the detail screen is a separate controller from the list's and is
+  /// only picked up there after an explicit reload (e.g. pull-to-refresh),
+  /// not immediately on pop -- see the "tapping an order" test below.
   Widget buildOrdersApp({
     required MerchantStoreController storeController,
     required MerchantOrdersRepository ordersRepository,
@@ -336,7 +334,7 @@ void main() {
     await tester.pageBack();
     await tester.pumpAndSettle();
 
-    // Issue #288: the pushed `OrderDetailScreen` now builds its own
+    // The pushed `OrderDetailScreen` builds its own
     // `MerchantOrdersController` (see `buildOrdersApp`'s doc comment)
     // instead of sharing the list's, so `OrdersScreen` reloads its own
     // controller when the push's Future completes (on pop) to pick up a

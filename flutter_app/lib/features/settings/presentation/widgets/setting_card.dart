@@ -4,10 +4,10 @@ import '../../../../config/theme.dart';
 
 /// A single settings row. Rendered bare (no card of its own) so a screen
 /// can compose several rows inside one shared [OutlinedCard] with internal
-/// dividers — "one card per list, not one card per row" (#21/#27).
+/// dividers — "one card per list, not one card per row".
 ///
-/// The trailing chevron only renders when [onTap] is set (see #10) — a row
-/// with no destination must not imply navigation that does nothing.
+/// The trailing chevron only renders when [onTap] is set — a row with no
+/// destination must not imply navigation that does nothing.
 class SettingCard extends StatelessWidget {
   const SettingCard({
     super.key,

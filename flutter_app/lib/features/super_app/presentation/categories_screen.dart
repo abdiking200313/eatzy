@@ -50,7 +50,7 @@ class CategoriesScreen extends StatelessWidget {
             // `go`, not `push`: module.entryRoute belongs to its own shell
             // branch (see app_router.dart), so this switches branches
             // within the persistent bottom-nav shell instead of stacking a
-            // full-screen route over it and hiding the nav bar (#67).
+            // full-screen route over it and hiding the nav bar.
             onTap: () => context.go(module.entryRoute),
           );
         },

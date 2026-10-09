@@ -16,10 +16,9 @@ void main() {
     imageUrl: '',
   );
 
-  /// Builds a [CartController] with pricing pre-seeded to the historical
-  /// hardcoded default (499 cents delivery, 10% tax — issue #279), so tests
-  /// that don't care about pricing keep seeing the same numbers as before
-  /// the hardcoded constants were removed.
+  /// Builds a [CartController] with pricing pre-seeded to the standard
+  /// default (499 cents delivery, 10% tax), so tests that don't care about
+  /// pricing see consistent numbers.
   CartController buildController({
     MemoryCartStorage<CartItem>? storage,
     FakeServicePricingRepository? pricingRepository,

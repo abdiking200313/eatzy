@@ -5,11 +5,8 @@ import '../../../../config/theme.dart';
 /// A reusable onboarding slide layout: a per-screen illustration/content
 /// area on top, then a headline and a muted description below it.
 ///
-/// Issue #233 replaced the original hero-photo design (a
-/// `lh3.googleusercontent.com/aida-public/...` Google Stitch design-tool
-/// URL — an ephemeral third-party CDN host the project doesn't control, see
-/// issue #44) with purpose-built local widgets for each slide's content
-/// area, so this shell no longer needs any network-image machinery.
+/// Each slide's content area is a purpose-built local widget rather than a
+/// fetched hero photo, so this shell needs no network-image machinery.
 class OnboardingPage extends StatelessWidget {
   const OnboardingPage({
     super.key,

@@ -10,11 +10,10 @@ class PromoBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ConstrainedBox(
-      // A wide, shallow card (~176 tall at default text scale) rather than
-      // the previous content-hugging block, so the banner reads as a
-      // distinct promo/discount strip instead of another text section. A
-      // minimum rather than a fixed height so it can still grow to fit
-      // larger text scales instead of overflowing.
+      // A wide, shallow card (~176 tall at default text scale), so the
+      // banner reads as a distinct promo/discount strip instead of
+      // another text section. A minimum rather than a fixed height so it
+      // can still grow to fit larger text scales instead of overflowing.
       constraints: const BoxConstraints(minHeight: 176),
       child: Container(
         width: double.infinity,
@@ -32,7 +31,7 @@ class PromoBanner extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 // spaceBetween (not center): title top-left, CTA bottom-left
-                // per the "1a" spec, now that the banner is taller.
+                // per the "1a" spec.
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(

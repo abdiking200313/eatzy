@@ -61,9 +61,9 @@ class SharedPreferencesCartStorage<T> implements CartStorage<T> {
           .toList(growable: false);
     } on Object catch (error, stackTrace) {
       // A broken local value should not make the cart screen unusable, but
-      // it must not silently present as "no saved cart" either (issue
-      // #180) -- a saved value existed here and failed to parse, which is
-      // a materially different situation from there being nothing to load.
+      // it must not silently present as "no saved cart" either -- a saved
+      // value existed here and failed to parse, which is a materially
+      // different situation from there being nothing to load.
       ErrorReporting.instance.reportError(
         error,
         stackTrace,
@@ -91,7 +91,7 @@ class SharedPreferencesCartStorage<T> implements CartStorage<T> {
 /// Reads [ownerId]'s cart from [storage], logging (rather than silently
 /// discarding) any exception [CartStorage.read] itself lets through and
 /// substituting an empty cart so callers can keep treating "no cart" and
-/// "cart failed to load" the same way at the UI layer, per issue #180.
+/// "cart failed to load" the same way at the UI layer.
 ///
 /// [SharedPreferencesCartStorage.read] already recovers from a corrupted
 /// stored value on its own (logging as it does so) and only ever returns
@@ -123,17 +123,11 @@ Future<List<T>> readCartLogged<T>(
 
 /// Serializes cart persistence writes for one controller so overlapping
 /// cart mutations don't race each other, while guaranteeing a failed write
-/// is neither an unhandled asynchronous error nor silently invisible
-/// (issue #180).
+/// is neither an unhandled asynchronous error nor silently invisible.
 ///
-/// Previously this queuing logic was duplicated verbatim across the food,
-/// grocery, and pharmacy cart controllers, each guarding only the *previous*
-/// queued write and leaving the write it was actually enqueuing unguarded --
-/// grocery/pharmacy then called it fire-and-forget via `unawaited()`, so a
-/// failed write became a silently dropped unhandled Future error, while food
-/// (which did await it) let the failure bubble into UI call sites instead.
-/// Lifting it here fixes all three at once instead of patching three
-/// separate copies.
+/// Shared by the food, grocery, and pharmacy cart controllers so each one
+/// gets the same guarantee instead of maintaining its own copy of this
+/// queuing logic.
 class CartWriteQueue {
   CartWriteQueue({required this.label});
 

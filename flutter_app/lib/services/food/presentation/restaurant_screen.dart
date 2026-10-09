@@ -50,9 +50,9 @@ class _RestaurantScreenState extends State<RestaurantScreen> {
 
   /// Set in [didChangeDependencies] (never [initState] — `AppScope.of`
   /// depends on an ancestor `InheritedWidget` that isn't safely readable
-  /// yet at that point, see issue #282) and used by every call site that
-  /// used to read `Supabase.instance.client`/`CartController.instance`
-  /// directly.
+  /// yet at that point). Every call site below reads
+  /// `Supabase.instance.client`/`CartController.instance` through this
+  /// instead of directly.
   late AppServices _services;
   bool _locationsLoadStarted = false;
 

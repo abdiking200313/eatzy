@@ -13,11 +13,10 @@ typedef SessionResetCallback = void Function(String? nextOwnerId);
 ///
 /// See `AGENTS.md` "Super-app architecture": shared/platform code must not
 /// depend on service-module concepts. [AccountStateCoordinator] lives under
-/// `lib/platform/session/` and previously constructed and imported
-/// `GroceryController`/`PharmacyController` directly to reset their state on
-/// sign-out; that inversion is fixed by having each service module register
-/// a reset callback here instead, typically from its controller's lazy
-/// singleton initializer.
+/// `lib/platform/session/` and must not construct or import
+/// `GroceryController`/`PharmacyController` directly; each service module
+/// instead registers a reset callback here, typically from its
+/// controller's lazy singleton initializer.
 class SessionResetRegistry {
   SessionResetRegistry();
 
@@ -25,7 +24,7 @@ class SessionResetRegistry {
   /// [AccountStateCoordinator] listens to by default.
   ///
   /// New code should prefer `AppScope.of(context).sessionResetRegistry`
-  /// (`lib/app/app_scope.dart`, issue #281) instead of reaching for this
+  /// (`lib/app/app_scope.dart`) instead of reaching for this
   /// directly -- it resolves to the exact same object in production, just
   /// through the app's composition root rather than a global.
   static final SessionResetRegistry instance = SessionResetRegistry();

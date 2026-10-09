@@ -36,8 +36,7 @@ class SettingsScreen extends StatefulWidget {
   final ProfileRepository? profileRepository;
   final NotificationPreferencesStorage? notificationPreferencesStorage;
 
-  /// Overridable for tests; defaults to [PushNotifications.instance] (issue
-  /// #47).
+  /// Overridable for tests; defaults to [PushNotifications.instance].
   final PushNotificationGateway? pushNotificationGateway;
 
   @override
@@ -68,7 +67,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _dependenciesInitialized = false;
 
   // Both getters below resolve the real Supabase-backed default from
-  // AppScope (issue #284) instead of reaching for `Supabase.instance.client`
+  // AppScope instead of reaching for `Supabase.instance.client`
   // or `AuthService()` directly -- only evaluated when the widget's own
   // override is absent (production; every test injects both).
   AuthService get _authService =>
@@ -249,12 +248,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final ownerId = _readCurrentUserId();
     if (ownerId == null) return;
     var stored = await _preferencesStorage.read(ownerId);
-    // Reconcile a stale "on" against the real OS permission (issue #47):
-    // before this issue, toggling this switch never asked for permission,
-    // so an existing install can have `pushNotifications: true` saved with
-    // no permission ever granted -- exactly the false promise the issue is
-    // about. A device that denied/revoked it since should show (and save)
-    // the switch as off rather than keep claiming push is on.
+    // Reconcile a stale "on" against the real OS permission: an existing
+    // install can have `pushNotifications: true` saved with no permission
+    // ever granted. A device that denied/revoked it since should show (and
+    // save) the switch as off rather than keep claiming push is on.
     if (stored.pushNotifications) {
       final hasPermission = await _readHasPushPermission();
       if (!hasPermission) {
@@ -288,8 +285,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     await _preferencesStorage.write(ownerId, next);
   }
 
-  /// Handles the "Push Notifications" toggle specifically (issue #47):
-  /// turning it on must actually request OS permission first, and only
+  /// Handles the "Push Notifications" toggle specifically: turning it on
+  /// must actually request OS permission first, and only
   /// persists "on" if that permission is granted -- otherwise the toggle
   /// stays off and the user is told why, instead of silently lying about
   /// whether push notifications will arrive. Turning it off never needs
