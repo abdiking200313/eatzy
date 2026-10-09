@@ -20,6 +20,15 @@ module.exports = {
     '\\.css$': '<rootDir>/jest-style-mock.js',
     '^@/assets/(.*)$': '<rootDir>/assets/$1',
     '^@/(.*)$': '<rootDir>/src/$1',
+    // `@react-native-async-storage/async-storage`'s real native module
+    // throws immediately on import under Jest ("NativeModule: AsyncStorage
+    // is null") rather than lazily when called — the package's own docs
+    // call for exactly this mapping (issue #360, which first needed
+    // AsyncStorage outside of code that already had a fully-mocked
+    // ancestor module, e.g. `onboarding-preferences.ts`/`onboarding-
+    // store.ts`, reached transitively by the root `_layout.tsx`).
+    '^@react-native-async-storage/async-storage$':
+      '<rootDir>/node_modules/@react-native-async-storage/async-storage/jest/async-storage-mock',
   },
   // Keep the default transformIgnorePatterns from `jest-expo` (it already
   // allows transforming Expo/React Navigation/React Native's own ESM-only
