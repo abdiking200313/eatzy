@@ -1,18 +1,17 @@
 /**
- * Ports the sign-in-relevant half of
+ * Ports the sign-in/sign-up-relevant half of
  * `flutter_app/lib/features/auth/data/auth_service.dart`'s `AuthService`
- * (issue #365). `signUpWithEmailPassword`/`signOut`/`resetPasswordForEmail`/
- * `updatePassword`/`updateEmail`/`getCurrentUserEmail` are out of this
- * issue's scope (sign-up/reset land with #366 and later) and are
- * deliberately not ported here.
+ * (issues #365, #366). `signOut`/`resetPasswordForEmail`/`updatePassword`/
+ * `updateEmail`/`getCurrentUserEmail` are out of this issue's scope (reset
+ * and later lands with later issues) and are deliberately not ported here.
  *
  * This is the first module under `src/features/**` in this app -- every
  * other feature so far has lived directly under `src/app/**`/`src/stores/**`
  * (see `react_native_app/AGENTS.md`'s navigation note: non-route code stays
- * out of `src/app/**`). `src/app/(auth)/login.tsx` is this module's only
- * production caller.
+ * out of `src/app/**`). `src/app/(auth)/login.tsx` and `src/app/(auth)/
+ * register.tsx` are this module's only production callers.
  */
-import type { AuthTokenResponsePassword, Session, User } from '@supabase/supabase-js';
+import type { AuthResponse, AuthTokenResponsePassword, Session, User } from '@supabase/supabase-js';
 
 import { supabase } from '@/platform/supabase/client';
 
@@ -29,9 +28,21 @@ export interface PasswordSignInSource {
   }): Promise<AuthTokenResponsePassword>;
 }
 
+/**
+ * The sign-up sibling of {@link PasswordSignInSource}, narrowed the same
+ * way off `supabase.auth.signUp`.
+ */
+export interface SignUpSource {
+  signUp(credentials: {
+    email: string;
+    password: string;
+    options?: { data?: Record<string, unknown> };
+  }): Promise<AuthResponse>;
+}
+
 export interface AuthServiceOptions {
   /** Defaults to the real `supabase.auth`. */
-  auth?: PasswordSignInSource;
+  auth?: PasswordSignInSource & SignUpSource;
 }
 
 /**
@@ -44,7 +55,7 @@ export interface AuthServiceOptions {
  * keeping {@link getCurrentUserId} synchronous like the Dart original.
  */
 export class AuthService {
-  private readonly auth: PasswordSignInSource;
+  private readonly auth: PasswordSignInSource & SignUpSource;
   private currentUserId: string | null = null;
 
   constructor(options: AuthServiceOptions = {}) {
@@ -68,6 +79,51 @@ export class AuthService {
     }
     this.currentUserId = data.user.id;
     return data;
+  }
+
+  /**
+   * Mirrors `AuthService.signUpWithEmailPassword`: wraps
+   * `supabase.auth.signUp`, same throw-on-error posture as
+   * {@link signInWithEmailPassword}. `@supabase/supabase-js` nests the
+   * user-metadata payload under `options.data` (unlike `supabase_flutter`'s
+   * top-level `data` param) -- the metadata keys themselves
+   * (`firstname`/`lastname`/`phone`/`dob`) are left exactly as the Dart
+   * original has them since the `handle_new_user` DB trigger reads those
+   * literal keys. `dob` is sent as a `'yyyy-MM-dd'` date-only string via
+   * `toISOString().split('T')[0]`, the direct JS equivalent of Dart's
+   * `dob.toIso8601String().split('T').first` (both always UTC).
+   *
+   * `session` is `null` in the response when email confirmation is
+   * required (Supabase's documented sign-up behavior) and non-null when
+   * it's disabled and the user is auto-signed-in; callers branch on that.
+   * Mirroring {@link signInWithEmailPassword}, the cached
+   * {@link getCurrentUserId} is only updated for the auto-signed-in case
+   * (a non-null session) -- there is no session to speak of otherwise.
+   */
+  async signUpWithEmailPassword(
+    email: string,
+    password: string,
+    details: { firstName: string; lastName: string; phone: string; dob: Date },
+  ): Promise<{ user: User; session: Session | null }> {
+    const { data, error } = await this.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          firstname: details.firstName,
+          lastname: details.lastName,
+          phone: details.phone,
+          dob: details.dob.toISOString().split('T')[0],
+        },
+      },
+    });
+    if (error) {
+      throw error;
+    }
+    if (data.session) {
+      this.currentUserId = data.user!.id;
+    }
+    return { user: data.user!, session: data.session };
   }
 
   /** Mirrors `AuthService.getCurrentUserId` -- see this class's doc comment for why it's cached rather than re-queried. */
