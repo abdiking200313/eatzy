@@ -23,8 +23,9 @@ void configureErrorReporting();
 // `routes` list: the public `(auth)` group, the authenticated `(app)` group
 // (bottom-nav shell + standalone protected screens), and the standalone
 // `merchant` dashboard. `AppRouter._redirect`'s auth/merchant-role gating is
-// ported by #359/#360 (see `(auth)/_layout.tsx`/`(app)/_layout.tsx`) -- this
-// Stack only establishes the route tree skeleton.
+// ported by #359/#360/#363 (see `(auth)/_layout.tsx`/`(app)/_layout.tsx`/
+// `merchant/_layout.tsx`) -- this Stack only establishes the route tree
+// skeleton.
 //
 // The `Stack` (and so `(auth)`/`(app)`'s own redirect logic) always mounts
 // immediately, regardless of startup-gate status -- `(auth)/_layout.tsx`'s
