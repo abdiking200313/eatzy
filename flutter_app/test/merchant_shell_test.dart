@@ -17,11 +17,9 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'helpers/app_scope_test_helpers.dart';
 import 'helpers/fake_merchant_repositories.dart';
 
-// Smoke-tests the merchant dashboard's nav shell (ported from
-// `merchant_app`'s `merchant_shell_test.dart`, originally issue #132,
-// unified into the main app by issue #232): it must land on real routed
-// "My Store" (originally issue #133) / "Orders" (originally issue #134)
-// destinations, sharing one `MerchantStoreController` between them, and
+// Smoke-tests the merchant dashboard's nav shell: it must land on real
+// routed "My Store" / "Orders" destinations, sharing one
+// `MerchantStoreController` between them, and
 // switching tabs must actually switch content. Both are given a fake,
 // no-store-yet repository so this stays a pure widget test with no
 // Supabase network access.

@@ -9,10 +9,8 @@ import 'helpers/fake_merchant_repositories.dart';
 
 /// Widget-tests `OrderDetailScreen` directly (rather than only through
 /// `OrdersScreen`'s navigation), covering the rest of a vertical's status
-/// vocabulary and the terminal state (ported from `merchant_app`,
-/// originally issue #134's "advance status through the rest of that
-/// vertical's vocabulary ... no direct table writes", unified into the main
-/// app by issue #232).
+/// vocabulary and the terminal state ("advance status through the rest of
+/// that vertical's vocabulary ... no direct table writes").
 void main() {
   Widget wrap(Widget child) => MaterialApp(home: child);
 

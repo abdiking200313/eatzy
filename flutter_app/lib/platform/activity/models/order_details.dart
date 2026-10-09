@@ -90,7 +90,7 @@ class OrderDetails {
   /// `is_legal_order_status_transition` never transitions out of
   /// (`delivered`/`cancelled`). [TrackOrderScreen] stops subscribing to — or
   /// cancels an existing subscription to — live updates once this is true,
-  /// since there is nothing left to watch for (see issue #297).
+  /// since there is nothing left to watch for.
   bool get isFinal => isCancelled || status == 'delivered';
 
   /// The forward status steps for this order's vertical, matching

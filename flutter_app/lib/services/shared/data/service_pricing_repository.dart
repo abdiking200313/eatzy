@@ -3,10 +3,10 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../platform/cache/query_cache.dart';
 import '../models/service_pricing.dart';
 
-/// Reads `public.service_pricing` (issue #60's single source of truth for
+/// Reads `public.service_pricing` (the single source of truth for
 /// delivery-fee/tax values) for one vertical at a time — the shared backing
-/// for every vertical's pre-checkout cart/checkout fee/tax estimate (issue
-/// #279), replacing the hardcoded Dart constants that used to duplicate it
+/// for every vertical's pre-checkout cart/checkout fee/tax estimate,
+/// rather than a hardcoded Dart constant per vertical
 /// (`CartController.taxRate`/`standardDeliveryFee`,
 /// `GroceryController.standardDeliveryFee`, `PharmacyController.deliveryFee`).
 ///

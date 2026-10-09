@@ -37,10 +37,10 @@ class ProfileEditResult {
 /// Owns profile-edit form state (validation, submission, success/error) for
 /// the Settings → Account per-field bottom sheets (Name / Phone / Date of
 /// birth / Email), mirroring the `FoodController`/`GroceryController`
-/// checkout-controller pattern (issue #13).
+/// checkout-controller pattern.
 class ProfileEditController extends ChangeNotifier {
   /// [profileRepository] is required -- every caller (the `SettingsScreen`
-  /// composition-root call site included, see issue #284) is expected to
+  /// composition-root call site included) is expected to
   /// resolve a concrete repository itself (e.g. via `AppScope.of(context)`)
   /// rather than this controller defaulting to `Supabase.instance.client`.
   ///

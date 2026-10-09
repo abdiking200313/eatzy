@@ -1,10 +1,8 @@
 import '../../store/models/merchant_vertical.dart';
 
-/// Per-vertical order table/column/RPC configuration (ported from
-/// `merchant_app`, originally issue #134, unified into the main app by
-/// issue #232), mirroring how `merchant_vertical.dart` (issue #133) captures
-/// per-vertical store/catalog columns rather than forcing one fictitious
-/// common shape.
+/// Per-vertical order table/column/RPC configuration, mirroring how
+/// `merchant_vertical.dart` captures per-vertical store/catalog columns
+/// rather than forcing one fictitious common shape.
 ///
 /// Table/column names verified against the actual migrations, not guessed:
 ///   - `supabase/migrations/20260727152319_connect_super_app_services.sql`
@@ -24,12 +22,11 @@ import '../../store/models/merchant_vertical.dart';
 ///     the SAME baseline contact/address column names -- no per-vertical
 ///     mapping needed for those).
 ///   - `supabase/migrations/20260830140000_add_order_status_transition_rpcs.sql`
-///     (issue #131: the `advance_*_order_status` RPCs and the exact
-///     per-vertical legal-transition vocabulary read off
+///     (the `advance_*_order_status` RPCs and the exact per-vertical
+///     legal-transition vocabulary read off
 ///     `is_legal_order_status_transition`, not invented).
 ///   - `supabase/migrations/20260920000000_add_merchant_order_read_policies.sql`
-///     (issue #134: the merchant-side select policies this feature's reads
-///     depend on).
+///     (the merchant-side select policies this feature's reads depend on).
 extension MerchantOrderVerticalConfig on MerchantVertical {
   /// The order table for this vertical.
   String get orderTable => switch (this) {
@@ -47,8 +44,8 @@ extension MerchantOrderVerticalConfig on MerchantVertical {
 
   /// The foreign-key column on [orderTable] pointing at the owning store,
   /// or `null` for pharmacy -- `pharmacy_orders` has no store column at all
-  /// (see #131's header: pharmacy ownership is derived through its items,
-  /// not a direct FK). A pharmacy order list is therefore fetched relying
+  /// (pharmacy ownership is derived through its items, not a direct FK). A
+  /// pharmacy order list is therefore fetched relying
   /// on RLS alone (`public.merchant_owns_order`), with no client-side
   /// `.eq(...)` filter to add on top.
   String? get orderStoreColumn => switch (this) {
@@ -65,7 +62,7 @@ extension MerchantOrderVerticalConfig on MerchantVertical {
   };
 
   /// The `advance_*_order_status(p_order_id uuid, p_new_status text)` RPC
-  /// name for this vertical (issue #131).
+  /// name for this vertical.
   String get advanceOrderStatusRpc => switch (this) {
     MerchantVertical.food => 'advance_food_order_status',
     MerchantVertical.grocery => 'advance_grocery_order_status',
@@ -129,8 +126,8 @@ String merchantOrderStatusLabel(String status) => switch (status) {
 /// [MerchantOrderVerticalConfig.orderStatusFlow], or `null` if [status] is
 /// unrecognized or already the terminal (`delivered`) state. Used to drive
 /// the single "advance" action on the order detail screen -- the RPC itself
-/// is still the enforcement point (issue #134: "no direct table writes"),
-/// this only decides what to *offer* the merchant next.
+/// is still the enforcement point (no direct table writes), this only
+/// decides what to *offer* the merchant next.
 String? nextForwardOrderStatus(MerchantVertical vertical, String status) {
   final flow = vertical.orderStatusFlow;
   final index = flow.indexOf(status);

@@ -185,8 +185,7 @@ class _GroceryScreenState extends State<GroceryScreen> {
     // or (once loaded) one "no stores" row in place of the store rows when
     // the search has nothing to show. Flattened into a single
     // `ListView.builder` (rather than building every store row eagerly) so
-    // a large store list only builds the rows actually on/near screen —
-    // see issue #177.
+    // a large store list only builds the rows actually on/near screen.
     final showEmptyRow = stores.isEmpty;
     final itemCount = 1 + (showEmptyRow ? 1 : stores.length);
 

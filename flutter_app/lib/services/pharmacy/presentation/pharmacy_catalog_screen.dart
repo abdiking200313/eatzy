@@ -24,7 +24,7 @@ const Duration _searchDebounce = Duration(milliseconds: 400);
 
 /// A single pharmacy's OTC product catalog — reached by picking a pharmacy
 /// on [PharmacyStoreListScreen] first, so browsing (and the cart it feeds)
-/// is always scoped to one pharmacy at a time (issue #141). The pharmacy
+/// is always scoped to one pharmacy at a time. The pharmacy
 /// counterpart of `RestaurantScreen`.
 class PharmacyCatalogScreen extends StatefulWidget {
   const PharmacyCatalogScreen({

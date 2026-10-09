@@ -9,9 +9,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'helpers/app_scope_test_helpers.dart';
 
 void main() {
-  // Issue #284: with no injected profileRepository, ProfileScreen now
-  // resolves its default SupabaseProfileRepository via AppScope.of(context)
-  // instead of `Supabase.instance.client`. The fake AppScope client has no
+  // With no injected profileRepository, ProfileScreen
+  // resolves its default SupabaseProfileRepository via AppScope.of(context).
+  // The fake AppScope client has no
   // real session, so the load fails and falls back to the empty state --
   // same observable behavior as the "failed profile load" test below, just
   // exercising the AppScope-backed default instead of an injected

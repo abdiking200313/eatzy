@@ -60,7 +60,7 @@ class _SuperAppHomeScreenState extends State<SuperAppHomeScreen> {
     // is the only part of this screen wrapped in a listener (see
     // `CartBadgeAction` for the same narrow-listener pattern). Everything
     // else here builds once per screen build instead of on every
-    // ActivityController notification (issue #181).
+    // ActivityController notification.
     return Scaffold(
       backgroundColor: TwColors.bg,
       body: ListView(

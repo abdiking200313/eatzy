@@ -222,7 +222,7 @@ class _GroceryStoreScreenState extends State<GroceryStoreScreen> {
   /// mirrors `GroceryStoreType.storeRoutePattern`'s own
   /// grocery/freshMeat/electronics split, since this screen (and its
   /// product-details destination) is shared across all three store types,
-  /// each with its own URL prefix (issue #288).
+  /// each with its own URL prefix.
   String _productDetailsRoute(String storeId, String productId) =>
       switch (widget.storeType) {
         GroceryStoreType.grocery => AppRoutes.groceryProductDetails(

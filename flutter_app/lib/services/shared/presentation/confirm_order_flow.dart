@@ -18,7 +18,7 @@ import 'dart:async';
 ///   `onError` signature.
 /// - [recordActivity] and [clearCart] run, in that order, once an order
 ///   ([R] -- e.g. a `PlacedOrder` carrying the RPC's authoritative id and
-///   totals, see issue #60) is available, before [onConfirmed] builds the
+///   totals) is available, before [onConfirmed] builds the
 ///   success result. [clearCart] may return a `Future` (e.g. a cart backed
 ///   by persisted storage) or complete synchronously; either way it is
 ///   awaited before [onConfirmed] runs, so callers that need the clear to

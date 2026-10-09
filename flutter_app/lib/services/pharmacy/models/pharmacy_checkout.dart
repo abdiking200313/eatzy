@@ -74,8 +74,8 @@ class PharmacyOrderRequest {
   final DeliveryDetails delivery;
   final List<PharmacyOrderLineInput> items;
 
-  /// A client-generated token identifying this checkout attempt (issue
-  /// #59). `place_pharmacy_order` uses it, together with the caller's
+  /// A client-generated token identifying this checkout attempt.
+  /// `place_pharmacy_order` uses it, together with the caller's
   /// profile, to return the existing order instead of inserting a duplicate
   /// row and decrementing stock again when the same attempt is submitted
   /// more than once. `null` disables that protection for this call.
@@ -92,10 +92,10 @@ class PharmacyOrderRequest {
       'p_delivery_instructions': '',
       'p_items': items.map((item) => item.toRpcMap()).toList(growable: false),
       'p_idempotency_key': idempotencyKey,
-      // p_delivery_address_id (issue #78) is intentionally not sent here:
-      // wiring "place order using a saved address" into checkout is a
-      // separate, deferred fast-follow — see the PR description. Omitting
-      // the key entirely lets the RPC's `default null` apply, identical to
+      // p_delivery_address_id is intentionally not sent here: wiring
+      // "place order using a saved address" into checkout is a separate,
+      // deferred fast-follow. Omitting the key entirely lets the RPC's
+      // `default null` apply, identical to
       // passing null explicitly.
     };
   }

@@ -1,9 +1,9 @@
 /// A vertical's delivery fee and tax rate, mirroring one row of the
 /// `public.service_pricing` table — the single source of truth for fees/tax
-/// since issue #60 (see
+/// (see
 /// `supabase/migrations/20260915000000_add_service_pricing_config.sql`).
 ///
-/// Issue #279: pre-checkout cart/checkout estimates in
+/// Pre-checkout cart/checkout estimates in
 /// `CartController`/`GroceryController`/`PharmacyController` read this
 /// instead of duplicating it as a hardcoded Dart constant, so an owner
 /// changing a `service_pricing` row is reflected in the estimate shown
@@ -20,7 +20,7 @@ class ServicePricing {
   /// `service_pricing.service_id`.
   final String serviceId;
 
-  /// In integer cents — see issue #8.
+  /// In integer cents.
   final int deliveryFeeCents;
 
   /// A fraction (0.10 = 10%), not a percentage. `0` for a vertical that

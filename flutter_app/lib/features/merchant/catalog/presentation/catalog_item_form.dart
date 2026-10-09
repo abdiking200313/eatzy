@@ -8,9 +8,8 @@ import '../../store/models/merchant_vertical.dart';
 import '../models/merchant_catalog_item.dart';
 import 'merchant_catalog_controller.dart';
 
-/// Add/edit form for one catalog item (ported from `merchant_app`,
-/// originally issue #133, unified into the main app by issue #232), shown
-/// in a modal bottom sheet from [CatalogScreen]. Fields shown depend on
+/// Add/edit form for one catalog item, shown in a modal bottom sheet from
+/// [CatalogScreen]. Fields shown depend on
 /// [vertical] -- see `merchant_vertical.dart` / `merchant_catalog_item.dart`
 /// for which columns each vertical's item table actually has.
 class CatalogItemForm extends StatefulWidget {

@@ -109,7 +109,7 @@ class _EmptyActivity extends StatelessWidget {
 
 /// The activity feed as a single white card containing every record, with
 /// internal dividers between rows ("one card per list, not one card per
-/// row" — see #21/#27). Per-service accent stays confined to each row's
+/// row"). Per-service accent stays confined to each row's
 /// [ServiceIconChip]; the card itself always stays on [TwColors.card].
 class _ActivityListCard extends StatelessWidget {
   const _ActivityListCard({required this.items});

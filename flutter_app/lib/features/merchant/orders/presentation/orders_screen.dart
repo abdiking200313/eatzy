@@ -15,13 +15,11 @@ import '../models/merchant_order.dart';
 import '../models/merchant_order_vertical.dart';
 import 'merchant_orders_controller.dart';
 
-/// "Orders" screen (ported from `merchant_app`, originally issue #134,
-/// unified into the main app by issue #232): the signed-in merchant's
-/// incoming-order queue for their own store, newest first, with
-/// pull-to-refresh and explicit loading/empty/error states. Reuses
-/// [MerchantStoreController] (issue #133) to resolve "my store" instead of
-/// re-deriving that logic -- a merchant is modeled as owning at most one
-/// store, per that issue's own assumption.
+/// "Orders" screen: the signed-in merchant's incoming-order queue for
+/// their own store, newest first, with pull-to-refresh and explicit
+/// loading/empty/error states. Reuses [MerchantStoreController] to resolve
+/// "my store" instead of re-deriving that logic -- a merchant is modeled as
+/// owning at most one store.
 class OrdersScreen extends StatefulWidget {
   const OrdersScreen({
     super.key,
@@ -54,7 +52,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
   MerchantOrdersController? _ordersController;
 
   // Resolved here rather than in field initializers / initState: reading
-  // the Supabase client off `AppScope.of(context)` (issue #285) needs a
+  // the Supabase client off `AppScope.of(context)` needs a
   // `BuildContext` that is allowed to look up an `InheritedWidget`, which
   // `didChangeDependencies` is and `initState` is not.
   @override
@@ -70,7 +68,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
     _ownsStoreController = widget.storeController == null;
 
     // Start the load before attaching the listener -- see
-    // `MyStoreScreen.initState`'s comment (issue #133) for why the order
+    // `MyStoreScreen.initState`'s comment for why the order
     // matters: `load`'s synchronous prefix runs immediately, and calling
     // `setState` that early would throw.
     if (!_storeController.hasLoaded && !_storeController.isLoading) {

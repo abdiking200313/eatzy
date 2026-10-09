@@ -29,9 +29,8 @@ typedef PharmacyStoreQuery =
 const Duration _searchDebounce = Duration(milliseconds: 400);
 
 /// The pharmacy vertical's entry screen: a searchable list of pharmacies a
-/// customer picks from before browsing a single pharmacy's OTC catalog
-/// (issue #141) — the pharmacy counterpart of `FoodHomeScreen`'s restaurant
-/// list.
+/// customer picks from before browsing a single pharmacy's OTC catalog —
+/// the pharmacy counterpart of `FoodHomeScreen`'s restaurant list.
 class PharmacyStoreListScreen extends StatefulWidget {
   const PharmacyStoreListScreen({
     super.key,
@@ -138,7 +137,7 @@ class _PharmacyStoreListScreenState extends State<PharmacyStoreListScreen> {
 
   void _openStore(PharmacyStore store) {
     // `photoUrl` is forwarded the same way `name` is, for
-    // `PharmacyCatalogScreen`'s hero banner (issue #250) — see the TODO on
+    // `PharmacyCatalogScreen`'s hero banner — see the TODO on
     // `PharmacyCatalogScreen.storeImageUrl` for the corresponding
     // `app_router.dart` read this still needs.
     context.push(
@@ -185,7 +184,7 @@ class _PharmacyStoreListScreenState extends State<PharmacyStoreListScreen> {
   // Two slivers: a fixed header (search field + heading) and the store rows
   // themselves, the latter built lazily via `SliverList.builder` (rather
   // than eagerly as a `Column` of every row up front) so a large pharmacy
-  // list only builds the rows actually on/near screen — see issue #177.
+  // list only builds the rows actually on/near screen.
   // `_buildStoreList`/`_buildFilteredStoreList` each return a sliver, which
   // is why they can sit directly in `CustomScrollView.slivers` even wrapped
   // in a `FutureBuilder` (its `builder` result — a sliver — is exactly what

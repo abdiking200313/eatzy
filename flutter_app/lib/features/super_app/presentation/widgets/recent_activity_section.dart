@@ -12,7 +12,7 @@ import 'section_header.dart';
 
 /// Scopes the `ActivityController` listener to just the Recent Activity
 /// preview so a `record()`/`load()` notification only rebuilds this small
-/// subtree, not the rest of the super-app home screen (issue #181).
+/// subtree, not the rest of the super-app home screen.
 class RecentActivitySection extends StatelessWidget {
   const RecentActivitySection({super.key, required this.controller});
 
@@ -56,7 +56,7 @@ class RecentActivitySection extends StatelessWidget {
 
 /// The Recent Activity preview as a single white card containing every
 /// row, with internal dividers between rows ("one card per list, not one
-/// card per row" — see #21/#27) — mirrors
+/// card per row") — mirrors
 /// `activity/presentation/activity_screen.dart`'s `_ActivityListCard` so
 /// the two activity-feed surfaces stay visually consistent. Per-service
 /// accent stays confined to each row's [ServiceIconChip]; the card itself

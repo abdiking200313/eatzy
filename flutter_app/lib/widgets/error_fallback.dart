@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import '../config/theme.dart';
 
 /// A minimal, on-brand replacement for Flutter's default grey
-/// `ErrorWidget` box, installed via `ErrorWidget.builder` in `main.dart`
-/// (issue #40). Shown in place of whatever widget subtree failed to build;
+/// `ErrorWidget` box, installed via `ErrorWidget.builder` in `main.dart`.
+/// Shown in place of whatever widget subtree failed to build;
 /// it deliberately offers no restart/retry action since it has no way to
 /// know what would fix the underlying error, only that something did.
 ///

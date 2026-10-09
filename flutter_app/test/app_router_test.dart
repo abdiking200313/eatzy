@@ -57,7 +57,7 @@ void main() {
         AppRoutes.merchantDashboard,
         expected: AppRoutes.login,
       ),
-      // Onboarding first-launch gating (issue #15).
+      // Onboarding first-launch gating.
       _RedirectCase(
         'a first-time signed-out visitor stays on welcome',
         AppRoutes.welcome,
@@ -98,7 +98,7 @@ void main() {
         seenOnboarding: true,
         expected: AppRoutes.mainApp,
       ),
-      // Merchant dashboard routing (issues #232, #236).
+      // Merchant dashboard routing.
       _RedirectCase(
         'a merchant/admin restored on welcome lands on the merchant dashboard',
         AppRoutes.welcome,
@@ -193,7 +193,7 @@ void main() {
   test('isProtectedLocation gates every customer, service and merchant '
       'route, but not the pre-sign-in auth routes', () {
     final protected = [
-      // Bottom-nav shell tabs — each its own StatefulShellBranch (#67).
+      // Bottom-nav shell tabs — each its own StatefulShellBranch.
       AppRoutes.mainApp,
       AppRoutes.explore,
       AppRoutes.activity,
@@ -269,8 +269,8 @@ void main() {
       // Mirrors the literal `details_route` values selected by the
       // `customer_activity` view as currently (re)defined in
       // supabase/migrations/20260815153920_remove_cleaning_vertical.sql
-      // (food/grocery/pharmacy branches; the earlier cleaning branch was
-      // dropped by issue #50). There is no SQL execution available from a
+      // (food/grocery/pharmacy branches only -- there is no cleaning
+      // branch). There is no SQL execution available from a
       // Dart unit test, so this list is a manually kept mirror of that
       // view's `select` branches — if a future migration changes, adds, or
       // removes a `details_route` literal in customer_activity, update this

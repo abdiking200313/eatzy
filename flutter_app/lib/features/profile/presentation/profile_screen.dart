@@ -43,7 +43,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     } on Object catch (error, stack) {
       // Falls back to the "Zivo customer" empty state below either way (see
       // ProfileHeader usage in build()), but the failure must not be
-      // silently swallowed — see issue #40.
+      // silently swallowed.
       ErrorReporting.instance.reportError(
         error,
         stack,
@@ -86,9 +86,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   // 'Coupons & Offers' was removed rather than wired up: there is no coupons
-  // feature anywhere in the app to link to (issue #14). Addresses and Wallet
-  // are hidden while delivery addresses and payments are out of scope
-  // (owner decision, 2026-09-25).
+  // feature anywhere in the app to link to. Addresses and Wallet are hidden
+  // while delivery addresses and payments are out of scope (owner decision,
+  // 2026-09-25).
   //
   // 'Notifications' points at the Settings screen, which owns the real
   // notification toggles.

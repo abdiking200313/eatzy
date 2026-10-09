@@ -55,8 +55,8 @@ Future<void> _pump(
   OrderDetailsRepository repository,
 ) async {
   // TrackOrderScreen always builds its own default OrderAgainService (no
-  // test here injects one), which now resolves its Supabase client from
-  // AppScope (issue #284) rather than `Supabase.instance.client` -- so every
+  // test here injects one), which resolves its Supabase client from
+  // AppScope -- so every
   // pump needs an AppScope ancestor even though `repository` above is
   // injected directly.
   await tester.pumpWidget(
@@ -104,7 +104,7 @@ void main() {
       await tester.scrollUntilVisible(find.text('Delivery address'), 200);
       expect(find.text('Maka Al Mukarama, Hodan, Mogadishu'), findsOneWidget);
 
-      // No fabricated courier or ETA anywhere on screen (see issue #43).
+      // No fabricated courier or ETA anywhere on screen.
       expect(find.textContaining('minutes'), findsNothing);
       expect(find.byIcon(Icons.call), findsNothing);
 
@@ -292,7 +292,7 @@ class _FakeOrderDetailsRepository implements OrderDetailsRepository {
   OrderDetails order;
 
   /// How many times [watchOrder] has been called -- a test asserts this
-  /// stays `0` for an order that's already in a final state (issue #297).
+  /// stays `0` for an order that's already in a final state.
   int watchOrderCallCount = 0;
 
   /// Set from the stream controller's `onCancel`, i.e. once nothing is

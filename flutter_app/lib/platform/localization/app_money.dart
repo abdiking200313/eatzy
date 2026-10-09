@@ -14,14 +14,13 @@ abstract final class AppMoney {
   /// dollars. This is the only place a cents value should ever be divided by
   /// 100 — every model, controller, and RPC payload in this app reads,
   /// stores, and computes money in cents, and converts to dollars only here,
-  /// at final display time (see issue #8).
+  /// at final display time.
   static String formatCents(num cents) => _formatter.format(cents / 100);
 
   /// Parses a user-entered decimal-dollar string (e.g. `"12.3"`, `"$12"`,
   /// `" 12.34 "`) into integer cents, rounding to the nearest cent. Returns
-  /// `null` if [input] is not a valid non-negative amount. Added for the
-  /// merchant dashboard's catalog/store price entry forms (issue #232,
-  /// ported from the standalone `merchant_app`'s `MerchantMoney`).
+  /// `null` if [input] is not a valid non-negative amount. Used by the
+  /// merchant dashboard's catalog/store price entry forms.
   static int? parseToCents(String input) {
     final cleaned = input.trim().replaceAll(r'$', '').replaceAll(',', '');
     if (cleaned.isEmpty) return null;

@@ -1,11 +1,11 @@
-/// Environment configuration for the Supabase backend (issue #42).
+/// Environment configuration for the Supabase backend.
 ///
 /// Reads `SUPABASE_URL` and `SUPABASE_ANON_KEY` via `--dart-define` at build
 /// time, falling back to the current live **production** project's values so
 /// that `flutter run` / `flutter test` / `flutter build` / CI keep working
 /// exactly as before when no flags are passed.
 ///
-/// ## Per-environment config files (issue #277)
+/// ## Per-environment config files
 ///
 /// Rather than typing both `--dart-define` flags out by hand, copy
 /// `config/dev.json.example` to `config/dev.json` (gitignored, never
@@ -25,8 +25,8 @@
 ///
 /// ## The production fallback below is temporary
 ///
-/// No separate dev/staging Supabase project exists yet (see issue #42), so
-/// the constants below still fall back to the live production project when
+/// No separate dev/staging Supabase project exists yet, so the constants
+/// below still fall back to the live production project when
 /// no define is passed at all -- this keeps the app runnable out of the box.
 /// **Remove this fallback once a non-production project exists** so that
 /// omitting the defines fails loudly instead of silently reading/writing
@@ -46,7 +46,7 @@ abstract final class Env {
   );
 
   /// The Supabase publishable/anon key. This is the intended-public anon
-  /// key, not a secret -- see issue #42. Override with
+  /// key, not a secret. Override with
   /// `--dart-define=SUPABASE_ANON_KEY=...` or
   /// `--dart-define-from-file=config/dev.json`.
   static const String supabaseAnonKey = String.fromEnvironment(

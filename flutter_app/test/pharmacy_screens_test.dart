@@ -219,9 +219,9 @@ void main() {
         final controller = buildPharmacyController();
         const storeId = SeededPharmacyRepository.defaultStoreId;
 
-        // Issue #288: `PharmacyCatalogScreen._openDetails` now does
-        // `context.push(AppRoutes.pharmacyProductDetails(...))` instead of a
-        // plain `Navigator.push`, so this needs a real `GoRouter` ancestor
+        // `PharmacyCatalogScreen._openDetails` does
+        // `context.push(AppRoutes.pharmacyProductDetails(...))`, so this
+        // needs a real `GoRouter` ancestor
         // with both the catalog and product-details routes registered --
         // same pattern as `login_screen_test.dart`'s merchant-redirect group.
         final router = GoRouter(
@@ -323,7 +323,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Vitamin A'), findsOneWidget);
-      // The hero banner above the catalog list (issue #250) pushes the second
+      // The hero banner above the catalog list pushes the second
       // product row below the fold on a default test viewport — same
       // `scrollUntilVisible` pattern the OTC-scope test above uses.
       await tester.scrollUntilVisible(

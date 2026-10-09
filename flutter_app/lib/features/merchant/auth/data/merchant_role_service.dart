@@ -1,8 +1,7 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// `profiles.role` values that route a signed-in account to the merchant
-/// dashboard instead of the customer home (issue #232, superseding the
-/// standalone `merchant_app` project from issue #132). Matches the exact set
+/// dashboard instead of the customer home. Matches the exact set
 /// from `profiles_role_check` in
 /// `supabase/migrations/20260830120000_add_merchant_role_and_store_ownership.sql`
 /// (`'customer' | 'merchant' | 'admin'`, default `'customer'`) -- only
@@ -19,8 +18,8 @@ bool isAuthorizedMerchantRole(String? role) =>
 
 /// Looks up the signed-in user's `profiles.role`, used by [AppRouter] right
 /// after a successful sign-in and again on session-restore at app start
-/// (issue #232) to decide whether the account lands on the merchant
-/// dashboard or the normal customer home. This intentionally does not
+/// to decide whether the account lands on the merchant dashboard or the
+/// normal customer home. This intentionally does not
 /// perform its own sign-in/sign-out -- the main app's own [AuthService]
 /// remains the only sign-in flow; this only answers "which home screen".
 class MerchantRoleService {

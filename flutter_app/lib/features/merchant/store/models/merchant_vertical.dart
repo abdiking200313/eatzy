@@ -1,6 +1,4 @@
-/// The three service verticals a merchant store can belong to (ported from
-/// `merchant_app`, originally issue #133, unified into the main app by issue
-/// #232).
+/// The three service verticals a merchant store can belong to.
 ///
 /// Table/column names below are verified against the actual migrations, not
 /// guessed:
@@ -47,7 +45,7 @@ extension MerchantVerticalConfig on MerchantVertical {
 
   /// The foreign-key column on [itemTable] that points at the store row --
   /// the join the merchant RLS write policies use to scope item writes
-  /// (issue #130's "ownership is inherited from the parent store").
+  /// ("ownership is inherited from the parent store").
   String get itemStoreColumn => switch (this) {
     MerchantVertical.food => 'restaurant_id',
     MerchantVertical.grocery => 'store_id',

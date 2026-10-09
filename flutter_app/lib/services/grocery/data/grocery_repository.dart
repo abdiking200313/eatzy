@@ -139,11 +139,8 @@ class SupabaseGroceryCatalogRepository
   /// together, grouping products by store client-side — used only by
   /// `GroceryScreen`'s store-*list* screen (store name/area/product count
   /// per card), not by the single-store `GroceryStoreScreen` (see
-  /// [fetchStore], added by issue #177 once issue #140 introduced a
-  /// "selected store" concept to scope by). These limits bound the worst
-  /// case of that still-necessarily-multi-store read: previously this
-  /// query had no limit at all and pulled the entire multi-store catalog
-  /// on every load.
+  /// [fetchStore]). These limits bound the worst case of that
+  /// still-necessarily-multi-store read.
   static const int maxStores = 30;
   static const int maxProducts = 300;
 
@@ -236,7 +233,7 @@ class SupabaseGroceryCatalogRepository
     if (storeId.trim().isEmpty) {
       throw const FormatException('A grocery store ID is required.');
     }
-    // Reads from `grocery_delivery_slots_available` (issue #82), not the
+    // Reads from `grocery_delivery_slots_available`, not the
     // base `grocery_delivery_slots` table: the view already excludes a slot
     // whose computed delivery window has elapsed (and, via RLS with
     // `security_invoker`, an inactive slot or one at an inactive store), so

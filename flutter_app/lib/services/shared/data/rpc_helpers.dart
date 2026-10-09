@@ -1,19 +1,19 @@
 /// Shared helpers for unwrapping Supabase RPC responses.
 ///
 /// These are used by the food, grocery, and pharmacy repositories, which
-/// each call a `place_*_order` RPC. Issue #60 moved every fee/tax constant
-/// into a single server-owned `service_pricing` config table (see
-/// `supabase/migrations/20260915000000_add_service_pricing_config.sql`) and
-/// changed all three RPCs from `returns uuid` to
+/// each call a `place_*_order` RPC. Every fee/tax constant lives in a
+/// single server-owned `service_pricing` config table (see
+/// `supabase/migrations/20260915000000_add_service_pricing_config.sql`),
+/// and each RPC
 /// `returns table(order_id uuid, subtotal integer, delivery_fee integer,
 /// tax integer, total integer)`, so the client reads back the server's
 /// authoritative pricing instead of only an id -- see [PlacedOrder].
 library;
 
 /// The authoritative pricing breakdown a `place_*_order` RPC returns for the
-/// order it just placed -- or, on an idempotent retry (issue #59), the
+/// order it just placed -- or, on an idempotent retry, the
 /// matching existing order returned instead of a duplicate. All amounts are
-/// integer cents (issue #8).
+/// integer cents.
 ///
 /// [tax] is always present for a uniform shape across verticals, even
 /// though only food currently charges tax -- grocery and pharmacy always
@@ -40,7 +40,7 @@ class PlacedOrder {
   final int tax;
 
   /// In integer cents: `subtotal + deliveryFee + tax`, as actually charged
-  /// (and, since issue #60, actually returned) by the RPC -- this is the
+  /// and returned by the RPC -- this is the
   /// value that must be displayed/recorded post-order, never a
   /// client-computed cart total, which can be stale if a price changed
   /// between the cart being built and checkout being confirmed.

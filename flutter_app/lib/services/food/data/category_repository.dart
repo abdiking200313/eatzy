@@ -9,9 +9,9 @@ class CategoryRepository {
 
   /// Default page size for the unbounded category list.
   ///
-  /// The home screen does not yet page through categories — see issue #61
-  /// — so this only bounds the worst case. A real pagination contract is
-  /// left as a follow-up.
+  /// The home screen does not yet page through categories, so this only
+  /// bounds the worst case. A real pagination contract is left as a
+  /// follow-up.
   static const int defaultPageSize = 50;
 
   /// Fetches categories, bounded to [limit] rows starting at [offset].

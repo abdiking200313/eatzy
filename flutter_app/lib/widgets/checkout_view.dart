@@ -10,7 +10,7 @@ import 'app_scaffold.dart';
 /// "Delivery fee". [amount] is in integer cents.
 ///
 /// [isPending] marks a fee/tax line whose [amount] is not actually known yet
-/// (e.g. `service_pricing` hasn't loaded — issue #279): it renders as
+/// (e.g. `service_pricing` hasn't loaded): it renders as
 /// "Calculated at checkout" instead of a dollar figure, so the client never
 /// shows a fabricated/guessed number. [amount] is ignored when [isPending]
 /// is `true` and should be `0`; use [CheckoutLine.pending] rather than
@@ -38,7 +38,7 @@ class CheckoutLine {
 /// value and does not constrain it, which is safe for every value it was
 /// originally used for but overflows for a [CheckoutLine.pending] row's much
 /// longer "Calculated at checkout" text on a narrow, large-text-scale
-/// screen (issue #279). Used in place of [SummaryRow] specifically for
+/// screen. Used in place of [SummaryRow] specifically for
 /// fee/tax/total rows, which are the only ones that can ever be pending.
 class FeeSummaryRow extends StatelessWidget {
   const FeeSummaryRow({
@@ -119,7 +119,7 @@ class CheckoutView extends StatelessWidget {
   final List<CheckoutLine> feeLines;
 
   /// `null` when any fee/tax line is still [CheckoutLine.isPending] (pricing
-  /// hasn't loaded yet — issue #279): shown as "Calculated at checkout"
+  /// hasn't loaded yet): shown as "Calculated at checkout"
   /// instead of a fabricated number. Placing an order is never blocked on
   /// this — the `place_*_order` RPC remains authoritative regardless.
   final int? total;

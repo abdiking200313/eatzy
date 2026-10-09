@@ -7,8 +7,7 @@ import '../config/theme.dart';
 
 /// Fixed height of the photo hero atop a single store/restaurant screen —
 /// shared by `RestaurantScreen`, `GroceryStoreScreen`, and
-/// `PharmacyCatalogScreen` so the three read as visually consistent
-/// (issue #250).
+/// `PharmacyCatalogScreen` so the three read as visually consistent.
 const double kStoreHeroAppBarHeight = 230;
 
 /// The pinned, photo-hero `SliverAppBar` at the top of a single

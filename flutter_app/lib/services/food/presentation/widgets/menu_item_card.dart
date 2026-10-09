@@ -20,7 +20,7 @@ class MenuItemCard extends StatelessWidget {
   /// The owning restaurant -- forwarded to
   /// `AppRoutes.foodMenuItemDetails(restaurantId, item.id)` so tapping this
   /// card opens the item's `MenuItemDetailsScreen` go_router route rather
-  /// than a plain `Navigator.push` (issue #288).
+  /// than a plain `Navigator.push`.
   final String restaurantId;
 
   final MenuItem item;

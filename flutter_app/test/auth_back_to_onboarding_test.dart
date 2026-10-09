@@ -15,7 +15,7 @@ import 'package:shared_preferences_platform_interface/shared_preferences_async_p
 
 /// The back arrow on login/register goes back to the onboarding slides, even
 /// for a returning user whose app opened straight on login (where the router
-/// would otherwise redirect welcome -> login, issue #15).
+/// would otherwise redirect welcome -> login).
 void main() {
   setUp(() {
     SharedPreferencesAsyncPlatform.instance =

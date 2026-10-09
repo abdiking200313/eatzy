@@ -43,9 +43,9 @@ import 'helpers/controllers.dart';
 import 'helpers/memory_cart_storage.dart';
 
 /// Cross-screen layout guarantees:
-/// - every redesigned screen stays overflow-free at 320x640 with 1.4x text
-///   (the #21 per-screen DoD template), and renders its title;
-/// - long lists are virtualized (issue #61/#177);
+/// - every screen stays overflow-free at 320x640 with 1.4x text, and
+///   renders its title;
+/// - long lists are virtualized;
 /// - shared design-system widgets (logo, service theme, add-to-cart).
 ///
 /// Screens whose own test file already owns a narrow-screen case (food home,
@@ -64,7 +64,7 @@ void main() {
       await tester.pumpWidget(
         // Several screens here (TrackOrderScreen, ProfileScreen,
         // SettingsScreen) build an AppScope-backed default dependency
-        // (issue #284) when not given an explicit override, which needs an
+        // when not given an explicit override, which needs an
         // AppScope ancestor even for a plain layout/overflow check.
         AppScope(
           services: buildTestAppServices(),
@@ -363,9 +363,8 @@ void main() {
     });
   });
 
-  /// Pins issue #61's list-virtualization fix (reverted by the store-scoping
-  /// refactor in PR #163, restored by issue #177): a long list must not
-  /// build far-offscreen rows just because they exist in the data.
+  /// A long list must not build far-offscreen rows just because they exist
+  /// in the data.
   ///
   /// Each screen is fed 300 rows; the first must be built (sanity check that
   /// the list rendered) and the last must NOT be. `find.text` only matches

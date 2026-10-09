@@ -21,13 +21,13 @@ import '../notifications/push_notifications.dart';
 import '../session/secure_session_storage.dart';
 
 /// How long any single startup network call is allowed to run before it is
-/// treated as failed (issue #41). Chosen to comfortably cover a slow mobile
+/// treated as failed. Chosen to comfortably cover a slow mobile
 /// connection while still giving up well before a user assumes the app is
 /// permanently frozen.
 const Duration kStartupNetworkTimeout = Duration(seconds: 15);
 
 /// What [runStartupSequence] hands back on success: the single [AppServices]
-/// composition root (issue #281) the real app root needs. Kept as a named
+/// composition root the real app root needs. Kept as a named
 /// result (rather than returning the bare [AppServices]) so a future caller
 /// can add another field without changing the function's return type.
 class StartupResult {
@@ -36,10 +36,10 @@ class StartupResult {
   final AppServices appServices;
 }
 
-/// Runs every startup step that used to block `main()` before `runApp`
-/// (issue #41): `Supabase.initialize`, the onboarding-seen flag, the food /
-/// grocery / pharmacy cart loads, and (for a signed-in user) the initial
-/// activity load.
+/// Runs every startup step `main()` needs before `runApp`:
+/// `Supabase.initialize`, the onboarding-seen flag, the food / grocery /
+/// pharmacy cart loads, and (for a signed-in user) the initial activity
+/// load.
 ///
 /// `Supabase.initialize` is the one call the rest of the app cannot function
 /// without, so its failure (including timing out) is fatal and rethrown --
@@ -50,7 +50,7 @@ class StartupResult {
 /// the app (they land with an empty cart / no recent activity instead,
 /// which the relevant screens already know how to display and retry).
 Future<StartupResult> runStartupSequence() async {
-  // Issue #277: `Env`'s production fallback (see its doc comment) means a
+  // `Env`'s production fallback (see its doc comment) means a
   // local run/debug build with no --dart-define-from-file silently talks to
   // real production data. Debug-build-only (kDebugMode), so a release build
   // never prints this -- it is a developer nudge, not user-facing.
@@ -80,7 +80,7 @@ Future<StartupResult> runStartupSequence() async {
     rethrow;
   }
 
-  // The composition root (issue #281): built once Supabase.initialize has
+  // The composition root: built once Supabase.initialize has
   // succeeded, since AppServices.fromSingletons reads Supabase.instance.
   // Wraps the same process-wide singletons every call site already used
   // (CartController.instance, ActivityController.instance, etc.) -- this
@@ -101,7 +101,7 @@ Future<StartupResult> runStartupSequence() async {
 
   // Loaded once, up front, so AppRouter's synchronous redirect can gate a
   // returning signed-out user past onboarding on this very first frame --
-  // see OnboardingLaunchGate and issue #15. A failure here only means a
+  // see OnboardingLaunchGate. A failure here only means a
   // returning user might see onboarding again, so it falls back to `false`
   // (show onboarding) rather than blocking startup.
   await _runBestEffort('OnboardingLaunchGate.hasSeenOnboarding', () async {
@@ -114,7 +114,7 @@ Future<StartupResult> runStartupSequence() async {
   final cartController = appServices.cartController;
   final currentUserId = Supabase.instance.client.auth.currentUser?.id;
 
-  // Issue #232: resolve merchant/admin routing once at startup for a
+  // Resolve merchant/admin routing once at startup for a
   // restored session, so AppRouter's synchronous redirect can send a
   // merchant/admin account to the merchant dashboard on this very first
   // frame instead of the customer home -- mirrors the OnboardingLaunchGate
@@ -133,11 +133,11 @@ Future<StartupResult> runStartupSequence() async {
     );
   }
 
-  // Firebase init + an initial permission prompt (issue #47), Android only
+  // Firebase init + an initial permission prompt, Android only
   // -- see PushNotificationGateway's doc comment. Best-effort like every
   // other step here: a user with push notifications off (or a device that
   // can't reach Firebase) still reaches the app normally, just without a
-  // token. Respects the #10 preference already on disk for a returning
+  // token. Respects the preference already on disk for a returning
   // signed-in user instead of re-prompting regardless of their choice; a
   // signed-out user (or one who has never set a preference) falls back to
   // NotificationPreferences.defaults, which has push on.
@@ -157,14 +157,14 @@ Future<StartupResult> runStartupSequence() async {
     }
   });
 
-  // Firebase Crashlytics (issue #287): points `ErrorReporting.instance` at a
+  // Firebase Crashlytics: points `ErrorReporting.instance` at a
   // Crashlytics-backed reporter in release/profile builds only, so crashes
   // on users' phones stop being invisible; debug builds keep
   // LoggingErrorReporter and explicitly disable collection. Runs after the
   // push-notification step above (Android already has a Firebase app from
   // it there), and initializes Firebase itself for iOS, where
-  // PushNotificationGateway deliberately stays unwired (issue #55) but
-  // Crashlytics' native iOS setup (dSYM upload script) is in #287's scope.
+  // PushNotificationGateway deliberately stays unwired (see #55) but
+  // Crashlytics' native iOS setup (dSYM upload script) still applies.
   // No web/desktop support: `firebase_crashlytics` only ships
   // Android/iOS/macOS plugins and this app only commits Firebase config
   // (`google-services.json` / `GoogleService-Info.plist`) for Android/iOS.
@@ -241,10 +241,10 @@ Future<void> _runBestEffort(
   }
 }
 
-/// Root widget installed by `runApp` in place of the real app (issue #41):
-/// runs [runStartup] once mounted and shows a loading state while it's in
+/// Root widget installed by `runApp` in place of the real app: runs
+/// [runStartup] once mounted and shows a loading state while it's in
 /// flight, an error/retry state if it fails, or hands off to [onReady] with
-/// the composed [AppServices] (issue #281) once it succeeds -- so a slow or
+/// the composed [AppServices] once it succeeds -- so a slow or
 /// failed network call blocks a lightweight bootstrap screen instead of
 /// `runApp` itself, and a failure is always recoverable instead of leaving a
 /// permanently black/frozen screen.

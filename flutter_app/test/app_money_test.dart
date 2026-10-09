@@ -1,8 +1,7 @@
 import 'package:chowflow/platform/localization/app_money.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-// Unit-tests `AppMoney.parseToCents` (added alongside the merchant dashboard
-// port, issue #232, from `merchant_app`'s `MerchantMoney.parseToCents`) --
+// Unit-tests `AppMoney.parseToCents` --
 // the integer-cents convention this app follows end-to-end (AGENTS.md's
 // money rule): every value that comes from or goes to Supabase is integer
 // cents, converted to/from a decimal-dollar string only at the UI boundary.

@@ -491,7 +491,7 @@ class _ThrowingGroceryOrderRepository implements GroceryOrderRepository {
 }
 
 /// A [GroceryOrderRepository] fake that throws the same
-/// [PostgrestException] shape `place_grocery_order` raises (issue #82) when
+/// [PostgrestException] shape `place_grocery_order` raises when
 /// the selected delivery slot's computed window has already elapsed.
 class _ElapsedSlotGroceryOrderRepository implements GroceryOrderRepository {
   const _ElapsedSlotGroceryOrderRepository();

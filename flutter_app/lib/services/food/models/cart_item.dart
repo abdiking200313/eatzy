@@ -14,7 +14,7 @@ class CartItem {
   final String restaurantName;
   final String name;
 
-  /// Price in integer cents — see issue #8.
+  /// Price in integer cents.
   final int unitPrice;
   final String imageUrl;
   final int quantity;

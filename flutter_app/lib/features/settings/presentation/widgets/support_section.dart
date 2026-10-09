@@ -32,10 +32,10 @@ class SupportSection extends StatelessWidget {
                 onTap: onAboutUsTap,
               ),
               const Divider(height: 1),
-              // Real in-app Privacy Policy / Terms screens now exist (issue
-              // #37) — see PrivacyPolicyScreen/TermsOfServiceScreen for the
-              // drafted text and their doc comments for the remaining
-              // app-store hosted-URL gap.
+              // Real in-app Privacy Policy / Terms screens exist — see
+              // PrivacyPolicyScreen/TermsOfServiceScreen for the drafted
+              // text and their doc comments for the remaining app-store
+              // hosted-URL gap.
               SettingCard(
                 title: 'Privacy Policy',
                 subtitle: 'How we handle your data',

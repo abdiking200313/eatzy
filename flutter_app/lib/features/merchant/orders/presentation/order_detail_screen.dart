@@ -11,11 +11,10 @@ import '../models/merchant_order.dart';
 import '../models/merchant_order_vertical.dart';
 import 'merchant_orders_controller.dart';
 
-/// Order detail view (ported from `merchant_app`, originally issue #134,
-/// unified into the main app by issue #232): line items, the
-/// customer-facing address/contact info already captured on the order,
-/// current status, and the accept/reject/advance actions that call
-/// `advance_*_order_status` (issue #131) -- no direct table writes.
+/// Order detail view: line items, the customer-facing address/contact info
+/// already captured on the order, current status, and the
+/// accept/reject/advance actions that call `advance_*_order_status` -- no
+/// direct table writes.
 ///
 /// Reads its order live from a [MerchantOrdersController] (by [orderId])
 /// rather than taking a snapshot, so a status change made from this screen
@@ -25,8 +24,8 @@ import 'merchant_orders_controller.dart';
 /// Reached either from `OrdersScreen`'s own already-loaded [controller]
 /// (passed directly so a tap from that list shows instantly), or directly
 /// via `AppRoutes.merchantOrderDetailPath` (deep link / browser URL) -- a
-/// go_router destination, like `RestaurantScreen` (issue #288), which only
-/// has [orderId] to go on and so resolves the signed-in merchant's own store
+/// go_router destination, like `RestaurantScreen`, which only has
+/// [orderId] to go on and so resolves the signed-in merchant's own store
 /// and orders itself, the same way `OrdersScreen`/`MyStoreScreen` do.
 class OrderDetailScreen extends StatefulWidget {
   const OrderDetailScreen({
@@ -69,7 +68,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   bool _dependenciesResolved = false;
 
   // Resolved here rather than in field initializers / initState: reading
-  // the Supabase client off `AppScope.of(context)` (issue #285) needs a
+  // the Supabase client off `AppScope.of(context)` needs a
   // `BuildContext` that is allowed to look up an `InheritedWidget`, which
   // `didChangeDependencies` is and `initState` is not.
   @override
@@ -515,15 +514,15 @@ String _formatDateTime(DateTime dateTime) {
       '${twoDigits(local.hour)}:${twoDigits(local.minute)}';
 }
 
-/// Mirrors the root app's `ActivityItem.paymentMethodLabel` (issue #30):
-/// only `cash_on_delivery` is a real value today, but any other raw value
-/// still renders as something readable.
+/// Mirrors the root app's `ActivityItem.paymentMethodLabel`: only
+/// `cash_on_delivery` is a real value today, but any other raw value still
+/// renders as something readable.
 String _paymentMethodLabel(String raw) => switch (raw) {
   'cash_on_delivery' => 'Cash on delivery',
   final other => other,
 };
 
-/// Mirrors the root app's `ActivityItem.paymentStatusLabel` (issue #30).
+/// Mirrors the root app's `ActivityItem.paymentStatusLabel`.
 String _paymentStatusLabel(String raw) => switch (raw) {
   'pending_collection' => 'Pending collection',
   'collected' => 'Collected',

@@ -5,11 +5,10 @@ import 'package:chowflow/features/legal/presentation/terms_of_service_screen.dar
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-// Smoke tests for the two static legal screens added by issue #37 (the app
-// previously had no privacy policy or terms of service at all — only dead
-// "Coming soon" rows on Settings). These confirm each screen renders its
-// drafted content without throwing; navigation from Settings into these
-// screens is covered separately by test/settings_screen_test.dart.
+// Smoke tests for the two static legal screens (Privacy Policy, Terms of
+// Service). These confirm each screen renders its drafted content without
+// throwing; navigation from Settings into these screens is covered
+// separately by test/settings_screen_test.dart.
 void main() {
   testWidgets('PrivacyPolicyScreen renders its title and every section '
       'heading without error', (tester) async {
@@ -27,11 +26,11 @@ void main() {
         reason: 'missing section: ${section.heading}',
       );
     }
-    // The two third-party hosts issue #37 called out must actually be named
+    // The two third-party hosts this app uses must actually be named
     // in the policy text, not just implied.
     expect(find.textContaining('fonts.gstatic.com'), findsOneWidget);
     expect(find.textContaining('lh3.googleusercontent.com'), findsOneWidget);
-    // The account-deletion path (issue #36) must be referenced honestly.
+    // The account-deletion path must be referenced honestly.
     expect(find.textContaining('Delete Account'), findsOneWidget);
 
     expect(tester.takeException(), isNull);

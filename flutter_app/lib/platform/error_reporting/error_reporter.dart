@@ -1,16 +1,16 @@
 import 'dart:developer' as developer;
 
 /// SDK-independent abstraction point for reporting an otherwise-unhandled
-/// error (issue #40). Every global error hook (`FlutterError.onError`,
+/// error. Every global error hook (`FlutterError.onError`,
 /// `PlatformDispatcher.instance.onError`, the `runZonedGuarded` error
-/// callback in `main.dart`) and any call site that would previously have
-/// silently swallowed an error (e.g. a `catch (Object)` block) should route
-/// through [ErrorReporting.instance] instead of logging directly. Issue #287
-/// wired in a Firebase Crashlytics-backed implementation
-/// (`CrashlyticsErrorReporter` in `crashlytics_error_reporter.dart`),
-/// assigned to [ErrorReporting.instance] from `runStartupSequence`
-/// (`lib/platform/startup/startup_gate.dart`) in release/profile builds
-/// only -- no call site above had to change.
+/// callback in `main.dart`) and any call site that would otherwise silently
+/// swallow an error (e.g. a `catch (Object)` block) routes through
+/// [ErrorReporting.instance] instead of logging directly. In
+/// release/profile builds, `runStartupSequence`
+/// (`lib/platform/startup/startup_gate.dart`) assigns
+/// [ErrorReporting.instance] a Firebase Crashlytics-backed implementation
+/// (`CrashlyticsErrorReporter` in `crashlytics_error_reporter.dart`); no
+/// call site above needs to know which implementation is active.
 abstract class ErrorReporter {
   /// Reports [error] with its [stack]. [context] is a short, free-form label
   /// describing where the error was caught (e.g. `'FlutterError'`,
@@ -18,7 +18,7 @@ abstract class ErrorReporter {
   void reportError(Object error, StackTrace stack, {String? context});
 }
 
-/// Default [ErrorReporter], and what debug builds keep even after #287 --
+/// Default [ErrorReporter], and what debug builds keep --
 /// see `CrashlyticsErrorReporter`'s doc comment. Logs via `dart:developer`'s
 /// [developer.log], which — unlike
 /// `debugPrint` — is not a no-op in release builds and remains visible via
@@ -41,8 +41,8 @@ class LoggingErrorReporter implements ErrorReporter {
 
 /// Process-wide [ErrorReporter] access point. Defaults to
 /// [LoggingErrorReporter]; `runStartupSequence` swaps [instance] for a
-/// Crashlytics-backed implementation in release/profile builds (issue #287)
-/// instead of touching every call site that reports an error.
+/// Crashlytics-backed implementation in release/profile builds instead of
+/// touching every call site that reports an error.
 class ErrorReporting {
   ErrorReporting._();
 
@@ -50,7 +50,7 @@ class ErrorReporting {
   /// yet (including every global error hook in `main.dart`, which runs
   /// before the composition root exists). New code with a [BuildContext]
   /// should prefer `AppScope.of(context).errorReporter`
-  /// (`lib/app/app_scope.dart`, issue #281) instead of reaching for this
+  /// (`lib/app/app_scope.dart`) instead of reaching for this
   /// directly -- it resolves to the exact same object in production, just
   /// through the app's composition root rather than a global.
   static ErrorReporter instance = const LoggingErrorReporter();

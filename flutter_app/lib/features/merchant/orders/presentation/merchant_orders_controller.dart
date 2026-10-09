@@ -9,10 +9,8 @@ import '../../store/models/merchant_vertical.dart';
 import '../data/merchant_orders_repository.dart';
 import '../models/merchant_order.dart';
 
-/// `ChangeNotifier` controller for the "Orders" screen (ported from
-/// `merchant_app`, originally issue #134, unified into the main app by
-/// issue #232), following the same pattern as `MerchantStoreController` and
-/// `MerchantCatalogController` from issue #133.
+/// `ChangeNotifier` controller for the "Orders" screen, following the
+/// same pattern as `MerchantStoreController` and `MerchantCatalogController`.
 class MerchantOrdersController extends ChangeNotifier
     with LoadableState, SavableState {
   // These named parameters are constructed directly by tests (e.g.
@@ -78,7 +76,7 @@ class MerchantOrdersController extends ChangeNotifier
   }
 
   /// Advances [order] to [newStatus] via the vertical's
-  /// `advance_*_order_status` RPC (issue #131) -- accept/reject on a
+  /// `advance_*_order_status` RPC -- accept/reject on a
   /// `confirmed` order, or moving through the rest of the vocabulary.
   /// Returns `true` on success. On failure, [saveError] carries the
   /// server's own rejection message (see

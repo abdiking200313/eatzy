@@ -49,8 +49,8 @@ class RestaurantMenuRepository {
       try {
         item = MenuItem.fromMap(row);
       } on FormatException catch (error, stackTrace) {
-        // Exclude just this item rather than failing the whole menu load
-        // (see #62) — a bad price must never fall back to $0.00 (a real
+        // Exclude just this item rather than failing the whole menu load --
+        // a bad price must never fall back to $0.00 (a real
         // charge with no on-screen warning), but nor should it block every
         // other item on the menu from being shown.
         ErrorReporting.instance.reportError(

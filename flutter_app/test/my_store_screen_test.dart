@@ -47,9 +47,7 @@ class _NeverCompletingStoreRepository implements MerchantStoreRepository {
 }
 
 // Widget-tests "My Store"'s explicit loading/empty/error/loaded states
-// (ported from `merchant_app`, originally issue #133's acceptance criteria,
-// unified into the main app by issue #232) against a fake repository -- no
-// Supabase network access in this sandbox.
+// against a fake repository -- no Supabase network access in this sandbox.
 void main() {
   Widget wrap(Widget child) => AppScope(
     services: buildTestAppServices(),

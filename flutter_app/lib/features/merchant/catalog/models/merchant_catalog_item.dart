@@ -35,9 +35,7 @@ enum GroceryPricingUnit {
 /// One row from whichever catalog-item table [vertical] maps to
 /// (`menu_items` / `grocery_products` / `pharmacy_products`). Fields that
 /// only exist on some verticals' tables are `null` on the others -- see
-/// `merchant_vertical.dart` for the exact column mapping. Ported from
-/// `merchant_app` (originally issue #133, unified into the main app by
-/// issue #232).
+/// `merchant_vertical.dart` for the exact column mapping.
 class MerchantCatalogItem {
   const MerchantCatalogItem({
     required this.id,

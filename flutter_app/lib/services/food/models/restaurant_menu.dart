@@ -71,7 +71,7 @@ class MenuItem {
   final String name;
   final String description;
 
-  /// Price in integer cents (smallest currency unit) — see issue #8. Convert
+  /// Price in integer cents (smallest currency unit). Convert
   /// to decimal dollars only at display time, via
   /// `AppMoney.formatCents(price)`.
   final int price;
@@ -79,7 +79,7 @@ class MenuItem {
   final String categoryId;
 
   /// Throws a [FormatException] when `price` is missing or unparseable
-  /// rather than defaulting to `0` (see #62): a menu item silently priced at
+  /// rather than defaulting to `0`: a menu item silently priced at
   /// $0.00 could be added to cart for free client-side even though the
   /// server would still charge the real amount, which is worse than not
   /// showing the item at all. [RestaurantMenuRepository] catches this per

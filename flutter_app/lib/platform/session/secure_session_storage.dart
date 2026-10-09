@@ -5,7 +5,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 /// Reads and deletes a single string value from the legacy plaintext
 /// `SharedPreferences` store used by supabase_flutter's own
 /// [SharedPreferencesLocalStorage] before this app switched to
-/// [SecureSessionStorage] (issue #7).
+/// [SecureSessionStorage].
 ///
 /// This narrow seam exists so [SecureSessionStorage]'s one-time migration
 /// can be unit tested without standing up a `SharedPreferencesAsync`
@@ -33,15 +33,15 @@ class _SharedPreferencesLegacySessionStore implements LegacySessionStore {
 /// plaintext SharedPreferences, matching the raw JSON string contract used
 /// by supabase_flutter's own [SharedPreferencesLocalStorage].
 ///
-/// Before issue #7 (commit `0b3b626`), this app took supabase_flutter's own
-/// default `localStorage`, [SharedPreferencesLocalStorage], which persists
-/// the full session JSON (access token *and* refresh token) in plaintext
+/// [initialize]'s migration exists because supabase_flutter's own default
+/// `localStorage`, [SharedPreferencesLocalStorage], persists the full
+/// session JSON (access token *and* refresh token) in plaintext
 /// `SharedPreferences` under a key derived from the project URL:
-/// `sb-<project-ref>-auth-token`. #7 switched storage to here but shipped no
-/// migration for the old store or key, so upgrading users with a still-valid
-/// session were silently signed out (secure storage was empty, so
-/// [hasAccessToken] reported false) while the plaintext refresh token stayed
-/// on disk, unread and unrevoked, indefinitely (issue #179).
+/// `sb-<project-ref>-auth-token`. Without this migration, a user with a
+/// still-valid session in that legacy plaintext store would be silently
+/// signed out (secure storage would be empty, so [hasAccessToken] would
+/// report false) while the plaintext refresh token stayed on disk, unread
+/// and unrevoked, indefinitely.
 ///
 /// [initialize] performs that one-time migration on every app start: it
 /// reads the legacy key, writes it through to secure storage only if secure
@@ -68,7 +68,7 @@ class SecureSessionStorage extends LocalStorage {
   /// supabase_flutter's default `SharedPreferencesLocalStorage` does
   /// (`supabase_flutter-2.12.4/lib/src/supabase.dart:112-117`), from the
   /// configured Supabase URL rather than hardcoding the project ref, so this
-  /// keeps working if a dev/staging/prod URL split lands later (issue #42).
+  /// keeps working if a dev/staging/prod URL split lands later.
   static String _legacyKeyFor(String supabaseUrl) {
     final projectRef = Uri.parse(supabaseUrl).host.split('.').first;
     return 'sb-$projectRef-auth-token';

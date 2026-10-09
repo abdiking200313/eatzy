@@ -22,7 +22,7 @@ class LoginScreen extends StatefulWidget {
 
   /// Overrides the default [MerchantRoleService] used to decide whether a
   /// successful sign-in should land on the merchant dashboard instead of
-  /// the customer home (issue #232). Only intended for tests.
+  /// the customer home. Only intended for tests.
   final MerchantRoleService? merchantRoleService;
 
   @override
@@ -71,7 +71,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
     if (!mounted) return;
 
-    // Issue #232: same sign-in form for every account -- a
+    // Same sign-in form for every account -- a
     // `merchant`/`admin` `profiles.role` lands on the merchant dashboard
     // instead of the customer home, decided here right after a
     // successful sign-in (and again on session-restore at app start, see

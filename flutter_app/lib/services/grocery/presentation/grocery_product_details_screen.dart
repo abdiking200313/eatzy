@@ -15,8 +15,8 @@ import 'grocery_controller.dart';
 /// Full-screen details for one grocery product, reached either by tapping
 /// its row in `GroceryStoreScreen` or directly via
 /// `AppRoutes.groceryProductDetails` (deep link / browser URL). A go_router
-/// destination, like `RestaurantScreen`/`MenuItemDetailsScreen` (issue
-/// #288): it only takes [storeId]/[productId] and loads the product itself
+/// destination, like `RestaurantScreen`/`MenuItemDetailsScreen`: it only
+/// takes [storeId]/[productId] and loads the product itself
 /// from the same [GroceryController] catalog `GroceryStoreScreen` reads
 /// from, rather than taking the whole [GroceryProduct] object.
 class GroceryProductDetailsScreen extends StatefulWidget {

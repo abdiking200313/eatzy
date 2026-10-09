@@ -17,10 +17,10 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'helpers/app_scope_test_helpers.dart';
 
 void main() {
-  // Issue #284: with no injected authService, LoginScreen now resolves its
-  // default AuthService via AppScope.of(context) instead of
-  // `Supabase.instance.client` -- this only exercises that AppScope-backed
-  // default is constructible and the screen still renders, not a real
+  // With no injected authService, LoginScreen resolves its
+  // default AuthService via AppScope.of(context) -- this only exercises
+  // that AppScope-backed default is constructible and the screen still
+  // renders, not a real
   // sign-in (nothing taps "Sign in" here).
   testWidgets(
     'renders using the AppScope-backed default AuthService when none is '
@@ -65,7 +65,7 @@ void main() {
     );
   });
 
-  // Issue #232's core acceptance criteria, exercised end-to-end through the
+  // Exercised end-to-end through the
   // main app's *existing* sign-in screen (no second merchant sign-in UI):
   // after a successful sign-in, a `merchant`/`admin` `profiles.role` lands on
   // the merchant dashboard route instead of the customer home, and a
@@ -216,9 +216,9 @@ void main() {
       },
     );
 
-    // Issue #295: the post-sign-in `context.go` call was moved outside the
-    // try/catch around `signInWithEmailPassword` so that a navigation
-    // failure after a successful sign-in no longer gets reported as a
+    // The post-sign-in `context.go` call sits outside the
+    // try/catch around `signInWithEmailPassword`, so a navigation
+    // failure after a successful sign-in does not get reported as a
     // sign-in failure. Reproduced here with no GoRouter ancestor at all, so
     // the post-success `context.go` call throws -- caught in a nested zone
     // (rather than via `tester.takeException()`) because this exception

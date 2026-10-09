@@ -2,8 +2,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 /// Persists whether this device has already completed or skipped the
 /// first-launch welcome/onboarding flow (see `WelcomeScreen`), so a
-/// returning signed-out user is not shown it again on a later launch
-/// (issue #15).
+/// returning signed-out user is not shown it again on a later launch.
 abstract class OnboardingPreferences {
   Future<bool> hasSeenOnboarding();
 

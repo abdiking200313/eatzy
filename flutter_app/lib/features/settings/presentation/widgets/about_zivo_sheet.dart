@@ -8,7 +8,7 @@ import '../../../../config/theme.dart';
 /// Zivo has no CMS-backed about content or app-version reader wired up yet,
 /// so this intentionally stays a small static sheet (app identity plus a
 /// one-line description) rather than a new routed screen or a dependency
-/// on a package-info plugin — either would be out of scope for issue #10.
+/// on a package-info plugin.
 class AboutZivoSheet extends StatelessWidget {
   const AboutZivoSheet({super.key});
 

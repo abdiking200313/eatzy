@@ -22,9 +22,9 @@ import 'widgets/track_order_message.dart';
 /// charges, delivery address and payment, with an "Order again" action.
 ///
 /// With no id/service — the bare `/track-order` route, e.g. an old deep
-/// link — it renders a "no order selected" empty state instead of crashing
-/// (see issue #43). There is still no courier assignment anywhere in the
-/// schema (issue #80), so no courier card or ETA is shown.
+/// link — it renders a "no order selected" empty state instead of
+/// crashing. There is still no courier assignment anywhere in the schema,
+/// so no courier card or ETA is shown.
 class TrackOrderScreen extends StatefulWidget {
   const TrackOrderScreen({
     super.key,
@@ -56,13 +56,13 @@ class _TrackOrderScreenState extends State<TrackOrderScreen> {
   Future<OrderDetails?>? _future;
   // Evaluated lazily on first access (only from `_orderAgainPressed`, a
   // button callback that never fires before this screen's first build), so
-  // `AppScope.of(context)` is safe to call here -- see issue #283.
+  // `AppScope.of(context)` is safe to call here.
   late final OrderAgainService _orderAgain =
       widget.orderAgainService ??
       OrderAgainService(appServices: AppScope.of(context));
   bool _loadingReorder = false;
 
-  // Live updates (issue #297): a tick/ping subscription that just triggers a
+  // Live updates: a tick/ping subscription that just triggers a
   // refetch on every event rather than carrying the order itself -- see
   // `OrderDetailsSource.watchOrder`. Kept alive across refetches (started
   // once, not resubscribed per tick) and cancelled once the order reaches a
@@ -249,7 +249,7 @@ class _TrackOrderScreenState extends State<TrackOrderScreen> {
         'No longer available: ${basket.skippedNames.join(', ')}',
       );
     }
-    // `go`: each cart lives in its service's shell branch (issue #67).
+    // `go`: each cart lives in its service's shell branch.
     context.go(cartRoute);
   }
 }

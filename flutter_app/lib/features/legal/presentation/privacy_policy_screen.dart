@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'legal_document_screen.dart';
 
-/// Zivo's Privacy Policy, reachable from Settings → Privacy Policy
-/// (issue #37).
+/// Zivo's Privacy Policy, reachable from Settings → Privacy Policy.
 ///
 /// The text below reflects what the app actually collects, derived from a
 /// codebase scan rather than boilerplate: Supabase auth (email/password),
@@ -11,15 +10,15 @@ import 'legal_document_screen.dart';
 /// across the food/grocery/pharmacy verticals, `payment_methods` (brand +
 /// last four only — never a full card number), `wallet_transactions`,
 /// locally-stored notification preferences, and the two third-party hosts
-/// issue #37 called out (`fonts.gstatic.com` via `google_fonts`,
+/// this app uses (`fonts.gstatic.com` via `google_fonts`,
 /// `lh3.googleusercontent.com` for onboarding illustration images). The
-/// account-deletion section matches `delete_own_account` (issue #36)
-/// exactly — see `lib/features/profile/data/profile_repository.dart` and
+/// account-deletion section matches `delete_own_account` exactly — see
+/// `lib/features/profile/data/profile_repository.dart` and
 /// `supabase/migrations/20260919000000_add_delete_own_account_rpc.sql`.
 ///
 /// This screen is in-app content, not a hosted external page — see
-/// `LegalDocumentScreen`'s doc comment and the issue #37 PR description for
-/// the app-store-submission gap this does not close.
+/// `LegalDocumentScreen`'s doc comment for the app-store-submission gap
+/// this does not close.
 class PrivacyPolicyScreen extends StatelessWidget {
   const PrivacyPolicyScreen({super.key});
 

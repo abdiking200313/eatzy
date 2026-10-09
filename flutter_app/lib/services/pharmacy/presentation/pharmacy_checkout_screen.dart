@@ -22,7 +22,7 @@ class _PharmacyCheckoutScreenState extends State<PharmacyCheckoutScreen> {
 
   Map<String, String> _errors = const {};
 
-  /// Identifies this checkout attempt (issue #59): generated once when this
+  /// Identifies this checkout attempt: generated once when this
   /// screen is first built and reused for every retry on this same visit,
   /// so a lost response followed by a retry collapses into the original
   /// order server-side instead of creating a duplicate. A fresh visit to

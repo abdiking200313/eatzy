@@ -4,7 +4,7 @@ import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 
 import 'error_reporter.dart';
 
-/// Thin wrapper over [FirebaseCrashlytics] (issue #287), mirroring how
+/// Thin wrapper over [FirebaseCrashlytics], mirroring how
 /// [PushNotificationGateway]
 /// (`lib/platform/notifications/push_notifications.dart`) wraps
 /// `firebase_messaging`: [CrashlyticsErrorReporter] depends on this
@@ -64,7 +64,7 @@ class FirebaseCrashlyticsClient implements CrashlyticsClient {
       _crashlytics.setCrashlyticsCollectionEnabled(enabled);
 }
 
-/// [ErrorReporter] backed by Firebase Crashlytics (issue #287). Wired in as
+/// [ErrorReporter] backed by Firebase Crashlytics. Wired in as
 /// [ErrorReporting.instance] from `runStartupSequence`
 /// (`lib/platform/startup/startup_gate.dart`) in release/profile builds
 /// only, once Firebase has been initialized -- debug builds keep

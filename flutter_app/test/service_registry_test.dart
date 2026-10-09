@@ -14,8 +14,8 @@ void main() {
     // store lists), so tiles are told apart by slug, not id.
     expect(slugs.length, ServiceRegistry.modules.length);
     expect(routes.length, ServiceRegistry.modules.length);
-    // ServiceId.unknown is a fallback for legacy/malformed activity rows
-    // (#62), not a purchasable module, so it is intentionally absent from
+    // ServiceId.unknown is a fallback for legacy/malformed activity rows,
+    // not a purchasable module, so it is intentionally absent from
     // ServiceRegistry.modules.
     expect(
       ids,

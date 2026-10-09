@@ -1,7 +1,7 @@
 /// A saved delivery address, mapped from a `public.delivery_addresses` row
-/// (issue #78 -- the shared platform table every vertical's order-placement
-/// RPC can optionally resolve a fulfilment snapshot from, instead of each
-/// vertical inventing its own address shape).
+/// (the shared platform table every vertical's order-placement RPC can
+/// optionally resolve a fulfilment snapshot from, instead of each vertical
+/// inventing its own address shape).
 ///
 /// This is a *platform* model (`lib/features/addresses/**`), not a
 /// service-specific one: it is intentionally distinct from

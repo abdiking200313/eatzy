@@ -4,7 +4,7 @@ import '../../../../config/theme.dart';
 
 /// A single toggle row. Rendered bare (no card of its own) so a screen can
 /// compose several rows inside one shared `OutlinedCard` with internal
-/// dividers — "one card per list, not one card per row" (#21/#27).
+/// dividers — "one card per list, not one card per row".
 class ToggleCard extends StatelessWidget {
   const ToggleCard({
     super.key,

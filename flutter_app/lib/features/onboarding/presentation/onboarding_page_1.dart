@@ -4,9 +4,9 @@ import '../../../config/theme.dart';
 import '../../../widgets/app_cards.dart';
 import 'widgets/onboarding_page.dart';
 
-/// Screen 1 of the redesigned onboarding flow (issue #233): "See What's
-/// Open Near You" — a distance chip above a short list of nearby
-/// restaurants. Sample/placeholder content for the mockup, not real data.
+/// Screen 1 of the onboarding flow: "See What's Open Near You" — a
+/// distance chip above a short list of nearby restaurants.
+/// Sample/placeholder content for the mockup, not real data.
 class OnboardingPage1 extends StatelessWidget {
   const OnboardingPage1({super.key});
 

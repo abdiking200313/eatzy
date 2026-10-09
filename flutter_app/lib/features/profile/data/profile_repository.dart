@@ -29,8 +29,8 @@ abstract interface class ProfileRepository {
   });
 
   /// Permanently deletes (anonymizes) the current authenticated user's own
-  /// account via the `delete_own_account` Supabase RPC (issue #36 — App
-  /// Store Guideline 5.1.1(v)/Google Play require an in-app deletion path).
+  /// account via the `delete_own_account` Supabase RPC (App Store Guideline
+  /// 5.1.1(v)/Google Play require an in-app deletion path).
   ///
   /// Scoped to the signed-in user only — the RPC is `security definer` and
   /// derives the target row from `auth.uid()` server-side, never from a

@@ -11,9 +11,8 @@ import '../models/merchant_order_vertical.dart';
 /// [message] is the RPC's own `raise exception` text, which is already
 /// specific and human-readable (e.g. "Illegal food order status transition:
 /// confirmed -> out_for_delivery"), so it is surfaced to the merchant
-/// verbatim rather than replaced with a generic message -- issue #134
-/// requires an illegal transition to produce a clear error, not a silent
-/// no-op.
+/// verbatim rather than replaced with a generic message, keeping an
+/// illegal transition a clear error rather than a silent no-op.
 class OrderStatusTransitionException implements Exception {
   const OrderStatusTransitionException(this.message);
 
@@ -23,13 +22,12 @@ class OrderStatusTransitionException implements Exception {
   String toString() => message;
 }
 
-/// Data access for the signed-in merchant's own orders (ported from
-/// `merchant_app`, originally issue #134, unified into the main app by
-/// issue #232): `food_orders` / `grocery_orders` / `pharmacy_orders`, scoped
-/// to the caller's own store via the select policies added in
+/// Data access for the signed-in merchant's own orders: `food_orders` /
+/// `grocery_orders` / `pharmacy_orders`, scoped to the caller's own store
+/// via the select policies added in
 /// `supabase/migrations/20260920000000_add_merchant_order_read_policies.sql`,
 /// and status changes driven exclusively through the `advance_*_order_status`
-/// RPCs from issue #131 -- no direct table writes, per the issue.
+/// RPCs -- no direct table writes.
 abstract interface class MerchantOrdersRepository {
   /// Fetches every order belonging to [storeId] in [vertical], newest
   /// first, each with its line items.

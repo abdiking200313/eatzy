@@ -5,9 +5,7 @@ import 'package:chowflow/features/merchant/orders/presentation/merchant_orders_c
 import 'package:chowflow/features/merchant/store/models/merchant_vertical.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-/// This test (ported from `merchant_app`, originally issue #135's third
-/// acceptance bullet, unified into the main app by issue #232) fills a real
-/// gap left by the other merchant test suites
+/// This test fills a gap left by the other merchant test suites
 /// (`merchant_orders_controller_test.dart`, `order_detail_screen_test.dart`,
 /// `orders_screen_test.dart`): those all test the *error-handling path* --
 /// what happens when something (the fake standing in for the RPC) rejects a
@@ -18,7 +16,7 @@ import 'package:flutter_test/flutter_test.dart';
 /// target status via `nextForwardOrderStatus`/`canCancelOrder`) never even
 /// *attempt* an illegal transition in the first place. That is what this
 /// file tests, as defense in depth -- not a substitute for the server-side
-/// check in `is_legal_order_status_transition` (issue #131), which remains
+/// check in `is_legal_order_status_transition`, which remains
 /// the real enforcement point.
 ///
 /// [_legalTransitions] is transcribed independently from

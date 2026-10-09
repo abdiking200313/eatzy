@@ -1,7 +1,7 @@
 import '../features/merchant/auth/data/merchant_role_service.dart';
 
 /// Caches whether the currently signed-in account should land on the
-/// merchant dashboard instead of the customer home (issue #232).
+/// merchant dashboard instead of the customer home.
 ///
 /// `AppRouter.resolveRedirect` needs this decision synchronously on every
 /// navigation, but the underlying `profiles.role` lookup
@@ -12,7 +12,7 @@ import '../features/merchant/auth/data/merchant_role_service.dart';
 /// role is still unknown. Login and session-restore at app start call it
 /// too, sharing the same in-flight lookup, mirroring how
 /// `OnboardingLaunchGate.hasSeenOnboarding` is loaded once at startup for
-/// the same reason (issue #15).
+/// the same reason.
 class MerchantSessionGate {
   MerchantSessionGate._();
 

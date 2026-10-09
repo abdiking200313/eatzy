@@ -2,9 +2,7 @@ import '../../store/models/merchant_vertical.dart';
 import 'merchant_order_vertical.dart';
 
 /// One line item on a [MerchantOrder], from whichever `_order_items` table
-/// [MerchantOrderVerticalConfig.orderItemsTable] names. Ported from
-/// `merchant_app` (originally issue #134, unified into the main app by
-/// issue #232).
+/// [MerchantOrderVerticalConfig.orderItemsTable] names.
 class MerchantOrderLineItem {
   const MerchantOrderLineItem({
     required this.id,
@@ -44,7 +42,7 @@ class MerchantOrderLineItem {
 
 /// One order row from whichever vertical table
 /// [MerchantOrderVerticalConfig.orderTable] names, for the merchant
-/// incoming-order queue and fulfillment screens (originally issue #134).
+/// incoming-order queue and fulfillment screens.
 /// See `merchant_order_vertical.dart`'s header for exactly which migrations
 /// each field is verified against.
 class MerchantOrder {
@@ -75,8 +73,8 @@ class MerchantOrder {
   final String status;
   final DateTime createdAt;
 
-  /// All money fields are integer cents (see `AGENTS.md` / issue #8) --
-  /// convert to a decimal-dollar string only at display time, via
+  /// All money fields are integer cents (see `AGENTS.md`) -- convert to a
+  /// decimal-dollar string only at display time, via
   /// `AppMoney.formatCents`.
   final int subtotalCents;
   final int deliveryFeeCents;
@@ -117,8 +115,7 @@ class MerchantOrder {
   final String? deliveryInstructions;
 
   /// Raw `payment_method` / `payment_status` values (cash-on-delivery-only
-  /// launch scaffolding, issue #30) -- both `null` for a legacy row from
-  /// before those columns existed.
+  /// launch scaffolding) -- both `null` for a row predating those columns.
   final String? paymentMethod;
   final String? paymentStatus;
 

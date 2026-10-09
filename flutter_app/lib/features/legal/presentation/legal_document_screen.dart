@@ -46,9 +46,8 @@ class LegalDocument {
 ///
 /// In-app only: this satisfies "the user can read the policy inside the
 /// app", but app-store submission additionally requires a **hosted,
-/// external URL** reachable outside the app — see issue #37's PR
-/// description and `docs/legal/` for the same text ready to publish
-/// elsewhere.
+/// external URL** reachable outside the app — see `docs/legal/` for the
+/// same text ready to publish elsewhere.
 class LegalDocumentScreen extends StatelessWidget {
   const LegalDocumentScreen({super.key, required this.document});
 

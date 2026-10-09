@@ -34,25 +34,24 @@ class FoodCheckoutResult {
 }
 
 /// Owns food checkout/order-placement state, mirroring the
-/// `GroceryController`/`PharmacyController` pattern (issue #4).
+/// `GroceryController`/`PharmacyController` pattern.
 ///
 /// Unlike grocery and pharmacy, food's *cart* stays owned by the app-wide
-/// [CartController] — only the checkout/order-placement logic that used to
-/// live inline in `CheckoutScreen`'s `State` moves here. Because of that,
-/// this controller holds no cross-screen state of its own (no cart, no
-/// catalog) beyond the transient submission status for a single checkout
-/// attempt, so — deliberately unlike `AppServices.groceryController`/
-/// `AppServices.pharmacyController` (issue #283), which cache one controller
-/// per vertical for the app's lifetime — this controller is not cached
-/// anywhere: a shared instance would leak a stale `submissionError` across
-/// separate visits to the checkout screen, which the previous per-`State`
-/// fields never did. `CheckoutScreen` constructs its own `FoodController`
-/// scoped to its own lifetime instead.
+/// [CartController] -- this controller only holds the
+/// checkout/order-placement logic. It holds no cross-screen state of its
+/// own (no cart, no catalog) beyond the transient submission status for a
+/// single checkout attempt, so — deliberately unlike
+/// `AppServices.groceryController`/`AppServices.pharmacyController`, which
+/// cache one controller per vertical for the app's lifetime — this
+/// controller is not cached anywhere: a shared instance would leak a stale
+/// `submissionError` across separate visits to the checkout screen.
+/// `CheckoutScreen` constructs its own `FoodController` scoped to its own
+/// lifetime instead.
 ///
-/// [orderRepository] is required (issue #282, composition root phase 2/5):
-/// there is no default Supabase-backed fallback here any more, since this
-/// is a plain non-widget class with no `BuildContext` of its own to resolve
-/// `AppScope.of(context)` itself. The caller — a screen that *does* have a
+/// [orderRepository] is required: there is no default Supabase-backed
+/// fallback here, since this is a plain non-widget class with no
+/// `BuildContext` of its own to resolve `AppScope.of(context)` itself. The
+/// caller — a screen that *does* have a
 /// `BuildContext` — is expected to pass one in, typically
 /// `SupabaseFoodOrderRepository(client: AppScope.of(context).supabaseClient)`.
 class FoodController extends ChangeNotifier {
@@ -78,14 +77,14 @@ class FoodController extends ChangeNotifier {
   /// [confirmDemoOrder] flow, records activity, and clears the cart.
   ///
   /// When the cart has no restaurant selected or no items, this is a no-op
-  /// (matching the previous inline guard clause) and no submission state is
-  /// touched. Likewise a no-op — without touching submission state — while a
+  /// and no submission state is touched. Likewise a no-op — without
+  /// touching submission state — while a
   /// previous call is still in flight (see [isSubmitting]): this is a
   /// belt-and-braces guard against a double-tap or a second programmatic
   /// call racing the first one, on top of the checkout screen already
   /// disabling its submit button while [isSubmitting] is true.
   ///
-  /// [idempotencyKey] identifies this checkout *attempt* (issue #59) and is
+  /// [idempotencyKey] identifies this checkout *attempt* and is
   /// forwarded to `place_food_order` so a retried submission (the same key)
   /// returns the existing order instead of creating a duplicate. Callers
   /// should generate one per attempt (e.g. once per checkout screen visit)
@@ -136,8 +135,8 @@ class FoodController extends ChangeNotifier {
           // injected repository/test double returns `null`; it mirrors the
           // client-side estimate the cart screen already showed, since no
           // server round trip actually happened.
-          // `?? 0` only matters if pricing has never loaded (issue #279) —
-          // this demo-only fallback never represents a real charge either
+          // `?? 0` only matters if pricing has never loaded -- this
+          // demo-only fallback never represents a real charge either
           // way, unlike the real RPC path above it.
           fallbackOrder: () => PlacedOrder(
             orderId: 'food-${DateTime.now().microsecondsSinceEpoch}',
@@ -164,7 +163,7 @@ class FoodController extends ChangeNotifier {
             ]);
           },
           // `order.total` is the RPC's authoritative, server-computed total
-          // (issue #60) — not `_cartController.total`, which can be stale if a
+          // — not `_cartController.total`, which can be stale if a
           // menu price changed between the cart being built and this checkout
           // being confirmed.
           recordActivity: (order) => _activityController.record(

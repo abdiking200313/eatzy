@@ -4,9 +4,8 @@ import '../../shared/merchant_slug_id.dart';
 import '../../store/models/merchant_vertical.dart';
 import '../models/merchant_catalog_item.dart';
 
-/// Data access for the signed-in merchant's own catalog items (ported from
-/// `merchant_app`, originally issue #133, unified into the main app by
-/// issue #232): `menu_items` / `grocery_products` / `pharmacy_products`,
+/// Data access for the signed-in merchant's own catalog items:
+/// `menu_items` / `grocery_products` / `pharmacy_products`,
 /// scoped through the parent store's `owner_id` per
 /// `supabase/migrations/20260830130000_add_merchant_catalog_write_policies.sql`
 /// ("ownership is inherited from the parent store" -- these item tables
