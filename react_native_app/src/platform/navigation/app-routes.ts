@@ -41,9 +41,9 @@ export const AppRoutes = {
 
   // The merchant dashboard. A signed-in `merchant`/`admin` account is
   // confined to this path (and any sub-path under it) for the whole
-  // session -- see `isMerchantReachableLocation` in `redirect.ts`. Wiring
-  // the actual role check through lands in #363 (merchant session gate);
-  // this file only carries the path itself.
+  // session -- see `isMerchantReachableLocation` in `redirect.ts`, and the
+  // role check itself in `src/stores/merchant-session-gate.ts` (issue
+  // #363). This file only carries the path itself.
   merchantDashboard: '/merchant',
 
   food: '/food',

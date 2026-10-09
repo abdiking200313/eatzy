@@ -9,23 +9,16 @@
  * _layout.tsx` and `src/app/(app)/_layout.tsx` are what supply the real
  * inputs (session store state, `usePathname()`, the `revisit` query param).
  *
- * One of `resolveRedirect`'s Flutter inputs is still hard-coded to its
- * "nothing special happening yet" default at every call site in this app,
- * pending a later issue that supplies the real value:
- *  - `isMerchant` (always `false` here) -- Flutter's `MerchantSessionGate`
- *    (a `profiles.role` lookup) has no RN port yet; that lands in #363
- *    (merchant session gate). Until then every signed-in account is routed
- *    as a customer, which is already every account that exists in this
- *    app's RN build.
- * `hasSeenOnboarding` *was* hard-coded to `false` the same way until #360
- * (startup gate), which ports Flutter's `OnboardingLaunchGate` as
- * `src/stores/onboarding-store.ts` and now passes its real
- * `hasSeenOnboarding` value from `(auth)/_layout.tsx`/`(app)/_layout.tsx`.
- * Both parameters stay on `resolveRedirect` itself (rather than being
- * dropped once wired) so this function's own behavior can be exercised
- * against every case in `app_router_test.dart`, including the merchant
- * ones, the same way Flutter's test calls `AppRouter.resolveRedirect`
- * directly with explicit booleans instead of a real session/role lookup.
+ * `hasSeenOnboarding` and `isMerchant` both default to `false` on
+ * `ResolveRedirectOptions` only so every case in `app_router_test.dart`
+ * (including the merchant ones) can be exercised directly against this
+ * pure function, the same way Flutter's test calls
+ * `AppRouter.resolveRedirect` with explicit booleans instead of a real
+ * session/role lookup. Every real call site now supplies its own real
+ * value instead of relying on that default: `hasSeenOnboarding` comes from
+ * `src/stores/onboarding-store.ts` (issue #360); `isMerchant` comes from
+ * `src/stores/merchant-session-gate.ts` (issue #363, porting Flutter's
+ * `MerchantSessionGate`) via `(auth)/_layout.tsx`/`(app)/_layout.tsx`.
  */
 import { AppRoutes, isProtectedLocation } from './app-routes';
 
@@ -56,7 +49,7 @@ export interface ResolveRedirectOptions {
   hasSeenOnboarding?: boolean;
   /** True for `AppRoutes.welcomeRevisit`'s `?revisit=true` -- see {@link isWelcomeRevisit}. */
   revisitWelcome?: boolean;
-  /** See this file's top comment -- always `false` at every real call site until #363 lands. */
+  /** Real value supplied by `src/stores/merchant-session-gate.ts` (issue #363) -- see this file's top comment. */
   isMerchant?: boolean;
 }
 
