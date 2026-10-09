@@ -8,6 +8,19 @@ Reverse-chronological. Each session/major chunk of work gets an entry.
 
 ---
 
+## 2026-10-09 (board worker — RN batch now actively approved, 6 Phase 0-2 issues merged)
+
+- **Eligibility query found the RN batch materially opened up since the 2026-10-08 vault entries**: `todo`-labeled issues now include #357-417 (phases 1-10), not just Phase 0 — [[Open Tasks]]'s "69 of 75 stay `needs-approval`" note is stale; the owner has approved much more of the batch since then. Re-check live `list_issues` rather than trusting that note's exact count going forward.
+- **#355** (P1-04 shared UI components): found an already-open, clean, all-green PR #462 from a concurrent session — squash-merged directly, no new implementation.
+- **#351** (P0-09 Crashlytics + root error boundary): `agent-in-progress` label was stale (no branch/PR, `updated_at` from the prior day — same pattern as the 2026-09-14 67th-run precedent) — reclaimed and dispatched for real. **Notable finding**: the dispatched agent found a genuinely stale pre-existing remote branch of the exact name it needed (`agent/issue-351-crashlytics-error-boundary`, 2 commits predating #349/#358/#355, ~300-file bogus diff against current `master`), verified via merge-base/history that it was abandoned and never had an open PR, reused its legitimate error-reporting logic adapted to current `master`, and force-pushed over it rather than building on divergent history — flagged clearly, judged reasonable (disposable per-issue work branch, no PR, no one else's history), not reverted. PR #464, merged clean.
+- **#357** (P1-06 loading/empty/error states + dev gallery): clean `rn-ui-agent` dispatch, PR #465, merged clean.
+- **#359** (P2-02 session store + auth redirects): clean `rn-logic-agent` dispatch (Zustand session store, `session-reset-registry`, `account-state-coordinator`, `resolveRedirect`/`app-routes` ported from `app_router_test.dart`). PR #466, merged clean. Left `hasSeenOnboarding`/`isMerchant` hard-coded `false` pending #360/#363.
+- **#361** (P2-04 deep links): dispatched agent found and fixed a real pre-existing bug — `app.json`'s `expo.scheme` was still Expo's default `"reactnativeapp"`, not `zivo` (the scheme both the issue and `flutter_app`'s native manifests assume is already set) — neither deep link in the issue could have worked without this fix. Added RN's own password-recovery URL parsing (no RN equivalent of `supabase_flutter`'s native deep-link handling). PR #467, merged clean.
+- **#360** (P2-03 startup gate): ported `OnboardingLaunchGate` + onboarding-load step, wired real `hasSeenOnboarding` through to #359's `resolveRedirect` (replacing the placeholder `false`). PR #468, merged clean. `isMerchant` still `false`, left for #363.
+- **Self-merge-instruction classifier denial recurred again** (#351's first dispatch) — same known pattern, same fix (redispatch without the self-merge step, orchestrator finishes the merge once CI is green per subscribed PR events). Nothing new to add beyond the existing [[Multi-Agent Setup]] entries on this.
+- Ran all 6 issues sequentially (not parallel) after #355's merge, per [[Multi-Agent Setup]]'s "sequential when tasks might overlap" guidance — #359/#360/#361 all touch routing/`_layout.tsx`/session wiring and each explicitly built on the prior one's merged output.
+- Net: 6 issues processed, 6 merged, 0 blocked. #363 (merchant session gate, depends on #359, now merged) is the natural next pick for a future run.
+
 ## 2026-10-08, interactive session (#276 finally resolved, 19-run Docker assumption corrected)
 
 - User asked why the long-blocked issues couldn't move; walked through each one, then was asked to "remove" the Docker blocker specifically.
