@@ -1,4 +1,4 @@
-import { QueryClientProvider } from '@tanstack/react-query';
+import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useColorScheme } from 'react-native';
@@ -7,6 +7,11 @@ import { AnimatedSplashOverlay } from '@/components/animated-icon';
 import { configureErrorReporting } from '@/platform/error-reporting/configure-error-reporting';
 import { ErrorBoundary } from '@/platform/error-reporting/error-boundary';
 import { queryClient } from '@/platform/query/query-client';
+// `queryPersistOptions` also registers this module's account-change reset
+// callback with `sessionResetRegistry` as a side effect of import (see
+// query-persistence.ts's top comment) -- importing it here is what
+// activates both the persistence and that reset behavior.
+import { queryPersistOptions } from '@/platform/query/query-persistence';
 import { useStartupGate } from '@/platform/startup/use-startup-gate';
 // Side-effecting import: constructs the shared Supabase client and starts
 // its AppState-driven auto-refresh (see src/platform/supabase/client.ts).
@@ -45,7 +50,7 @@ export default function RootLayout() {
 
   return (
     <ErrorBoundary>
-      <QueryClientProvider client={queryClient}>
+      <PersistQueryClientProvider client={queryClient} persistOptions={queryPersistOptions}>
         <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
           {status === 'ready' && <AnimatedSplashOverlay />}
           <Stack screenOptions={{ headerShown: false }}>
@@ -54,7 +59,7 @@ export default function RootLayout() {
             <Stack.Screen name="merchant" />
           </Stack>
         </ThemeProvider>
-      </QueryClientProvider>
+      </PersistQueryClientProvider>
     </ErrorBoundary>
   );
 }

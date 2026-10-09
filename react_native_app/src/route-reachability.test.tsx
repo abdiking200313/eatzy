@@ -24,7 +24,7 @@
  * helper itself does not wrap a route tree) — it renders the real
  * `src/app/**` routes against a given `initialUrl`.
  *
- * Two modules are mocked because this is the first test to mount the real
+ * Three modules are mocked because this is the first test to mount the real
  * root `_layout.tsx`, which every route in this file goes through:
  *  - `@/components/animated-icon`'s `AnimatedSplashOverlay` (issue #353)
  *    pulls in `react-native-reanimated` + `react-native-worklets`; the
@@ -51,6 +51,24 @@
  *    render unguarded (no redirect) while `status === 'loading'` (see
  *    their own doc comments), which is exactly the pre-#359 behavior this
  *    file's assertions were already written against.
+ *  - `@/platform/query/query-persistence` (issue #372): `_layout.tsx` wraps
+ *    every route in `PersistQueryClientProvider`, which restores from and
+ *    subscribes to `AsyncStorage` on every mount of the *same* shared
+ *    `queryClient` singleton. That's harmless for any one route test, but
+ *    this file mounts and unmounts `_layout.tsx` dozens of times (one real
+ *    `renderRouter` call per case), and the underlying persister's
+ *    save-throttling timer (`@tanstack/query-async-storage-persister`'s
+ *    `asyncThrottle`, 1s default) does not always get torn down by the
+ *    time a given case's render unmounts, surfacing as Jest's "A worker
+ *    process has failed to exit gracefully" warning at the end of the run
+ *    (harmless — every test still passes — but worth silencing at the
+ *    source rather than leaving noise every run). `_layout.tsx` only reads
+ *    this module's `queryPersistOptions` export, so the stub below supplies
+ *    a `persister` with no-op `persistClient`/`restoreClient`/`removeClient`
+ *    methods -- no AsyncStorage access, no throttled save, nothing to leak.
+ *    `query-persistence.test.ts` already covers this module's own real
+ *    behavior (the catalog key/predicate, the 7-day `maxAge`, and the
+ *    reset-registry wiring) directly, unmocked.
  *
  * Every `renderRouter(...)` call below is `await`ed before any assertion.
  * `@testing-library/react-native` v14's `render` is itself async (see
@@ -69,6 +87,17 @@ jest.mock('@/platform/supabase/client', () => ({
     auth: {
       onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } }),
     },
+  },
+}));
+jest.mock('@/platform/query/query-persistence', () => ({
+  queryPersistOptions: {
+    persister: {
+      persistClient: () => {},
+      restoreClient: () => Promise.resolve(undefined),
+      removeClient: () => Promise.resolve(undefined),
+    },
+    maxAge: 0,
+    dehydrateOptions: { shouldDehydrateQuery: () => false },
   },
 }));
 
