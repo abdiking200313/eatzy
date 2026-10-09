@@ -1,13 +1,40 @@
 ---
 tags: [history, log, archive]
-summary: Archived Status Log entries for 2026-09-07 through 2026-09-19 (43rd-75th board-worker runs plus the 2026-09-17/18 interactive sessions), moved out of the live log once it passed the ~150-line archive threshold.
+summary: Archived Status Log entries for 2026-09-07 through 2026-09-25 (43rd-75th board-worker runs, the 2026-09-17/18/24/25 interactive sessions), moved out of the live log once it passed the ~150-line archive threshold.
 status: append-only
 upstream_concept: 00-Index
 ---
 
 # Status Log — archive 2026-09
 
-Entries moved out of [[Status Log]] on 2026-09-24 (2026-09-07 through 2026-09-14) and 2026-10-04 (2026-09-15 through 2026-09-19), both times per its ~150-line archive threshold. Reverse-chronological, verbatim.
+Entries moved out of [[Status Log]] on 2026-09-24 (2026-09-07 through 2026-09-14), 2026-10-04 (2026-09-15 through 2026-09-19), and 2026-10-09 (2026-09-24 through 2026-09-25), each time per its ~150-line archive threshold. Reverse-chronological, verbatim.
+
+## 2026-09-25 (owner-requested, interactive: address/payments removed, Fresh Meat + Electronics, shared cart/checkout, Order again)
+
+- Branch `feat/checkout-simplify-and-verticals`. Decisions in [[Decisions Log]] 2026-09-25. Shared `CheckoutView`/`CartView` in `lib/widgets/`; `DeliveryDetails` in `lib/services/shared/models/`; `OrderAgainService`/`OrderAgainRepository` in `lib/platform/activity/`. Wallet feature and dead `FoodDeal` code deleted; money is integer cents everywhere now.
+- Two migrations, **not applied live** (owner applies): `20260927000000_add_grocery_store_type.sql`, `20260927010000_make_delivery_address_optional.sql`. The client needs both before it works against live (it selects `store_type` and sends blank address fields).
+- Full suite 519/519, analyze + format clean. Done in one chat, no subagents (owner preference for token cost).
+- Follow-up (branch `feat/separate-grocery-category-carts`): Grocery / Fresh Meat / Electronics now have separate carts — `GroceryController.forType(type)`, routes and palette on `GroceryStoreType`, router builds each category's list/store/cart/checkout from `_groceryRoutes(type)`. Order again refills the right category's cart. Suite 525/525.
+
+## 2026-09-25 (board worker — nothing eligible, queue unchanged, 4 runs today)
+
+- All four runs today: `list_issues` for `todo`/`waiting-on-you` returned only the same tracking-only pair, **#29/#52** (`updated_at` unchanged: 2026-08-17/2026-08-26). `waiting-on-you` empty. Each run's only new `master` commit since the prior run was that prior run's own vault-update PR (#269, then #270, then #271) — never new work.
+- Nothing implemented in any of the four runs.
+
+## 2026-09-24, part 2 (owner-requested, interactive: shared cross-vertical widgets)
+
+- Food's item page is now a wrapper around the shared `ProductDetailsView` (gains a quantity picker; `CartController.addItem` takes `quantity`). New shared `StoreHeroAppBar`, `StoreSearchField`, `StoreRowCard`, `CartBadgeAction` in `lib/widgets/` replace the per-vertical copies. Store rows now all use pharmacy's plainer style.
+- Still duplicated, deliberately left for a separate change: cart and checkout screens.
+- Built via `/build` (ui + logic agents). Full suite 518/518.
+- Archived 2026-09-07 through 2026-09-14 entries to `archive/Status Log 2026-09.md`.
+
+## 2026-09-24 (owner-requested, interactive: profile editing moved into Settings)
+
+- Settings → Account now has Name / Phone / Date of Birth / Email rows, each editing one field in a bottom sheet (`EditFieldSheet`; DOB opens a date picker). `EditProfileScreen`, its route and the Profile tab's edit button are deleted. Email changes go through `auth.updateUser` + Supabase's confirmation link. See [[Decisions Log]] 2026-09-24.
+- Found live: `profiles` has only a SELECT policy, so the old direct `.update()` silently saved nothing in production. New `SECURITY DEFINER` RPC `update_own_profile` (migration `20260924000000`) does per-field updates with server-side validation — deliberately not an owner UPDATE policy, since `authenticated` holds column UPDATE grants on `role`/`id`/`deleted_at`. **Migration not yet applied live** (awaiting owner OK).
+- Fixed per owner decisions (see [[Decisions Log]] 2026-09-24): `20260924010000_fix_delete_own_account_anonymize.sql` (deletion never worked live because of `phone = null` vs NOT NULL; now scrubs profile + `auth.users` email/metadata, bans login, kills sessions, backfills already-deleted rows; helper lives in the unexposed `private` schema) and `20260924020000_tighten_public_table_grants.sql` (every-table audit: removes the default anon/authenticated grants incl. TRUNCATE, which RLS doesn't cover; keeps exactly what the RLS policies and app use). Settings no longer reports "delete failed" when only the post-delete sign-out errors.
+- All three 2026-09-24 migrations were **applied live by the owner** in the SQL editor. Claude Code's auto-mode check blocked the live write even with an allow rule, so production changes need the owner. Verified read-only: the RPC is authenticated-only; `private.anonymize_account` isn't callable by clients; `authenticated` can't UPDATE `profiles`/`role`; no TRUNCATE for the API roles; the catalog is still anon-readable; merchant/address writes still work; the pre-existing deleted account is fully scrubbed. The `schema_migrations` rows for these three versions still needed inserting at the time of writing.
+- Full suite 538/538. The QA agent caught a crash on sheet save (controllers disposed during the close animation); fixed by having the sheet own its controllers.
 
 ## 2026-09-19 (board worker — nothing eligible, repo down to 6 open issues, 2 runs today)
 
