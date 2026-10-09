@@ -1,4 +1,4 @@
-import { formatOrderDateTime } from './date-format';
+import { formatOrderDateTime, formatShortDate } from './date-format';
 
 describe('formatOrderDateTime', () => {
   it('formats a local date/time as "MMM d, yyyy · h:mm a"', () => {
@@ -9,5 +9,11 @@ describe('formatOrderDateTime', () => {
   it('pads single-digit minutes but not hours', () => {
     const date = new Date(2024, 11, 31, 9, 5);
     expect(formatOrderDateTime(date)).toBe('Dec 31, 2024 · 9:05 AM');
+  });
+});
+
+describe('formatShortDate', () => {
+  it('formats a local date as "MMM d, yyyy"', () => {
+    expect(formatShortDate(new Date(2007, 5, 15))).toBe('Jun 15, 2007');
   });
 });

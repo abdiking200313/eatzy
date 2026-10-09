@@ -1,18 +1,18 @@
 /**
- * Ports the sign-in-relevant half of
- * `flutter_app/lib/features/auth/data/auth_service.dart`'s `AuthService`
- * (issue #365). `signUpWithEmailPassword`/`signOut`/`resetPasswordForEmail`/
- * `updatePassword`/`updateEmail`/`getCurrentUserEmail` are out of this
- * issue's scope (sign-up/reset land with #366 and later) and are
- * deliberately not ported here.
+ * Ports `flutter_app/lib/features/auth/data/auth_service.dart`'s
+ * `AuthService`: the sign-in half landed in issue #365
+ * (`signInWithEmailPassword`/`getCurrentUserId`); this issue (#366) adds
+ * `signUpWithEmailPassword`. `signOut`/`resetPasswordForEmail`/
+ * `updatePassword`/`updateEmail`/`getCurrentUserEmail` remain out of scope
+ * and are deliberately not ported here yet.
  *
  * This is the first module under `src/features/**` in this app -- every
  * other feature so far has lived directly under `src/app/**`/`src/stores/**`
  * (see `react_native_app/AGENTS.md`'s navigation note: non-route code stays
- * out of `src/app/**`). `src/app/(auth)/login.tsx` is this module's only
- * production caller.
+ * out of `src/app/**`). `src/app/(auth)/login.tsx` and
+ * `src/app/(auth)/register.tsx` are this module's only production callers.
  */
-import type { AuthTokenResponsePassword, Session, User } from '@supabase/supabase-js';
+import type { AuthResponse, AuthTokenResponsePassword, Session, User } from '@supabase/supabase-js';
 
 import { supabase } from '@/platform/supabase/client';
 
@@ -29,9 +29,26 @@ export interface PasswordSignInSource {
   }): Promise<AuthTokenResponsePassword>;
 }
 
+/** The sign-up-relevant slice of `supabase.auth` -- see {@link PasswordSignInSource}'s doc comment. */
+export interface PasswordSignUpSource {
+  signUp(credentials: {
+    email: string;
+    password: string;
+    options?: { data?: Record<string, unknown> };
+  }): Promise<AuthResponse>;
+}
+
 export interface AuthServiceOptions {
   /** Defaults to the real `supabase.auth`. */
-  auth?: PasswordSignInSource;
+  auth?: PasswordSignInSource & PasswordSignUpSource;
+}
+
+/** The new-account fields `register.tsx` collects beyond email/password, forwarded as Supabase sign-up metadata. Mirrors `AuthService.signUpWithEmailPassword`'s `firstName`/`lastName`/`phone`/`dob` named parameters. */
+export interface SignUpDetails {
+  firstName: string;
+  lastName: string;
+  phone: string;
+  dob: Date;
 }
 
 /**
@@ -44,7 +61,7 @@ export interface AuthServiceOptions {
  * keeping {@link getCurrentUserId} synchronous like the Dart original.
  */
 export class AuthService {
-  private readonly auth: PasswordSignInSource;
+  private readonly auth: PasswordSignInSource & PasswordSignUpSource;
   private currentUserId: string | null = null;
 
   constructor(options: AuthServiceOptions = {}) {
@@ -74,6 +91,60 @@ export class AuthService {
   getCurrentUserId(): string | null {
     return this.currentUserId;
   }
+
+  /**
+   * Mirrors `AuthService.signUpWithEmailPassword`: wraps
+   * `supabase.auth.signUp`, forwarding `firstName`/`lastName`/`phone`/`dob`
+   * as the `data` sign-up metadata object GoTrue stores on the new user --
+   * same `firstname`/`lastname`/`phone`/`dob` keys the Dart service sends,
+   * so any Postgres trigger reading this metadata keeps working unchanged.
+   *
+   * Unlike {@link signInWithEmailPassword}, this does not touch
+   * {@link getCurrentUserId}'s cache: the Dart original has no equivalent
+   * caching at all (it re-reads `currentSession` on every call), and no
+   * current call site needs the newly-created user's id back out of this
+   * method -- `register.tsx` only branches on whether the response carries
+   * a `session`.
+   *
+   * `dob` is sent as a `yyyy-MM-dd` string (matching a `date` column), built
+   * from `dob`'s local year/month/day fields by {@link toDateOnlyString} --
+   * deliberately not `dob.toISOString().split('T')[0]`, which converts to
+   * UTC first and can shift the date by a day depending on the device's
+   * timezone offset. Dart's `dob.toIso8601String()` has no such shift,
+   * because an unspecified-UTC `DateTime` serializes its own local fields
+   * verbatim rather than converting them.
+   */
+  async signUpWithEmailPassword(
+    email: string,
+    password: string,
+    details: SignUpDetails,
+  ): Promise<{ user: User | null; session: Session | null }> {
+    const { firstName, lastName, phone, dob } = details;
+    const { data, error } = await this.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          firstname: firstName,
+          lastname: lastName,
+          phone,
+          dob: toDateOnlyString(dob),
+        },
+      },
+    });
+    if (error) {
+      throw error;
+    }
+    return data;
+  }
+}
+
+/** `yyyy-MM-dd`, built from local date fields -- see {@link AuthService.signUpWithEmailPassword}'s doc comment for why not `toISOString()`. */
+function toDateOnlyString(date: Date): string {
+  const year = String(date.getFullYear()).padStart(4, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 }
 
 /**
