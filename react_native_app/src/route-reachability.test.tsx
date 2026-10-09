@@ -97,18 +97,17 @@ describe('route reachability (ports route_reachability_test.dart, issue #71/#358
   // the placeholder screen's exact rendered text (every placeholder screen
   // added by #358 renders "<path> — not yet implemented").
   //
-  // `welcome` ('/welcome'), `login` ('/login'), and `register` ('/register')
-  // are excluded from this table — issues #364, #365, and #366
-  // respectively gave them real content, so none of them renders the
-  // generic placeholder text any more. See
+  // `welcome` ('/welcome'), `login` ('/login'), `register` ('/register'),
+  // `forgotPassword` ('/forgot-password'), and `resetPassword`
+  // ('/reset-password') are excluded from this table — issues #364, #365,
+  // #366, and #368 respectively gave them real content, so none of them
+  // renders the generic placeholder text any more. See
   // `welcome.test.tsx`/`welcome-back-navigation.test.tsx`,
-  // `src/app/(auth)/login.test.tsx`, and `src/app/(auth)/register.test.tsx`
-  // for their own coverage, and the
-  // `'AppRoutes.welcome/login/register ... resolves to its real screen'`
-  // cases just below for this file's one directly-relevant check each (that
-  // the route still resolves, now to the real screen).
+  // `src/app/(auth)/login.test.tsx`, `src/app/(auth)/register.test.tsx`, and
+  // the `'AppRoutes.forgotPassword/resetPassword ... resolves to its real
+  // screen'` cases just below (same posture for all five) for their own
+  // coverage.
   const staticRoutes: [name: string, path: string][] = [
-    ['forgotPassword', '/forgot-password'],
     ['mainApp', '/app'],
     ['services', '/services'],
     ['explore', '/explore'],
@@ -116,7 +115,6 @@ describe('route reachability (ports route_reachability_test.dart, issue #71/#358
     ['profile', '/profile'],
     ['addresses', '/addresses'],
     ['settings', '/settings'],
-    ['resetPassword', '/reset-password'],
     ['support', '/support'],
     ['trackOrder', '/track-order'],
     ['food', '/food'],
@@ -157,6 +155,21 @@ describe('route reachability (ports route_reachability_test.dart, issue #71/#358
   test('AppRoutes.register (/register) resolves to its real screen', async () => {
     await renderRoute('/register');
     expect(await screen.findByText('Create your account')).toBeTruthy();
+  });
+
+  // AppRoutes.forgotPassword (/forgot-password) resolves to its real screen
+  // since issue #368, same posture as the `welcome`/`login`/`register`
+  // cases above.
+  test('AppRoutes.forgotPassword (/forgot-password) resolves to its real screen', async () => {
+    await renderRoute('/forgot-password');
+    expect(await screen.findByText('Forgot password?')).toBeTruthy();
+  });
+
+  // AppRoutes.resetPassword (/reset-password) resolves to its real screen
+  // since issue #368, same posture as the cases above.
+  test('AppRoutes.resetPassword (/reset-password) resolves to its real screen', async () => {
+    await renderRoute('/reset-password');
+    expect(await screen.findByText('Set a new password')).toBeTruthy();
   });
 
   // Parameterized `AppRoutes` paths, each visited at a concrete URL. The
