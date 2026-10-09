@@ -12,9 +12,20 @@
  * `@/components/animated-icon` and `@/platform/supabase/client` are
  * mocked -- this file mounts the same real root `_layout.tsx` and hits the
  * same two issues.
+ *
+ * `@/stores/merchant-session-gate` (issue #363) is mocked too, for the same
+ * reason `@/stores/session-store` is: both layouts under test now also read
+ * it, and every case here cares only about the session-only rules, not the
+ * merchant ones (those are `src/merchant-redirect.test.tsx`'s job) --
+ * `setResolvedCustomer` below stands in for "the role lookup already
+ * resolved this signed-in user as a plain customer", the state every case
+ * that sets a signed-in session also needs so the layouts' `merchantRole
+ * Pending` guard doesn't treat the role as still unresolved and skip their
+ * redirect decision entirely.
  */
 import { renderRouter, screen, waitFor } from 'expo-router/testing-library';
 
+import { useMerchantSessionGateStore, type MerchantSessionGateState } from '@/stores/merchant-session-gate';
 import { useSessionStore, type SessionState } from '@/stores/session-store';
 
 jest.mock('@/components/animated-icon', () => ({ AnimatedSplashOverlay: () => null }));
@@ -26,13 +37,26 @@ jest.mock('@/platform/supabase/client', () => ({
   },
 }));
 jest.mock('@/stores/session-store', () => ({ useSessionStore: jest.fn() }));
+jest.mock('@/stores/merchant-session-gate', () => ({ useMerchantSessionGateStore: jest.fn() }));
 
 const mockedUseSessionStore = useSessionStore as unknown as jest.Mock;
+const mockedUseMerchantSessionGateStore = useMerchantSessionGateStore as unknown as jest.Mock;
 
 function setSessionState(state: SessionState) {
   mockedUseSessionStore.mockImplementation((selector: (state: SessionState) => unknown) =>
     selector(state),
   );
+}
+
+function setMerchantGateState(state: MerchantSessionGateState) {
+  mockedUseMerchantSessionGateStore.mockImplementation((selector: (state: MerchantSessionGateState) => unknown) =>
+    selector(state),
+  );
+}
+
+/** Stands in for "the role lookup already resolved `userId` as a plain customer" -- see this file's top comment. */
+function setResolvedCustomer(userId: string) {
+  setMerchantGateState({ resolvedUserId: userId, isMerchantRole: false, isAdmin: false });
 }
 
 async function renderRoute(path: string) {
@@ -63,6 +87,7 @@ describe('session redirect gate ((auth)/_layout.tsx and (app)/_layout.tsx, issue
 
   it('sends a signed-in user away from a signed-out-only route to /app', async () => {
     setSessionState({ status: 'signedIn', session: null, userId: 'user-1' });
+    setResolvedCustomer('user-1');
 
     const { result } = await renderRoute('/login');
 
@@ -71,6 +96,7 @@ describe('session redirect gate ((auth)/_layout.tsx and (app)/_layout.tsx, issue
 
   it('lets a signed-in user reach a protected (app) route', async () => {
     setSessionState({ status: 'signedIn', session: null, userId: 'user-1' });
+    setResolvedCustomer('user-1');
 
     await renderRoute('/support');
 
@@ -79,6 +105,7 @@ describe('session redirect gate ((auth)/_layout.tsx and (app)/_layout.tsx, issue
 
   it('lets a signed-in user reach /reset-password (not a signed-out-only route)', async () => {
     setSessionState({ status: 'signedIn', session: null, userId: 'user-1' });
+    setResolvedCustomer('user-1');
 
     await renderRoute('/reset-password');
 
