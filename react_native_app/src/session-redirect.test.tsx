@@ -55,7 +55,10 @@ describe('session redirect gate ((auth)/_layout.tsx and (app)/_layout.tsx, issue
 
     await renderRoute('/welcome');
 
-    expect(await screen.findByText('/welcome — not yet implemented')).toBeTruthy();
+    // '/welcome' got real content in issue #364, so it no longer renders
+    // the generic "<path> — not yet implemented" placeholder text the other
+    // cases in this file check for.
+    expect(await screen.findByText("See What's Open Near You")).toBeTruthy();
   });
 
   it('sends a signed-in user away from a signed-out-only route to /app', async () => {
