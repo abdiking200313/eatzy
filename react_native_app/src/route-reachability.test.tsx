@@ -97,14 +97,15 @@ describe('route reachability (ports route_reachability_test.dart, issue #71/#358
   // the placeholder screen's exact rendered text (every placeholder screen
   // added by #358 renders "<path> — not yet implemented").
   //
-  // `welcome` ('/welcome') is excluded from this table — issue #364 gave it
-  // real content, so it no longer renders the generic placeholder text. See
-  // `welcome.test.tsx` and `welcome-back-navigation.test.tsx` for its own
-  // coverage, and the `'AppRoutes.welcome ... resolves to its real screen'`
-  // case just below for this file's one directly-relevant check (that the
-  // route still resolves, now to the real screen).
+  // `welcome` ('/welcome') and `login` ('/login') are excluded from this
+  // table — issue #364 and #365 respectively gave them real content, so
+  // neither renders the generic placeholder text any more. See
+  // `welcome.test.tsx`/`welcome-back-navigation.test.tsx` and
+  // `src/app/(auth)/login.test.tsx` for their own coverage, and the
+  // `'AppRoutes.welcome/login ... resolves to its real screen'` cases just
+  // below for this file's one directly-relevant check each (that the route
+  // still resolves, now to the real screen).
   const staticRoutes: [name: string, path: string][] = [
-    ['login', '/login'],
     ['register', '/register'],
     ['forgotPassword', '/forgot-password'],
     ['mainApp', '/app'],
@@ -141,6 +142,13 @@ describe('route reachability (ports route_reachability_test.dart, issue #71/#358
   test('AppRoutes.welcome (/welcome) resolves to its real screen', async () => {
     await renderRoute('/welcome');
     expect(await screen.findByText("See What's Open Near You")).toBeTruthy();
+  });
+
+  // AppRoutes.login (/login) resolves to its real screen since issue #365,
+  // same posture as the `welcome` case above.
+  test('AppRoutes.login (/login) resolves to its real screen', async () => {
+    await renderRoute('/login');
+    expect(await screen.findByText('Welcome back')).toBeTruthy();
   });
 
   // Parameterized `AppRoutes` paths, each visited at a concrete URL. The
