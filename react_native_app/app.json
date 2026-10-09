@@ -9,10 +9,12 @@
     "userInterfaceStyle": "automatic",
     "ios": {
       "bundleIdentifier": "com.zivo.app",
-      "icon": "./assets/expo.icon"
+      "icon": "./assets/expo.icon",
+      "googleServicesFile": "./GoogleService-Info.plist"
     },
     "android": {
       "package": "com.zivo.app",
+      "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -28,6 +30,8 @@
     "plugins": [
       "expo-router",
       "expo-secure-store",
+      "@react-native-firebase/app",
+      "@react-native-firebase/crashlytics",
       [
         "expo-splash-screen",
         {
