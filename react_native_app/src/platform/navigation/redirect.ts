@@ -9,25 +9,23 @@
  * _layout.tsx` and `src/app/(app)/_layout.tsx` are what supply the real
  * inputs (session store state, `usePathname()`, the `revisit` query param).
  *
- * Two of `resolveRedirect`'s Flutter inputs are hard-coded to their
- * "nothing special happening yet" default at every call site in this app
- * today, each pending a later issue that supplies the real value:
- *  - `hasSeenOnboarding` (always `false` here) -- Flutter's
- *    `OnboardingLaunchGate` has no RN port yet; that lands in #360
- *    (startup gate). Until then, a returning signed-out user simply sees
- *    the welcome slides again on every launch instead of skipping to
- *    `/login`, rather than this module guessing at a storage shape #360
- *    hasn't decided yet.
+ * One of `resolveRedirect`'s Flutter inputs is still hard-coded to its
+ * "nothing special happening yet" default at every call site in this app,
+ * pending a later issue that supplies the real value:
  *  - `isMerchant` (always `false` here) -- Flutter's `MerchantSessionGate`
  *    (a `profiles.role` lookup) has no RN port yet; that lands in #363
  *    (merchant session gate). Until then every signed-in account is routed
  *    as a customer, which is already every account that exists in this
  *    app's RN build.
- * Both parameters are kept on `resolveRedirect` itself (rather than
- * dropped) so this function's own behavior can be exercised against every
- * case in `app_router_test.dart`, including the merchant ones, the same way
- * Flutter's test calls `AppRouter.resolveRedirect` directly with explicit
- * booleans instead of a real session/role lookup.
+ * `hasSeenOnboarding` *was* hard-coded to `false` the same way until #360
+ * (startup gate), which ports Flutter's `OnboardingLaunchGate` as
+ * `src/stores/onboarding-store.ts` and now passes its real
+ * `hasSeenOnboarding` value from `(auth)/_layout.tsx`/`(app)/_layout.tsx`.
+ * Both parameters stay on `resolveRedirect` itself (rather than being
+ * dropped once wired) so this function's own behavior can be exercised
+ * against every case in `app_router_test.dart`, including the merchant
+ * ones, the same way Flutter's test calls `AppRouter.resolveRedirect`
+ * directly with explicit booleans instead of a real session/role lookup.
  */
 import { AppRoutes, isProtectedLocation } from './app-routes';
 
@@ -54,7 +52,7 @@ export interface ResolveRedirectOptions {
   isLoggedIn: boolean;
   isProtected: boolean;
   location: string;
-  /** See this file's top comment -- always `false` at every real call site until #360 lands. */
+  /** Real value supplied by `src/stores/onboarding-store.ts` (issue #360) -- see this file's top comment. */
   hasSeenOnboarding?: boolean;
   /** True for `AppRoutes.welcomeRevisit`'s `?revisit=true` -- see {@link isWelcomeRevisit}. */
   revisitWelcome?: boolean;

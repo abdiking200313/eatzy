@@ -1,6 +1,7 @@
 import { Redirect, Stack, usePathname } from 'expo-router';
 
 import { isProtectedLocation, resolveRedirect } from '@/platform/navigation/redirect';
+import { useOnboardingStore } from '@/stores/onboarding-store';
 import { useSessionStore } from '@/stores/session-store';
 
 // Authenticated shell -- mirrors app_router.dart's `_shellRoute` +
@@ -8,15 +9,19 @@ import { useSessionStore } from '@/stores/session-store';
 // them (issue #359). Contains the (tabs) bottom-nav group plus the
 // standalone protected screens and legacy redirect aliases. Every route in
 // this group is a protected location (see `isProtectedLocation`), so in
-// practice the only rule that fires here is "no session -> `/login`"; the
-// merchant-role detour (#363) isn't wired in yet -- see `redirect.ts`'s top
-// comment.
+// practice the only rule that fires here is "no session -> `/login`";
+// `hasSeenOnboarding` (issue #360) is passed through for the same reason
+// Flutter's single `resolveRedirect` call reads `OnboardingLaunchGate` at
+// every call site, even though no rule in this group's routes currently
+// depends on it. The merchant-role detour (#363) isn't wired in yet -- see
+// `redirect.ts`'s top comment.
 //
 // See `(auth)/_layout.tsx`'s doc comment for why `status === 'loading'`
 // renders unguarded instead of blocking.
 export default function AppLayout() {
   const status = useSessionStore((state) => state.status);
   const userId = useSessionStore((state) => state.userId);
+  const hasSeenOnboarding = useOnboardingStore((state) => state.hasSeenOnboarding);
   const pathname = usePathname();
 
   if (status !== 'loading') {
@@ -24,6 +29,7 @@ export default function AppLayout() {
       isLoggedIn: userId != null,
       isProtected: isProtectedLocation(pathname),
       location: pathname,
+      hasSeenOnboarding,
     });
 
     if (redirectTo != null) {
