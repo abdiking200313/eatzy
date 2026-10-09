@@ -1,10 +1,11 @@
 /**
  * Ports `flutter_app/lib/features/auth/data/auth_service.dart`'s
  * `AuthService`: the sign-in half landed in issue #365
- * (`signInWithEmailPassword`/`getCurrentUserId`); this issue (#366) adds
- * `signUpWithEmailPassword`. `signOut`/`resetPasswordForEmail`/
- * `updatePassword`/`updateEmail`/`getCurrentUserEmail` remain out of scope
- * and are deliberately not ported here yet.
+ * (`signInWithEmailPassword`/`getCurrentUserId`), sign-up landed in issue
+ * #366 (`signUpWithEmailPassword`), and this issue (#368) adds
+ * `resetPasswordForEmail`/`updatePassword`. `signOut`/`updateEmail`/
+ * `getCurrentUserEmail` remain out of scope and are deliberately not ported
+ * here yet.
  *
  * This is the first module under `src/features/**` in this app -- every
  * other feature so far has lived directly under `src/app/**`/`src/stores/**`
@@ -12,8 +13,9 @@
  * out of `src/app/**`). `src/app/(auth)/login.tsx` and
  * `src/app/(auth)/register.tsx` are this module's only production callers.
  */
-import type { AuthResponse, AuthTokenResponsePassword, Session, User } from '@supabase/supabase-js';
+import type { AuthResponse, AuthTokenResponsePassword, Session, User, UserResponse } from '@supabase/supabase-js';
 
+import { PASSWORD_RECOVERY_REDIRECT_URL } from '@/platform/navigation/password-recovery';
 import { supabase } from '@/platform/supabase/client';
 
 /**
@@ -38,9 +40,22 @@ export interface PasswordSignUpSource {
   }): Promise<AuthResponse>;
 }
 
+/** The password-reset-request-relevant slice of `supabase.auth` -- see {@link PasswordSignInSource}'s doc comment. */
+export interface PasswordResetRequestSource {
+  resetPasswordForEmail(
+    email: string,
+    options?: { redirectTo?: string },
+  ): Promise<{ data: object | null; error: Error | null }>;
+}
+
+/** The password-update-relevant slice of `supabase.auth` -- see {@link PasswordSignInSource}'s doc comment. */
+export interface PasswordUpdateSource {
+  updateUser(attributes: { password: string }): Promise<UserResponse>;
+}
+
 export interface AuthServiceOptions {
   /** Defaults to the real `supabase.auth`. */
-  auth?: PasswordSignInSource & PasswordSignUpSource;
+  auth?: PasswordSignInSource & PasswordSignUpSource & PasswordResetRequestSource & PasswordUpdateSource;
 }
 
 /** The new-account fields `register.tsx` collects beyond email/password, forwarded as Supabase sign-up metadata. Mirrors `AuthService.signUpWithEmailPassword`'s `firstName`/`lastName`/`phone`/`dob` named parameters. */
@@ -61,7 +76,7 @@ export interface SignUpDetails {
  * keeping {@link getCurrentUserId} synchronous like the Dart original.
  */
 export class AuthService {
-  private readonly auth: PasswordSignInSource & PasswordSignUpSource;
+  private readonly auth: PasswordSignInSource & PasswordSignUpSource & PasswordResetRequestSource & PasswordUpdateSource;
   private currentUserId: string | null = null;
 
   constructor(options: AuthServiceOptions = {}) {
@@ -136,6 +151,38 @@ export class AuthService {
       throw error;
     }
     return data;
+  }
+
+  /**
+   * Mirrors `AuthService.resetPasswordForEmail`: wraps `supabase.auth.
+   * resetPasswordForEmail`, passing {@link PASSWORD_RECOVERY_REDIRECT_URL}
+   * as `redirectTo` -- the same deep link `AppRoutes.resetPassword`'s
+   * recovery-session handling expects (see `password-recovery.ts`'s doc
+   * comment). Does not touch {@link getCurrentUserId}'s cache: requesting a
+   * reset email neither signs the caller in nor out.
+   */
+  async resetPasswordForEmail(email: string): Promise<void> {
+    const { error } = await this.auth.resetPasswordForEmail(email, {
+      redirectTo: PASSWORD_RECOVERY_REDIRECT_URL,
+    });
+    if (error) {
+      throw error;
+    }
+  }
+
+  /**
+   * Mirrors `AuthService.updatePassword`: wraps `supabase.auth.updateUser`
+   * with just the new password. Works both for a normal signed-in session
+   * (change password from Settings) and for the short-lived recovery
+   * session `resetPasswordForEmail`'s link starts -- same as the Dart
+   * original.
+   */
+  async updatePassword(newPassword: string): Promise<UserResponse> {
+    const { data, error } = await this.auth.updateUser({ password: newPassword });
+    if (error) {
+      throw error;
+    }
+    return { data, error };
   }
 }
 
