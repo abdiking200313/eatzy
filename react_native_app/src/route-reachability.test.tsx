@@ -39,8 +39,18 @@
  *  - `@/platform/supabase/client`'s side-effecting import (issue #346) calls
  *    `loadEnv()` at module load, which throws `MissingEnvVarError` unless
  *    `EXPO_PUBLIC_SUPABASE_URL`/`EXPO_PUBLIC_SUPABASE_ANON_KEY` are set — not
- *    the case under `npm test`. No route test here exercises Supabase, so an
- *    empty stub is enough.
+ *    the case under `npm test`. No route test here exercises Supabase, so a
+ *    stub is enough, but (since issue #359) it has to be a slightly more
+ *    complete one than a bare `{}`: `src/stores/session-store.ts`'s
+ *    app-wide singleton is constructed the moment the root `_layout.tsx` —
+ *    and so every route in this file — is first rendered, and that
+ *    construction calls `supabase.auth.onAuthStateChange(...)` eagerly. The
+ *    stub below supplies a no-op `onAuthStateChange` that never actually
+ *    calls back, so the session store's status stays `'loading'` for all of
+ *    this file's cases — `(auth)/_layout.tsx` and `(app)/_layout.tsx` both
+ *    render unguarded (no redirect) while `status === 'loading'` (see
+ *    their own doc comments), which is exactly the pre-#359 behavior this
+ *    file's assertions were already written against.
  *
  * Every `renderRouter(...)` call below is `await`ed before any assertion.
  * `@testing-library/react-native` v14's `render` is itself async (see
@@ -54,7 +64,13 @@
 import { renderRouter, screen, waitFor } from 'expo-router/testing-library';
 
 jest.mock('@/components/animated-icon', () => ({ AnimatedSplashOverlay: () => null }));
-jest.mock('@/platform/supabase/client', () => ({}));
+jest.mock('@/platform/supabase/client', () => ({
+  supabase: {
+    auth: {
+      onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } }),
+    },
+  },
+}));
 
 /**
  * Renders `path` against the real `src/app/` route tree, settled, and
