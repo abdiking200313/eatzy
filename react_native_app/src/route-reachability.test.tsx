@@ -96,8 +96,14 @@ describe('route reachability (ports route_reachability_test.dart, issue #71/#358
   // `_registeredRoutes` list that isn't a legacy-redirect alias, paired with
   // the placeholder screen's exact rendered text (every placeholder screen
   // added by #358 renders "<path> — not yet implemented").
+  //
+  // `welcome` ('/welcome') is excluded from this table — issue #364 gave it
+  // real content, so it no longer renders the generic placeholder text. See
+  // `welcome.test.tsx` and `welcome-back-navigation.test.tsx` for its own
+  // coverage, and the `'AppRoutes.welcome ... resolves to its real screen'`
+  // case just below for this file's one directly-relevant check (that the
+  // route still resolves, now to the real screen).
   const staticRoutes: [name: string, path: string][] = [
-    ['welcome', '/welcome'],
     ['login', '/login'],
     ['register', '/register'],
     ['forgotPassword', '/forgot-password'],
@@ -127,6 +133,14 @@ describe('route reachability (ports route_reachability_test.dart, issue #71/#358
   test.each(staticRoutes)('AppRoutes.%s (%s) resolves to its placeholder screen', async (_name, path) => {
     await renderRoute(path);
     expect(await screen.findByText(`${path} — not yet implemented`)).toBeTruthy();
+  });
+
+  // AppRoutes.welcome ('/welcome') resolves to its real screen since issue
+  // #364 (see this describe block's top comment) rather than the generic
+  // placeholder text every other static route above still renders.
+  test('AppRoutes.welcome (/welcome) resolves to its real screen', async () => {
+    await renderRoute('/welcome');
+    expect(await screen.findByText("See What's Open Near You")).toBeTruthy();
   });
 
   // Parameterized `AppRoutes` paths, each visited at a concrete URL. The
