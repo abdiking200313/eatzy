@@ -158,7 +158,6 @@ describe('route reachability (ports route_reachability_test.dart, issue #71/#358
     ['trackOrder', '/track-order'],
     ['groceryCart', '/grocery/cart'],
     ['groceryCheckout', '/grocery/checkout'],
-    ['pharmacy', '/pharmacy'],
     ['pharmacyCart', '/pharmacy/cart'],
     ['pharmacyCheckout', '/pharmacy/checkout'],
   ];
@@ -256,6 +255,24 @@ describe('route reachability (ports route_reachability_test.dart, issue #71/#358
   test('AppRoutes.grocery (/grocery) resolves to its real screen', async () => {
     await renderRoute('/grocery');
     expect(await screen.findByText('Groceries')).toBeTruthy();
+  });
+
+  // AppRoutes.pharmacy (/pharmacy) and AppRoutes.pharmacyStore
+  // (/pharmacy/stores/:storeId) resolve to their real screens since issue
+  // #394. This file's minimal `supabase` stub has no `.from(...)`, so both
+  // screens' loads fail fast into their error states; the store name passed
+  // as a query param still titles the catalog. Full behavior is covered in
+  // `src/features/pharmacy/pharmacy-store-list-screen.test.tsx`/
+  // `pharmacy-catalog-screen.test.tsx`.
+  test('AppRoutes.pharmacy (/pharmacy) resolves to its real screen', async () => {
+    await renderRoute('/pharmacy');
+    expect(await screen.findByText('Pharmacies could not be loaded.')).toBeTruthy();
+  });
+
+  test('AppRoutes.pharmacyStore (/pharmacy/stores/:storeId) resolves to its real screen', async () => {
+    await renderRoute('/pharmacy/stores/store-1?name=Hodan%20Pharmacy');
+    expect(await screen.findByText('Hodan Pharmacy')).toBeTruthy();
+    expect(await screen.findByText('The pharmacy catalog could not be loaded.')).toBeTruthy();
   });
 
   // AppRoutes.foodCart (/food/cart) resolves to its real screen since issue
