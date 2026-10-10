@@ -139,9 +139,10 @@ describe('route reachability (ports route_reachability_test.dart, issue #71/#358
   // `forgotPassword` ('/forgot-password'), `resetPassword`
   // ('/reset-password'), `services` ('/services'), `mainApp` ('/app'),
   // `explore` ('/explore'), `food` ('/food'), `grocery` ('/grocery'), and
-  // `foodRestaurant` ('/food/restaurants/:restaurantId') are excluded from
-  // this table — issues #364, #365, #366, #368, #374, #373, #375, #382,
-  // #389, and #383 respectively gave them real content, so none of them
+  // `foodRestaurant` ('/food/restaurants/:restaurantId'), `foodCategories`
+  // ('/food/categories'), and `foodExplore` ('/food/explore') are excluded
+  // from this table — issues #364, #365, #366, #368, #374, #373, #375, #382,
+  // #389, #383, and #385 (the last two) respectively gave them real content, so none of them
   // renders the generic placeholder text any more. See
   // `welcome.test.tsx`/`welcome-back-navigation.test.tsx`,
   // `src/app/(auth)/login.test.tsx`, `src/app/(auth)/register.test.tsx`,
@@ -155,8 +156,6 @@ describe('route reachability (ports route_reachability_test.dart, issue #71/#358
     ['settings', '/settings'],
     ['support', '/support'],
     ['trackOrder', '/track-order'],
-    ['foodCategories', '/food/categories'],
-    ['foodExplore', '/food/explore'],
     ['foodCart', '/food/cart'],
     ['foodCheckout', '/food/checkout'],
     ['groceryCart', '/grocery/cart'],
@@ -274,6 +273,22 @@ describe('route reachability (ports route_reachability_test.dart, issue #71/#358
   // instead (that suite mocks the repository layer directly).
   test('AppRoutes.foodRestaurant (/food/restaurants/:restaurantId) resolves to its real screen', async () => {
     await renderRoute('/food/restaurants/rest-1');
+    expect(await screen.findByTestId('loading-state')).toBeTruthy();
+  });
+
+  // AppRoutes.foodCategories (/food/categories) and AppRoutes.foodExplore
+  // (/food/explore) resolve to their real screens since issue #385 -- same
+  // posture (and reason) as the `/food` case above: asserted on the generic
+  // `loading-state` testID, since this file's minimal `supabase` stub makes
+  // their repository calls reject and the real retry/backoff keeps them
+  // loading. Their loaded/empty/error/navigation behavior is covered in
+  // `src/app/(app)/(tabs)/food/categories.test.tsx`/`explore.test.tsx`.
+  test.each([
+    ['foodCategories', '/food/categories'],
+    ['foodExplore', '/food/explore'],
+    ['foodExplore (category-scoped)', '/food/explore?categoryId=rice&categoryName=Rice%20dishes'],
+  ])('AppRoutes.%s (%s) resolves to its real screen', async (_name, path) => {
+    await renderRoute(path);
     expect(await screen.findByTestId('loading-state')).toBeTruthy();
   });
 
