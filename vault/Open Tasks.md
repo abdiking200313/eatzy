@@ -7,7 +7,7 @@ upstream_concept: 00-Index
 
 # Open Tasks
 
-**Updated 2026-10-09, 2nd run (board worker)** — re-check before relying on this for anything that matters. **Source of truth is always a live `list_issues`/`gh issue list --repo abdiking200313/eatzy --state open` call.**
+**Updated 2026-10-09/10, 3rd run (board worker)** — re-check before relying on this for anything that matters, especially right now given the queue's high churn rate (see below). **Source of truth is always a live `list_issues`/`gh issue list --repo abdiking200313/eatzy --state open` call.**
 
 Full run-by-run history (2026-08-12 through 2026-10-08) archived to `vault/archive/Open Tasks 2026-08-to-2026-10.md` per this file's own ~150-line archive threshold (it had reached 443 lines, almost all consecutive "nothing eligible" entries). This file now holds current state only — check the archive if a prior run's exact reasoning on something now-resolved ever matters again.
 
@@ -16,10 +16,10 @@ Full run-by-run history (2026-08-12 through 2026-10-08) archived to `vault/archi
 - **The RN migration batch is no longer mostly `needs-approval`** — the owner has relabeled roughly all of phases 1-10 (#357-417) to `todo` as well, not just Phase 0.
 - **`todo`, blocked**: #55 (iOS build — partial fix merged via PR #332; the rest needs macOS/Xcode/CocoaPods + an Apple Developer Team ID, none available in any sandbox so far — don't re-attempt from a Linux sandbox).
 - **`todo`, tracking-only, no direct work ever**: #29, #52 (umbrella/index issues whose real findings were already filed as their own child issues).
-- **`todo`, actionable next run**: **#368** (forgot/reset password screens — all three dependencies, #361/#362/#367, are now merged) is the natural next pick, oldest-first. The bulk of phases 3-10 (#369-417) after that — not individually re-verified for dependency readiness this run, check each issue's own `## Depends on` before starting, per `/build-rn`'s own step 2.
-- **#278 already closed** (PR #454, closed 2026-10-08) — the "actionable next run" note in a prior version of this file was stale; re-confirmed closed this run.
-- **Stray orphan branch, harmless, do not reuse**: `agent/issue-366-register-screen` (2 commits, `68675ea`/`01aa35e`) exists on `origin` with no open PR and will never get one — it's a concurrent session's duplicate implementation of #366 that lost out to this run's own `agent/issue-366-register-screen-v2` (merged as PR #475, see [[Status Log]] 2026-10-09 2nd-run entry for why). Safe to ignore or delete; don't confuse it with real in-progress work on a future `agent-in-progress` check.
-- **`agent-in-progress`, check fresh before touching**: none known stale as of this run's end — #362-367 all merged and closed this run, cleared.
+- **`todo`, actionable, but check live state fresh first — queue is moving very fast**: as of the 2026-10-09/10 3rd-run entry in [[Status Log]], phases 3-4 were nearly done within a single hour by a concurrent session, with #371/#376/#377 showing `agent-in-progress` and seconds-to-minutes-old `updated_at` at that run's end. Don't trust any specific "next pick" claim in this file without a live `list_issues` check — it will be stale by the time you read it.
+- **#278 already closed** (PR #454, closed 2026-10-08) — re-confirmed closed again 2026-10-09.
+- **Stray orphan branch, harmless, do not reuse**: `agent/issue-366-register-screen` (3 commits, `68675ea`/`01aa35e`/`61a11b5`) exists on `origin` with no open PR and will never get one — a concurrent session's parallel implementation of #366 (fully finished, 330/330 tests passing by its last commit) that lost the race to a different session's `agent/issue-366-register-screen-v2` (merged as PR #475) purely on timing, not quality — see [[Status Log]]'s 2026-10-09/10 3rd-run entry for the correction. Safe to ignore or delete; don't confuse it with real in-progress work on a future `agent-in-progress` check.
+- **`agent-in-progress`, check fresh before touching**: #371/#376/#377 were live-in-progress (fresh timestamps) as of the 3rd run above — likely resolved one way or another by the next fire, re-check rather than assume either way.
 - **`waiting-on-you`**: empty.
 - **`needs-approval`**: still some remainder of the RN batch (exact count not re-verified this run). Not this routine's call to bulk-approve the rest.
 
