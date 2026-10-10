@@ -156,7 +156,6 @@ describe('route reachability (ports route_reachability_test.dart, issue #71/#358
     ['settings', '/settings'],
     ['support', '/support'],
     ['trackOrder', '/track-order'],
-    ['foodCheckout', '/food/checkout'],
     ['groceryCart', '/grocery/cart'],
     ['groceryCheckout', '/grocery/checkout'],
     ['pharmacy', '/pharmacy'],
@@ -266,6 +265,17 @@ describe('route reachability (ports route_reachability_test.dart, issue #71/#358
   // `src/app/(app)/(tabs)/food/cart.test.tsx`.
   test('AppRoutes.foodCart (/food/cart) resolves to its real screen', async () => {
     await renderRoute('/food/cart');
+    expect(await screen.findByText('Your cart is empty')).toBeTruthy();
+  });
+
+  // AppRoutes.foodCheckout (/food/checkout) resolves to its real screen
+  // since issue #387 (so it is no longer in the placeholder `staticRoutes`
+  // table above). The real food cart store starts empty here, so the screen
+  // renders its empty state. Its full behavior is covered in
+  // `src/app/(app)/(tabs)/food/checkout.test.tsx`.
+  test('AppRoutes.foodCheckout (/food/checkout) resolves to its real screen', async () => {
+    await renderRoute('/food/checkout');
+    expect(await screen.findByText('Checkout')).toBeTruthy();
     expect(await screen.findByText('Your cart is empty')).toBeTruthy();
   });
 
