@@ -138,15 +138,16 @@ describe('route reachability (ports route_reachability_test.dart, issue #71/#358
   // `welcome` ('/welcome'), `login` ('/login'), `register` ('/register'),
   // `forgotPassword` ('/forgot-password'), `resetPassword`
   // ('/reset-password'), `services` ('/services'), `mainApp` ('/app'),
-  // `explore` ('/explore'), `food` ('/food'), and `grocery` ('/grocery') are
-  // excluded from this table — issues #364, #365, #366, #368, #374, #373,
-  // #375, #382, and #389 respectively gave them real content, so none of
-  // them renders the generic placeholder text any more. See
+  // `explore` ('/explore'), `food` ('/food'), `grocery` ('/grocery'), and
+  // `foodRestaurant` ('/food/restaurants/:restaurantId') are excluded from
+  // this table — issues #364, #365, #366, #368, #374, #373, #375, #382,
+  // #389, and #383 respectively gave them real content, so none of them
+  // renders the generic placeholder text any more. See
   // `welcome.test.tsx`/`welcome-back-navigation.test.tsx`,
   // `src/app/(auth)/login.test.tsx`, `src/app/(auth)/register.test.tsx`,
   // and the `'AppRoutes.forgotPassword/resetPassword/services/mainApp/
-  // explore/food/grocery ... resolves to its real screen'` cases just below (same
-  // posture for all ten) for their own coverage.
+  // explore/food/grocery/foodRestaurant ... resolves to its real screen'`
+  // cases just below (same posture for all eleven) for their own coverage.
   const staticRoutes: [name: string, path: string][] = [
     ['activity', '/activity'],
     ['profile', '/profile'],
@@ -260,16 +261,26 @@ describe('route reachability (ports route_reachability_test.dart, issue #71/#358
     expect(await screen.findByText('Groceries')).toBeTruthy();
   });
 
+  // AppRoutes.foodRestaurant (/food/restaurants/:restaurantId) resolves to
+  // its real screen since issue #383 -- same posture (and reason) as the
+  // `/food` case above: asserted on the generic `loading-state` testID
+  // rather than any loaded/error content, since this file's minimal
+  // `supabase` stub has no `.from(...)`, so `useRestaurantMenu`'s own
+  // `fetchMenu` call rejects and the shared `queryClient`'s real retry/
+  // backoff policy leaves the screen in its loading state for several real
+  // seconds before ever reaching its error state. The happy-path/loaded/
+  // error/add-to-cart behavior has its own dedicated, fast coverage in
+  // `src/app/(app)/(tabs)/food/restaurants/[restaurantId]/index.test.tsx`
+  // instead (that suite mocks the repository layer directly).
+  test('AppRoutes.foodRestaurant (/food/restaurants/:restaurantId) resolves to its real screen', async () => {
+    await renderRoute('/food/restaurants/rest-1');
+    expect(await screen.findByTestId('loading-state')).toBeTruthy();
+  });
+
   // Parameterized `AppRoutes` paths, each visited at a concrete URL. The
   // placeholder screen renders the path *template* (with `:param` segments)
   // plus the actual param value(s) in parens.
   const dynamicRoutes: [name: string, template: string, concretePath: string, text: string][] = [
-    [
-      'foodRestaurant',
-      '/food/restaurants/:restaurantId',
-      '/food/restaurants/rest-1',
-      '/food/restaurants/:restaurantId (rest-1) — not yet implemented',
-    ],
     [
       'groceryStore',
       '/grocery/stores/:storeId',
