@@ -123,6 +123,12 @@ async function renderScreen() {
 
 const initialCartState = useFoodCartStore.getState();
 
+// The first test to render this deep tree pays a one-time cost (lazy module
+// evaluation, first layout) of ~4s locally and over 5s on slower CI runners,
+// which intermittently blew Jest's default 5s per-test timeout (seen on
+// #509/#510's `rn-verify`). Later tests take well under 1s.
+jest.setTimeout(20_000);
+
 beforeEach(() => {
   mockFetchCategories.mockReset().mockResolvedValue([]);
   mockFetchRestaurants.mockReset();
