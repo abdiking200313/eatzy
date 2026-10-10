@@ -16,6 +16,7 @@ export type StoreListCardProps = {
   imageUrl?: string | null;
   accentColor: string;
   onPress: () => void;
+  testID?: string;
 };
 
 // `_StoreListImage.height` in app_cards.dart.
@@ -29,11 +30,12 @@ const IMAGE_HEIGHT = 138;
  * used by each vertical's own single-vertical store list, not listed among
  * this issue's ported files).
  */
-export function StoreListCard({ name, subtitle, imageUrl, accentColor, onPress }: StoreListCardProps) {
+export function StoreListCard({ name, subtitle, imageUrl, accentColor, onPress, testID }: StoreListCardProps) {
   const colors = useSemanticColors();
 
   return (
     <OutlinedCard
+      testID={testID}
       backgroundColor={colors.card}
       borderRadius={radius.media}
       borderColor={colors.border}

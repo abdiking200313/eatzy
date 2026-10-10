@@ -12,6 +12,7 @@ export type OutlinedCardProps = {
   borderColor?: string;
   borderWidth?: number;
   onPress?: () => void;
+  testID?: string;
 };
 
 /**
@@ -28,6 +29,7 @@ export function OutlinedCard({
   borderColor,
   borderWidth = 1,
   onPress,
+  testID,
 }: OutlinedCardProps) {
   const colors = useSemanticColors();
   const style = [
@@ -43,11 +45,15 @@ export function OutlinedCard({
   ];
 
   if (!onPress) {
-    return <View style={style}>{children}</View>;
+    return (
+      <View testID={testID} style={style}>
+        {children}
+      </View>
+    );
   }
 
   return (
-    <Pressable accessibilityRole="button" onPress={onPress} style={style} className="active:opacity-80">
+    <Pressable testID={testID} accessibilityRole="button" onPress={onPress} style={style} className="active:opacity-80">
       {children}
     </Pressable>
   );
