@@ -1,12 +1,9 @@
-import { Text, View } from 'react-native';
+import { LegalDocumentScreen } from '@/features/legal/legal-document-screen';
+import { TERMS_OF_SERVICE } from '@/features/legal/terms-of-service-document';
 
-// Ports AppRoutes.termsOfService ('/settings/terms-of-service') from
-// flutter_app/lib/app/app_routes.dart / app_router.dart (issue #358: route
-// skeleton only -- real screen content lands in a later issue).
-export default function TermsOfServiceScreen() {
-  return (
-    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 }}>
-      <Text>/settings/terms-of-service — not yet implemented</Text>
-    </View>
-  );
+// Ports AppRoutes.termsOfService ('/settings/terms-of-service') ->
+// flutter_app/lib/features/legal/presentation/terms_of_service_screen.dart
+// (issue #404 / P8-08).
+export default function TermsOfServiceRoute() {
+  return <LegalDocumentScreen document={TERMS_OF_SERVICE} />;
 }
