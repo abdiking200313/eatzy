@@ -10,6 +10,13 @@
 /** @type {import('jest').Config} */
 module.exports = {
   preset: 'jest-expo',
+  // Jest's default 5s per-test timeout also has to cover the first test in a
+  // file paying the one-time cost of transforming and loading a deep screen
+  // tree. On a cold CI runner (no transform cache, full suite in parallel)
+  // that alone took `food/index.test.tsx`'s first test past 5s (~4.5s even
+  // locally when cold, ~0.3s warm), failing it intermittently. 15s leaves
+  // headroom without hiding a genuinely hung test for long.
+  testTimeout: 15000,
   // Mirrors tsconfig.json's "@/*" / "@/assets/*" path aliases (Metro resolves
   // these natively at bundle time; Jest does not read tsconfig "paths" on its
   // own, so it needs this explicit mapping to resolve the same imports).
