@@ -51,7 +51,8 @@
  *    render unguarded (no redirect) while `status === 'loading'` (see
  *    their own doc comments), which is exactly the pre-#359 behavior this
  *    file's assertions were already written against.
- *  - `@/platform/query/query-persistence` (issue #372): `_layout.tsx` wraps
+ *  - `@/platform/query/query-persistence` (issue #372, extended for issue
+ *    #382's food data layer): `_layout.tsx` wraps
  *    every route in `PersistQueryClientProvider`, which restores from and
  *    subscribes to `AsyncStorage` on every mount of the *same* shared
  *    `queryClient` singleton. That's harmless for any one route test, but
@@ -68,7 +69,13 @@
  *    methods -- no AsyncStorage access, no throttled save, nothing to leak.
  *    `query-persistence.test.ts` already covers this module's own real
  *    behavior (the catalog key/predicate, the 7-day `maxAge`, and the
- *    reset-registry wiring) directly, unmocked.
+ *    reset-registry wiring) directly, unmocked. The stub also re-implements
+ *    the real `catalogQueryKey` (a pure `['catalog', ...parts]` builder, no
+ *    side effects) -- `/food` now mounts the real `FoodHomeScreen` (issue
+ *    #382), whose data layer (`use-food-home.ts`) calls `catalogQueryKey`
+ *    at module load time; without it here, mounting `/food` threw
+ *    `catalogQueryKey is not a function` before ever reaching this file's
+ *    own assertions.
  *
  * Every `renderRouter(...)` call below is `await`ed before any assertion.
  * `@testing-library/react-native` v14's `render` is itself async (see
@@ -99,6 +106,8 @@ jest.mock('@/platform/query/query-persistence', () => ({
     maxAge: 0,
     dehydrateOptions: { shouldDehydrateQuery: () => false },
   },
+  // Mirrors the real `catalogQueryKey` (see this file's top comment).
+  catalogQueryKey: (...parts: readonly unknown[]) => ['catalog', ...parts],
 }));
 
 /**
@@ -129,15 +138,15 @@ describe('route reachability (ports route_reachability_test.dart, issue #71/#358
   // `welcome` ('/welcome'), `login` ('/login'), `register` ('/register'),
   // `forgotPassword` ('/forgot-password'), `resetPassword`
   // ('/reset-password'), `services` ('/services'), `mainApp` ('/app'),
-  // `explore` ('/explore'), and `grocery` ('/grocery') are excluded from
-  // this table — issues #364, #365, #366, #368, #374, #373, #375, and #389
-  // respectively gave them real content, so none of them renders the
-  // generic placeholder text any more. See `welcome.test.tsx`/
-  // `welcome-back-navigation.test.tsx`, `src/app/(auth)/login.test.tsx`,
-  // `src/app/(auth)/register.test.tsx`, and the
-  // `'AppRoutes.forgotPassword/resetPassword/services/mainApp/explore/
-  // grocery ... resolves to its real screen'` cases just below (same
-  // posture for all nine) for their own coverage.
+  // `explore` ('/explore'), `food` ('/food'), and `grocery` ('/grocery') are
+  // excluded from this table — issues #364, #365, #366, #368, #374, #373,
+  // #375, #382, and #389 respectively gave them real content, so none of
+  // them renders the generic placeholder text any more. See
+  // `welcome.test.tsx`/`welcome-back-navigation.test.tsx`,
+  // `src/app/(auth)/login.test.tsx`, `src/app/(auth)/register.test.tsx`,
+  // and the `'AppRoutes.forgotPassword/resetPassword/services/mainApp/
+  // explore/food/grocery ... resolves to its real screen'` cases just below (same
+  // posture for all ten) for their own coverage.
   const staticRoutes: [name: string, path: string][] = [
     ['activity', '/activity'],
     ['profile', '/profile'],
@@ -145,7 +154,6 @@ describe('route reachability (ports route_reachability_test.dart, issue #71/#358
     ['settings', '/settings'],
     ['support', '/support'],
     ['trackOrder', '/track-order'],
-    ['food', '/food'],
     ['foodCategories', '/food/categories'],
     ['foodExplore', '/food/explore'],
     ['foodCart', '/food/cart'],
@@ -222,6 +230,27 @@ describe('route reachability (ports route_reachability_test.dart, issue #71/#358
   test('AppRoutes.explore (/explore) resolves to its real screen', async () => {
     await renderRoute('/explore');
     expect(await screen.findByPlaceholderText('Search restaurants, stores...')).toBeTruthy();
+  });
+
+  // AppRoutes.food (/food) resolves to its real screen since issue #382,
+  // same posture as the cases above. Asserted on the generic
+  // `loading-state` testID rather than the `AppScaffold` title ("Food",
+  // which the bottom tab bar's own "Food" tab label also matches --
+  // `findByText` throws "Found multiple elements" for it) or any
+  // loaded/error content: this file's minimal `supabase` stub (this
+  // file's top comment) has no `.from(...)`, so the screen's own
+  // `fetchCategories`/`fetchRestaurants` calls reject, and the shared
+  // `queryClient`'s real retry/backoff policy (`retry: 2`, exponential
+  // delay) means the screen sits in its loading state for several real
+  // seconds before ever reaching its error state -- too slow and timing-
+  // dependent for this file's purpose, which is only "did a real screen
+  // mount here at all". The happy-path/loaded/error behavior has its own
+  // dedicated, fast coverage in `src/app/(app)/(tabs)/food/index.test.tsx`
+  // instead (that suite mocks the repository layer directly, so nothing
+  // ever really retries).
+  test('AppRoutes.food (/food) resolves to its real screen', async () => {
+    await renderRoute('/food');
+    expect(await screen.findByTestId('loading-state')).toBeTruthy();
   });
 
   // AppRoutes.grocery (/grocery) resolves to its real screen since issue
