@@ -153,8 +153,6 @@ describe('route reachability (ports route_reachability_test.dart, issue #71/#358
     ['addresses', '/addresses'],
     ['settings', '/settings'],
     ['trackOrder', '/track-order'],
-    ['groceryCart', '/grocery/cart'],
-    ['groceryCheckout', '/grocery/checkout'],
     ['pharmacyCart', '/pharmacy/cart'],
     ['pharmacyCheckout', '/pharmacy/checkout'],
   ];
@@ -325,6 +323,32 @@ describe('route reachability (ports route_reachability_test.dart, issue #71/#358
     await renderRoute(path);
     expect(await screen.findByText('Product')).toBeTruthy();
     expect(await screen.findByTestId('error-state')).toBeTruthy();
+  });
+
+  // AppRoutes.groceryCart/groceryCheckout and their Fresh Meat/Electronics
+  // siblings resolve to their real screens since issue #392 (so the grocery
+  // pair is no longer in the placeholder `staticRoutes` table above). The
+  // real grocery cart stores start empty here, so each renders its empty
+  // state. Full behavior is covered in
+  // `src/features/grocery/grocery-cart-screen.test.tsx` and
+  // `src/features/grocery/grocery-checkout-screen.test.tsx`.
+  test.each([
+    ['groceryCart', '/grocery/cart', 'Your grocery cart is empty'],
+    ['freshMeatCart', '/grocery/fresh-meat/cart', 'Your fresh meat cart is empty'],
+    ['electronicsCart', '/grocery/electronics/cart', 'Your electronics cart is empty'],
+  ])('AppRoutes.%s (%s) resolves to its real screen', async (_name, path, emptyMessage) => {
+    await renderRoute(path);
+    expect(await screen.findByText(emptyMessage)).toBeTruthy();
+  });
+
+  test.each([
+    ['groceryCheckout', '/grocery/checkout', 'Grocery checkout'],
+    ['freshMeatCheckout', '/grocery/fresh-meat/checkout', 'Fresh Meat checkout'],
+    ['electronicsCheckout', '/grocery/electronics/checkout', 'Electronics checkout'],
+  ])('AppRoutes.%s (%s) resolves to its real screen', async (_name, path, title) => {
+    await renderRoute(path);
+    expect(await screen.findByText(title)).toBeTruthy();
+    expect(await screen.findByText('Your cart is empty')).toBeTruthy();
   });
 
   // AppRoutes.foodCart (/food/cart) resolves to its real screen since issue

@@ -1,12 +1,8 @@
-import { Text, View } from 'react-native';
+import { GroceryCheckoutScreen } from '@/features/grocery/grocery-checkout-screen';
 
 // Ports AppRoutes.electronicsCheckout ('/grocery/electronics/checkout') from
-// flutter_app/lib/app/app_routes.dart / app_router.dart (issue #358: route
-// skeleton only -- real screen content lands in a later issue).
-export default function ElectronicsCheckoutScreen() {
-  return (
-    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 }}>
-      <Text>/grocery/electronics/checkout — not yet implemented</Text>
-    </View>
-  );
+// flutter_app/lib/services/grocery/presentation/grocery_checkout_screen.dart
+// (issue #392 / P7-04).
+export default function ElectronicsCheckoutRoute() {
+  return <GroceryCheckoutScreen storeType="electronics" />;
 }

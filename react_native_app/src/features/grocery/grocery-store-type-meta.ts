@@ -25,7 +25,11 @@ export interface GroceryStoreTypeMeta {
   serviceName: string;
   /** Plural noun used in empty-state copy, e.g. "No butchers found." Mirrors `GroceryStoreType.storesNoun`. */
   storesNoun: string;
+  /** The store-list route ("Browse stores"). Mirrors `GroceryStoreType.listRoute`. */
+  listRoute: string;
   cartRoute: string;
+  /** Mirrors `GroceryStoreType.checkoutRoute`. */
+  checkoutRoute: string;
   /** `useServiceTheme`'s `slug` param, so Fresh Meat/Electronics render their own accent instead of the shared grocery one. `undefined` for plain grocery. */
   slug?: ServiceSlug;
   storeDetailsRoute: (storeId: string) => string;
@@ -39,7 +43,9 @@ export const GROCERY_STORE_TYPE_META: Record<GroceryStoreType, GroceryStoreTypeM
     title: 'Groceries',
     serviceName: 'Grocery',
     storesNoun: 'grocery stores',
+    listRoute: AppRoutes.grocery,
     cartRoute: AppRoutes.groceryCart,
+    checkoutRoute: AppRoutes.groceryCheckout,
     storeDetailsRoute: groceryStoreDetails,
     productDetailsRoute: groceryProductDetails,
   },
@@ -47,7 +53,9 @@ export const GROCERY_STORE_TYPE_META: Record<GroceryStoreType, GroceryStoreTypeM
     title: 'Fresh Meat',
     serviceName: 'Fresh Meat',
     storesNoun: 'butchers',
+    listRoute: AppRoutes.freshMeat,
     cartRoute: AppRoutes.freshMeatCart,
+    checkoutRoute: AppRoutes.freshMeatCheckout,
     slug: 'fresh-meat',
     storeDetailsRoute: freshMeatStoreDetails,
     productDetailsRoute: freshMeatProductDetails,
@@ -56,7 +64,9 @@ export const GROCERY_STORE_TYPE_META: Record<GroceryStoreType, GroceryStoreTypeM
     title: 'Electronics',
     serviceName: 'Electronics',
     storesNoun: 'electronics stores',
+    listRoute: AppRoutes.electronics,
     cartRoute: AppRoutes.electronicsCart,
+    checkoutRoute: AppRoutes.electronicsCheckout,
     slug: 'electronics',
     storeDetailsRoute: electronicsStoreDetails,
     productDetailsRoute: electronicsProductDetails,
