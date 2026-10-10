@@ -93,6 +93,22 @@ export const AppRoutes = {
   trackOrder: '/track-order',
 } as const;
 
+/**
+ * Builds the `/food/explore` location, optionally scoped to one category --
+ * mirrors `FoodCategoriesScreen._openCategory`'s
+ * `Uri(path: AppRoutes.foodExplore, queryParameters: {categoryId, categoryName})`,
+ * read back by `app_router.dart`'s `foodExplore` route (and here by
+ * `src/app/(app)/(tabs)/food/explore.tsx`'s `useLocalSearchParams`).
+ */
+export function foodExplorePath(category?: { categoryId: string; categoryName: string }): string {
+  if (!category) return AppRoutes.foodExplore;
+  const query = [
+    `categoryId=${encodeURIComponent(category.categoryId)}`,
+    `categoryName=${encodeURIComponent(category.categoryName)}`,
+  ].join('&');
+  return `${AppRoutes.foodExplore}?${query}`;
+}
+
 /** Mirrors `AppRoutes.restaurantDetails`. */
 export function restaurantDetails(restaurantId: string): string {
   return `${AppRoutes.foodRestaurants}/${encodeURIComponent(restaurantId)}`;
