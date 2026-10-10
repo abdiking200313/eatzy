@@ -14,6 +14,12 @@ export type GradientActionButtonProps = {
   paddingHorizontal?: number;
   borderRadius?: number;
   fontSize?: number;
+  /**
+   * Mirrors a Flutter `Key` on the widget itself (e.g. `cart_view.dart`'s
+   * `Key('cart-checkout')`, `checkout_view.dart`'s
+   * `Key('checkout-place-order')`) so a test can find this exact button.
+   */
+  testID?: string;
 };
 
 /**
@@ -32,12 +38,14 @@ export function GradientActionButton({
   paddingHorizontal = spacing.x5,
   borderRadius = 50,
   fontSize,
+  testID,
 }: GradientActionButtonProps) {
   const colors = useSemanticColors();
   const disabled = !onPress;
 
   return (
     <Pressable
+      testID={testID}
       accessibilityRole="button"
       accessibilityState={{ disabled }}
       disabled={disabled}
