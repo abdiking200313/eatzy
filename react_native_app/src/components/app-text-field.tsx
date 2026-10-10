@@ -24,6 +24,8 @@ export type AppTextFieldProps = {
   /** RN's `autoComplete` is a single value, unlike Dart's `autofillHints`
    * list — pass the single closest hint. */
   autoComplete?: TextInputProps['autoComplete'];
+  /** Mirrors Dart's `textCapitalization` (e.g. `'words'` for name fields). */
+  autoCapitalize?: TextInputProps['autoCapitalize'];
   onSubmitted?: (text: string) => void;
   readOnly?: boolean;
   onPress?: () => void;
@@ -50,6 +52,7 @@ export function AppTextField({
   obscureText = false,
   textInputAction,
   autoComplete,
+  autoCapitalize,
   onSubmitted,
   readOnly = false,
   onPress,
@@ -84,6 +87,7 @@ export function AppTextField({
         secureTextEntry={isHidden}
         returnKeyType={textInputAction}
         autoComplete={autoComplete}
+        autoCapitalize={autoCapitalize}
         onSubmitEditing={(event) => onSubmitted?.(event.nativeEvent.text)}
         readOnly={readOnly}
         onFocus={() => setIsFocused(true)}

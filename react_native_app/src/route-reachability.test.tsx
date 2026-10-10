@@ -151,12 +151,17 @@ describe('route reachability (ports route_reachability_test.dart, issue #71/#358
   // cases just below (same posture for all eleven) for their own coverage.
   const staticRoutes: [name: string, path: string][] = [
     ['addresses', '/addresses'],
-    ['settings', '/settings'],
   ];
 
   test.each(staticRoutes)('AppRoutes.%s (%s) resolves to its placeholder screen', async (_name, path) => {
     await renderRoute(path);
     expect(await screen.findByText(`${path} — not yet implemented`)).toBeTruthy();
+  });
+
+  // AppRoutes.settings (/settings) resolves to its real screen since issue #400.
+  test('AppRoutes.settings (/settings) resolves to its real screen', async () => {
+    await renderRoute('/settings');
+    expect(await screen.findByText('Preferences')).toBeTruthy();
   });
 
   // AppRoutes.support (/support) resolves to its real screen since issue #403.
