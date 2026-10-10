@@ -258,6 +258,22 @@ describe('route reachability (ports route_reachability_test.dart, issue #71/#358
     expect(await screen.findByText('Groceries')).toBeTruthy();
   });
 
+  // AppRoutes.groceryStore and its Fresh Meat/Electronics siblings resolve
+  // to the real store screen since issue #390. This file's minimal
+  // `supabase` stub makes `fetchGroceryStore` reject, so the screen settles
+  // on its error state under the plain "Store" title bar. Loaded/search/
+  // add-to-cart behavior is covered in
+  // `src/features/grocery/grocery-store-screen.test.tsx`.
+  test.each([
+    ['groceryStore', '/grocery/stores/store-1'],
+    ['freshMeatStore', '/grocery/fresh-meat/stores/store-1'],
+    ['electronicsStore', '/grocery/electronics/stores/store-1'],
+  ])('AppRoutes.%s (%s) resolves to its real screen', async (_name, path) => {
+    await renderRoute(path);
+    expect(await screen.findByText('Store')).toBeTruthy();
+    expect(await screen.findByTestId('error-state')).toBeTruthy();
+  });
+
   // AppRoutes.foodCart (/food/cart) resolves to its real screen since issue
   // #386 (so it is no longer in the placeholder `staticRoutes` table above).
   // The real food cart store starts empty here, so the screen renders its
@@ -315,12 +331,6 @@ describe('route reachability (ports route_reachability_test.dart, issue #71/#358
   // placeholder screen renders the path *template* (with `:param` segments)
   // plus the actual param value(s) in parens.
   const dynamicRoutes: [name: string, template: string, concretePath: string, text: string][] = [
-    [
-      'groceryStore',
-      '/grocery/stores/:storeId',
-      '/grocery/stores/store-1',
-      '/grocery/stores/:storeId (store-1) — not yet implemented',
-    ],
     [
       'trackOrderDetails',
       '/track-order/:serviceId/:orderId',
