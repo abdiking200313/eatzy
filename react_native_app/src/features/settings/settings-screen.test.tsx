@@ -1,11 +1,15 @@
 /**
  * Ports the account-editing, Coming soon, and Support cases of
  * `flutter_app/test/settings_screen_test.dart` (issue #400 / P8-04), plus
- * its four notification-preference cases (#401 / P8-05).
+ * its four notification-preference cases (#401 / P8-05), plus its three
+ * delete-account cases (#402 / P8-06). The Dart file has no Logout case;
+ * the Logout and "sign-out fails after deletion" cases here are RN-only
+ * coverage of `_logout`/`_confirmDeleteAccount` branches. Flutter's
+ * `AlertDialog` is the platform `Alert.alert` here, so the dialog is
+ * driven through a spy (as in `cart-view.test.tsx`), and GoRouter's
+ * "Login destination" route becomes `router.replace('/login')`.
  *
- * Not ported here, because the behavior they cover belongs to a later
- * migration issue and is not rendered by this screen yet: the three
- * delete-account cases (#402 / P8-06). The two Privacy Policy / Terms
+ * The two Privacy Policy / Terms
  * cases assert the real legal text, which lands with #404 (P8-08); here
  * they are narrowed to "the row navigates to that route".
  *
@@ -14,8 +18,9 @@
  * recording fake stands in. `Icons.arrow_forward_ios` lookups become the
  * `setting-card-chevron` test ID.
  */
-import { fireEvent, screen, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
 import { router } from 'expo-router';
+import { Alert, type AlertButton } from 'react-native';
 
 import type { CustomerProfile } from '@/features/profile/api/customer-profile';
 import type { ProfileRepository, ProfileUpdate } from '@/features/profile/api/profile-repository';
@@ -33,7 +38,7 @@ import {
   renderWithProviders,
 } from '@/test-utils';
 
-import { SettingsScreen } from './settings-screen';
+import { DELETE_ACCOUNT_MESSAGE, DELETE_ACCOUNT_TITLE, SettingsScreen, type SettingsSignOut } from './settings-screen';
 
 jest.mock('expo-router', () => ({
   router: { push: jest.fn(), replace: jest.fn(), canGoBack: jest.fn(() => false), back: jest.fn() },
@@ -67,10 +72,12 @@ jest.mock('@react-native-community/datetimepicker', () => {
 
 class FakeProfileRepository implements ProfileRepository {
   readonly updateCalls: ProfileUpdate[] = [];
+  deleteAccountCalled = false;
 
   constructor(
     private profile: CustomerProfile | null,
     private readonly updateError?: unknown,
+    private readonly deleteAccountError?: unknown,
   ) {}
 
   async fetchCurrentProfile(): Promise<CustomerProfile | null> {
@@ -93,7 +100,8 @@ class FakeProfileRepository implements ProfileRepository {
   }
 
   async deleteAccount(): Promise<void> {
-    throw new Error('not exercised by this test');
+    this.deleteAccountCalled = true;
+    if (this.deleteAccountError !== undefined) throw this.deleteAccountError;
   }
 }
 
@@ -111,6 +119,20 @@ class FakeEmailAuth implements ProfileEmailAuth {
   }
 }
 
+/** Stands in for the Dart tests' real signed-in `AuthService`: `signedIn` is `getCurrentUserId() != null`. */
+class FakeSignOut implements SettingsSignOut {
+  signedIn = true;
+  signOutCallCount = 0;
+
+  constructor(private readonly signOutError?: unknown) {}
+
+  async signOut(): Promise<void> {
+    this.signOutCallCount += 1;
+    if (this.signOutError !== undefined) throw this.signOutError;
+    this.signedIn = false;
+  }
+}
+
 function profileOf(overrides: Partial<CustomerProfile>): CustomerProfile {
   return { id: 'customer-1', firstName: 'Amina', lastName: 'Noor', phone: '+252 61 000 0000', avatarUrl: null, dob: null, ...overrides };
 }
@@ -123,6 +145,21 @@ async function renderSettings(repository: ProfileRepository, email: string | nul
 }
 
 const originalReporter = ErrorReporting.instance;
+
+// Whichever test renders `SettingsScreen` first pays a one-time cold-start
+// cost that is not this screen's own work: its first render lazily requires
+// ~150 `react-native` modules (the Fabric renderer, ScrollView, Animated,
+// Modal, KeyboardAvoidingView, LogBox, ...) behind `react-native`'s lazy
+// export getters, and with no Jest transform cache -- CI's `npm test -- --ci`
+// on a fresh runner -- each is Babel-transformed inside that test's timer.
+// Measured with `--no-cache`: ~3.4s for the first test, ~3.0s of it in
+// transforms (ReactFabric-dev.js alone ~0.8s); later tests take <100ms.
+// On a contended CI runner that crossed Jest's default 5s (PR #524's
+// `rn-verify`). Nothing here waits on network or timers: the default
+// repository's `{}` Supabase stub rejects synchronously and the mocked
+// session store has no `userId`, so no preferences/push work runs. Same
+// cause and remedy as `food/index.test.tsx` (#512).
+jest.setTimeout(20_000);
 
 beforeEach(() => {
   ErrorReporting.instance = new NoopErrorReporter();
@@ -401,5 +438,133 @@ describe('SettingsScreen notifications', () => {
     await waitFor(() => expect(switchValue('Push Notifications')).toBe(false));
     expect(gateway.requestPermissionCallCount).toBe(0);
     expect((await storage.read('customer-14')).pushNotifications).toBe(false);
+  });
+});
+
+describe('SettingsScreen account danger zone', () => {
+  let alertSpy: jest.SpyInstance<void, Parameters<typeof Alert.alert>>;
+
+  beforeEach(() => {
+    alertSpy = jest.spyOn(Alert, 'alert').mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    alertSpy.mockRestore();
+  });
+
+  async function renderDangerZone(repository: FakeProfileRepository, auth: FakeSignOut) {
+    await renderWithProviders(
+      <SettingsScreen profileRepository={repository} emailAuth={new FakeEmailAuth('user@zivo.app')} auth={auth} />,
+    );
+    await waitFor(() => expect(screen.queryByText('Loading…')).toBeNull());
+  }
+
+  /** Taps "Delete Account" and returns the confirmation dialog's buttons. */
+  async function openDeleteDialog(): Promise<AlertButton[]> {
+    await fireEvent.press(screen.getByRole('button', { name: 'Delete Account' }));
+    expect(alertSpy).toHaveBeenCalledTimes(1);
+    const [title, message, buttons] = alertSpy.mock.calls[0];
+    expect(title).toBe(DELETE_ACCOUNT_TITLE);
+    expect(message).toBe(DELETE_ACCOUNT_MESSAGE);
+    return buttons ?? [];
+  }
+
+  async function press(buttons: AlertButton[], text: string) {
+    const button = buttons.find((candidate) => candidate.text === text);
+    expect(button).toBeDefined();
+    await act(async () => {
+      button?.onPress?.();
+    });
+  }
+
+  test('renders Logout and Delete Account at the bottom of the screen', async () => {
+    await renderDangerZone(new FakeProfileRepository(profileOf({})), new FakeSignOut());
+
+    expect(screen.getByRole('button', { name: 'Logout' })).toBeOnTheScreen();
+    expect(screen.getByRole('button', { name: 'Delete Account' })).toBeOnTheScreen();
+  });
+
+  test('canceling the delete-account confirmation dialog does not delete the account', async () => {
+    const repository = new FakeProfileRepository(profileOf({ id: 'customer-6', firstName: 'Sam', lastName: 'Yusuf' }));
+    const auth = new FakeSignOut();
+    await renderDangerZone(repository, auth);
+
+    const buttons = await openDeleteDialog();
+    expect(buttons.map((button) => [button.text, button.style])).toEqual([
+      ['Cancel', 'cancel'],
+      ['Delete Account', 'destructive'],
+    ]);
+    await press(buttons, 'Cancel');
+
+    expect(repository.deleteAccountCalled).toBe(false);
+    expect(auth.signOutCallCount).toBe(0);
+    expect(router.replace).not.toHaveBeenCalled();
+    expect(screen.getByText('Notifications')).toBeOnTheScreen();
+  });
+
+  test('confirming account deletion calls the repository, signs out, and routes to login', async () => {
+    const repository = new FakeProfileRepository(profileOf({ id: 'customer-7', firstName: 'Sam', lastName: 'Yusuf' }));
+    const auth = new FakeSignOut();
+    await renderDangerZone(repository, auth);
+
+    await press(await openDeleteDialog(), 'Delete Account');
+
+    expect(repository.deleteAccountCalled).toBe(true);
+    expect(auth.signedIn).toBe(false);
+    expect(router.replace).toHaveBeenCalledWith(AppRoutes.login);
+  });
+
+  test('a failed account deletion shows an error and leaves the user signed in', async () => {
+    const repository = new FakeProfileRepository(
+      profileOf({ id: 'customer-8', firstName: 'Sam', lastName: 'Yusuf' }),
+      undefined,
+      new Error('boom'),
+    );
+    const auth = new FakeSignOut();
+    await renderDangerZone(repository, auth);
+
+    await press(await openDeleteDialog(), 'Delete Account');
+
+    expect(repository.deleteAccountCalled).toBe(true);
+    expect(await screen.findByText(/Could not delete account/)).toBeOnTheScreen();
+    expect(auth.signOutCallCount).toBe(0);
+    expect(auth.signedIn).toBe(true);
+    expect(router.replace).not.toHaveBeenCalled();
+  });
+
+  test('a sign-out failure after a successful deletion is not reported as a failed deletion', async () => {
+    const repository = new FakeProfileRepository(profileOf({}));
+    const auth = new FakeSignOut(new Error('network down'));
+    await renderDangerZone(repository, auth);
+
+    await press(await openDeleteDialog(), 'Delete Account');
+
+    expect(repository.deleteAccountCalled).toBe(true);
+    expect(auth.signOutCallCount).toBe(1);
+    expect(router.replace).toHaveBeenCalledWith(AppRoutes.login);
+    expect(screen.queryByText(/Could not delete account/)).toBeNull();
+  });
+
+  test('Logout signs out and routes to login without a confirmation step', async () => {
+    const repository = new FakeProfileRepository(profileOf({}));
+    const auth = new FakeSignOut();
+    await renderDangerZone(repository, auth);
+
+    await fireEvent.press(screen.getByRole('button', { name: 'Logout' }));
+
+    expect(alertSpy).not.toHaveBeenCalled();
+    expect(repository.deleteAccountCalled).toBe(false);
+    expect(auth.signedIn).toBe(false);
+    await waitFor(() => expect(router.replace).toHaveBeenCalledWith(AppRoutes.login));
+  });
+
+  test('a failed Logout shows an error and stays on Settings', async () => {
+    const auth = new FakeSignOut(new Error('network down'));
+    await renderDangerZone(new FakeProfileRepository(profileOf({})), auth);
+
+    await fireEvent.press(screen.getByRole('button', { name: 'Logout' }));
+
+    expect(await screen.findByText(/Could not log out/)).toBeOnTheScreen();
+    expect(router.replace).not.toHaveBeenCalled();
   });
 });

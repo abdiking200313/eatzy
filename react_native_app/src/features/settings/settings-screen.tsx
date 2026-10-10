@@ -9,19 +9,29 @@
  * {@link NotificationPreferencesStorage}, with the Push toggle gated on OS
  * permission via {@link PushNotificationGateway}.
  *
- * Deliberately not here yet: the Logout / Delete Account danger zone
- * (#402 / P8-06). The Profile tab already carries Logout.
+ * The Logout / Delete Account danger zone (#402 / P8-06) ports
+ * `_logout` and `_confirmDeleteAccount`: deletion is confirmed first, goes
+ * through `delete_own_account` ({@link ProfileRepository.deleteAccount}),
+ * then signs out. Clearing local per-account data (carts, activity, the
+ * merchant gate) is not done here: the resulting `SIGNED_OUT` auth event
+ * drives `session-store.ts` -> `AccountStateCoordinator` ->
+ * `sessionResetRegistry`, exactly as Flutter's `main.dart` auth listener
+ * does, and supabase-js's `signOut` drops the local session even when the
+ * server call fails. Flutter's `AlertDialog` becomes the platform
+ * `Alert.alert` (same precedent as `cart-view.tsx`'s clear-cart confirm).
  *
  * Flutter's `ScaffoldMessenger` snack bars become this screen's own
  * `CartSnackbar` + `useCartSnackbar` pair (the app's only snackbar host so
  * far); `showModalBottomSheet` becomes {@link SettingsSheet}.
  */
 import DateTimePicker, { type DateTimePickerEvent } from '@react-native-community/datetimepicker';
+import { router } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ScrollView, View } from 'react-native';
+import { Alert, ScrollView, View } from 'react-native';
 
 import { AppScaffold } from '@/components/app-scaffold';
 import { CartSnackbar } from '@/components/cart-snackbar';
+import { describeAuthError } from '@/features/auth/api/auth-error-message';
 import { authService } from '@/features/auth/api/auth-service';
 import type { CustomerProfile } from '@/features/profile/api/customer-profile';
 import { customerDisplayName } from '@/features/profile/api/customer-profile';
@@ -34,12 +44,14 @@ import {
 } from '@/features/profile/profile-edit-controller';
 import { useCartSnackbar } from '@/hooks/use-cart-snackbar';
 import { ErrorReporting } from '@/platform/error-reporting/error-reporter';
+import { AppRoutes } from '@/platform/navigation/app-routes';
 import { formatShortDate } from '@/platform/localization/date-format';
 import { PushNotifications, type PushNotificationGateway } from '@/platform/notifications/push-notifications';
 import { useSessionStore } from '@/stores/session-store';
 import { spacing } from '@/theme/tokens';
 
 import { AboutZivoSheet } from './about-zivo-sheet';
+import { AccountDangerZone } from './account-danger-zone';
 import {
   AsyncStorageNotificationPreferencesStorage,
   DEFAULT_NOTIFICATION_PREFERENCES,
@@ -54,6 +66,8 @@ export const PROFILE_UPDATED_MESSAGE = 'Profile updated';
 export const EMAIL_CHANGE_REQUESTED_MESSAGE = 'Check your new inbox to confirm your email change.';
 export const PUSH_PERMISSION_BLOCKED_MESSAGE =
   'Notifications are blocked for Zivo. Enable them in your device settings to turn this on.';
+export const DELETE_ACCOUNT_TITLE = 'Delete your account?';
+export const DELETE_ACCOUNT_MESSAGE = "This permanently removes your profile and personal data. This can't be undone.";
 const NOT_ADDED_YET = 'Not added yet';
 const LOADING = 'Loading…';
 
@@ -67,6 +81,11 @@ const defaultEmailAuth: ProfileEmailAuth = {
   getCurrentUserEmail: () => useSessionStore.getState().session?.user.email ?? null,
   updateEmail: (email) => authService.updateEmail(email),
 };
+
+/** The slice of `AuthService` the danger zone needs -- just sign-out (same seam as the Profile tab's `ProfileSignOut`). */
+export interface SettingsSignOut {
+  signOut(): Promise<void>;
+}
 
 export type SettingsScreenProps = {
   /** Defaults to a {@link SupabaseProfileRepository} on the shared client. */
@@ -83,6 +102,8 @@ export type SettingsScreenProps = {
    * `userId`; `null` means signed out, so nothing is read or saved.
    */
   getCurrentUserId?: () => string | null;
+  /** Defaults to the app-wide `authService`. */
+  auth?: SettingsSignOut;
 };
 
 const defaultGetCurrentUserId = () => useSessionStore.getState().userId;
@@ -118,6 +139,7 @@ export function SettingsScreen({
   notificationPreferencesStorage,
   pushNotificationGateway,
   getCurrentUserId = defaultGetCurrentUserId,
+  auth = authService,
 }: SettingsScreenProps = {}) {
   // Resolved once, like the Dart `didChangeDependencies` guard.
   const [repository] = useState<ProfileRepository>(() => profileRepository ?? new SupabaseProfileRepository());
@@ -268,6 +290,44 @@ export function SettingsScreen({
     [applyProfileEditResult, controller, showSnackbar],
   );
 
+  /** Mirrors `_logout`. */
+  const handleLogout = useCallback(async () => {
+    try {
+      await auth.signOut();
+      if (isMounted.current) router.replace(AppRoutes.login);
+    } catch (error) {
+      if (!isMounted.current) return;
+      showSnackbar(`Could not log out: ${describeAuthError(error, 'Logout')}`);
+    }
+  }, [auth, showSnackbar]);
+
+  /** The post-confirmation half of `_confirmDeleteAccount`. */
+  const deleteAccount = useCallback(async () => {
+    try {
+      await repository.deleteAccount();
+      // The server already revoked every session, so a failing sign-out call
+      // must not be reported as a failed deletion; supabase-js still clears
+      // the local session (and so fires SIGNED_OUT) when the server rejects it.
+      try {
+        await auth.signOut();
+      } catch {
+        // Intentionally ignored, as in the Dart screen.
+      }
+      if (isMounted.current) router.replace(AppRoutes.login);
+    } catch (error) {
+      if (!isMounted.current) return;
+      showSnackbar(`Could not delete account: ${describeAuthError(error, 'Account deletion')}`);
+    }
+  }, [auth, repository, showSnackbar]);
+
+  /** Mirrors the confirmation-dialog half of `_confirmDeleteAccount`: Cancel does nothing. */
+  const confirmDeleteAccount = useCallback(() => {
+    Alert.alert(DELETE_ACCOUNT_TITLE, DELETE_ACCOUNT_MESSAGE, [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Delete Account', style: 'destructive', onPress: () => void deleteAccount() },
+    ]);
+  }, [deleteAccount]);
+
   const now = new Date();
 
   return (
@@ -300,6 +360,11 @@ export function SettingsScreen({
           <PreferencesSection />
           <View style={{ height: spacing.sectionGap }} />
           <SupportSection onAboutUsPress={() => setActiveSheet('about')} />
+          <View style={{ height: spacing.sectionGap }} />
+          <AccountDangerZone
+            onLogoutPress={() => void handleLogout()}
+            onDeleteAccountPress={confirmDeleteAccount}
+          />
           <View style={{ height: spacing.x6 }} />
         </ScrollView>
         <CartSnackbar message={snackbarMessage} />
