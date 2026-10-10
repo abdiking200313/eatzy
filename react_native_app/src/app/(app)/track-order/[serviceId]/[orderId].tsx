@@ -1,14 +1,11 @@
 import { useLocalSearchParams } from 'expo-router';
-import { Text, View } from 'react-native';
+
+import { TrackOrderScreen } from '@/features/orders/track-order-screen';
 
 // Ports AppRoutes.trackOrderDetails ('/track-order/:serviceId/:orderId') from
-// flutter_app/lib/app/app_routes.dart / app_router.dart (issue #358: route
-// skeleton only -- real screen content lands in a later issue).
-export default function TrackOrderDetailsScreen() {
+// flutter_app/lib/app/app_router.dart (issue #398 / P8-02): the order
+// details/tracking screen for one of the customer's own orders.
+export default function TrackOrderDetailsRoute() {
   const { serviceId, orderId } = useLocalSearchParams<{ serviceId: string; orderId: string }>();
-  return (
-    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 }}>
-      <Text>/track-order/:serviceId/:orderId ({serviceId} {orderId}) — not yet implemented</Text>
-    </View>
-  );
+  return <TrackOrderScreen serviceId={serviceId} orderId={orderId} />;
 }

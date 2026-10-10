@@ -152,7 +152,6 @@ describe('route reachability (ports route_reachability_test.dart, issue #71/#358
   const staticRoutes: [name: string, path: string][] = [
     ['addresses', '/addresses'],
     ['settings', '/settings'],
-    ['trackOrder', '/track-order'],
   ];
 
   test.each(staticRoutes)('AppRoutes.%s (%s) resolves to its placeholder screen', async (_name, path) => {
@@ -433,21 +432,22 @@ describe('route reachability (ports route_reachability_test.dart, issue #71/#358
     expect(await screen.findByTestId('loading-state')).toBeTruthy();
   });
 
-  // Parameterized `AppRoutes` paths, each visited at a concrete URL. The
-  // placeholder screen renders the path *template* (with `:param` segments)
-  // plus the actual param value(s) in parens.
-  const dynamicRoutes: [name: string, template: string, concretePath: string, text: string][] = [
-    [
-      'trackOrderDetails',
-      '/track-order/:serviceId/:orderId',
-      '/track-order/food/order-1',
-      '/track-order/:serviceId/:orderId (food order-1) — not yet implemented',
-    ],
-  ];
+  // AppRoutes.trackOrder (/track-order) and AppRoutes.trackOrderDetails
+  // (/track-order/:serviceId/:orderId) resolve to the real track-order screen
+  // since issue #398. The bare route shows its "no order selected" state;
+  // the details route reaches the screen's error state, since this file's
+  // minimal `supabase` stub has no `auth.getSession`, so the order lookup
+  // rejects. Loaded/live-update behavior is covered in
+  // `src/features/orders/track-order-screen.test.tsx`.
+  test('AppRoutes.trackOrder (/track-order) resolves to its real screen', async () => {
+    await renderRoute('/track-order');
+    expect(await screen.findByText('No order selected')).toBeTruthy();
+  });
 
-  test.each(dynamicRoutes)('AppRoutes.%s (%s) resolves to its placeholder screen', async (_name, _template, concretePath, text) => {
-    await renderRoute(concretePath);
-    expect(await screen.findByText(text)).toBeTruthy();
+  test('AppRoutes.trackOrderDetails (/track-order/:serviceId/:orderId) resolves to its real screen', async () => {
+    await renderRoute('/track-order/food/order-1');
+    expect(await screen.findByText('Order details')).toBeTruthy();
+    expect(await screen.findByText('Order could not be loaded')).toBeTruthy();
   });
 
   // Legacy-alias `AppRoutes` paths (route_reachability_test.dart's
