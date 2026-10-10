@@ -1,13 +1,9 @@
-import { Text, View } from 'react-native';
+import { GroceryStoreListScreen } from '@/features/grocery/grocery-store-list-screen';
 
 // Ports AppRoutes.freshMeat ('/grocery/fresh-meat') from
-// flutter_app/lib/app/app_routes.dart / app_router.dart (issue #358: route
-// skeleton only -- real screen content lands in a later issue).
-// AppRoutes.groceryStores/freshMeatStore-prefix equivalents intentionally have no matching bare route -- see app_routes.dart.
+// flutter_app/lib/services/grocery/presentation/grocery_screen.dart
+// (issue #389 / P7-01). Fresh Meat runs on the grocery engine, filtered to
+// its own store type -- see grocery-store-type-meta.ts.
 export default function FreshMeatScreen() {
-  return (
-    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 }}>
-      <Text>/grocery/fresh-meat — not yet implemented</Text>
-    </View>
-  );
+  return <GroceryStoreListScreen storeType="fresh_meat" />;
 }
