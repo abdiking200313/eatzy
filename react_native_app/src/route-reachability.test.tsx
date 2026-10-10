@@ -153,7 +153,6 @@ describe('route reachability (ports route_reachability_test.dart, issue #71/#358
     ['profile', '/profile'],
     ['addresses', '/addresses'],
     ['settings', '/settings'],
-    ['support', '/support'],
     ['trackOrder', '/track-order'],
     ['groceryCart', '/grocery/cart'],
     ['groceryCheckout', '/grocery/checkout'],
@@ -165,6 +164,12 @@ describe('route reachability (ports route_reachability_test.dart, issue #71/#358
   test.each(staticRoutes)('AppRoutes.%s (%s) resolves to its placeholder screen', async (_name, path) => {
     await renderRoute(path);
     expect(await screen.findByText(`${path} — not yet implemented`)).toBeTruthy();
+  });
+
+  // AppRoutes.support (/support) resolves to its real screen since issue #403.
+  test('AppRoutes.support (/support) resolves to its real screen', async () => {
+    await renderRoute('/support');
+    expect(await screen.findByText('How can we help?')).toBeTruthy();
   });
 
   // AppRoutes.welcome ('/welcome') resolves to its real screen since issue

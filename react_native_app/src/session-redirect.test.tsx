@@ -111,7 +111,7 @@ describe('session redirect gate ((auth)/_layout.tsx and (app)/_layout.tsx, issue
 
     await renderRoute('/support');
 
-    expect(await screen.findByText('/support — not yet implemented')).toBeTruthy();
+    expect(await screen.findByText('Help & Support')).toBeTruthy();
   });
 
   it('lets a signed-in user reach /reset-password (not a signed-out-only route)', async () => {
