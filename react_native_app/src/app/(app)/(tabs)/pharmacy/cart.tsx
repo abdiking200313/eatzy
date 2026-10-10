@@ -1,12 +1,8 @@
-import { Text, View } from 'react-native';
+import { PharmacyCartScreen } from '@/features/pharmacy/pharmacy-cart-screen';
 
 // Ports AppRoutes.pharmacyCart ('/pharmacy/cart') from
-// flutter_app/lib/app/app_routes.dart / app_router.dart (issue #358: route
-// skeleton only -- real screen content lands in a later issue).
-export default function PharmacyCartScreen() {
-  return (
-    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 }}>
-      <Text>/pharmacy/cart — not yet implemented</Text>
-    </View>
-  );
+// flutter_app/lib/services/pharmacy/presentation/pharmacy_cart_screen.dart
+// (issue #395 / P7-07).
+export default function PharmacyCartRoute() {
+  return <PharmacyCartScreen />;
 }

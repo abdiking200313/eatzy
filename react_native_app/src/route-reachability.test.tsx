@@ -153,8 +153,6 @@ describe('route reachability (ports route_reachability_test.dart, issue #71/#358
     ['addresses', '/addresses'],
     ['settings', '/settings'],
     ['trackOrder', '/track-order'],
-    ['pharmacyCart', '/pharmacy/cart'],
-    ['pharmacyCheckout', '/pharmacy/checkout'],
   ];
 
   test.each(staticRoutes)('AppRoutes.%s (%s) resolves to its placeholder screen', async (_name, path) => {
@@ -355,6 +353,31 @@ describe('route reachability (ports route_reachability_test.dart, issue #71/#358
     await renderRoute(path);
     expect(await screen.findByText(title)).toBeTruthy();
     expect(await screen.findByText('Your cart is empty')).toBeTruthy();
+  });
+
+  // AppRoutes.pharmacyCart/pharmacyCheckout/pharmacyProduct resolve to
+  // their real screens since issue #395 (so the cart/checkout pair is no
+  // longer in the placeholder `staticRoutes` table above). The real pharmacy
+  // cart store starts empty here, so cart and checkout render their empty
+  // states; with this file's `supabase` stub the product's catalog load
+  // fails, which -- as in Flutter -- shows the not-found message. Full
+  // behavior is covered in `src/features/pharmacy/pharmacy-*-screen.test.tsx`.
+  test('AppRoutes.pharmacyCart (/pharmacy/cart) resolves to its real screen', async () => {
+    await renderRoute('/pharmacy/cart');
+    expect(await screen.findByText('Your pharmacy cart is empty')).toBeTruthy();
+    expect(await screen.findByText('Browse pharmacy')).toBeTruthy();
+  });
+
+  test('AppRoutes.pharmacyCheckout (/pharmacy/checkout) resolves to its real screen', async () => {
+    await renderRoute('/pharmacy/checkout');
+    expect(await screen.findByText('Checkout')).toBeTruthy();
+    expect(await screen.findByText('Browse OTC products')).toBeTruthy();
+  });
+
+  test('AppRoutes.pharmacyProduct (/pharmacy/stores/:storeId/product/:productId) resolves to its real screen', async () => {
+    await renderRoute('/pharmacy/stores/store-1/product/p-1');
+    expect(await screen.findByText('Product')).toBeTruthy();
+    expect(await screen.findByText('This product is no longer available.')).toBeTruthy();
   });
 
   // AppRoutes.foodCart (/food/cart) resolves to its real screen since issue

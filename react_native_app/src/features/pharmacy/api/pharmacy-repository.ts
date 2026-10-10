@@ -5,8 +5,8 @@
  * `SupabasePharmacyStoreRepository.fetchStores`, and the in-memory
  * `SeededPharmacyRepository` the Flutter tests (and this port's tests) use.
  *
- * `SupabasePharmacyOrderRepository` (`place_pharmacy_order`) belongs to the
- * checkout issue and is not ported here.
+ * `SupabasePharmacyOrderRepository` (`place_pharmacy_order`) is ported in
+ * `pharmacy-order-repository.ts` (issue #395).
  *
  * Like `grocery-repository.ts`, the Supabase dependency is narrowed to the
  * `from(...)` chain this module actually uses so a test can inject
