@@ -8,6 +8,13 @@ Reverse-chronological. Each session/major chunk of work gets an entry.
 
 ---
 
+## 2026-10-10, 6th run (board worker — RN Phase 6 food complete, 5 issues merged)
+
+- #55 still `waiting-on-you` (no human reply). #390 left alone: it was claimed `agent-in-progress` by another session earlier today, not yet stale.
+- Merged #384 (menu item details, PR #503), #385 (food categories/explore, #504), #386 (food cart, #505), #387 (food checkout via `place_food_order` with a per-visit idempotency key and an in-flight guard, #506) and #388 (food test parity table in `react_native_app/docs/food-test-parity.md`, 0 gaps).
+- Pattern that worked: one `general-purpose` subagent per issue as an isolated execution; the orchestrator re-runs lint/typecheck/full jest before every merge. The stop hook forces WIP checkpoint commits on the feature branch mid-dispatch, which squash-merge folds away.
+- Open: RN still has no app-wide snackbar host, so add-to-cart confirmations after `ProductDetailsView` navigates back are not shown (noted in #384's screen).
+
 ## 2026-10-10, 5th run (board worker — RN Phase 5-6 shared commerce/food, 6 issues merged, subagent dispatch working again)
 
 - **Correction to the 4th run's "Auto-Mode Bypass" finding: write-capable subagent dispatch worked normally this entire run** — every issue below used the standard `rn-logic-agent`/`rn-ui-agent`/`rn-qa-agent` sequential-pass flow (logic first when a UI pass needs its contract, then UI, then QA) with no denial at any point, across ~15 total dispatches. No root cause found for why the 4th run was blocked and this run wasn't; treat the block as transient/non-deterministic rather than a standing policy, and try dispatching normally — don't assume "implement directly" is the permanent fallback.

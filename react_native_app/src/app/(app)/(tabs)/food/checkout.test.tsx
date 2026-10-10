@@ -22,6 +22,9 @@
  *   room so nothing overflows); RN has no equivalent of Flutter's overflow
  *   exceptions, so there is nothing to port.
  *
+ * Also covers `food_controller_test.dart` (`FoodController.confirmOrder`
+ * lives inside this screen in RN) -- see docs/food-test-parity.md (#388).
+ *
  * Extra RN-only cases: success clears the cart and opens order tracking; a
  * retry after a failure reuses the same idempotency key; a double tap
  * within the same frame (before the disabled button re-renders) is still
@@ -202,6 +205,30 @@ describe('FoodCheckoutScreen', () => {
     expect(mockRpc).toHaveBeenCalledTimes(1);
   });
 
+  it('a dropped second tap does not disturb the first submission, which still completes (issue #388 parity: food_controller_test)', async () => {
+    const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation(() => {});
+    let resolveRpc!: (value: unknown) => void;
+    mockRpc.mockImplementation(() => new Promise((resolve) => (resolveRpc = resolve)));
+    const { getByTestId, getByText } = await renderScreen();
+
+    await fireEvent.press(getByTestId('checkout-place-order'));
+    expect(getByText('Placing order...')).toBeOnTheScreen();
+    await fireEvent.press(getByTestId('checkout-place-order'));
+    expect(mockRpc).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      resolveRpc({ data: [placedRow], error: null });
+    });
+
+    await waitFor(() =>
+      expect(router.replace).toHaveBeenCalledWith(trackOrderDetailsPath({ serviceId: 'food', orderId: 'order-123' })),
+    );
+    expect(router.replace).toHaveBeenCalledTimes(1);
+    expect(mockRpc).toHaveBeenCalledTimes(1);
+    expect(useFoodCartStore.getState().items).toHaveLength(0);
+    expect(alertSpy).toHaveBeenCalledTimes(1);
+  });
+
   it('a retry after a failure reuses the same idempotency key', async () => {
     mockRpc
       .mockResolvedValueOnce({ data: null, error: new Error('lost response') })
@@ -245,6 +272,24 @@ describe('FoodCheckoutScreen', () => {
     await fireEvent.press(getByTestId('checkout-place-order'));
 
     expect(await findByText(`${missingContactDetailsMessage}.`)).toBeOnTheScreen();
+  });
+
+  it('submitting with an empty cart is a no-op: no order is placed and no error is shown (issue #388 parity: food_controller_test)', async () => {
+    const { queryByText, queryByTestId } = await renderScreen({ items: [] });
+
+    // No button is rendered for an empty cart, so call the screen's submit
+    // handler directly -- the equivalent of Dart's `confirmOrder` on an
+    // empty cart.
+    const { onSubmit } = mockCheckoutView.mock.calls.at(-1)![0];
+    await act(async () => {
+      onSubmit();
+    });
+
+    expect(mockRpc).not.toHaveBeenCalled();
+    expect(queryByText('Placing order...')).toBeNull();
+    expect(queryByTestId('checkout-error')).toBeNull();
+    expect(queryByText('The food order could not be saved. Please try again.')).toBeNull();
+    expect(router.replace).not.toHaveBeenCalled();
   });
 
   it('an empty cart shows the empty state with no place-order button, and browse goes to the home tab', async () => {
