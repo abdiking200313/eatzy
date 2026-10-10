@@ -129,6 +129,7 @@ describe('session redirect gate ((auth)/_layout.tsx and (app)/_layout.tsx, issue
 
     await renderRoute('/app');
 
-    expect(await screen.findByText('/app — not yet implemented')).toBeTruthy();
+    // Real screen since issue #373 (previously the generic placeholder).
+    expect(await screen.findByText('Search restaurants, stores...')).toBeTruthy();
   });
 });

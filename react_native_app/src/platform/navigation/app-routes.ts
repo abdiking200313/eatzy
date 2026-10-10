@@ -66,7 +66,9 @@ export const AppRoutes = {
   // `grocery_stores.store_type`) but each keeps its own cart (owner
   // decision, 2026-09-25) -- see `src/platform/services/registry.ts`.
   freshMeat: '/grocery/fresh-meat',
+  freshMeatStores: '/grocery/fresh-meat/stores',
   electronics: '/grocery/electronics',
+  electronicsStores: '/grocery/electronics/stores',
 
   pharmacy: '/pharmacy',
   pharmacyStores: '/pharmacy/stores',
@@ -108,6 +110,16 @@ export function groceryStoreDetails(storeId: string): string {
 /** Mirrors `AppRoutes.isGroceryStoreDetails`. */
 export function isGroceryStoreDetails(location: string): boolean {
   return location.startsWith(`${AppRoutes.groceryStores}/`);
+}
+
+/** Mirrors `GroceryStoreType.freshMeat`'s `storeDetailsRoute`. */
+export function freshMeatStoreDetails(storeId: string): string {
+  return `${AppRoutes.freshMeatStores}/${encodeURIComponent(storeId)}`;
+}
+
+/** Mirrors `GroceryStoreType.electronics`'s `storeDetailsRoute`. */
+export function electronicsStoreDetails(storeId: string): string {
+  return `${AppRoutes.electronicsStores}/${encodeURIComponent(storeId)}`;
 }
 
 /** Mirrors `AppRoutes.pharmacyStoreDetails`. */
