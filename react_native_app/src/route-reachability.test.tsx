@@ -312,6 +312,21 @@ describe('route reachability (ports route_reachability_test.dart, issue #71/#358
     expect(await screen.findByTestId('error-state')).toBeTruthy();
   });
 
+  // AppRoutes.groceryProduct and its Fresh Meat/Electronics siblings
+  // resolve to the real product details screen since issue #391. With this
+  // file's `supabase` stub the store load fails into the error state under
+  // the plain "Product" title bar. Loaded/add-to-cart behavior is covered in
+  // `src/features/grocery/grocery-product-details-screen.test.tsx`.
+  test.each([
+    ['groceryProduct', '/grocery/stores/store-1/product/p-1'],
+    ['freshMeatProduct', '/grocery/fresh-meat/stores/store-1/product/p-1'],
+    ['electronicsProduct', '/grocery/electronics/stores/store-1/product/p-1'],
+  ])('AppRoutes.%s (%s) resolves to its real screen', async (_name, path) => {
+    await renderRoute(path);
+    expect(await screen.findByText('Product')).toBeTruthy();
+    expect(await screen.findByTestId('error-state')).toBeTruthy();
+  });
+
   // AppRoutes.foodCart (/food/cart) resolves to its real screen since issue
   // #386 (so it is no longer in the placeholder `staticRoutes` table above).
   // The real food cart store starts empty here, so the screen renders its
