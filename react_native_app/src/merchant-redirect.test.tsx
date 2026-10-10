@@ -138,6 +138,6 @@ describe('merchant-session gate (merchant/_layout.tsx, (auth)/_layout.tsx, (app)
 
     await renderRoute('/support');
 
-    expect(await screen.findByText('/support — not yet implemented')).toBeTruthy();
+    expect(await screen.findByText('Help & Support')).toBeTruthy();
   });
 });
