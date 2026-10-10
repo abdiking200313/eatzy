@@ -1,14 +1,11 @@
 import { useLocalSearchParams } from 'expo-router';
-import { Text, View } from 'react-native';
+
+import { GroceryStoreScreen } from '@/features/grocery/grocery-store-screen';
 
 // Ports AppRoutes.freshMeatStore ('/grocery/fresh-meat/stores/:storeId') from
-// flutter_app/lib/app/app_routes.dart / app_router.dart (issue #358: route
-// skeleton only -- real screen content lands in a later issue).
-export default function FreshMeatStoreScreen() {
+// flutter_app/lib/services/grocery/presentation/grocery_store_screen.dart
+// (issue #390 / P7-02).
+export default function FreshMeatStoreRoute() {
   const { storeId } = useLocalSearchParams<{ storeId: string }>();
-  return (
-    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 }}>
-      <Text>/grocery/fresh-meat/stores/:storeId ({storeId}) — not yet implemented</Text>
-    </View>
-  );
+  return <GroceryStoreScreen storeId={storeId} storeType="fresh_meat" />;
 }
