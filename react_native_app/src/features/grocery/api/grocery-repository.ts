@@ -4,7 +4,7 @@
  * the every-store-at-once read the grocery/Fresh Meat/Electronics store
  * *list* screens use -- and `fetchStore` (issue #390 / P7-02), the
  * single-store read the store screen uses. `fetchDeliverySlots` belongs to
- * checkout and is not ported yet.
+ * checkout and lives in `grocery-order-repository.ts` (issue #392).
  *
  * See `features/food/api/restaurant-repository.ts` for why this is a free
  * function with an injectable client rather than a Dart-style
