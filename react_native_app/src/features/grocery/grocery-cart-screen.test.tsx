@@ -91,6 +91,46 @@ describe('GroceryCartScreen', () => {
     expect(router.push).toHaveBeenCalledWith(AppRoutes.groceryCheckout);
   });
 
+  // Ports cart_screens_test.dart's grocery "renders lines with totals, and
+  // increase/decrease updates the line total and the cart subtotal" (issue
+  // #396 parity).
+  it('increase/decrease updates the line total and the cart subtotal', async () => {
+    const { getByText, getAllByText, getByLabelText } = await renderScreen({
+      lines: [
+        { product: rice, quantity: 1 },
+        { product: bananas, quantity: 1.5 },
+      ],
+    });
+    const riceQuantity = () => groceryCartStores.grocery.store.getState().lines.find((line) => line.product.id === 'bakaal-rice')!.quantity;
+
+    // $8.50 + 1.5 kg × $1.80 = $11.20, plus a $2.50 delivery fee = $13.70.
+    expect(getAllByText('$8.50').length).toBeGreaterThan(0);
+    expect(getByText('$11.20')).toBeOnTheScreen();
+    expect(getAllByText('$13.70').length).toBeGreaterThan(0);
+
+    await fireEvent.press(getByLabelText('Increase Basmati rice'));
+    expect(riceQuantity()).toBe(2);
+    expect(getByText('$17.00')).toBeOnTheScreen();
+    expect(getByText('$19.70')).toBeOnTheScreen();
+    expect(getAllByText('$22.20').length).toBeGreaterThan(0);
+
+    await fireEvent.press(getByLabelText('Decrease Basmati rice'));
+    expect(riceQuantity()).toBe(1);
+    expect(getByText('$11.20')).toBeOnTheScreen();
+    expect(getAllByText('$13.70').length).toBeGreaterThan(0);
+  });
+
+  // Ports cart_screens_test.dart's grocery "removing the only line in the
+  // cart shows the empty state" (issue #396 parity).
+  it('removing the only line in the cart shows the empty state', async () => {
+    const { getByTestId, findByText } = await renderScreen({ lines: [{ product: rice, quantity: 1 }] });
+
+    await fireEvent.press(getByTestId('remove-cart-item-bakaal-rice'));
+
+    expect(await findByText('Your grocery cart is empty')).toBeOnTheScreen();
+    expect(groceryCartStores.grocery.store.getState().lines).toEqual([]);
+  });
+
   it('shows the delivery fee as pending until pricing loads', async () => {
     const { getAllByText } = await renderScreen({ withPricing: false });
 
@@ -111,14 +151,19 @@ describe('GroceryCartScreen', () => {
 
   // Matches grocery_store_type_test.dart's "the Fresh Meat cart is titled
   // and linked as Fresh Meat" (issue #393), plus the Electronics sibling.
+  // The grocery row also ports cart_screens_test.dart's shared "grocery: an
+  // empty cart has no checkout button, and "Browse stores" navigates back to
+  // the catalog" (issue #396 parity).
   it.each([
+    ['grocery', 'Grocery cart', 'Your grocery cart is empty', AppRoutes.grocery],
     ['fresh_meat', 'Fresh Meat cart', 'Your fresh meat cart is empty', AppRoutes.freshMeat],
     ['electronics', 'Electronics cart', 'Your electronics cart is empty', AppRoutes.electronics],
   ] as const)('uses the %s store type’s own cart, copy and routes', async (storeType, title, empty, listRoute) => {
-    const { getByText } = await renderScreen({ storeType, lines: [] });
+    const { getByText, queryByTestId } = await renderScreen({ storeType, lines: [] });
 
     expect(getByText(title)).toBeOnTheScreen();
     expect(getByText(empty)).toBeOnTheScreen();
+    expect(queryByTestId('cart-checkout')).toBeNull();
     await fireEvent.press(getByText('Browse stores'));
     expect(router.replace).toHaveBeenCalledWith(listRoute);
   });

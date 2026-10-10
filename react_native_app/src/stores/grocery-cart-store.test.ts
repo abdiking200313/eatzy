@@ -134,6 +134,24 @@ describe('grocery cart store (issue #376)', () => {
     expect(totals.total).toBe(1350);
   });
 
+  // Ports grocery_controller_test.dart's "changing the pricing repository
+  // changes the displayed delivery-fee estimate, and unconfigured pricing
+  // reports it as unknown (issue #279)" (issue #396 parity).
+  it('the delivery-fee estimate follows the loaded pricing, and unconfigured pricing reports fee and total as unknown (issue #279)', async () => {
+    const { store } = build();
+    await store.getState().loadForOwner('user-1');
+    store.getState().addProduct(rice);
+    const lines = store.getState().lines;
+
+    const priced = computeGroceryCartTotals(lines, { serviceId: 'grocery', deliveryFeeCents: 777, taxRate: 0 });
+    expect(priced.deliveryFee).toBe(777);
+    expect(priced.total).toBe(500 + 777);
+
+    const unconfigured = computeGroceryCartTotals(lines, undefined);
+    expect(unconfigured.deliveryFee).toBeNull();
+    expect(unconfigured.total).toBeNull();
+  });
+
   it('does not add unavailable products, and rejects a quantity change that would exceed available stock', async () => {
     const { store } = build();
     await store.getState().loadForOwner('user-1');

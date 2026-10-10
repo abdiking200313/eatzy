@@ -87,6 +87,24 @@ describe('pharmacy cart store (issue #376)', () => {
     expect(computePharmacyCartTotals(store.getState().items, standardPharmacyPricing).total).toBe(0);
   });
 
+  // Ports pharmacy_controller_test.dart's "changing the pricing repository
+  // changes the displayed delivery-fee estimate, and unconfigured pricing
+  // reports it as unknown (issue #279)" (issue #396 parity).
+  it('the delivery-fee estimate follows the loaded pricing, and unconfigured pricing reports fee and total as unknown (issue #279)', async () => {
+    const { store } = build();
+    await store.getState().loadForOwner('user-1');
+    store.getState().addProduct(paracetamol);
+    const items = store.getState().items;
+
+    const priced = computePharmacyCartTotals(items, { serviceId: 'pharmacy', deliveryFeeCents: 888, taxRate: 0 });
+    expect(priced.deliveryFee).toBe(888);
+    expect(priced.total).toBe(275 + 888);
+
+    const unconfigured = computePharmacyCartTotals(items, undefined);
+    expect(unconfigured.deliveryFee).toBeNull();
+    expect(unconfigured.total).toBeNull();
+  });
+
   it('decrement removes the item entirely once its quantity would drop to zero (unlike the food cart)', async () => {
     const { store } = build();
     await store.getState().loadForOwner('user-1');

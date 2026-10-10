@@ -200,6 +200,32 @@ describe('GroceryCheckoutScreen', () => {
     expect(placeOrder).toHaveBeenCalledTimes(1);
   });
 
+  // Completes grocery_controller_test.dart's "confirmOrder ignores a second
+  // call while a submission is in flight (issue #59)": the dropped call must
+  // not disturb the first one, which still succeeds (issue #396 parity).
+  it('a dropped second tap does not disturb the first submission, which still completes', async () => {
+    let resolveOrder!: (order: PlacedOrder) => void;
+    const placeOrder = jest.fn((_request: GroceryOrderRequest) => new Promise<PlacedOrder>((resolve) => (resolveOrder = resolve)));
+    const { getByTestId, findByTestId, getByText } = await renderScreen({ placeOrder });
+
+    await fireEvent.press(await findByTestId('grocery-slot-today-evening'));
+    await fireEvent.press(getByTestId('grocery-substitution-bestMatch'));
+    await fireEvent.press(getByTestId('checkout-place-order'));
+    expect(getByText('Placing order...')).toBeOnTheScreen();
+    await fireEvent.press(getByTestId('checkout-place-order'));
+    expect(placeOrder).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      resolveOrder(placed);
+    });
+
+    await waitFor(() => expect(router.replace).toHaveBeenCalledWith(AppRoutes.activity));
+    expect(router.replace).toHaveBeenCalledTimes(1);
+    expect(placeOrder).toHaveBeenCalledTimes(1);
+    expect(groceryCartStores.grocery.store.getState().lines).toEqual([]);
+    expect(Alert.alert).toHaveBeenCalledTimes(1);
+  });
+
   it('titles each store type and offers to browse stores from an empty cart', async () => {
     const { getByText } = await renderScreen({ storeType: 'fresh_meat', lines: [] });
 
