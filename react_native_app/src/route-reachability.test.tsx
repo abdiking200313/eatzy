@@ -127,18 +127,17 @@ describe('route reachability (ports route_reachability_test.dart, issue #71/#358
   // added by #358 renders "<path> — not yet implemented").
   //
   // `welcome` ('/welcome'), `login` ('/login'), `register` ('/register'),
-  // `forgotPassword` ('/forgot-password'), and `resetPassword`
-  // ('/reset-password') are excluded from this table — issues #364, #365,
-  // #366, and #368 respectively gave them real content, so none of them
-  // renders the generic placeholder text any more. See
-  // `welcome.test.tsx`/`welcome-back-navigation.test.tsx`,
+  // `forgotPassword` ('/forgot-password'), `resetPassword`
+  // ('/reset-password'), and `services` ('/services') are excluded from
+  // this table — issues #364, #365, #366, #368, and #374 respectively gave
+  // them real content, so none of them renders the generic placeholder text
+  // any more. See `welcome.test.tsx`/`welcome-back-navigation.test.tsx`,
   // `src/app/(auth)/login.test.tsx`, `src/app/(auth)/register.test.tsx`, and
-  // the `'AppRoutes.forgotPassword/resetPassword ... resolves to its real
-  // screen'` cases just below (same posture for all five) for their own
-  // coverage.
+  // the `'AppRoutes.forgotPassword/resetPassword/services ... resolves to
+  // its real screen'` cases just below (same posture for all six) for their
+  // own coverage.
   const staticRoutes: [name: string, path: string][] = [
     ['mainApp', '/app'],
-    ['services', '/services'],
     ['explore', '/explore'],
     ['activity', '/activity'],
     ['profile', '/profile'],
@@ -199,6 +198,13 @@ describe('route reachability (ports route_reachability_test.dart, issue #71/#358
   test('AppRoutes.resetPassword (/reset-password) resolves to its real screen', async () => {
     await renderRoute('/reset-password');
     expect(await screen.findByText('Set a new password')).toBeTruthy();
+  });
+
+  // AppRoutes.services (/services) resolves to its real screen since issue
+  // #374, same posture as the cases above.
+  test('AppRoutes.services (/services) resolves to its real screen', async () => {
+    await renderRoute('/services');
+    expect(await screen.findByText('Services')).toBeTruthy();
   });
 
   // Parameterized `AppRoutes` paths, each visited at a concrete URL. The
