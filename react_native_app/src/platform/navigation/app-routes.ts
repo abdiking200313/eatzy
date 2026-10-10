@@ -62,6 +62,12 @@ export const AppRoutes = {
   groceryCart: '/grocery/cart',
   groceryCheckout: '/grocery/checkout',
 
+  // Fresh Meat and Electronics run on the grocery engine (filtered by
+  // `grocery_stores.store_type`) but each keeps its own cart (owner
+  // decision, 2026-09-25) -- see `src/platform/services/registry.ts`.
+  freshMeat: '/grocery/fresh-meat',
+  electronics: '/grocery/electronics',
+
   pharmacy: '/pharmacy',
   pharmacyStores: '/pharmacy/stores',
   pharmacyCart: '/pharmacy/cart',
