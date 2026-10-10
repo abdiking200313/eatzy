@@ -260,16 +260,20 @@ describe('route reachability (ports route_reachability_test.dart, issue #71/#358
     expect(await screen.findByText('Groceries')).toBeTruthy();
   });
 
+  // AppRoutes.foodRestaurant (/food/restaurants/:restaurantId) resolves to
+  // its real screen since issue #383 -- asserted on its first-load caption
+  // for the same reason the `/food` case above asserts its loading state
+  // (this file's `supabase` stub makes every fetch reject and retry slowly).
+  // Loaded/error behavior is covered by `restaurant-screen.test.tsx`.
+  test('AppRoutes.foodRestaurant (/food/restaurants/rest-1) resolves to its real screen', async () => {
+    await renderRoute('/food/restaurants/rest-1');
+    expect(await screen.findByText('Loading menu…')).toBeTruthy();
+  });
+
   // Parameterized `AppRoutes` paths, each visited at a concrete URL. The
   // placeholder screen renders the path *template* (with `:param` segments)
   // plus the actual param value(s) in parens.
   const dynamicRoutes: [name: string, template: string, concretePath: string, text: string][] = [
-    [
-      'foodRestaurant',
-      '/food/restaurants/:restaurantId',
-      '/food/restaurants/rest-1',
-      '/food/restaurants/:restaurantId (rest-1) — not yet implemented',
-    ],
     [
       'groceryStore',
       '/grocery/stores/:storeId',

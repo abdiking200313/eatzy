@@ -8,6 +8,12 @@ Reverse-chronological. Each session/major chunk of work gets an entry.
 
 ---
 
+## 2026-10-10 (board worker — #383 P6-02 restaurant screen, PR open for review)
+
+- Ported the restaurant screen, its 6 widgets, `restaurant_menu_repository.dart`/`restaurant_menu.dart`, and `RestaurantLocation` + `fetchLocations` (not listed in the issue, but the screen needs them) to `react_native_app/src/features/food/`. `restaurant_repository.dart`/`restaurant.dart` were already ported by #382 and reused as-is.
+- **New dependency**: `@shopify/flash-list@2.0.2` (Expo SDK 57's bundled version; `npx expo install` itself fails locally reading `app.config.ts`, so pinned by hand). The menu is one flattened FlashList with the chip bar pinned via `stickyHeaderIndices`. Its shipped `jestSetup.js` is broken in 2.0.2 (remaps `FlashList` to a missing `RecyclerView` export), so `react_native_app/jest-flash-list-setup.js` keeps only its layout-measurement stubs.
+- Jest gotcha: a never-resolving `queryFn` promise in a screen test keeps Jest from exiting — resolve it before the test ends.
+
 ## 2026-10-10, 4th run (board worker — RN Phase 4 super-app shell, 4 issues merged, subagent dispatch blocked)
 
 - Eligibility check found RN phases 4-10 mostly `todo` (#55/#29/#52 unchanged). Closed a stray duplicate PR #477 (#366, already resolved via #475) found during the sweep — same orphan branch [[Open Tasks]] already flagged, now also cleared of its stray PR.

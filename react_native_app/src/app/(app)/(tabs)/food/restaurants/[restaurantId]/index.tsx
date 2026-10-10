@@ -1,15 +1,15 @@
 import { useLocalSearchParams } from 'expo-router';
-import { Text, View } from 'react-native';
+
+import { RestaurantScreen } from '@/features/food/restaurant/restaurant-screen';
 
 // Ports AppRoutes.foodRestaurant ('/food/restaurants/:restaurantId') from
-// flutter_app/lib/app/app_routes.dart / app_router.dart (issue #358: route
-// skeleton only -- real screen content lands in a later issue).
+// flutter_app/lib/app/app_routes.dart / app_router.dart. The screen itself
+// (issue #383) lives in src/features/food/restaurant/restaurant-screen.tsx;
+// it is keyed on the id so switching restaurants resets its selected
+// category, mirroring the Dart `didUpdateWidget` reset.
 // AppRoutes.foodRestaurants (the bare '/food/restaurants' prefix) intentionally has no matching route -- see app_routes.dart.
-export default function RestaurantScreen() {
+export default function RestaurantRoute() {
   const { restaurantId } = useLocalSearchParams<{ restaurantId: string }>();
-  return (
-    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 }}>
-      <Text>/food/restaurants/:restaurantId ({restaurantId}) — not yet implemented</Text>
-    </View>
-  );
+  const id = restaurantId ?? '';
+  return <RestaurantScreen key={id} restaurantId={id} />;
 }

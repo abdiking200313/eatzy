@@ -98,6 +98,11 @@ export function restaurantDetails(restaurantId: string): string {
   return `${AppRoutes.foodRestaurants}/${encodeURIComponent(restaurantId)}`;
 }
 
+/** Mirrors `AppRoutes.foodMenuItemDetails`. */
+export function foodMenuItemDetails(restaurantId: string, itemId: string): string {
+  return `${restaurantDetails(restaurantId)}/item/${encodeURIComponent(itemId)}`;
+}
+
 /** Mirrors `AppRoutes.isRestaurantDetails`. */
 export function isRestaurantDetails(location: string): boolean {
   return (

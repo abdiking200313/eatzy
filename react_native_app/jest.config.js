@@ -30,6 +30,11 @@ module.exports = {
     '^@react-native-async-storage/async-storage$':
       '<rootDir>/node_modules/@react-native-async-storage/async-storage/jest/async-storage-mock',
   },
+  // Stubs FlashList's native layout measurement so list rows render under
+  // Jest (issue #383) -- see that file's comment for why it replaces
+  // `@shopify/flash-list/jestSetup.js`. Jest appends this to the
+  // `jest-expo` preset's own `setupFiles` rather than replacing them.
+  setupFiles: ['<rootDir>/jest-flash-list-setup.js'],
   // Keep the default transformIgnorePatterns from `jest-expo` (it already
   // allows transforming Expo/React Navigation/React Native's own ESM-only
   // packages); add to this list here if a newly added dependency ships
