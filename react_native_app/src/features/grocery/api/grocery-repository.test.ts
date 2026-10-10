@@ -6,6 +6,7 @@
  * this covers just `groceryProductFromRow`/`fetchGroceryStores`'s own
  * query + grouping behavior, which has no RN equivalent test yet.
  */
+import { groceryProductFromJson, groceryProductToJson } from '@/stores/grocery-cart-store';
 import { createFakeSupabaseClient, fakeSupabaseOk } from '@/test-utils/fake-supabase-client';
 
 import { fetchGroceryStore, fetchGroceryStores, type GroceryStoreSource } from './grocery-repository';
@@ -53,6 +54,29 @@ describe('groceryProductFromRow', () => {
     });
     expect(outOfStock.stockState).toBe('outOfStock');
     expect(outOfStock.categoryName).toBeNull();
+  });
+
+  // The cart-round-trip half of grocery_screens_test.dart's "products parse
+  // their embedded category and survive a cart round-trip" (issue #396 parity).
+  it('keeps the parsed category through a cart-snapshot round trip', () => {
+    const product = groceryProductFromRow({
+      id: 'p1',
+      store_id: 's1',
+      name: 'Bananas',
+      description: null,
+      unit_price: 150,
+      pricing_unit: 'kilogram',
+      quantity_step: 0.5,
+      available_quantity: 10,
+      low_stock_threshold: 3,
+      icon: null,
+      image_url: null,
+      grocery_categories: { name: 'Fruits & vegetables', sort_order: 1 },
+    });
+
+    const restored = groceryProductFromJson(groceryProductToJson(product));
+    expect(restored.categoryName).toBe('Fruits & vegetables');
+    expect(restored.categorySortOrder).toBe(1);
   });
 
   it('rejects a quantity_step that does not match its pricing unit', () => {

@@ -153,6 +153,29 @@ describe('OrderAgainService.fillCart', () => {
     expect(groceryCartRouteFor('fresh_meat')).toBe(AppRoutes.freshMeatCart);
     expect(groceryCartRouteFor('electronics')).toBe(AppRoutes.electronicsCart);
   });
+
+  // Ports grocery_store_type_test.dart's "Order again puts a Fresh Meat order
+  // back into the Fresh Meat cart" (issue #396 parity).
+  it('puts a Fresh Meat order back into the Fresh Meat cart, leaving the grocery cart alone', async () => {
+    const meat = createGroceryCartStore('fresh_meat', { storage: new MemoryCartStorage(), registry: new SessionResetRegistry() });
+    await meat.store.getState().loadForOwner('user-1');
+    const goat: GroceryProduct = { ...rice, id: 'goat', storeId: 'butcher', name: 'Goat meat', pricingUnit: 'kilogram' };
+    const basket: ReorderBasket = { kind: 'grocery', storeType: 'fresh_meat', lines: [{ product: goat, quantity: 2 }], skippedNames: [] };
+    const orderAgain = new OrderAgainService({
+      repository: { loadBasket: async () => basket },
+      foodCart: foodCart.store,
+      groceryCart: (storeType) => (storeType === 'fresh_meat' ? meat.store : grocery.store),
+      pharmacyCart: pharmacy.store,
+    });
+
+    const route = await orderAgain.fillCart(basket);
+
+    expect(route).toBe(AppRoutes.freshMeatCart);
+    expect(meat.store.getState().lines).toHaveLength(1);
+    expect(meat.store.getState().lines[0].product.id).toBe('goat');
+    expect(meat.store.getState().lines[0].quantity).toBe(2);
+    expect(grocery.store.getState().lines).toEqual([]);
+  });
 });
 
 describe('Order details "Order again" (runOrderAgain)', () => {

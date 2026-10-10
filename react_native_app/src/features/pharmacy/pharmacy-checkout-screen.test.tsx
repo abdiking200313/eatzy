@@ -130,6 +130,31 @@ describe('PharmacyCheckoutScreen', () => {
     expect(placeOrder).toHaveBeenCalledTimes(1);
   });
 
+  // Completes pharmacy_controller_test.dart's "placeDemoOrder ignores a
+  // second call while a submission is in flight (issue #59)": the dropped
+  // call must not disturb the first one, which still succeeds (issue #396
+  // parity).
+  it('a dropped second tap does not disturb the first submission, which still completes', async () => {
+    let resolveOrder!: (order: PlacedOrder) => void;
+    const placeOrder = jest.fn((_request: PharmacyOrderRequest) => new Promise<PlacedOrder>((resolve) => (resolveOrder = resolve)));
+    const { getByTestId, getByText, cartStore } = await renderScreen({ placeOrder });
+
+    await fireEvent.press(getByTestId('checkout-place-order'));
+    expect(getByText('Placing order...')).toBeOnTheScreen();
+    await fireEvent.press(getByTestId('checkout-place-order'));
+    expect(placeOrder).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      resolveOrder(placed);
+    });
+
+    await waitFor(() => expect(router.replace).toHaveBeenCalledWith(AppRoutes.activity));
+    expect(router.replace).toHaveBeenCalledTimes(1);
+    expect(placeOrder).toHaveBeenCalledTimes(1);
+    expect(cartStore.getState().items).toEqual([]);
+    expect(Alert.alert).toHaveBeenCalledTimes(1);
+  });
+
   it('offers to browse OTC products from an empty cart', async () => {
     const { getByText, queryByTestId } = await renderScreen({ fill: false });
 
