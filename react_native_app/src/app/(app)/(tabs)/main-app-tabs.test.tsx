@@ -29,8 +29,9 @@
  * `app.tsx`/`food/index.tsx` placeholder files (owned by rn-ui-agent, out
  * of this issue's scope) untouched, while still exercising the real
  * `_layout.tsx` files around them. `activity.tsx` is left un-overridden;
- * its real placeholder text still doubles as this file's assertion anchor
- * for "this is the right screen". `explore.tsx` got real content in issue
+ * its real empty-state text ("No activity yet" -- issue #397 gave it real
+ * content) doubles as this file's assertion anchor for "this is the right
+ * screen". `explore.tsx` got real content in issue
  * #375 -- its own search bar placeholder text is this file's anchor for it
  * instead now (its title text, "Explore", is ambiguous against the still-
  * visible nav tab label of the same name).
@@ -127,7 +128,9 @@ describe('bottom-nav tab bar ((app)/(tabs)/_layout.tsx, issue #370)', () => {
   test('an initial route resolves to its matching tab being selected (ports case 2)', async () => {
     await renderMainApp('/activity');
 
-    expect(await screen.findByText('/activity — not yet implemented')).toBeOnTheScreen();
+    // The real Activity screen (issue #397): with no signed-in user in this
+    // harness it loads nothing, so it renders its empty state.
+    expect(await screen.findByText('No activity yet')).toBeOnTheScreen();
     expect(screen.getByRole('tab', { name: 'Activity' })).toBeSelected();
     expect(screen.getByRole('tab', { name: 'Home' })).not.toBeSelected();
   });

@@ -150,7 +150,6 @@ describe('route reachability (ports route_reachability_test.dart, issue #71/#358
   // explore/food/grocery/foodRestaurant ... resolves to its real screen'`
   // cases just below (same posture for all eleven) for their own coverage.
   const staticRoutes: [name: string, path: string][] = [
-    ['activity', '/activity'],
     ['profile', '/profile'],
     ['addresses', '/addresses'],
     ['settings', '/settings'],
@@ -217,6 +216,15 @@ describe('route reachability (ports route_reachability_test.dart, issue #71/#358
   test('AppRoutes.mainApp (/app) resolves to its real screen', async () => {
     await renderRoute('/app');
     expect(await screen.findByText('Search restaurants, stores...')).toBeTruthy();
+  });
+
+  // AppRoutes.activity (/activity) resolves to its real screen since issue
+  // #397. This file's session store stays `'loading'` (no signed-in user),
+  // so the screen loads/watches nothing and renders its empty state. Its
+  // full behavior is covered in `src/app/(app)/(tabs)/activity.test.tsx`.
+  test('AppRoutes.activity (/activity) resolves to its real screen', async () => {
+    await renderRoute('/activity');
+    expect(await screen.findByText('No activity yet')).toBeTruthy();
   });
 
   // AppRoutes.explore (/explore) resolves to its real screen since issue
