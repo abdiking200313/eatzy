@@ -167,6 +167,11 @@ export function pharmacyStoreDetails(storeId: string): string {
   return `${AppRoutes.pharmacyStores}/${encodeURIComponent(storeId)}`;
 }
 
+/** Mirrors `AppRoutes.pharmacyProductDetails` (`/pharmacy/stores/:storeId/product/:productId`). */
+export function pharmacyProductDetails(storeId: string, productId: string): string {
+  return `${pharmacyStoreDetails(storeId)}/product/${encodeURIComponent(productId)}`;
+}
+
 /** Mirrors `AppRoutes.trackOrderDetailsPath`. */
 export function trackOrderDetailsPath(options: { serviceId: string; orderId: string }): string {
   return (
