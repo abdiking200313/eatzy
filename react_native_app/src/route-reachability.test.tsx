@@ -150,14 +150,11 @@ describe('route reachability (ports route_reachability_test.dart, issue #71/#358
   // explore/food/grocery/foodRestaurant ... resolves to its real screen'`
   // cases just below (same posture for all eleven) for their own coverage.
   const staticRoutes: [name: string, path: string][] = [
-    ['activity', '/activity'],
     ['addresses', '/addresses'],
     ['settings', '/settings'],
-    ['support', '/support'],
     ['trackOrder', '/track-order'],
     ['groceryCart', '/grocery/cart'],
     ['groceryCheckout', '/grocery/checkout'],
-    ['pharmacy', '/pharmacy'],
     ['pharmacyCart', '/pharmacy/cart'],
     ['pharmacyCheckout', '/pharmacy/checkout'],
   ];
@@ -165,6 +162,12 @@ describe('route reachability (ports route_reachability_test.dart, issue #71/#358
   test.each(staticRoutes)('AppRoutes.%s (%s) resolves to its placeholder screen', async (_name, path) => {
     await renderRoute(path);
     expect(await screen.findByText(`${path} — not yet implemented`)).toBeTruthy();
+  });
+
+  // AppRoutes.support (/support) resolves to its real screen since issue #403.
+  test('AppRoutes.support (/support) resolves to its real screen', async () => {
+    await renderRoute('/support');
+    expect(await screen.findByText('How can we help?')).toBeTruthy();
   });
 
   // AppRoutes.welcome ('/welcome') resolves to its real screen since issue
@@ -218,6 +221,15 @@ describe('route reachability (ports route_reachability_test.dart, issue #71/#358
     expect(await screen.findByText('Search restaurants, stores...')).toBeTruthy();
   });
 
+  // AppRoutes.activity (/activity) resolves to its real screen since issue
+  // #397. This file's session store stays `'loading'` (no signed-in user),
+  // so the screen loads/watches nothing and renders its empty state. Its
+  // full behavior is covered in `src/app/(app)/(tabs)/activity.test.tsx`.
+  test('AppRoutes.activity (/activity) resolves to its real screen', async () => {
+    await renderRoute('/activity');
+    expect(await screen.findByText('No activity yet')).toBeTruthy();
+  });
+
   // AppRoutes.explore (/explore) resolves to its real screen since issue
   // #375, same posture as the cases above. Unlike `mainApp`'s tap-to-open
   // search bar (a `Text` with that same hint string), Explore's is a real
@@ -264,6 +276,40 @@ describe('route reachability (ports route_reachability_test.dart, issue #71/#358
   test('AppRoutes.profile (/profile) resolves to its real screen', async () => {
     await renderRoute('/profile');
     expect(await screen.findByText('Zivo customer')).toBeTruthy();
+  });
+
+  // AppRoutes.pharmacy (/pharmacy) and AppRoutes.pharmacyStore
+  // (/pharmacy/stores/:storeId) resolve to their real screens since issue
+  // #394. This file's minimal `supabase` stub has no `.from(...)`, so both
+  // screens' loads fail fast into their error states; the store name passed
+  // as a query param still titles the catalog. Full behavior is covered in
+  // `src/features/pharmacy/pharmacy-store-list-screen.test.tsx`/
+  // `pharmacy-catalog-screen.test.tsx`.
+  test('AppRoutes.pharmacy (/pharmacy) resolves to its real screen', async () => {
+    await renderRoute('/pharmacy');
+    expect(await screen.findByText('Pharmacies could not be loaded.')).toBeTruthy();
+  });
+
+  test('AppRoutes.pharmacyStore (/pharmacy/stores/:storeId) resolves to its real screen', async () => {
+    await renderRoute('/pharmacy/stores/store-1?name=Hodan%20Pharmacy');
+    expect(await screen.findByText('Hodan Pharmacy')).toBeTruthy();
+    expect(await screen.findByText('The pharmacy catalog could not be loaded.')).toBeTruthy();
+  });
+
+  // AppRoutes.groceryStore and its Fresh Meat/Electronics siblings resolve
+  // to the real store screen since issue #390. This file's minimal
+  // `supabase` stub makes `fetchGroceryStore` reject, so the screen settles
+  // on its error state under the plain "Store" title bar. Loaded/search/
+  // add-to-cart behavior is covered in
+  // `src/features/grocery/grocery-store-screen.test.tsx`.
+  test.each([
+    ['groceryStore', '/grocery/stores/store-1'],
+    ['freshMeatStore', '/grocery/fresh-meat/stores/store-1'],
+    ['electronicsStore', '/grocery/electronics/stores/store-1'],
+  ])('AppRoutes.%s (%s) resolves to its real screen', async (_name, path) => {
+    await renderRoute(path);
+    expect(await screen.findByText('Store')).toBeTruthy();
+    expect(await screen.findByTestId('error-state')).toBeTruthy();
   });
 
   // AppRoutes.foodCart (/food/cart) resolves to its real screen since issue
@@ -323,12 +369,6 @@ describe('route reachability (ports route_reachability_test.dart, issue #71/#358
   // placeholder screen renders the path *template* (with `:param` segments)
   // plus the actual param value(s) in parens.
   const dynamicRoutes: [name: string, template: string, concretePath: string, text: string][] = [
-    [
-      'groceryStore',
-      '/grocery/stores/:storeId',
-      '/grocery/stores/store-1',
-      '/grocery/stores/:storeId (store-1) — not yet implemented',
-    ],
     [
       'trackOrderDetails',
       '/track-order/:serviceId/:orderId',

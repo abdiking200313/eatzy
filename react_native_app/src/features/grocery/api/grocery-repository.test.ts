@@ -8,7 +8,7 @@
  */
 import { createFakeSupabaseClient, fakeSupabaseOk } from '@/test-utils/fake-supabase-client';
 
-import { fetchGroceryStores, type GroceryStoreSource } from './grocery-repository';
+import { fetchGroceryStore, fetchGroceryStores, type GroceryStoreSource } from './grocery-repository';
 import { groceryProductFromRow, groceryStoreTypeFromDb } from './grocery-store';
 
 // `fetchGroceryStores`'s default parameter imports the real `supabase`
@@ -150,5 +150,60 @@ describe('fetchGroceryStores', () => {
 
     expect(stores).toHaveLength(1);
     expect(stores[0].products).toEqual([]);
+  });
+});
+
+describe('fetchGroceryStore (issue #390 / P7-02)', () => {
+  const productRow = {
+    id: 'rice',
+    store_id: 'bakaal',
+    name: 'Rice',
+    description: null,
+    unit_price: 500,
+    pricing_unit: 'each',
+    quantity_step: 1,
+    available_quantity: 10,
+    low_stock_threshold: 2,
+    icon: null,
+    image_url: null,
+    grocery_categories: { name: 'Pantry', sort_order: 3 },
+  };
+
+  it('loads one active store and only its own active products', async () => {
+    const client = createFakeSupabaseClient();
+    client.queueTableResponse(
+      'grocery_stores',
+      fakeSupabaseOk({ id: 'bakaal', name: 'Bakaal Fresh', area: 'Hodan', image_url: null, store_type: 'grocery' }),
+    );
+    client.queueTableResponse('grocery_products', fakeSupabaseOk([productRow]));
+
+    const store = await fetchGroceryStore('bakaal', client as unknown as GroceryStoreSource);
+
+    expect(store?.name).toBe('Bakaal Fresh');
+    expect(store?.products.map((p) => p.id)).toEqual(['rice']);
+    expect(store?.products[0].categoryName).toBe('Pantry');
+
+    const storeCall = client.calls.find((call) => call.kind === 'table' && call.name === 'grocery_stores');
+    expect(storeCall?.steps).toContainEqual({ method: 'eq', args: ['id', 'bakaal'] });
+    expect(storeCall?.steps).toContainEqual({ method: 'eq', args: ['is_active', true] });
+    expect(storeCall?.steps).toContainEqual({ method: 'maybeSingle', args: [] });
+    const productCall = client.calls.find((call) => call.kind === 'table' && call.name === 'grocery_products');
+    expect(productCall?.steps).toContainEqual({ method: 'eq', args: ['store_id', 'bakaal'] });
+    expect(productCall?.steps).toContainEqual({ method: 'eq', args: ['is_active', true] });
+    expect(productCall?.steps).toContainEqual({ method: 'order', args: ['name'] });
+  });
+
+  it('returns null (without querying products) when no active store has that ID', async () => {
+    const client = createFakeSupabaseClient();
+    client.queueTableResponse('grocery_stores', fakeSupabaseOk(null));
+
+    await expect(fetchGroceryStore('missing', client as unknown as GroceryStoreSource)).resolves.toBeNull();
+    expect(client.calls.some((call) => call.kind === 'table' && call.name === 'grocery_products')).toBe(false);
+  });
+
+  it('rejects a blank store ID', async () => {
+    const client = createFakeSupabaseClient();
+    await expect(fetchGroceryStore('  ', client as unknown as GroceryStoreSource)).rejects.toThrow('A grocery store ID is required.');
+    expect(client.calls).toHaveLength(0);
   });
 });

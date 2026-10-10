@@ -1,13 +1,9 @@
-import { Text, View } from 'react-native';
+import { PharmacyStoreListScreen } from '@/features/pharmacy/pharmacy-store-list-screen';
 
 // Ports AppRoutes.pharmacy ('/pharmacy') from
-// flutter_app/lib/app/app_routes.dart / app_router.dart (issue #358: route
-// skeleton only -- real screen content lands in a later issue).
+// flutter_app/lib/services/pharmacy/presentation/pharmacy_store_list_screen.dart
+// (issue #394 / P7-06).
 // AppRoutes.pharmacyStores (the bare '/pharmacy/stores' prefix) intentionally has no matching route -- see app_routes.dart.
-export default function PharmacyStoreListScreen() {
-  return (
-    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 }}>
-      <Text>/pharmacy — not yet implemented</Text>
-    </View>
-  );
+export default function PharmacyScreen() {
+  return <PharmacyStoreListScreen />;
 }

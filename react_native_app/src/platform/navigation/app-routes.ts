@@ -147,9 +147,29 @@ export function electronicsStoreDetails(storeId: string): string {
   return `${AppRoutes.electronicsStores}/${encodeURIComponent(storeId)}`;
 }
 
+/** Mirrors `AppRoutes.groceryProductDetails` (`/grocery/stores/:storeId/product/:productId`). */
+export function groceryProductDetails(storeId: string, productId: string): string {
+  return `${groceryStoreDetails(storeId)}/product/${encodeURIComponent(productId)}`;
+}
+
+/** Mirrors `AppRoutes.freshMeatProductDetails`. */
+export function freshMeatProductDetails(storeId: string, productId: string): string {
+  return `${freshMeatStoreDetails(storeId)}/product/${encodeURIComponent(productId)}`;
+}
+
+/** Mirrors `AppRoutes.electronicsProductDetails`. */
+export function electronicsProductDetails(storeId: string, productId: string): string {
+  return `${electronicsStoreDetails(storeId)}/product/${encodeURIComponent(productId)}`;
+}
+
 /** Mirrors `AppRoutes.pharmacyStoreDetails`. */
 export function pharmacyStoreDetails(storeId: string): string {
   return `${AppRoutes.pharmacyStores}/${encodeURIComponent(storeId)}`;
+}
+
+/** Mirrors `AppRoutes.pharmacyProductDetails` (`/pharmacy/stores/:storeId/product/:productId`). */
+export function pharmacyProductDetails(storeId: string, productId: string): string {
+  return `${pharmacyStoreDetails(storeId)}/product/${encodeURIComponent(productId)}`;
 }
 
 /** Mirrors `AppRoutes.trackOrderDetailsPath`. */
