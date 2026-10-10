@@ -1,10 +1,10 @@
 /**
  * Ports the account-editing, Coming soon, and Support cases of
- * `flutter_app/test/settings_screen_test.dart` (issue #400 / P8-04).
+ * `flutter_app/test/settings_screen_test.dart` (issue #400 / P8-04), plus
+ * its four notification-preference cases (#401 / P8-05).
  *
- * Not ported here, because the behavior they cover belongs to later
- * migration issues and is not rendered by this screen yet: the four
- * notification-preference cases (#401 / P8-05) and the three
+ * Not ported here, because the behavior they cover belongs to a later
+ * migration issue and is not rendered by this screen yet: the three
  * delete-account cases (#402 / P8-06). The two Privacy Policy / Terms
  * cases assert the real legal text, which lands with #404 (P8-08); here
  * they are narrowed to "the row navigates to that route".
@@ -22,7 +22,16 @@ import type { ProfileRepository, ProfileUpdate } from '@/features/profile/api/pr
 import type { ProfileEmailAuth } from '@/features/profile/profile-edit-controller';
 import { ErrorReporting, NoopErrorReporter } from '@/platform/error-reporting/error-reporter';
 import { AppRoutes } from '@/platform/navigation/app-routes';
-import { renderWithProviders } from '@/test-utils';
+import {
+  DEFAULT_NOTIFICATION_PREFERENCES,
+  type NotificationPreferencesStorage,
+} from '@/features/settings/api/notification-preferences-repository';
+import type { PushNotificationGateway } from '@/platform/notifications/push-notifications';
+import {
+  FakePushNotificationGateway,
+  MemoryNotificationPreferencesStorage,
+  renderWithProviders,
+} from '@/test-utils';
 
 import { SettingsScreen } from './settings-screen';
 
@@ -290,5 +299,107 @@ describe('SettingsScreen', () => {
     expect(await screen.findByText('Jun 15, 1995')).toBeOnTheScreen();
     expect(repository.updateCalls).toEqual([{ dob: new Date(1995, 5, 15) }]);
     expect(screen.getByText('Profile updated')).toBeOnTheScreen();
+  });
+});
+
+describe('SettingsScreen notifications', () => {
+  function notificationSettings(
+    ownerId: string,
+    storage: NotificationPreferencesStorage,
+    gateway: PushNotificationGateway = new FakePushNotificationGateway(true),
+    key = 'first',
+  ) {
+    return (
+      <SettingsScreen
+        key={key}
+        profileRepository={new FakeProfileRepository(profileOf({ id: ownerId }))}
+        emailAuth={new FakeEmailAuth('user@zivo.app')}
+        notificationPreferencesStorage={storage}
+        pushNotificationGateway={gateway}
+        getCurrentUserId={() => ownerId}
+      />
+    );
+  }
+
+  function renderNotificationSettings(
+    ownerId: string,
+    storage: NotificationPreferencesStorage,
+    gateway?: PushNotificationGateway,
+  ) {
+    return renderWithProviders(notificationSettings(ownerId, storage, gateway));
+  }
+
+  const switchValue = (label: string): unknown => screen.getByLabelText(label).props.value;
+
+  test('a toggled notification preference persists and is restored the next time the screen loads', async () => {
+    const storage = new MemoryNotificationPreferencesStorage();
+    const { rerender } = await renderNotificationSettings('customer-5', storage);
+    await waitFor(() => expect(screen.queryByText('Loading…')).toBeNull());
+
+    // "Email Notifications" starts off (the documented default).
+    expect(switchValue('Email Notifications')).toBe(false);
+
+    await fireEvent(screen.getByLabelText('Email Notifications'), 'valueChange', true);
+
+    await waitFor(() => expect(switchValue('Email Notifications')).toBe(true));
+    expect((await storage.read('customer-5')).emailNotifications).toBe(true);
+
+    // Re-opening the screen (a brand-new instance, via a new `key`) restores
+    // the persisted value instead of resetting to the default.
+    await rerender(notificationSettings('customer-5', storage, undefined, 'reopened'));
+    await waitFor(() => expect(switchValue('Email Notifications')).toBe(true));
+  });
+
+  test('turning push notifications on requests permission and persists it once granted', async () => {
+    const storage = new MemoryNotificationPreferencesStorage();
+    await storage.write('customer-11', { ...DEFAULT_NOTIFICATION_PREFERENCES, pushNotifications: false });
+    const gateway = new FakePushNotificationGateway(true);
+    await renderNotificationSettings('customer-11', storage, gateway);
+    await waitFor(() => expect(screen.queryByText('Loading…')).toBeNull());
+    expect(switchValue('Push Notifications')).toBe(false);
+
+    await fireEvent(screen.getByLabelText('Push Notifications'), 'valueChange', true);
+
+    await waitFor(() => expect(switchValue('Push Notifications')).toBe(true));
+    expect(gateway.requestPermissionCallCount).toBe(1);
+    expect((await storage.read('customer-11')).pushNotifications).toBe(true);
+  });
+
+  test('turning push notifications on stays off and warns when permission is denied', async () => {
+    const storage = new MemoryNotificationPreferencesStorage();
+    await storage.write('customer-12', { ...DEFAULT_NOTIFICATION_PREFERENCES, pushNotifications: false });
+    const gateway = new FakePushNotificationGateway(false);
+    await renderNotificationSettings('customer-12', storage, gateway);
+    await waitFor(() => expect(screen.queryByText('Loading…')).toBeNull());
+
+    await fireEvent(screen.getByLabelText('Push Notifications'), 'valueChange', true);
+
+    expect(await screen.findByText(/Enable them in your device settings/)).toBeOnTheScreen();
+    expect(switchValue('Push Notifications')).toBe(false);
+    expect((await storage.read('customer-12')).pushNotifications).toBe(false);
+  });
+
+  test('a stored push-on preference is reconciled to off if OS permission was since revoked', async () => {
+    const storage = new MemoryNotificationPreferencesStorage();
+    await storage.write('customer-13', { ...DEFAULT_NOTIFICATION_PREFERENCES, pushNotifications: true });
+    const gateway = new FakePushNotificationGateway(false);
+    await renderNotificationSettings('customer-13', storage, gateway);
+
+    await waitFor(async () => expect((await storage.read('customer-13')).pushNotifications).toBe(false));
+    expect(switchValue('Push Notifications')).toBe(false);
+  });
+
+  test('turning push notifications off needs no permission and persists', async () => {
+    const storage = new MemoryNotificationPreferencesStorage();
+    const gateway = new FakePushNotificationGateway(true);
+    await renderNotificationSettings('customer-14', storage, gateway);
+    await waitFor(() => expect(screen.queryByText('Loading…')).toBeNull());
+    expect(switchValue('Push Notifications')).toBe(true);
+
+    await fireEvent(screen.getByLabelText('Push Notifications'), 'valueChange', false);
+
+    await waitFor(() => expect(switchValue('Push Notifications')).toBe(false));
+    expect(gateway.requestPermissionCallCount).toBe(0);
+    expect((await storage.read('customer-14')).pushNotifications).toBe(false);
   });
 });

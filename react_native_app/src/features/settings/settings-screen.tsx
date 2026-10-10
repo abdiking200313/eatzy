@@ -4,11 +4,13 @@
  * Birth / Email Address / Change Password, edited through
  * {@link ProfileEditController} and saved via `update_own_profile`), the
  * Preferences "Coming soon" rows, and the Support section (About sheet,
- * Privacy Policy, Terms & Conditions).
+ * Privacy Policy, Terms & Conditions), plus the Notifications section
+ * (#401 / P8-05): per-owner toggles persisted through
+ * {@link NotificationPreferencesStorage}, with the Push toggle gated on OS
+ * permission via {@link PushNotificationGateway}.
  *
- * Deliberately not here yet, each owned by its own migration issue: the
- * Notifications section (#401 / P8-05) and the Logout / Delete Account
- * danger zone (#402 / P8-06). The Profile tab already carries Logout.
+ * Deliberately not here yet: the Logout / Delete Account danger zone
+ * (#402 / P8-06). The Profile tab already carries Logout.
  *
  * Flutter's `ScaffoldMessenger` snack bars become this screen's own
  * `CartSnackbar` + `useCartSnackbar` pair (the app's only snackbar host so
@@ -31,17 +33,27 @@ import {
   type ProfileEmailAuth,
 } from '@/features/profile/profile-edit-controller';
 import { useCartSnackbar } from '@/hooks/use-cart-snackbar';
+import { ErrorReporting } from '@/platform/error-reporting/error-reporter';
 import { formatShortDate } from '@/platform/localization/date-format';
+import { PushNotifications, type PushNotificationGateway } from '@/platform/notifications/push-notifications';
 import { useSessionStore } from '@/stores/session-store';
 import { spacing } from '@/theme/tokens';
 
 import { AboutZivoSheet } from './about-zivo-sheet';
+import {
+  AsyncStorageNotificationPreferencesStorage,
+  DEFAULT_NOTIFICATION_PREFERENCES,
+  type NotificationPreferences,
+  type NotificationPreferencesStorage,
+} from './api/notification-preferences-repository';
 import { EmailEditSheet, NameEditSheet, PhoneEditSheet } from './profile-edit-sheets';
-import { AccountSection, PreferencesSection, SupportSection } from './settings-sections';
+import { AccountSection, NotificationsSection, PreferencesSection, SupportSection } from './settings-sections';
 import { SettingsSheet } from './settings-sheet';
 
 export const PROFILE_UPDATED_MESSAGE = 'Profile updated';
 export const EMAIL_CHANGE_REQUESTED_MESSAGE = 'Check your new inbox to confirm your email change.';
+export const PUSH_PERMISSION_BLOCKED_MESSAGE =
+  'Notifications are blocked for Zivo. Enable them in your device settings to turn this on.';
 const NOT_ADDED_YET = 'Not added yet';
 const LOADING = 'Loading…';
 
@@ -61,7 +73,32 @@ export type SettingsScreenProps = {
   profileRepository?: ProfileRepository;
   /** Defaults to the session store + app-wide `authService`. */
   emailAuth?: ProfileEmailAuth;
+  /** Defaults to {@link AsyncStorageNotificationPreferencesStorage}. */
+  notificationPreferencesStorage?: NotificationPreferencesStorage;
+  /** Defaults to `PushNotifications.instance`. */
+  pushNotificationGateway?: PushNotificationGateway;
+  /**
+   * The owner notification preferences are scoped to (Dart's
+   * `AuthService.getCurrentUserId`). Defaults to the session store's
+   * `userId`; `null` means signed out, so nothing is read or saved.
+   */
+  getCurrentUserId?: () => string | null;
 };
+
+const defaultGetCurrentUserId = () => useSessionStore.getState().userId;
+
+/** Mirrors `_readHasPushPermission`: a failure means "can't tell", not "denied". */
+async function readHasPushPermission(gateway: PushNotificationGateway): Promise<boolean> {
+  try {
+    return await gateway.hasPermission();
+  } catch {
+    return true;
+  }
+}
+
+function reportPreferencesError(error: unknown, context: string) {
+  ErrorReporting.instance.reportError(error, error instanceof Error ? error.stack : undefined, context);
+}
 
 type ActiveSheet = 'name' | 'phone' | 'email' | 'about' | null;
 
@@ -75,9 +112,30 @@ function eighteenYearsAgo(now: Date): Date {
   return new Date(now.getFullYear() - 18, now.getMonth(), now.getDate());
 }
 
-export function SettingsScreen({ profileRepository, emailAuth = defaultEmailAuth }: SettingsScreenProps = {}) {
+export function SettingsScreen({
+  profileRepository,
+  emailAuth = defaultEmailAuth,
+  notificationPreferencesStorage,
+  pushNotificationGateway,
+  getCurrentUserId = defaultGetCurrentUserId,
+}: SettingsScreenProps = {}) {
   // Resolved once, like the Dart `didChangeDependencies` guard.
   const [repository] = useState<ProfileRepository>(() => profileRepository ?? new SupabaseProfileRepository());
+  const [preferencesStorage] = useState<NotificationPreferencesStorage>(
+    () => notificationPreferencesStorage ?? new AsyncStorageNotificationPreferencesStorage(),
+  );
+  const [pushGateway] = useState<PushNotificationGateway>(() => pushNotificationGateway ?? PushNotifications.instance);
+  const [ownerId] = useState<string | null>(() => {
+    try {
+      return getCurrentUserId();
+    } catch {
+      return null;
+    }
+  });
+  const [preferences, setPreferences] = useState<NotificationPreferences>(DEFAULT_NOTIFICATION_PREFERENCES);
+  // Latest value for the toggle handlers, mirroring Dart's `_preferences`
+  // field reads (state captured in a closure could be one toggle stale).
+  const preferencesRef = useRef(preferences);
   const [controller] = useState(() => new ProfileEditController({ profileRepository: repository, emailAuth }));
   const [email] = useState<string | null>(() => {
     try {
@@ -107,6 +165,68 @@ export function SettingsScreen({ profileRepository, emailAuth = defaultEmailAuth
       isMounted.current = false;
     };
   }, [repository]);
+
+  /** Mirrors `_loadPreferences`, including the stale push-on reconciliation. */
+  useEffect(() => {
+    if (ownerId == null) return;
+    let cancelled = false;
+    (async () => {
+      let stored = await preferencesStorage.read(ownerId);
+      // A saved "on" with no (or revoked) OS permission is shown and saved as off.
+      if (stored.pushNotifications && !(await readHasPushPermission(pushGateway))) {
+        stored = { ...stored, pushNotifications: false };
+        await preferencesStorage.write(ownerId, stored);
+      }
+      if (cancelled) return;
+      preferencesRef.current = stored;
+      setPreferences(stored);
+    })().catch((error: unknown) => reportPreferencesError(error, 'SettingsScreen.loadPreferences'));
+    return () => {
+      cancelled = true;
+    };
+  }, [ownerId, preferencesStorage, pushGateway]);
+
+  /** Mirrors `_updatePreferences`: apply immediately, then persist without blocking the toggle. */
+  const updatePreferences = useCallback(
+    async (next: NotificationPreferences) => {
+      preferencesRef.current = next;
+      setPreferences(next);
+      if (ownerId == null) return;
+      try {
+        await preferencesStorage.write(ownerId, next);
+      } catch (error) {
+        reportPreferencesError(error, 'SettingsScreen.updatePreferences');
+      }
+    },
+    [ownerId, preferencesStorage],
+  );
+
+  /**
+   * Mirrors `_setPushNotifications`: turning push on must be granted OS
+   * permission first, otherwise the toggle stays off and the user is told
+   * why. Turning it off never needs permission.
+   */
+  const setPushNotifications = useCallback(
+    async (enabled: boolean) => {
+      if (!enabled) {
+        await updatePreferences({ ...preferencesRef.current, pushNotifications: false });
+        return;
+      }
+      let granted: boolean;
+      try {
+        granted = await pushGateway.requestPermission();
+      } catch (error) {
+        reportPreferencesError(error, 'SettingsScreen.setPushNotifications');
+        granted = false;
+      }
+      if (!granted) {
+        if (isMounted.current) showSnackbar(PUSH_PERMISSION_BLOCKED_MESSAGE);
+        return;
+      }
+      await updatePreferences({ ...preferencesRef.current, pushNotifications: true });
+    },
+    [pushGateway, showSnackbar, updatePreferences],
+  );
 
   const closeSheet = useCallback(() => setActiveSheet(null), []);
 
@@ -154,6 +274,18 @@ export function SettingsScreen({ profileRepository, emailAuth = defaultEmailAuth
     <AppScaffold title="Settings" showBackButton>
       <View className="relative flex-1">
         <ScrollView contentContainerStyle={{ padding: spacing.x5 }}>
+          <NotificationsSection
+            preferences={preferences}
+            onPushNotificationsChange={(value) => void setPushNotifications(value)}
+            onEmailNotificationsChange={(value) =>
+              void updatePreferences({ ...preferencesRef.current, emailNotifications: value })
+            }
+            onPromotionalEmailsChange={(value) =>
+              void updatePreferences({ ...preferencesRef.current, promotionalEmails: value })
+            }
+            onOrderUpdatesChange={(value) => void updatePreferences({ ...preferencesRef.current, orderUpdates: value })}
+          />
+          <View style={{ height: spacing.sectionGap }} />
           <AccountSection
             nameSubtitle={profileLoading ? LOADING : nameSubtitle(profile)}
             phoneSubtitle={profileLoading ? LOADING : profile != null && profile.phone !== '' ? profile.phone : NOT_ADDED_YET}

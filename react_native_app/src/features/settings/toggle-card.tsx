@@ -12,9 +12,8 @@ export type ToggleCardProps = {
 
 /**
  * Ports `flutter_app/lib/features/settings/presentation/widgets/toggle_card.dart`
- * (issue #400 / P8-04): a single, bare toggle row. Nothing renders it yet --
- * its only Flutter caller is the Notifications section, which lands with
- * #401 (P8-05).
+ * (issue #400 / P8-04): a single, bare toggle row, rendered by the Settings
+ * screen's Notifications section (#401 / P8-05).
  */
 export function ToggleCard({ title, subtitle, value, onValueChange }: ToggleCardProps) {
   const colors = useSemanticColors();
