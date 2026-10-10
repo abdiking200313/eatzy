@@ -15,10 +15,8 @@
  * header) has no RN port yet -- dropped here rather than guessed at (see
  * `RestaurantHeaderSection`'s own doc comment).
  *
- * `MenuItemCard`'s tap target (opening `MenuItemDetailsScreen`) routes to
- * `/food/restaurants/:restaurantId/item/:itemId`, whose route file already
- * exists as a skeleton (issue #358) but has no real content yet -- that
- * screen is a different issue's scope.
+ * `MenuItemCard`'s tap target opens `MenuItemDetailsScreen` (issue #384)
+ * at `foodMenuItemDetails(restaurantId, itemId)`.
  */
 import { FlashList, type FlashListRef, type ViewToken } from '@shopify/flash-list';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -41,7 +39,7 @@ import { useRestaurantMenu } from '@/features/food/api/use-restaurant-menu';
 import type { MenuCategory, MenuItem } from '@/features/food/api/restaurant-menu';
 import { restaurantMenuItemCount } from '@/features/food/api/restaurant-menu';
 import { useCartSnackbar } from '@/hooks/use-cart-snackbar';
-import { AppRoutes } from '@/platform/navigation/app-routes';
+import { AppRoutes, foodMenuItemDetails } from '@/platform/navigation/app-routes';
 import {
   selectFoodCartItemCount,
   useFoodCartStore,
@@ -58,11 +56,6 @@ type MenuRow = { kind: 'categoryHeader'; category: MenuCategory } | { kind: 'ite
  * rather than a fresh literal in JSX.
  */
 const MENU_VIEWABILITY_CONFIG = { itemVisiblePercentThreshold: 0 };
-
-/** Mirrors `AppRoutes.foodMenuItem` from flutter_app/lib/app/app_routes.dart. There is no `foodMenuItemDetails` helper on this app's `AppRoutes` yet (only the bare route file exists, issue #358) -- TODO(rn-logic-agent): move this into src/platform/navigation/app-routes.ts once that screen gets real content, matching `restaurantDetails`'s pattern. */
-function menuItemDetailsPath(restaurantId: string, itemId: string): string {
-  return `${AppRoutes.foodRestaurants}/${encodeURIComponent(restaurantId)}/item/${encodeURIComponent(itemId)}`;
-}
 
 /** Mirrors `_RestaurantScreenState._addToCart`'s per-result confirmation copy. */
 function confirmationMessage(result: CartAddResult, itemName: string): string {
@@ -258,7 +251,7 @@ export default function RestaurantMenuScreen() {
               <View style={{ paddingHorizontal: spacing.screenX, paddingTop: spacing.x2 }}>
                 <MenuItemCard
                   item={row.item}
-                  onPress={() => router.push(menuItemDetailsPath(menu.restaurant.id, row.item.id) as never)}
+                  onPress={() => router.push(foodMenuItemDetails(menu.restaurant.id, row.item.id) as never)}
                   onAddToCart={() => addToCart(row.item)}
                 />
               </View>
