@@ -138,15 +138,15 @@ describe('route reachability (ports route_reachability_test.dart, issue #71/#358
   // `welcome` ('/welcome'), `login` ('/login'), `register` ('/register'),
   // `forgotPassword` ('/forgot-password'), `resetPassword`
   // ('/reset-password'), `services` ('/services'), `mainApp` ('/app'),
-  // `explore` ('/explore'), and `food` ('/food') are excluded from this
-  // table — issues #364, #365, #366, #368, #374, #373, #375, and #382
-  // respectively gave them real content, so none of them renders the
-  // generic placeholder text any more. See
+  // `explore` ('/explore'), `food` ('/food'), and `grocery` ('/grocery') are
+  // excluded from this table — issues #364, #365, #366, #368, #374, #373,
+  // #375, #382, and #389 respectively gave them real content, so none of
+  // them renders the generic placeholder text any more. See
   // `welcome.test.tsx`/`welcome-back-navigation.test.tsx`,
   // `src/app/(auth)/login.test.tsx`, `src/app/(auth)/register.test.tsx`,
   // and the `'AppRoutes.forgotPassword/resetPassword/services/mainApp/
-  // explore/food ... resolves to its real screen'` cases just below (same
-  // posture for all nine) for their own coverage.
+  // explore/food/grocery ... resolves to its real screen'` cases just below (same
+  // posture for all ten) for their own coverage.
   const staticRoutes: [name: string, path: string][] = [
     ['activity', '/activity'],
     ['profile', '/profile'],
@@ -158,7 +158,6 @@ describe('route reachability (ports route_reachability_test.dart, issue #71/#358
     ['foodExplore', '/food/explore'],
     ['foodCart', '/food/cart'],
     ['foodCheckout', '/food/checkout'],
-    ['grocery', '/grocery'],
     ['groceryCart', '/grocery/cart'],
     ['groceryCheckout', '/grocery/checkout'],
     ['pharmacy', '/pharmacy'],
@@ -252,6 +251,13 @@ describe('route reachability (ports route_reachability_test.dart, issue #71/#358
   test('AppRoutes.food (/food) resolves to its real screen', async () => {
     await renderRoute('/food');
     expect(await screen.findByTestId('loading-state')).toBeTruthy();
+  });
+
+  // AppRoutes.grocery (/grocery) resolves to its real screen since issue
+  // #389, same posture as the cases above.
+  test('AppRoutes.grocery (/grocery) resolves to its real screen', async () => {
+    await renderRoute('/grocery');
+    expect(await screen.findByText('Groceries')).toBeTruthy();
   });
 
   // Parameterized `AppRoutes` paths, each visited at a concrete URL. The
