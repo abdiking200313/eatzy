@@ -5,11 +5,10 @@
  * #368, this file's own `resetPasswordForEmail`/`updatePassword` describe
  * blocks below), and the `passwordRecoveryRedirectUrl` deep-link-scheme
  * assertion (issue #369, this file's own top-level test below).
- * `signOut`/`updateEmail`/`getCurrentUserEmail` remain out of scope and are
- * not ported here (see this file's sibling `auth-service.ts`'s top
- * comment) -- `AuthService` has no `signOut` method yet, so there is
- * nothing to exercise; a future issue implementing it should add the
- * matching test then.
+ * The `signOut` case landed with issue #399 (the Profile tab's logout), in
+ * this file's own `signOut` describe block below. `updateEmail`/
+ * `getCurrentUserEmail` remain out of scope and are not ported here (see
+ * this file's sibling `auth-service.ts`'s top comment).
  */
 import type { AuthApiError, AuthError, AuthResponse, AuthTokenResponsePassword, UserResponse } from '@supabase/supabase-js';
 
@@ -348,6 +347,34 @@ describe('AuthService', () => {
       const service = new AuthService({ auth });
 
       await expect(service.updatePassword('a-new-password')).rejects.toBe(error);
+    });
+  });
+
+  describe('signOut', () => {
+    test('clears the current session state and revokes the session via supabase.auth.signOut', async () => {
+      const auth: PasswordSignInSource & PasswordSignUpSource & PasswordResetRequestSource & PasswordUpdateSource = {
+        signInWithPassword: jest.fn().mockResolvedValue(okResponse('mock-user-id', 'user@example.com')),
+        signUp: jest.fn(),
+        resetPasswordForEmail: jest.fn(),
+        updateUser: jest.fn(),
+      };
+      const signOut = jest.fn().mockResolvedValue({ error: null });
+      const service = new AuthService({ auth, signOutAuth: { signOut } });
+
+      await service.signInWithEmailPassword('user@example.com', 'correct-password');
+      expect(service.getCurrentUserId()).not.toBeNull();
+
+      await service.signOut();
+
+      expect(service.getCurrentUserId()).toBeNull();
+      expect(signOut).toHaveBeenCalledTimes(1);
+    });
+
+    test('propagates the Supabase error', async () => {
+      const error = { name: 'AuthRetryableFetchError', message: 'Failed to fetch', status: 0 } as AuthError;
+      const service = new AuthService({ signOutAuth: { signOut: jest.fn().mockResolvedValue({ error }) } });
+
+      await expect(service.signOut()).rejects.toBe(error);
     });
   });
 });

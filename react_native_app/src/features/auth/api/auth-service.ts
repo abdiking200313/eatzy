@@ -3,9 +3,9 @@
  * `AuthService`: the sign-in half landed in issue #365
  * (`signInWithEmailPassword`/`getCurrentUserId`), sign-up landed in issue
  * #366 (`signUpWithEmailPassword`), and this issue (#368) adds
- * `resetPasswordForEmail`/`updatePassword`. `signOut`/`updateEmail`/
- * `getCurrentUserEmail` remain out of scope and are deliberately not ported
- * here yet.
+ * `resetPasswordForEmail`/`updatePassword`, and issue #399 (the Profile
+ * tab's logout) adds `signOut`. `updateEmail`/`getCurrentUserEmail` remain
+ * out of scope and are deliberately not ported here yet.
  *
  * This is the first module under `src/features/**` in this app -- every
  * other feature so far has lived directly under `src/app/**`/`src/stores/**`
@@ -53,9 +53,19 @@ export interface PasswordUpdateSource {
   updateUser(attributes: { password: string }): Promise<UserResponse>;
 }
 
+/** The sign-out-relevant slice of `supabase.auth` -- see {@link PasswordSignInSource}'s doc comment. */
+export interface SignOutSource {
+  signOut(): Promise<{ error: Error | null }>;
+}
+
 export interface AuthServiceOptions {
   /** Defaults to the real `supabase.auth`. */
   auth?: PasswordSignInSource & PasswordSignUpSource & PasswordResetRequestSource & PasswordUpdateSource;
+  /**
+   * Defaults to the real `supabase.auth`. Kept separate from `auth` so
+   * callers (and tests) that never sign out don't have to stub `signOut`.
+   */
+  signOutAuth?: SignOutSource;
 }
 
 /** The new-account fields `register.tsx` collects beyond email/password, forwarded as Supabase sign-up metadata. Mirrors `AuthService.signUpWithEmailPassword`'s `firstName`/`lastName`/`phone`/`dob` named parameters. */
@@ -77,10 +87,12 @@ export interface SignUpDetails {
  */
 export class AuthService {
   private readonly auth: PasswordSignInSource & PasswordSignUpSource & PasswordResetRequestSource & PasswordUpdateSource;
+  private readonly signOutAuth: SignOutSource;
   private currentUserId: string | null = null;
 
   constructor(options: AuthServiceOptions = {}) {
     this.auth = options.auth ?? supabase.auth;
+    this.signOutAuth = options.signOutAuth ?? supabase.auth;
   }
 
   /**
@@ -184,10 +196,26 @@ export class AuthService {
     }
     return { data, error };
   }
+
+  /**
+   * Mirrors `AuthService.signOut`: wraps `supabase.auth.signOut`, which
+   * revokes the session server-side and clears it locally. The resulting
+   * `SIGNED_OUT` auth event is what `session-store.ts` (and through it
+   * `AccountStateCoordinator`'s registered resets, e.g. the cart stores)
+   * reacts to -- this method doesn't touch that state directly. Throws the
+   * returned `error` the same way {@link signInWithEmailPassword} does.
+   */
+  async signOut(): Promise<void> {
+    const { error } = await this.signOutAuth.signOut();
+    if (error) {
+      throw error;
+    }
+    this.currentUserId = null;
+  }
 }
 
-/** `yyyy-MM-dd`, built from local date fields -- see {@link AuthService.signUpWithEmailPassword}'s doc comment for why not `toISOString()`. */
-function toDateOnlyString(date: Date): string {
+/** `yyyy-MM-dd`, built from local date fields -- see {@link AuthService.signUpWithEmailPassword}'s doc comment for why not `toISOString()`. Also used by `profile-repository.ts`'s `updateProfile` for the same `date` column. */
+export function toDateOnlyString(date: Date): string {
   const year = String(date.getFullYear()).padStart(4, '0');
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const day = String(date.getDate()).padStart(2, '0');
