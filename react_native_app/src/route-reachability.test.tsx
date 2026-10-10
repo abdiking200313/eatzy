@@ -128,16 +128,16 @@ describe('route reachability (ports route_reachability_test.dart, issue #71/#358
   //
   // `welcome` ('/welcome'), `login` ('/login'), `register` ('/register'),
   // `forgotPassword` ('/forgot-password'), `resetPassword`
-  // ('/reset-password'), and `mainApp` ('/app') are excluded from this
-  // table — issues #364, #365, #366, #368, and #373 respectively gave
-  // them real content, so none of them renders the generic placeholder
-  // text any more. See `welcome.test.tsx`/`welcome-back-navigation.test.tsx`,
+  // ('/reset-password'), `services` ('/services'), and `mainApp` ('/app')
+  // are excluded from this table — issues #364, #365, #366, #368, #374,
+  // and #373 respectively gave them real content, so none of them renders
+  // the generic placeholder text any more. See
+  // `welcome.test.tsx`/`welcome-back-navigation.test.tsx`,
   // `src/app/(auth)/login.test.tsx`, `src/app/(auth)/register.test.tsx`,
-  // and the `'AppRoutes.forgotPassword/resetPassword/mainApp ... resolves
-  // to its real screen'` cases just below (same posture for all six) for
-  // their own coverage.
+  // and the `'AppRoutes.forgotPassword/resetPassword/services/mainApp ...
+  // resolves to its real screen'` cases just below (same posture for all
+  // seven) for their own coverage.
   const staticRoutes: [name: string, path: string][] = [
-    ['services', '/services'],
     ['explore', '/explore'],
     ['activity', '/activity'],
     ['profile', '/profile'],
@@ -198,6 +198,13 @@ describe('route reachability (ports route_reachability_test.dart, issue #71/#358
   test('AppRoutes.resetPassword (/reset-password) resolves to its real screen', async () => {
     await renderRoute('/reset-password');
     expect(await screen.findByText('Set a new password')).toBeTruthy();
+  });
+
+  // AppRoutes.services (/services) resolves to its real screen since issue
+  // #374, same posture as the cases above.
+  test('AppRoutes.services (/services) resolves to its real screen', async () => {
+    await renderRoute('/services');
+    expect(await screen.findByText('Services')).toBeTruthy();
   });
 
   // AppRoutes.mainApp (/app) resolves to its real screen since issue #373,
