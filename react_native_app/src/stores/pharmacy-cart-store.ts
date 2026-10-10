@@ -394,10 +394,11 @@ export function computePharmacyCartTotals(items: PharmacyCartItem[], pricing: Se
  * The hook a pharmacy cart/checkout screen uses to read live totals -- see
  * {@link useFoodCartTotals}'s doc comment in `food-cart-store.ts` for why
  * this reads `service_pricing` through `useServicePricing` instead of a
- * one-off query.
+ * one-off query. `cartStore` defaults to the app-wide store; screens pass
+ * their injected store (tests build an isolated one).
  */
-export function usePharmacyCartTotals(): PharmacyCartTotals {
-  const items = usePharmacyCartStore((state) => state.items);
+export function usePharmacyCartTotals(cartStore: typeof usePharmacyCartStore = usePharmacyCartStore): PharmacyCartTotals {
+  const items = cartStore((state) => state.items);
   const pricingQuery = useServicePricing(PHARMACY_SERVICE_ID);
   const pricing = pricingQuery.data ?? ServicePricingRepository.peek(PHARMACY_SERVICE_ID);
   return computePharmacyCartTotals(items, pricing);

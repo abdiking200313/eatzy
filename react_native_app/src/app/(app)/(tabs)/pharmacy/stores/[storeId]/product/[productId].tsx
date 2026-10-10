@@ -1,14 +1,11 @@
 import { useLocalSearchParams } from 'expo-router';
-import { Text, View } from 'react-native';
+
+import { PharmacyProductDetailsScreen } from '@/features/pharmacy/pharmacy-product-details-screen';
 
 // Ports AppRoutes.pharmacyProduct ('/pharmacy/stores/:storeId/product/:productId') from
-// flutter_app/lib/app/app_routes.dart / app_router.dart (issue #358: route
-// skeleton only -- real screen content lands in a later issue).
-export default function PharmacyProductDetailsScreen() {
+// flutter_app/lib/services/pharmacy/presentation/pharmacy_product_details_screen.dart
+// (issue #395 / P7-07).
+export default function PharmacyProductDetailsRoute() {
   const { storeId, productId } = useLocalSearchParams<{ storeId: string; productId: string }>();
-  return (
-    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 }}>
-      <Text>/pharmacy/stores/:storeId/product/:productId ({storeId} {productId}) — not yet implemented</Text>
-    </View>
-  );
+  return <PharmacyProductDetailsScreen storeId={storeId} productId={productId} />;
 }

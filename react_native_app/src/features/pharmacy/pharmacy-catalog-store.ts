@@ -6,7 +6,7 @@
  *
  * The cart half of `PharmacyController` was already ported to
  * `src/stores/pharmacy-cart-store.ts` (issue #376); checkout
- * (`placeDemoOrder`) belongs to a later issue. This keeps the Dart
+ * (`placeDemoOrder`) to `pharmacy-checkout.ts` (issue #395). This keeps the Dart
  * controller's own hand-rolled staleness/scope/paging rules (rather than
  * re-expressing them through TanStack Query) so
  * `pharmacy_controller_test.dart`'s catalog cases port one-to-one.
