@@ -151,7 +151,6 @@ describe('route reachability (ports route_reachability_test.dart, issue #71/#358
   // cases just below (same posture for all eleven) for their own coverage.
   const staticRoutes: [name: string, path: string][] = [
     ['activity', '/activity'],
-    ['profile', '/profile'],
     ['addresses', '/addresses'],
     ['settings', '/settings'],
     ['support', '/support'],
@@ -256,6 +255,15 @@ describe('route reachability (ports route_reachability_test.dart, issue #71/#358
   test('AppRoutes.grocery (/grocery) resolves to its real screen', async () => {
     await renderRoute('/grocery');
     expect(await screen.findByText('Groceries')).toBeTruthy();
+  });
+
+  // AppRoutes.profile (/profile) resolves to its real screen since issue
+  // #399. This file's `supabase` stub has no `auth.getSession`, so the
+  // profile load fails into the "Zivo customer" empty state; full behavior
+  // is covered in `src/app/(app)/(tabs)/profile.test.tsx`.
+  test('AppRoutes.profile (/profile) resolves to its real screen', async () => {
+    await renderRoute('/profile');
+    expect(await screen.findByText('Zivo customer')).toBeTruthy();
   });
 
   // AppRoutes.foodCart (/food/cart) resolves to its real screen since issue
