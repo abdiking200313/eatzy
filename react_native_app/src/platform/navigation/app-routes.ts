@@ -67,8 +67,12 @@ export const AppRoutes = {
   // decision, 2026-09-25) -- see `src/platform/services/registry.ts`.
   freshMeat: '/grocery/fresh-meat',
   freshMeatStores: '/grocery/fresh-meat/stores',
+  freshMeatCart: '/grocery/fresh-meat/cart',
+  freshMeatCheckout: '/grocery/fresh-meat/checkout',
   electronics: '/grocery/electronics',
   electronicsStores: '/grocery/electronics/stores',
+  electronicsCart: '/grocery/electronics/cart',
+  electronicsCheckout: '/grocery/electronics/checkout',
 
   pharmacy: '/pharmacy',
   pharmacyStores: '/pharmacy/stores',
