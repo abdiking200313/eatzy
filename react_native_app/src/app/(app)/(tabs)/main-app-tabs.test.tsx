@@ -28,9 +28,12 @@
  * the `app` (Home) and `food/index` leaf screens -- this keeps the real
  * `app.tsx`/`food/index.tsx` placeholder files (owned by rn-ui-agent, out
  * of this issue's scope) untouched, while still exercising the real
- * `_layout.tsx` files around them. `explore.tsx`/`activity.tsx` are left
- * un-overridden; their real placeholder text already doubles as this
- * file's assertion anchor for "this is the right screen".
+ * `_layout.tsx` files around them. `activity.tsx` is left un-overridden;
+ * its real placeholder text still doubles as this file's assertion anchor
+ * for "this is the right screen". `explore.tsx` got real content in issue
+ * #375 -- its own search bar placeholder text is this file's anchor for it
+ * instead now (its title text, "Explore", is ambiguous against the still-
+ * visible nav tab label of the same name).
  *
  * See `route-reachability.test.tsx`'s top comment for why
  * `@/components/animated-icon` and `@/platform/supabase/client` are
@@ -115,7 +118,7 @@ describe('bottom-nav tab bar ((app)/(tabs)/_layout.tsx, issue #370)', () => {
     await waitFor(() => expect(screen.getByText('Count 1')).toBeOnTheScreen());
 
     await fireEvent.press(screen.getByText('Explore'));
-    await waitFor(() => expect(screen.getByText('/explore — not yet implemented')).toBeOnTheScreen());
+    await waitFor(() => expect(screen.getByPlaceholderText('Search restaurants, stores...')).toBeOnTheScreen());
 
     await fireEvent.press(screen.getByText('Home'));
     await waitFor(() => expect(screen.getByText('Count 1')).toBeOnTheScreen());

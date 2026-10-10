@@ -128,17 +128,16 @@ describe('route reachability (ports route_reachability_test.dart, issue #71/#358
   //
   // `welcome` ('/welcome'), `login` ('/login'), `register` ('/register'),
   // `forgotPassword` ('/forgot-password'), `resetPassword`
-  // ('/reset-password'), `services` ('/services'), and `mainApp` ('/app')
-  // are excluded from this table — issues #364, #365, #366, #368, #374,
-  // and #373 respectively gave them real content, so none of them renders
-  // the generic placeholder text any more. See
-  // `welcome.test.tsx`/`welcome-back-navigation.test.tsx`,
+  // ('/reset-password'), `services` ('/services'), `mainApp` ('/app'), and
+  // `explore` ('/explore') are excluded from this table — issues #364,
+  // #365, #366, #368, #374, #373, and #375 respectively gave them real
+  // content, so none of them renders the generic placeholder text any
+  // more. See `welcome.test.tsx`/`welcome-back-navigation.test.tsx`,
   // `src/app/(auth)/login.test.tsx`, `src/app/(auth)/register.test.tsx`,
-  // and the `'AppRoutes.forgotPassword/resetPassword/services/mainApp ...
-  // resolves to its real screen'` cases just below (same posture for all
-  // seven) for their own coverage.
+  // and the `'AppRoutes.forgotPassword/resetPassword/services/mainApp/
+  // explore ... resolves to its real screen'` cases just below (same
+  // posture for all eight) for their own coverage.
   const staticRoutes: [name: string, path: string][] = [
-    ['explore', '/explore'],
     ['activity', '/activity'],
     ['profile', '/profile'],
     ['addresses', '/addresses'],
@@ -212,6 +211,17 @@ describe('route reachability (ports route_reachability_test.dart, issue #71/#358
   test('AppRoutes.mainApp (/app) resolves to its real screen', async () => {
     await renderRoute('/app');
     expect(await screen.findByText('Search restaurants, stores...')).toBeTruthy();
+  });
+
+  // AppRoutes.explore (/explore) resolves to its real screen since issue
+  // #375, same posture as the cases above. Unlike `mainApp`'s tap-to-open
+  // search bar (a `Text` with that same hint string), Explore's is a real
+  // editable `TextInput` -- the hint only ever renders as its
+  // `placeholder` prop, so this asserts via `findByPlaceholderText`
+  // instead of `findByText`.
+  test('AppRoutes.explore (/explore) resolves to its real screen', async () => {
+    await renderRoute('/explore');
+    expect(await screen.findByPlaceholderText('Search restaurants, stores...')).toBeTruthy();
   });
 
   // Parameterized `AppRoutes` paths, each visited at a concrete URL. The
