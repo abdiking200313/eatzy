@@ -7,8 +7,8 @@
  * "tapping a product opens its details page, which adds the picked weight
  * to the cart" is ported only up to the navigation half here (the product
  * is pushed to the right per-store-type details route) -- the details
- * screen itself is still the #358 placeholder and lands in its own later
- * issue. The rest of this file covers the Dart screen's own behavior that
+ * screen half is ported in `grocery-product-details-screen.test.tsx`
+ * (issue #391). The rest of this file covers the Dart screen's own behavior that
  * the Dart test file never asserts directly: category sections, empty/
  * not-found/error states, the add-to-cart snackbar copy, and the
  * one-store-per-cart conflict prompt.
