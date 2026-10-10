@@ -25,6 +25,12 @@ describe('GROCERY_STORE_TYPE_META', () => {
     expect(GROCERY_STORE_TYPE_META.electronics.storeDetailsRoute('phone hub')).toBe('/grocery/electronics/stores/phone%20hub');
   });
 
+  it('builds a URL-encoded product details route per store type (issue #390)', () => {
+    expect(GROCERY_STORE_TYPE_META.grocery.productDetailsRoute('bakaal fresh', 'p 1')).toBe('/grocery/stores/bakaal%20fresh/product/p%201');
+    expect(GROCERY_STORE_TYPE_META.fresh_meat.productDetailsRoute('butcher', 'goat')).toBe('/grocery/fresh-meat/stores/butcher/product/goat');
+    expect(GROCERY_STORE_TYPE_META.electronics.productDetailsRoute('phones', 'p1')).toBe('/grocery/electronics/stores/phones/product/p1');
+  });
+
   it('gives Fresh Meat and Electronics their own palette slug, distinct from plain grocery', () => {
     expect(GROCERY_STORE_TYPE_META.grocery.slug).toBeUndefined();
     expect(GROCERY_STORE_TYPE_META.fresh_meat.slug).toBe('fresh-meat');

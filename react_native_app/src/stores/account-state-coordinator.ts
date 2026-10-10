@@ -4,9 +4,10 @@
  *
  * Clears account-scoped state when the authenticated owner changes, same
  * as the Flutter original, with one deliberate difference: Flutter's
- * coordinator directly resets `ActivityController` because activity history
- * is shared platform state with no RN port yet (it lands in a later issue).
- * This coordinator instead clears the shared TanStack Query cache
+ * coordinator directly resets `ActivityController`, while the RN port of it
+ * (`activity-store.ts`, issue #397) registers with
+ * {@link SessionResetRegistry} like the cart stores do. This coordinator
+ * also clears the shared TanStack Query cache
  * (`resetQueryCache`, defaulting to `queryClient.clear()`) as this app's
  * current platform-wide "shared, account-scoped in-memory state" -- any
  * per-user data fetched through `useQuery` is gone the moment the owner

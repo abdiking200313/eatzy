@@ -8,6 +8,13 @@ Reverse-chronological. Each session/major chunk of work gets an entry.
 
 ---
 
+## 2026-10-10, 7th run (board worker — 5 PRs opened, none merged: self-merge blocked)
+
+- **Self-merge denied again by the auto-mode classifier ("Merge Without Review")**, so every issue stops at an open, green PR for the owner to merge: #508 (#390 grocery store screen), #509 (#394 pharmacy list/catalog), #510 (#397 activity feed + realtime + order-again), #511 (#399 profile), #513 (#403 support). Issues stay `agent-in-progress` until merged.
+- Reclaimed #390 (stale `agent-in-progress` since 08:51, no branch/PR). Skipped #391-#393 and #395 because they depend on unmerged PRs from this run; next run should pick them up once #508/#509 merge.
+- CI flake: `food/index.test.tsx`'s first test pays a ~4-5s cold first render and hit Jest's 5s timeout on #509/#510/#511. Fixed in #512 (`jest.setTimeout(20_000)`), ported into #510/#511. A `beforeAll` warm-up render was tried and dropped: it leaked RN timers and Jest didn't exit.
+- Follow-ups: #510's realtime needs #297's publication migration applied live; its "Order again" button belongs to #398. These PRs all touch `route-reachability.test.tsx`, so expect small merge conflicts as they land.
+
 ## 2026-10-10, 6th run (board worker — RN Phase 6 food complete, 5 issues merged)
 
 - #55 still `waiting-on-you` (no human reply). #390 left alone: it was claimed `agent-in-progress` by another session earlier today, not yet stale.

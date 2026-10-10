@@ -6,7 +6,15 @@
  * `GroceryStoreType` itself (the `'grocery' | 'fresh_meat' | 'electronics'`
  * union) already lives in `src/stores/grocery-cart-store.ts` (issue #376).
  */
-import { AppRoutes, electronicsStoreDetails, freshMeatStoreDetails, groceryStoreDetails } from '@/platform/navigation/app-routes';
+import {
+  AppRoutes,
+  electronicsProductDetails,
+  electronicsStoreDetails,
+  freshMeatProductDetails,
+  freshMeatStoreDetails,
+  groceryProductDetails,
+  groceryStoreDetails,
+} from '@/platform/navigation/app-routes';
 import type { GroceryStoreType } from '@/stores/grocery-cart-store';
 import type { ServiceSlug } from '@/theme/service-theme';
 
@@ -21,6 +29,8 @@ export interface GroceryStoreTypeMeta {
   /** `useServiceTheme`'s `slug` param, so Fresh Meat/Electronics render their own accent instead of the shared grocery one. `undefined` for plain grocery. */
   slug?: ServiceSlug;
   storeDetailsRoute: (storeId: string) => string;
+  /** Mirrors `GroceryStoreScreen._productDetailsRoute`'s per-type switch. */
+  productDetailsRoute: (storeId: string, productId: string) => string;
 }
 
 /** Mirrors `GroceryStoreType.values` -- used to build a store's details route from its own `store_type`. */
@@ -31,6 +41,7 @@ export const GROCERY_STORE_TYPE_META: Record<GroceryStoreType, GroceryStoreTypeM
     storesNoun: 'grocery stores',
     cartRoute: AppRoutes.groceryCart,
     storeDetailsRoute: groceryStoreDetails,
+    productDetailsRoute: groceryProductDetails,
   },
   fresh_meat: {
     title: 'Fresh Meat',
@@ -39,6 +50,7 @@ export const GROCERY_STORE_TYPE_META: Record<GroceryStoreType, GroceryStoreTypeM
     cartRoute: AppRoutes.freshMeatCart,
     slug: 'fresh-meat',
     storeDetailsRoute: freshMeatStoreDetails,
+    productDetailsRoute: freshMeatProductDetails,
   },
   electronics: {
     title: 'Electronics',
@@ -47,5 +59,6 @@ export const GROCERY_STORE_TYPE_META: Record<GroceryStoreType, GroceryStoreTypeM
     cartRoute: AppRoutes.electronicsCart,
     slug: 'electronics',
     storeDetailsRoute: electronicsStoreDetails,
+    productDetailsRoute: electronicsProductDetails,
   },
 };
