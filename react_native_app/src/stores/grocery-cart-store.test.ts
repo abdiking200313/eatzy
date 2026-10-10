@@ -22,6 +22,7 @@ import { MemoryCartStorage } from '@/test-utils/memory-cart-storage';
 import {
   computeGroceryCartTotals,
   createGroceryCartStore,
+  groceryCartKeyPrefixFor,
   groceryCartLineFromJson,
   groceryCartLineToJson,
   groceryProductFromJson,
@@ -200,6 +201,39 @@ describe('grocery cart store (issue #376)', () => {
       expect(store.getState().addProduct(storeBItem, { replaceStoreCart: true })).toBe('added');
       expect(store.getState().lines).toHaveLength(1);
       expect(store.getState().lines[0].product.id).toBe('b-1');
+    });
+  });
+
+  // Matches grocery_store_type_test.dart's "carts are independent: a meat
+  // cart does not touch the grocery cart, and neither asks to replace the
+  // other" (issue #393).
+  describe('per-store-type carts', () => {
+    it('a Fresh Meat cart does not touch the grocery cart, and neither reports a store conflict', async () => {
+      const grocery = createGroceryCartStore('grocery', {
+        storage: new MemoryCartStorage<GroceryCartLine>(),
+        registry: new SessionResetRegistry(),
+      });
+      const meat = createGroceryCartStore('fresh_meat', {
+        storage: new MemoryCartStorage<GroceryCartLine>(),
+        registry: new SessionResetRegistry(),
+      });
+      await grocery.store.getState().loadForOwner('user-1');
+      await meat.store.getState().loadForOwner('user-1');
+
+      const goat: GroceryProduct = { ...rice, id: 'goat', storeId: 'butcher', name: 'Goat' };
+      expect(grocery.store.getState().addProduct({ ...rice, storeId: 'bakaal' })).toBe('added');
+      expect(meat.store.getState().addProduct(goat)).toBe('added');
+
+      expect(grocery.store.getState().lines.map((line) => line.product.id)).toEqual(['rice']);
+      expect(meat.store.getState().lines.map((line) => line.product.id)).toEqual(['goat']);
+      grocery.unregister();
+      meat.unregister();
+    });
+
+    it('persists each store type under its own storage key', () => {
+      expect(groceryCartKeyPrefixFor('grocery')).toBe('zivo.cart.v1.grocery');
+      expect(groceryCartKeyPrefixFor('fresh_meat')).toBe('zivo.cart.v1.grocery.fresh_meat');
+      expect(groceryCartKeyPrefixFor('electronics')).toBe('zivo.cart.v1.grocery.electronics');
     });
   });
 

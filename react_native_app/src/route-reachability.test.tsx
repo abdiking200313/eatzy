@@ -262,9 +262,15 @@ describe('route reachability (ports route_reachability_test.dart, issue #71/#358
 
   // AppRoutes.grocery (/grocery) resolves to its real screen since issue
   // #389, same posture as the cases above.
-  test('AppRoutes.grocery (/grocery) resolves to its real screen', async () => {
-    await renderRoute('/grocery');
-    expect(await screen.findByText('Groceries')).toBeTruthy();
+  // Its Fresh Meat/Electronics siblings (issue #393) render the same
+  // store-list screen under their own title.
+  test.each([
+    ['grocery', '/grocery', 'Groceries'],
+    ['freshMeat', '/grocery/fresh-meat', 'Fresh Meat'],
+    ['electronics', '/grocery/electronics', 'Electronics'],
+  ])('AppRoutes.%s (%s) resolves to its real screen', async (_name, path, title) => {
+    await renderRoute(path);
+    expect(await screen.findByText(title)).toBeTruthy();
   });
 
   // AppRoutes.profile (/profile) resolves to its real screen since issue

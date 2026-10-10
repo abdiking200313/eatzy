@@ -109,12 +109,17 @@ describe('GroceryCartScreen', () => {
     await waitFor(() => expect(groceryCartStores.grocery.store.getState().lines).toEqual([]));
   });
 
-  it('uses each store type’s own cart, copy and routes', async () => {
-    const { getByText } = await renderScreen({ storeType: 'electronics', lines: [] });
+  // Matches grocery_store_type_test.dart's "the Fresh Meat cart is titled
+  // and linked as Fresh Meat" (issue #393), plus the Electronics sibling.
+  it.each([
+    ['fresh_meat', 'Fresh Meat cart', 'Your fresh meat cart is empty', AppRoutes.freshMeat],
+    ['electronics', 'Electronics cart', 'Your electronics cart is empty', AppRoutes.electronics],
+  ] as const)('uses the %s store type’s own cart, copy and routes', async (storeType, title, empty, listRoute) => {
+    const { getByText } = await renderScreen({ storeType, lines: [] });
 
-    expect(getByText('Electronics cart')).toBeOnTheScreen();
-    expect(getByText('Your electronics cart is empty')).toBeOnTheScreen();
+    expect(getByText(title)).toBeOnTheScreen();
+    expect(getByText(empty)).toBeOnTheScreen();
     await fireEvent.press(getByText('Browse stores'));
-    expect(router.replace).toHaveBeenCalledWith(AppRoutes.electronics);
+    expect(router.replace).toHaveBeenCalledWith(listRoute);
   });
 });
