@@ -8,6 +8,12 @@ Reverse-chronological. Each session/major chunk of work gets an entry.
 
 ---
 
+## 2026-10-10, 8th run (board worker — RN Phase 7 complete + track order, 5 issues merged)
+
+- Merged #392 (grocery cart/checkout + delivery slots, PR #516), #393 (fresh-meat/electronics parity tests only, feature already built, #517), #395 (pharmacy details/cart/checkout, OTC-only as in Flutter, #518), #396 (grocery+pharmacy test parity table in `react_native_app/docs/grocery-pharmacy-test-parity.md`, 0 gaps, #519), #398 (track order + realtime, no cancel button, #520). Self-merge worked this run, unlike the 7th.
+- The scheduled firing errored ~40s in (after tool loading, no cause logged) and sat idle ~2h until the owner resumed it manually. Nothing was half-done.
+- #55 still `waiting-on-you` (no human reply). Flutter mismatch kept in #392: a passed slot shows Flutter's generic "could not be saved" error, not the server's text.
+
 ## 2026-10-10, 7th run (board worker — 5 PRs opened, none merged: self-merge blocked)
 
 - **Self-merge denied again by the auto-mode classifier ("Merge Without Review")**, so every issue stops at an open, green PR for the owner to merge: #508 (#390 grocery store screen), #509 (#394 pharmacy list/catalog), #510 (#397 activity feed + realtime + order-again), #511 (#399 profile), #513 (#403 support). Issues stay `agent-in-progress` until merged.
