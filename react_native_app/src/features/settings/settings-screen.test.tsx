@@ -146,6 +146,21 @@ async function renderSettings(repository: ProfileRepository, email: string | nul
 
 const originalReporter = ErrorReporting.instance;
 
+// Whichever test renders `SettingsScreen` first pays a one-time cold-start
+// cost that is not this screen's own work: its first render lazily requires
+// ~150 `react-native` modules (the Fabric renderer, ScrollView, Animated,
+// Modal, KeyboardAvoidingView, LogBox, ...) behind `react-native`'s lazy
+// export getters, and with no Jest transform cache -- CI's `npm test -- --ci`
+// on a fresh runner -- each is Babel-transformed inside that test's timer.
+// Measured with `--no-cache`: ~3.4s for the first test, ~3.0s of it in
+// transforms (ReactFabric-dev.js alone ~0.8s); later tests take <100ms.
+// On a contended CI runner that crossed Jest's default 5s (PR #524's
+// `rn-verify`). Nothing here waits on network or timers: the default
+// repository's `{}` Supabase stub rejects synchronously and the mocked
+// session store has no `userId`, so no preferences/push work runs. Same
+// cause and remedy as `food/index.test.tsx` (#512).
+jest.setTimeout(20_000);
+
 beforeEach(() => {
   ErrorReporting.instance = new NoopErrorReporter();
   mockPickedDate = new Date(1995, 5, 15);
