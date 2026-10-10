@@ -4,8 +4,10 @@
  * (`signInWithEmailPassword`/`getCurrentUserId`), sign-up landed in issue
  * #366 (`signUpWithEmailPassword`), and this issue (#368) adds
  * `resetPasswordForEmail`/`updatePassword`, and issue #399 (the Profile
- * tab's logout) adds `signOut`. `updateEmail`/`getCurrentUserEmail` remain
- * out of scope and are deliberately not ported here yet.
+ * tab's logout) adds `signOut`, and issue #400 (Settings → Email Address)
+ * adds `updateEmail`. `getCurrentUserEmail` is not ported here:
+ * `@supabase/supabase-js` has no synchronous session getter, so the
+ * Settings screen reads the email off `session-store.ts` instead.
  *
  * This is the first module under `src/features/**` in this app -- every
  * other feature so far has lived directly under `src/app/**`/`src/stores/**`
@@ -48,9 +50,12 @@ export interface PasswordResetRequestSource {
   ): Promise<{ data: object | null; error: Error | null }>;
 }
 
-/** The password-update-relevant slice of `supabase.auth` -- see {@link PasswordSignInSource}'s doc comment. */
+/**
+ * The `updateUser` slice of `supabase.auth` (password and email changes) --
+ * see {@link PasswordSignInSource}'s doc comment.
+ */
 export interface PasswordUpdateSource {
-  updateUser(attributes: { password: string }): Promise<UserResponse>;
+  updateUser(attributes: { password?: string; email?: string }): Promise<UserResponse>;
 }
 
 /** The sign-out-relevant slice of `supabase.auth` -- see {@link PasswordSignInSource}'s doc comment. */
@@ -191,6 +196,21 @@ export class AuthService {
    */
   async updatePassword(newPassword: string): Promise<UserResponse> {
     const { data, error } = await this.auth.updateUser({ password: newPassword });
+    if (error) {
+      throw error;
+    }
+    return { data, error };
+  }
+
+  /**
+   * Mirrors `AuthService.updateEmail`: wraps `supabase.auth.updateUser` with
+   * just the new email. Supabase emails a confirmation link to the new
+   * address first, so success here does not mean the email has changed
+   * yet. Throws the returned `error` the same way
+   * {@link signInWithEmailPassword} does.
+   */
+  async updateEmail(newEmail: string): Promise<UserResponse> {
+    const { data, error } = await this.auth.updateUser({ email: newEmail });
     if (error) {
       throw error;
     }

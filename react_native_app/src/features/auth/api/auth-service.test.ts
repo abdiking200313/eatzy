@@ -350,6 +350,36 @@ describe('AuthService', () => {
     });
   });
 
+  describe('updateEmail', () => {
+    test('sends only the new email via supabase.auth.updateUser', async () => {
+      const updateUser = jest.fn().mockResolvedValue({ data: { user: { id: 'mock-user-id' } }, error: null });
+      const auth: PasswordSignInSource & PasswordSignUpSource & PasswordResetRequestSource & PasswordUpdateSource = {
+        signInWithPassword: jest.fn(),
+        signUp: jest.fn(),
+        resetPasswordForEmail: jest.fn(),
+        updateUser,
+      };
+      const service = new AuthService({ auth });
+
+      await service.updateEmail('new@zivo.app');
+
+      expect(updateUser).toHaveBeenCalledWith({ email: 'new@zivo.app' });
+    });
+
+    test('propagates the Supabase error', async () => {
+      const error = { name: 'AuthApiError', message: 'Email exists', status: 422 } as AuthError;
+      const auth: PasswordSignInSource & PasswordSignUpSource & PasswordResetRequestSource & PasswordUpdateSource = {
+        signInWithPassword: jest.fn(),
+        signUp: jest.fn(),
+        resetPasswordForEmail: jest.fn(),
+        updateUser: jest.fn().mockResolvedValue({ data: { user: null }, error }),
+      };
+      const service = new AuthService({ auth });
+
+      await expect(service.updateEmail('new@zivo.app')).rejects.toBe(error);
+    });
+  });
+
   describe('signOut', () => {
     test('clears the current session state and revokes the session via supabase.auth.signOut', async () => {
       const auth: PasswordSignInSource & PasswordSignUpSource & PasswordResetRequestSource & PasswordUpdateSource = {
