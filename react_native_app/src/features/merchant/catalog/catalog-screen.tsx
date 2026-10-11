@@ -226,7 +226,7 @@ function CatalogBody({ controller, media, onAdd, onEdit }: CatalogBodyProps) {
             accessibilityRole="button"
             accessibilityLabel="Add item"
             onPress={onAdd}
-            className="flex-row items-center rounded-lg bg-primary px-x5 py-x3 active:opacity-80">
+            className="flex-row items-center rounded-lg bg-primaryFill px-x5 py-x3 active:opacity-80">
             <MaterialIcons name="add" size={20} color={colors.onPrimary} />
             <Text style={{ marginLeft: spacing.x2 }} className="text-button font-outfitSemiBold text-onPrimary">
               Add item
@@ -341,7 +341,7 @@ function AddItemFab({ onPress }: { onPress: () => void }) {
       accessibilityRole="button"
       accessibilityLabel="Add item"
       onPress={onPress}
-      style={{ backgroundColor: colors.primary, paddingHorizontal: spacing.x5, paddingVertical: spacing.x4 }}
+      style={{ backgroundColor: colors.primaryFill, paddingHorizontal: spacing.x5, paddingVertical: spacing.x4 }}
       className="flex-row items-center rounded-2xl active:opacity-80">
       <MaterialIcons name="add" size={22} color={colors.onPrimary} />
       <Text style={{ marginLeft: spacing.x2, color: colors.onPrimary }} className="text-button font-outfitSemiBold">

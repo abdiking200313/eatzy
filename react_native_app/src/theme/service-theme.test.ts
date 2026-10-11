@@ -38,8 +38,8 @@ describe('forSlug', () => {
 });
 
 describe('ServiceThemes palettes', () => {
-  it('matches the Flutter accent colors 1:1', () => {
-    expect(ServiceThemes.food.accent).toBe('#C2410C');
+  it('matches the Flutter accent colors 1:1, except food (darkened for WCAG AA, #416)', () => {
+    expect(ServiceThemes.food.accent).toBe('#9A3412');
     expect(ServiceThemes.grocery.accent).toBe('#15803D');
     expect(ServiceThemes.pharmacy.accent).toBe('#7C3AED');
     expect(ServiceThemes.freshMeat.accent).toBe('#B91C1C');

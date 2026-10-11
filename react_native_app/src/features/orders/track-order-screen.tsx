@@ -114,7 +114,7 @@ export function TrackOrderScreen({ orderId, serviceId, fetchDetails, watch, orde
               disabled={loadingReorder}
               onPress={() => void orderAgain(order)}
               style={{ paddingVertical: spacing.x3_5, opacity: loadingReorder ? 0.6 : 1 }}
-              className="w-full flex-row items-center justify-center rounded-full bg-primary active:opacity-80">
+              className="w-full flex-row items-center justify-center rounded-full bg-primaryFill active:opacity-80">
               {loadingReorder ? <ActivityIndicator size="small" color="white" /> : <MaterialIcons name="replay" size={18} color="white" />}
               <Text style={{ marginLeft: spacing.x2 }} className="text-button font-outfitSemiBold text-onPrimary">
                 Order again

@@ -37,7 +37,7 @@ export function AddToCartButton({ tooltip, onPress }: AddToCartButtonProps) {
       onPress={onPress ?? undefined}
       style={{ width: DIMENSION, height: DIMENSION }}
       className={`items-center justify-center rounded-control ${
-        disabled ? 'bg-border' : 'bg-primary active:opacity-80'
+        disabled ? 'bg-border' : 'bg-primaryFill active:opacity-80'
       }`}>
       <MaterialIcons
         name="add-shopping-cart"
