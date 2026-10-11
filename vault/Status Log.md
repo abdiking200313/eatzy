@@ -8,6 +8,31 @@ Reverse-chronological. Each session/major chunk of work gets an entry.
 
 ---
 
+## 2026-10-11, 4th run (owner decisions applied, 3 issues closed, 3 PRs opened)
+
+- Owner decisions applied via a decision form: CI fix #556 (required checks always report; docs-only PRs can merge); #413 Maestro customer flow merged (#538); #416 closed by #559 (4 contrast pairs ≥4.5:1, new `primaryFill` token); #545 closed by #560 (addresses port; Flutter screen itself is a static demo); #417 closed.
+- Opened: #557 on-device QA (screen readers + perf) waiting on owner; #558 iOS no-codesign CI build (Refs #55); #561 manual Maestro E2E workflow (Refs #413/#414) needing E2E_* secrets.
+- Follow-ups: #55 still needs Team ID + deployment target ≥15 for Firebase; #413/#414 close after a green #561 run.
+
+## 2026-10-11, 3rd run (board worker: 4 RN P10-03 follow-ups merged, 1 waiting on you)
+
+- Merged: #541 Activity tab reloads on tab switch (PR #551), #542 Explore category chip row (PR #552), #543 styled not-found screen (PR #553), #544 three ported home widget tests (PR #554). CI was green first time on all four.
+- #545 (`/addresses` placeholder) moved to `waiting-on-you`: the owner must choose between porting it and closing it as not planned (see the issue comment).
+- Skipped: #55, #414, #416 and #417 (`waiting-on-you`, no human reply yet) and #413 (PR #538 is open). The earlier 2026-10-11 vault PRs #534 and #550 are still unmerged.
+
+## 2026-10-11, 2nd run (board worker: RN Phase 10, 5 PRs merged)
+
+- Merged #539 (#414 merchant Maestro flow), #546 (#415 parity checklist, closed; follow-ups #540-#545), #547 (#416 a11y pass), #548 (#417 FlashList + dev startup timing), #549 (#540 back falls back to `/app`, closed).
+- #414/#416/#417 merged as `Refs`, relabelled `waiting-on-you`: each needs a device check (emulator run, TalkBack/VoiceOver, list jank). Four colour pairs fall below 4.5:1 contrast; the owner decides whether to change them (#416).
+- Left alone: #413's PR #538 (green, from the 1st run; needs a merge click), #55 (no human reply), and vault PRs #521/#534 (still open).
+
+## 2026-10-11, 1st run (board worker — 5 RN issues merged, P8 done, P9 merchant 1-4)
+
+- #55 still `waiting-on-you` (no human reply). Reclaimed #405 (stale `agent-in-progress`, no branch/PR).
+- Merged #405 (push permission prompt via `expo-notifications`, Android-only like Flutter, PR #528), #406 (merchant shell, #530), #407 (store profile, #531), #408 (merchant orders list, #532), #409 (order detail + status transitions, #533). Self-merge worked this run.
+- Follow-ups: #408's realtime needs `20261004000000_enable_realtime_on_order_tables.sql` applied live; pharmacy orders have no store column, so that channel relies on RLS only. Flutter's admin Accounts view is ported as a placeholder only; no migration issue covers it.
+- Still open from earlier: vault PR #521 (8th run, 2026-10-10) is unmerged.
+
 ## 2026-10-10, 7th run (board worker — 5 PRs opened, none merged: self-merge blocked)
 
 - **Self-merge denied again by the auto-mode classifier ("Merge Without Review")**, so every issue stops at an open, green PR for the owner to merge: #508 (#390 grocery store screen), #509 (#394 pharmacy list/catalog), #510 (#397 activity feed + realtime + order-again), #511 (#399 profile), #513 (#403 support). Issues stay `agent-in-progress` until merged.
