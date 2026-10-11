@@ -16,18 +16,16 @@
  * `display: 'none'`), mirroring the Dart `IndexedStack`, so each keeps its
  * own state across tab switches.
  *
- * The Dart shell also owns one `MerchantStoreController` shared by both
- * destinations so "my store" is only resolved once. The controller is
- * ported (P9-02, #407) and `MyStoreScreen` accepts one via its `controller`
- * prop, but until the real Orders screen lands (P9-03, #408) there is
- * nothing to share it with, so `MyStoreScreen` builds its own.
+ * Like the Dart shell, it owns one `MerchantStoreController` shared by both
+ * destinations (P9-03, #408) so "my store" is only resolved once -- and a
+ * store created from "My Store" shows up on "Orders" straight away.
  *
  * `ownerId`/`isAdmin`/`auth` are this component's test seams, mirroring the
  * Dart constructor's `ownerId`/`isAdmin`/`authService` parameters.
  */
 import { MaterialIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { useCallback, useState, type ComponentProps } from 'react';
+import { useCallback, useMemo, useState, type ComponentProps } from 'react';
 import { Alert, Pressable, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -37,6 +35,7 @@ import { describeAuthError } from '@/features/auth/api/auth-error-message';
 import { authService } from '@/features/auth/api/auth-service';
 import { AdminAccountsScreen } from '@/features/merchant/admin/admin-accounts-screen';
 import { OrdersScreen } from '@/features/merchant/orders/orders-screen';
+import { MerchantStoreController } from '@/features/merchant/store/merchant-store-controller';
 import { MyStoreScreen } from '@/features/merchant/store/my-store-screen';
 import { useSemanticColors } from '@/hooks/use-semantic-colors';
 import { AppRoutes } from '@/platform/navigation/app-routes';
@@ -76,6 +75,9 @@ export function MerchantShell({ ownerId: ownerIdProp, isAdmin: isAdminProp, auth
   const isAdmin = isAdminProp ?? gateIsAdmin;
 
   const [selectedIndex, setSelectedIndex] = useState(0);
+  // Shared by "My Store" and "Orders" (the Dart shell's `_storeController`);
+  // a different signed-in owner gets a fresh one.
+  const storeController = useMemo(() => (ownerId == null ? null : new MerchantStoreController()), [ownerId]);
 
   const handleSignOut = useCallback(async () => {
     try {
@@ -86,7 +88,7 @@ export function MerchantShell({ ownerId: ownerIdProp, isAdmin: isAdminProp, auth
     }
   }, [auth]);
 
-  if (ownerId == null) {
+  if (ownerId == null || storeController == null) {
     return <SignedOutView onSignIn={() => router.replace(AppRoutes.login)} />;
   }
 
@@ -104,10 +106,10 @@ export function MerchantShell({ ownerId: ownerIdProp, isAdmin: isAdminProp, auth
       ) : (
         <>
           <View style={{ flex: 1, display: selectedIndex === 0 ? 'flex' : 'none' }}>
-            <MyStoreScreen ownerId={ownerId} />
+            <MyStoreScreen ownerId={ownerId} controller={storeController} />
           </View>
           <View style={{ flex: 1, display: selectedIndex === 1 ? 'flex' : 'none' }}>
-            <OrdersScreen ownerId={ownerId} />
+            <OrdersScreen ownerId={ownerId} storeController={storeController} />
           </View>
         </>
       )}
