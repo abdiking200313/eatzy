@@ -12,11 +12,19 @@
  * fallback, never actually called here since every test injects its own
  * loader) pulls in the Supabase client module, which reads env vars at
  * import time.
+ *
+ * The food-category chip row (issue #542) reads `useFoodCategories()`, so
+ * `category-repository.ts` is mocked like `food/categories.test.tsx` does,
+ * in place of the Dart test's `_FakeCategoryRepository`. It defaults to an
+ * empty list, matching every Dart case's `_FakeCategoryRepository(const [])`.
  */
+import { QueryClient } from '@tanstack/react-query';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import { router } from 'expo-router';
 
-import { renderWithProviders } from '@/test-utils';
+import { renderWithProviders as baseRenderWithProviders } from '@/test-utils';
+import { fetchCategories } from '@/features/food/api/category-repository';
+import type { Category } from '@/features/food/api/category';
 import type { StoreListing } from '@/platform/discovery/store-listing';
 import type { ServiceId } from '@/theme/service-theme';
 
@@ -29,6 +37,17 @@ jest.mock('expo-router', () => ({
 }));
 
 jest.mock('@/platform/supabase/client', () => ({ supabase: {} }));
+
+jest.mock('@/features/food/api/category-repository', () => ({
+  fetchCategories: jest.fn(),
+}));
+
+const mockFetchCategories = fetchCategories as jest.Mock;
+
+const sampleCategories: Category[] = [
+  { id: 'cat-somali', name: 'Mogadishu', iconUrl: '' },
+  { id: 'cat-pizza', name: 'Pizza', iconUrl: '' },
+];
 
 const sampleStores: StoreListing[] = [
   {
@@ -65,8 +84,22 @@ async function loadStores(filter: ServiceId | null): Promise<StoreListing[]> {
   return sampleStores.filter((store) => store.serviceId === filter);
 }
 
+/** Tracks each test's `QueryClient` so `afterEach` can clear its cache/gc timers (same as `food/categories.test.tsx`). */
+const renderedQueryClients: QueryClient[] = [];
+
+const renderWithProviders: typeof baseRenderWithProviders = async (...args) => {
+  const result = await baseRenderWithProviders(...args);
+  renderedQueryClients.push(result.queryClient);
+  return result;
+};
+
+afterEach(() => {
+  renderedQueryClients.splice(0).forEach((client) => client.clear());
+});
+
 beforeEach(() => {
   (router.push as jest.Mock).mockClear();
+  mockFetchCategories.mockReset().mockResolvedValue([]);
 });
 
 describe('ExploreScreen', () => {
@@ -138,5 +171,56 @@ describe('ExploreScreen', () => {
     await fireEvent.press(getByText('Mogadishu Kitchen'));
 
     expect(router.push).toHaveBeenCalledWith('/food/restaurants/restaurant-1');
+  });
+
+  describe('food-category chip row', () => {
+    it('renders a chip per food category', async () => {
+      mockFetchCategories.mockResolvedValue(sampleCategories);
+      const { getByText, getByTestId } = await renderWithProviders(<ExploreScreen storeListingLoader={loadStores} />);
+
+      await waitFor(() => expect(getByText('Pizza')).toBeOnTheScreen());
+      expect(getByTestId('explore-category-chip-cat-somali')).toBeOnTheScreen();
+      expect(getByTestId('explore-category-chip-cat-pizza')).toBeOnTheScreen();
+    });
+
+    it('tapping a category chip puts its name into the search and filters the feed', async () => {
+      mockFetchCategories.mockResolvedValue(sampleCategories);
+      const { getByText, queryByText, getByTestId, getByPlaceholderText } = await renderWithProviders(
+        <ExploreScreen storeListingLoader={loadStores} />,
+      );
+
+      await waitFor(() => expect(getByText('Bakaara Mart')).toBeOnTheScreen());
+      await waitFor(() => expect(getByTestId('explore-category-chip-cat-somali')).toBeOnTheScreen());
+
+      await fireEvent.press(getByTestId('explore-category-chip-cat-somali'));
+
+      expect(getByPlaceholderText('Search restaurants, stores...').props.value).toBe('Mogadishu');
+      await waitFor(() => expect(queryByText('Bakaara Mart')).toBeNull());
+      expect(getByText('Mogadishu Kitchen')).toBeOnTheScreen();
+      expect(queryByText('Hodan Pharmacy')).toBeNull();
+    });
+
+    it('renders no chips when there are no categories', async () => {
+      const { getByText, getByTestId, queryByTestId } = await renderWithProviders(
+        <ExploreScreen storeListingLoader={loadStores} />,
+      );
+
+      await waitFor(() => expect(getByText('Mogadishu Kitchen')).toBeOnTheScreen());
+      await waitFor(() => expect(mockFetchCategories).toHaveBeenCalled());
+      expect(getByTestId('explore-category-chips')).toBeEmptyElement();
+      expect(queryByTestId(/^explore-category-chip-/)).toBeNull();
+    });
+
+    it('renders no chips, and no error, when categories fail to load', async () => {
+      mockFetchCategories.mockRejectedValue(new Error('categories offline'));
+      const { getByText, getByTestId, queryByText } = await renderWithProviders(
+        <ExploreScreen storeListingLoader={loadStores} />,
+      );
+
+      await waitFor(() => expect(getByText('Mogadishu Kitchen')).toBeOnTheScreen());
+      await waitFor(() => expect(mockFetchCategories).toHaveBeenCalled());
+      expect(getByTestId('explore-category-chips')).toBeEmptyElement();
+      expect(queryByText(/categories offline/)).toBeNull();
+    });
   });
 });

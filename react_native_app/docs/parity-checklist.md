@@ -64,7 +64,7 @@ row and are not listed again.
 | Flutter route | Flutter screen | RN route file | Layout | States | Behavior | Tests | Status |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | `mainApp` `/app` | `SuperAppHomeScreen` in `MainAppScreen` shell | `app/(app)/(tabs)/app.tsx` + `(tabs)/_layout.tsx` | Same header, search, promo, service grid, popular stores and recent activity | Popular Stores has an error state with retry. Recent activity can be empty | Service tiles switch shell branches, "More" → `/services` | `(tabs)/app.test.tsx` ↔ `super_app_home_test.dart`: 6 of 7 ported (1 N/A overflow). The "one card with row dividers" case is not ported | Gap: #544 |
-| `explore` `/explore` | `ExploreScreen` | `app/(app)/(tabs)/explore.tsx` | Search and store list match. **The food-category chip row is missing** | Loading, error ("Stores could not be loaded.") and empty ("No stores match your search.") match | Search filter and opening a store match. The chip-to-search action is missing | `(tabs)/explore.test.tsx` ↔ `explore_screen_test.dart` (3/3) | Gap: #542 |
+| `explore` `/explore` | `ExploreScreen` | `app/(app)/(tabs)/explore.tsx` | Search, service filter chips, food-category chip row and store list match | Loading, error ("Stores could not be loaded.") and empty ("No stores match your search.") match. Category row renders no chips while loading, on error or when empty | Search filter, category chip → search text, and opening a store match | `(tabs)/explore.test.tsx` ↔ `explore_screen_test.dart` (3/3), plus 4 RN-only category-row cases | Signed off (#542) |
 | `activity` `/activity` | `ActivityScreen` | `app/(app)/(tabs)/activity.tsx` | Same rows with status pills | Loading, empty, error with retry, pull-to-refresh | Row → track-order details and Realtime refresh match. Switching to the tab reloads it; re-tapping it does not (fixed in #541) | `(tabs)/activity.test.tsx`, `stores/activity-store.test.ts` ↔ `activity_controller_test.dart`; `(tabs)/main-app-tabs.test.tsx` ↔ `main_app_screen_test.dart` case 4 | Signed off |
 | `profile` `/profile` | `ProfileScreen` | `app/(app)/(tabs)/profile.tsx` | Same header, options (Notifications, Help & Support, Settings) and logout | Loading and fallback "Zivo customer" | Reloads after returning from Settings, logout → `/login`. Deep-link-only (tab), as in Flutter | `(tabs)/profile.test.tsx` ↔ `profile_screen_test.dart` (4) | Signed off |
 | shell itself | `MainAppScreen` | `app/(app)/(tabs)/_layout.tsx` | 4 tabs. Food, grocery and pharmacy are hidden branches | n/a | Per-tab state is kept, and the nav bar stays visible in verticals | `(tabs)/main-app-tabs.test.tsx` ↔ `main_app_screen_test.dart`: 4 of 4 | Signed off |
@@ -172,7 +172,7 @@ checks that none of them has an in-app link.
 | --- | --- | --- |
 | #540 (fixed) | `AppScaffold` back fallback goes to `/` instead of `/app` | `root` |
 | #541 (fixed) | Activity tab does not reload when you switch to it | `activity`, shell |
-| #542 | Explore tab is missing the food-category chip row | `explore` |
+| #542 (fixed) | Explore tab is missing the food-category chip row | `explore` |
 | #543 | Not-found screen is an unstyled placeholder with no test | `NotFoundScreen` |
 | #544 | Three unported widget-test cases (CategoriesSection empty, SectionHeader action, Recent Activity dividers) | `mainApp`, `food` |
 | #545 | `/addresses` is a placeholder (owner decision needed: port or accept) | `addresses` |
