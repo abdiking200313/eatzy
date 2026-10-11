@@ -1,12 +1,9 @@
-import { Text, View } from 'react-native';
+import { MerchantShell } from '@/features/merchant/shell/merchant-shell';
 
 // Ports AppRoutes.merchantDashboard ('/merchant') from
-// flutter_app/lib/app/app_routes.dart / app_router.dart (issue #358: route
-// skeleton only -- real screen content lands in a later issue).
-export default function MerchantShell() {
-  return (
-    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 }}>
-      <Text>/merchant — not yet implemented</Text>
-    </View>
-  );
+// flutter_app/lib/app/app_router.dart, which maps it straight to
+// `MerchantShell()` (issue #406). The merchant-role gate itself lives in
+// `merchant/_layout.tsx` (issue #363).
+export default function MerchantDashboardScreen() {
+  return <MerchantShell />;
 }
