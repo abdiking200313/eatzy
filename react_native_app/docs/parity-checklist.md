@@ -46,13 +46,13 @@ row and are not listed again.
 - `src/route-reachability.test.tsx` mounts most routes through the real
   router, and checks every legacy redirect.
 
-**Result:** 55 rows. 48 signed off, 7 linked to 6 follow-up issues (#540–#545).
+**Result:** 55 rows. 49 signed off, 6 linked to 5 follow-up issues (#541–#545). #540 is fixed.
 
 ## Public and auth
 
 | Flutter route | Flutter screen | RN route file | Layout | States | Behavior | Tests | Status |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| `root` `/` | redirect → `/welcome` | `app/index.tsx` | n/a (redirect) | n/a | Redirects to `/welcome`, same as Flutter. Flutter never links here. RN's `AppScaffold` back fallback does (`router.replace('/')`), see #540 | `route-reachability.test.tsx` › root redirects to /welcome; `flutter-route-parity.test.ts` (known divergence) | Gap: #540 |
+| `root` `/` | redirect → `/welcome` | `app/index.tsx` | n/a (redirect) | n/a | Redirects to `/welcome`, same as Flutter. Flutter never links here. Back fallbacks (`AppScaffold`, store hero screens) go to `/app` like Flutter (fixed in #540) | `route-reachability.test.tsx` › root redirects to /welcome; `flutter-route-parity.test.ts` › deep-link-only AppRoutes.root | Signed off |
 | `welcome` `/welcome` (+ `?revisit=true`) | `WelcomeScreen` + `OnboardingPage1/2/3` | `app/(auth)/welcome.tsx` | Same 3-slide pager, skip, dots, CTA | n/a (static) | Onboarding seen flag, the revisit flag skips the returning-user redirect, Register/Login CTAs | `(auth)/welcome.test.tsx`, `welcome-back-navigation.test.tsx` ↔ `onboarding_screen_test.dart` (6), `auth_back_to_onboarding_test.dart` (5) | Signed off |
 | `login` `/login` | `LoginScreen` | `app/(auth)/login.tsx` | Same `AuthCard` form, logo and links | Submitting, invalid credentials and navigation-error states | Customer → `/app`, merchant/admin → `/merchant`, forgot-password and register links, back → welcome revisit | `(auth)/login*.test.tsx` (5 files) ↔ `login_screen_test.dart` (6) | Signed off |
 | `register` `/register` | `RegisterScreen` | `app/(auth)/register.tsx` | Same fields, including date of birth | Validation, submitting, failure, email-confirmation and session outcomes | Same sign-up outcomes and redirects | `(auth)/register*.test.tsx` (5 files) ↔ `register_screen_test.dart` (10) | Signed off |
@@ -170,7 +170,7 @@ checks that none of them has an in-app link.
 
 | Issue | Gap | Rows |
 | --- | --- | --- |
-| #540 | `AppScaffold` back fallback goes to `/` instead of `/app` | `root` |
+| #540 (fixed) | `AppScaffold` back fallback goes to `/` instead of `/app` | `root` |
 | #541 | Activity tab does not reload when you switch to it | `activity`, shell |
 | #542 | Explore tab is missing the food-category chip row | `explore` |
 | #543 | Not-found screen is an unstyled placeholder with no test | `NotFoundScreen` |

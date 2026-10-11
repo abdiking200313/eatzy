@@ -44,6 +44,12 @@ type RouteRow = {
    * deep-link-only. Names the follow-up issue. Remove it once fixed.
    */
   knownDivergence?: string;
+  /**
+   * Files (relative to `src/`) whose reference to this route is not
+   * user-facing product navigation, mapped to the reason. They are not
+   * counted as in-app links.
+   */
+  nonProductLinks?: Record<string, string>;
 };
 
 // prettier-ignore
@@ -51,7 +57,10 @@ const FLUTTER_ROUTES: RouteRow[] = [
   // Public
   { name: 'root', rnFile: 'index.tsx', link: /router\.(?:replace|push|navigate)\(\s*'\/'\s*\)|href="\/"/, redirect: true,
     deepLinkOnly: 'index route, always redirected to welcome',
-    knownDivergence: 'AppScaffold back fallback goes to "/" instead of "/app" (#540)' },
+    nonProductLinks: {
+      'components/app-tabs.web.tsx': 'unused Expo template tab bar, never imported',
+      'app/dev-gallery.tsx': 'production guard of the development-only gallery',
+    } },
   { name: 'welcome', rnFile: '(auth)/welcome.tsx', link: /\bAppRoutes\.welcome(?:Revisit)?\b/ },
   { name: 'login', rnFile: '(auth)/login.tsx', link: /\bAppRoutes\.login\b/ },
   { name: 'register', rnFile: '(auth)/register.tsx', link: /\bAppRoutes\.register\b/ },
@@ -242,7 +251,8 @@ describe('Flutter route parity (issue #415)', () => {
       sources
         .filter(({ file }) => file !== path.join(APP_DIR, row.rnFile))
         .filter(({ source }) => row.link.test(source))
-        .map(({ file }) => path.relative(SRC_DIR, file));
+        .map(({ file }) => path.relative(SRC_DIR, file).split(path.sep).join('/'))
+        .filter((file) => !(file in (row.nonProductLinks ?? {})));
 
     it.each(FLUTTER_ROUTES.filter((row) => !row.deepLinkOnly).map((row) => [row.name, row] as const))(
       'AppRoutes.%s is linked from somewhere in the app',
@@ -257,11 +267,15 @@ describe('Flutter route parity (issue #415)', () => {
       expect(linkedFrom(row)).toEqual([]);
     });
 
-    it.each(FLUTTER_ROUTES.filter((row) => row.knownDivergence).map((row) => [row.name, row] as const))(
-      'AppRoutes.%s: known divergence from Flutter is still present (remove knownDivergence once fixed)',
-      (_name, row) => {
-        expect(linkedFrom(row)).not.toEqual([]);
-      },
-    );
+    // No rows carry a known divergence today; `it.each` rejects an empty table.
+    const knownDivergences = FLUTTER_ROUTES.filter((row) => row.knownDivergence);
+    if (knownDivergences.length > 0) {
+      it.each(knownDivergences.map((row) => [row.name, row] as const))(
+        'AppRoutes.%s: known divergence from Flutter is still present (remove knownDivergence once fixed)',
+        (_name, row) => {
+          expect(linkedFrom(row)).not.toEqual([]);
+        },
+      );
+    }
   });
 });

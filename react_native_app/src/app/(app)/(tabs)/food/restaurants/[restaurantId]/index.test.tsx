@@ -326,7 +326,7 @@ describe('RestaurantMenuScreen', () => {
 
     await fireEvent.press(getByLabelText('Back'));
 
-    expect(router.replace).toHaveBeenCalledWith('/');
+    expect(router.replace).toHaveBeenCalledWith('/app');
     expect(router.back).not.toHaveBeenCalled();
   });
 

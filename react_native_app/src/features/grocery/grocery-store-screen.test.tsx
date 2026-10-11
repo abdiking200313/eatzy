@@ -151,6 +151,23 @@ describe('GroceryStoreScreen', () => {
     expect(router.push).toHaveBeenCalledWith('/grocery/stores/bakaal-fresh/product/bakaal-bananas');
   });
 
+  it('back pops when there is history, and falls back to /app (AppRoutes.mainApp) when there is none', async () => {
+    const { getByText, getByLabelText } = await renderWithProviders(
+      <GroceryStoreScreen storeId="bakaal-fresh" storeLoader={loaderFor(bakaalFresh)} />,
+    );
+    await waitFor(() => expect(getByText('Bananas')).toBeOnTheScreen());
+
+    (router.canGoBack as jest.Mock).mockReturnValueOnce(true);
+    await fireEvent.press(getByLabelText('Back'));
+    expect(router.back).toHaveBeenCalledTimes(1);
+    expect(router.replace).not.toHaveBeenCalled();
+
+    (router.canGoBack as jest.Mock).mockReturnValueOnce(false);
+    await fireEvent.press(getByLabelText('Back'));
+    expect(router.replace).toHaveBeenCalledWith('/app');
+    expect(router.back).toHaveBeenCalledTimes(1);
+  });
+
   it('a Fresh Meat store adds to the Fresh Meat cart and links to Fresh Meat routes', async () => {
     const goat = product({ id: 'goat', storeId: 'butcher', name: 'Goat', pricingUnit: 'kilogram', availableQuantity: 5 });
     const butcher: GroceryStore = { id: 'butcher', name: 'Hamar Meat', area: 'Hamar', imageUrl: null, storeType: 'fresh_meat', products: [goat] };

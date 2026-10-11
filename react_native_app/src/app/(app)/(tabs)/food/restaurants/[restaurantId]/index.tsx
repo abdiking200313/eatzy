@@ -202,7 +202,7 @@ export default function RestaurantMenuScreen() {
         fallbackIcon="restaurant"
         imageFit="contain"
         showBackButton
-        onBackPress={() => (router.canGoBack() ? router.back() : router.replace('/'))}
+        onBackPress={() => (router.canGoBack() ? router.back() : router.replace(AppRoutes.mainApp))}
         service="food"
         actions={
           <CartAppBarAction

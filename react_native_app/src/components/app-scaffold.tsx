@@ -5,6 +5,7 @@ import { Pressable, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useSemanticColors } from '@/hooks/use-semantic-colors';
+import { AppRoutes } from '@/platform/navigation/app-routes';
 
 export type AppScaffoldProps = {
   title: string;
@@ -54,11 +55,9 @@ export function AppScaffold({
       router.back();
       return;
     }
-    // TODO(rn-logic-agent): point this at the real main-app tab route once
-    // one exists (mirrors `AppRoutes.mainApp` = '/app' in
-    // flutter_app/lib/app/app_routes.dart's `context.go(AppRoutes.mainApp)`
-    // fallback). '/' is a placeholder until that route is wired up.
-    router.replace('/');
+    // Mirrors flutter_app/lib/widgets/app_scaffold.dart's
+    // `context.go(AppRoutes.mainApp)` fallback.
+    router.replace(AppRoutes.mainApp);
   };
 
   return (

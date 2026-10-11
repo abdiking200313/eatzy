@@ -34,7 +34,7 @@ import { StoreHeroAppBar } from '@/components/store-hero-app-bar';
 import { useCartSnackbar } from '@/hooks/use-cart-snackbar';
 import { useSemanticColors } from '@/hooks/use-semantic-colors';
 import { formatCents } from '@/platform/money/format';
-import { pharmacyProductDetails } from '@/platform/navigation/app-routes';
+import { AppRoutes, pharmacyProductDetails } from '@/platform/navigation/app-routes';
 import {
   isPharmacyProductAvailable,
   isPharmacyProductLowStock,
@@ -210,7 +210,7 @@ export function PharmacyCatalogScreen({
         imageUrl={storeImageUrl}
         fallbackIcon="storefront"
         showBackButton
-        onBackPress={() => (router.canGoBack() ? router.back() : router.replace('/'))}
+        onBackPress={() => (router.canGoBack() ? router.back() : router.replace(AppRoutes.mainApp))}
         service="pharmacy"
         actions={cartAction}
       />

@@ -34,6 +34,7 @@ import { LoadingState } from '@/components/loading-state';
 import { StoreHeroAppBar } from '@/components/store-hero-app-bar';
 import { useCartSnackbar } from '@/hooks/use-cart-snackbar';
 import { groceryCartStoreFor, type GroceryAddResult, type GroceryProduct, type GroceryStoreType } from '@/stores/grocery-cart-store';
+import { AppRoutes } from '@/platform/navigation/app-routes';
 import { spacing } from '@/theme/tokens';
 
 import { fetchGroceryStore } from './api/grocery-repository';
@@ -179,7 +180,7 @@ export function GroceryStoreScreen({ storeId, storeType = 'grocery', storeLoader
         imageUrl={store.imageUrl}
         fallbackIcon="storefront"
         showBackButton
-        onBackPress={() => (router.canGoBack() ? router.back() : router.replace('/'))}
+        onBackPress={() => (router.canGoBack() ? router.back() : router.replace(AppRoutes.mainApp))}
         service="grocery"
         slug={meta.slug}
         actions={cartAction}
