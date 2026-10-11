@@ -8,11 +8,12 @@ Reverse-chronological. Each session/major chunk of work gets an entry.
 
 ---
 
-## 2026-10-11, 5th-8th runs (board worker: nothing eligible, 4 runs merged into one entry)
+## 2026-10-11, 5th-9th runs (board worker: nothing eligible, 5 runs merged into one entry)
 
 - No eligible issues: the only open `todo` issues are `tracking` (#29, #52); #418/#419/#420/#455 are `needs-approval`.
 - Still `waiting-on-you`, no human reply since the bot's last ask: #55 (Apple Team ID; the unsigned iOS build is green since #558), #414 (add E2E_* secrets, then run e2e-maestro, #561), #557 (on-device QA).
 - 0 merged. Vault PR #521 (2026-10-10 8th run) is still open and conflicting with `master`.
+- 9th run: same result. #557 has no comments at all, so no human reply there either.
 
 ## 2026-10-11, 4th run (owner decisions applied, 3 issues closed, 3 PRs opened)
 
