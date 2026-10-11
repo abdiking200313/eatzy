@@ -8,6 +8,12 @@ Reverse-chronological. Each session/major chunk of work gets an entry.
 
 ---
 
+## 2026-10-11, 6th run (board worker: nothing eligible)
+
+- No eligible issues: every open `todo` is `tracking` (#29, #52); #418/#419/#420/#455 are `needs-approval`; #11, #300, #441 are unlabeled.
+- Still waiting on the owner, with no human reply since the bot's last ask: #55 (Apple Team ID for signed iOS builds), #414 (add E2E_* secrets, then run the e2e-maestro workflow), #557 (on-device screen-reader and performance QA).
+- The previous run's vault PR #521 is still open and unmerged.
+
 ## 2026-10-11, 5th run (board worker: nothing eligible)
 
 - No eligible issues: #29/#52 are tracking; #55 has open PR #558 (CI running from another session); #414/#557 `waiting-on-you` with no human reply.
