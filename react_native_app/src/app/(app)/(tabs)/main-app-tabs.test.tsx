@@ -1,24 +1,15 @@
 /**
- * Ports the three `flutter_app/test/main_app_screen_test.dart` cases that
- * have a real equivalent in this file's own scope
- * ((app)/(tabs)/_layout.tsx, issue #370):
+ * Ports all four `flutter_app/test/main_app_screen_test.dart` cases against
+ * (app)/(tabs)/_layout.tsx (issues #370 and #541):
  *  1. switching tabs preserves each branch's own in-tab state;
  *  2. an initial route resolves to the matching tab being visually selected;
  *  3. entering a hidden food/grocery/pharmacy branch keeps the nav bar on
  *     screen with the last primary tab still highlighted.
  *
- * The Dart suite's fourth case -- switching *to* the Activity tab reloads
- * it (`onActivityTabFocused`/`ActivityController.instance.load`), but
- * re-tapping the already-active tab doesn't -- has no RN equivalent yet:
- * no `ActivityController`-equivalent store or hook exists on this side (see
- * `src/stores/account-state-coordinator.ts`'s own "no RN cart/activity
- * controllers ... exist on the RN side yet" comment). There is nothing for
- * a `tabPress`-on-Activity handler here to call, and inventing one now
- * would mean building that mechanism inside this file, which is out of
- * scope for a router/tab-bar-chrome issue -- see this issue's final report
- * for where it belongs once a real Activity data store exists (most likely
- * a `useFocusEffect` inside `activity.tsx` itself, mirroring Dart's
- * `ActivityController.instance.load`, not this layout file).
+ *  4. switching *to* the Activity tab reloads the activity feed, but
+ *     re-tapping the already-active tab doesn't (issue #541 -- Dart's
+ *     `onActivityTabFocused`/`ActivityController.instance.load`, ported as
+ *     `useActivityStore.getState().load` called from the tab bar).
  *
  * Renders the real route tree under `src/app` (so `(app)/_layout.tsx`'s
  * auth-redirect gate and this file's own `_layout.tsx` are both exercised
@@ -62,6 +53,9 @@ import { router } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 
+import { useActivityStore } from '@/stores/activity-store';
+import { useSessionStore } from '@/stores/session-store';
+
 jest.mock('@/components/animated-icon', () => ({ AnimatedSplashOverlay: () => null }));
 jest.mock('@/platform/supabase/client', () => ({
   supabase: {
@@ -96,13 +90,23 @@ function FakeFoodIndex() {
   );
 }
 
-async function renderMainApp(initialUrl: string) {
+/** Stands in for `activity.tsx` in case 4, like Dart's plain 'Activity test tab' -- keeps the real screen's own mount-time load out of the count. */
+function FakeActivityTab() {
+  return (
+    <View>
+      <Text>Activity test tab</Text>
+    </View>
+  );
+}
+
+async function renderMainApp(initialUrl: string, extraOverrides: Record<string, () => React.JSX.Element> = {}) {
   const result = renderRouter(
     {
       appDir: 'src/app',
       overrides: {
         '(app)/(tabs)/app': FakeHomeTab,
         '(app)/(tabs)/food/index': FakeFoodIndex,
+        ...extraOverrides,
       },
     },
     { initialUrl },
@@ -149,5 +153,53 @@ describe('bottom-nav tab bar ((app)/(tabs)/_layout.tsx, issue #370)', () => {
     expect(screen.getByText('Activity')).toBeOnTheScreen();
     expect(screen.getByText('Profile')).toBeOnTheScreen();
     expect(screen.getByRole('tab', { name: 'Home' })).toBeSelected();
+  });
+
+  describe('Activity tab reload (ports case 4, issue #541)', () => {
+    const originalLoad = useActivityStore.getState().load;
+    const load = jest.fn(async () => {});
+
+    beforeEach(() => {
+      load.mockClear();
+      useActivityStore.setState({ load });
+      useSessionStore.setState({ userId: 'user-1' });
+    });
+
+    afterEach(() => {
+      useActivityStore.setState({ load: originalLoad });
+      useSessionStore.setState({ userId: null });
+    });
+
+    test('switching to the Activity tab reloads it, but re-tapping it does not', async () => {
+      await renderMainApp('/app', { '(app)/(tabs)/activity': FakeActivityTab });
+      expect(load).toHaveBeenCalledTimes(0);
+
+      await fireEvent.press(screen.getByRole('tab', { name: 'Explore' }));
+      await waitFor(() => expect(screen.getByRole('tab', { name: 'Explore' })).toBeSelected());
+      expect(load).toHaveBeenCalledTimes(0); // switching to a non-Activity tab
+
+      await fireEvent.press(screen.getByRole('tab', { name: 'Activity' }));
+      await waitFor(() => expect(screen.getByText('Activity test tab')).toBeOnTheScreen());
+      expect(load).toHaveBeenCalledTimes(1);
+
+      await fireEvent.press(screen.getByRole('tab', { name: 'Activity' }));
+      await waitFor(() => expect(screen.getByRole('tab', { name: 'Activity' })).toBeSelected());
+      expect(load).toHaveBeenCalledTimes(1); // re-tapping the already-active Activity tab does not reload again
+
+      await fireEvent.press(screen.getByRole('tab', { name: 'Home' }));
+      await waitFor(() => expect(screen.getByText('Count 0')).toBeOnTheScreen());
+      await fireEvent.press(screen.getByRole('tab', { name: 'Activity' }));
+      await waitFor(() => expect(screen.getByRole('tab', { name: 'Activity' })).toBeSelected());
+      expect(load).toHaveBeenCalledTimes(2); // switching back to Activity reloads it
+    });
+
+    test('switching to the Activity tab while signed out does not load', async () => {
+      useSessionStore.setState({ userId: null });
+      await renderMainApp('/app', { '(app)/(tabs)/activity': FakeActivityTab });
+
+      await fireEvent.press(screen.getByRole('tab', { name: 'Activity' }));
+      await waitFor(() => expect(screen.getByText('Activity test tab')).toBeOnTheScreen());
+      expect(load).not.toHaveBeenCalled();
+    });
   });
 });

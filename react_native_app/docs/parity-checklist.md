@@ -46,7 +46,7 @@ row and are not listed again.
 - `src/route-reachability.test.tsx` mounts most routes through the real
   router, and checks every legacy redirect.
 
-**Result:** 55 rows. 49 signed off, 6 linked to 5 follow-up issues (#541–#545). #540 is fixed.
+**Result:** 55 rows. 50 signed off, 5 linked to 4 follow-up issues (#542–#545). #540 and #541 are fixed, and the shell row (case 4 of `main_app_screen_test.dart`) is now signed off too.
 
 ## Public and auth
 
@@ -65,9 +65,9 @@ row and are not listed again.
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | `mainApp` `/app` | `SuperAppHomeScreen` in `MainAppScreen` shell | `app/(app)/(tabs)/app.tsx` + `(tabs)/_layout.tsx` | Same header, search, promo, service grid, popular stores and recent activity | Popular Stores has an error state with retry. Recent activity can be empty | Service tiles switch shell branches, "More" → `/services` | `(tabs)/app.test.tsx` ↔ `super_app_home_test.dart`: 6 of 7 ported (1 N/A overflow). The "one card with row dividers" case is not ported | Gap: #544 |
 | `explore` `/explore` | `ExploreScreen` | `app/(app)/(tabs)/explore.tsx` | Search and store list match. **The food-category chip row is missing** | Loading, error ("Stores could not be loaded.") and empty ("No stores match your search.") match | Search filter and opening a store match. The chip-to-search action is missing | `(tabs)/explore.test.tsx` ↔ `explore_screen_test.dart` (3/3) | Gap: #542 |
-| `activity` `/activity` | `ActivityScreen` | `app/(app)/(tabs)/activity.tsx` | Same rows with status pills | Loading, empty, error with retry, pull-to-refresh | Row → track-order details and Realtime refresh match. **Switching to the tab does not reload** | `(tabs)/activity.test.tsx`, `stores/activity-store.test.ts` ↔ `activity_controller_test.dart`. `main_app_screen_test.dart` case 4 is not ported | Gap: #541 |
+| `activity` `/activity` | `ActivityScreen` | `app/(app)/(tabs)/activity.tsx` | Same rows with status pills | Loading, empty, error with retry, pull-to-refresh | Row → track-order details and Realtime refresh match. Switching to the tab reloads it; re-tapping it does not (fixed in #541) | `(tabs)/activity.test.tsx`, `stores/activity-store.test.ts` ↔ `activity_controller_test.dart`; `(tabs)/main-app-tabs.test.tsx` ↔ `main_app_screen_test.dart` case 4 | Signed off |
 | `profile` `/profile` | `ProfileScreen` | `app/(app)/(tabs)/profile.tsx` | Same header, options (Notifications, Help & Support, Settings) and logout | Loading and fallback "Zivo customer" | Reloads after returning from Settings, logout → `/login`. Deep-link-only (tab), as in Flutter | `(tabs)/profile.test.tsx` ↔ `profile_screen_test.dart` (4) | Signed off |
-| shell itself | `MainAppScreen` | `app/(app)/(tabs)/_layout.tsx` | 4 tabs. Food, grocery and pharmacy are hidden branches | n/a | Per-tab state is kept, and the nav bar stays visible in verticals | `(tabs)/main-app-tabs.test.tsx` ↔ `main_app_screen_test.dart`: 3 of 4 (case 4 → #541) | Covered by `activity` row |
+| shell itself | `MainAppScreen` | `app/(app)/(tabs)/_layout.tsx` | 4 tabs. Food, grocery and pharmacy are hidden branches | n/a | Per-tab state is kept, and the nav bar stays visible in verticals | `(tabs)/main-app-tabs.test.tsx` ↔ `main_app_screen_test.dart`: 4 of 4 | Signed off |
 | `services` `/services` | `CategoriesScreen` | `app/(app)/services.tsx` | Same photo cards, coming-soon placeholders and back control | n/a (static registry) | Opens each vertical. Coming-soon tiles show a message | `(app)/services.test.tsx` ↔ `categories_screen_test.dart`: 4 screen cases ported, 1 N/A. 2 component cases are not ported (see `food` row) | Signed off |
 | `addresses` `/addresses` | `AddressesScreen` | `app/(app)/addresses.tsx` | **Placeholder text only** | none | Deep-link-only in both apps (addresses out of scope, 2026-09-25) | Placeholder mount in `route-reachability.test.tsx`. `delivery_address_repository_test.dart` is not ported | Gap: #545 |
 | `settings` `/settings` | `SettingsScreen` | `app/(app)/settings/index.tsx` → `features/settings/settings-screen.tsx` | Same sections | Preference load/save errors, delete-account flow | Links to reset password, privacy and terms. Logout and delete → `/login` | `features/settings/settings-screen.test.tsx` ↔ `settings_screen_test.dart` (18) | Signed off |
@@ -171,7 +171,7 @@ checks that none of them has an in-app link.
 | Issue | Gap | Rows |
 | --- | --- | --- |
 | #540 (fixed) | `AppScaffold` back fallback goes to `/` instead of `/app` | `root` |
-| #541 | Activity tab does not reload when you switch to it | `activity`, shell |
+| #541 (fixed) | Activity tab does not reload when you switch to it | `activity`, shell |
 | #542 | Explore tab is missing the food-category chip row | `explore` |
 | #543 | Not-found screen is an unstyled placeholder with no test | `NotFoundScreen` |
 | #544 | Three unported widget-test cases (CategoriesSection empty, SectionHeader action, Recent Activity dividers) | `mainApp`, `food` |
