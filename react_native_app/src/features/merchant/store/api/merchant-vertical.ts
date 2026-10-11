@@ -11,8 +11,8 @@
  * captured here and the UI adapts to what a vertical actually supports.
  *
  * The Dart enum + extension becomes a string union plus a config record.
- * Only the store-table half is ported here; the catalog-item columns
- * (`itemTable`, `itemPriceColumn`, ...) land with the catalog screen.
+ * The catalog-item columns (`itemTable`, `itemPriceColumn`, ...) were added
+ * with the catalog screen (issue #410 / P9-05).
  */
 export type MerchantVertical = 'food' | 'grocery' | 'pharmacy';
 
@@ -34,6 +34,20 @@ export interface MerchantVerticalConfig {
   storeImageColumn: 'logo_url' | 'image_url';
   /** `restaurants.id` is a server-generated `uuid`; the other two are client-supplied `text` keys. */
   storeIdIsServerGenerated: boolean;
+  /** The catalog-item table for this vertical. */
+  itemTable: 'menu_items' | 'grocery_products' | 'pharmacy_products';
+  /**
+   * The foreign-key column on {@link itemTable} pointing at the store row --
+   * the join the merchant RLS write policies use to scope item writes
+   * ("ownership is inherited from the parent store").
+   */
+  itemStoreColumn: 'restaurant_id' | 'store_id';
+  /** The integer-cents price column on {@link itemTable}. */
+  itemPriceColumn: 'price' | 'unit_price';
+  /** The availability boolean column on {@link itemTable}. */
+  itemAvailableColumn: 'is_available' | 'is_active';
+  /** `menu_items.id` is a server-generated `uuid`; `grocery_products.id` / `pharmacy_products.id` are client-supplied `text` keys. */
+  itemIdIsServerGenerated: boolean;
 }
 
 export const MERCHANT_VERTICAL_CONFIG: Readonly<Record<MerchantVertical, MerchantVerticalConfig>> = {
@@ -46,6 +60,11 @@ export const MERCHANT_VERTICAL_CONFIG: Readonly<Record<MerchantVertical, Merchan
     storeSupportsDescription: true,
     storeImageColumn: 'logo_url',
     storeIdIsServerGenerated: true,
+    itemTable: 'menu_items',
+    itemStoreColumn: 'restaurant_id',
+    itemPriceColumn: 'price',
+    itemAvailableColumn: 'is_available',
+    itemIdIsServerGenerated: true,
   },
   grocery: {
     displayName: 'Grocery',
@@ -56,6 +75,11 @@ export const MERCHANT_VERTICAL_CONFIG: Readonly<Record<MerchantVertical, Merchan
     storeSupportsDescription: false,
     storeImageColumn: 'image_url',
     storeIdIsServerGenerated: false,
+    itemTable: 'grocery_products',
+    itemStoreColumn: 'store_id',
+    itemPriceColumn: 'unit_price',
+    itemAvailableColumn: 'is_active',
+    itemIdIsServerGenerated: false,
   },
   pharmacy: {
     displayName: 'Pharmacy',
@@ -66,5 +90,10 @@ export const MERCHANT_VERTICAL_CONFIG: Readonly<Record<MerchantVertical, Merchan
     storeSupportsDescription: false,
     storeImageColumn: 'image_url',
     storeIdIsServerGenerated: false,
+    itemTable: 'pharmacy_products',
+    itemStoreColumn: 'store_id',
+    itemPriceColumn: 'unit_price',
+    itemAvailableColumn: 'is_active',
+    itemIdIsServerGenerated: false,
   },
 };
