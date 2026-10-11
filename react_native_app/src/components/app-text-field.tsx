@@ -32,6 +32,9 @@ export type AppTextFieldProps = {
   /** Mirrors Dart's `maxLines: n > 1` (e.g. a description field): grows to `numberOfLines` rows. */
   multiline?: boolean;
   numberOfLines?: number;
+  /** Stable selector for tests and Maestro E2E flows (`e2e/**`). Lands on the
+   * `TextInput`, or on the tappable wrapper when `onPress` is set. */
+  testID?: string;
 };
 
 /**
@@ -61,6 +64,7 @@ export function AppTextField({
   onPress,
   multiline = false,
   numberOfLines,
+  testID,
 }: AppTextFieldProps) {
   const colors = useSemanticColors();
   const [isFocused, setIsFocused] = useState(false);
@@ -86,6 +90,7 @@ export function AppTextField({
         />
       )}
       <TextInput
+        testID={onPress ? undefined : testID}
         value={value}
         onChangeText={onChangeText}
         keyboardType={keyboardType}
@@ -131,7 +136,7 @@ export function AppTextField({
         </Text>
       )}
       {onPress ? (
-        <Pressable accessibilityRole="button" onPress={onPress}>
+        <Pressable testID={testID} accessibilityRole="button" onPress={onPress}>
           {field}
         </Pressable>
       ) : (

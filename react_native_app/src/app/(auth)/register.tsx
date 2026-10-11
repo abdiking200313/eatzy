@@ -226,6 +226,7 @@ export default function RegisterScreen() {
                 name="firstName"
                 render={({ field: { value, onChange } }) => (
                   <AppTextField
+                    testID="register-first-name"
                     label="First name"
                     hint="Jane"
                     value={value}
@@ -242,6 +243,7 @@ export default function RegisterScreen() {
                 name="lastName"
                 render={({ field: { value, onChange } }) => (
                   <AppTextField
+                    testID="register-last-name"
                     label="Last name"
                     hint="Doe"
                     value={value}
@@ -258,6 +260,7 @@ export default function RegisterScreen() {
                 name="phone"
                 render={({ field: { value, onChange } }) => (
                   <AppTextField
+                    testID="register-phone"
                     label="Phone number"
                     hint="+1 555 123 4567"
                     value={value}
@@ -276,6 +279,7 @@ export default function RegisterScreen() {
                 render={({ field: { value, onChange } }) => (
                   <>
                     <AppTextField
+                      testID="register-dob"
                       label="Date of birth"
                       hint="Select your date of birth"
                       value={value ? formatShortDate(value) : ''}
@@ -311,6 +315,7 @@ export default function RegisterScreen() {
                 name="email"
                 render={({ field: { value, onChange } }) => (
                   <AppTextField
+                    testID="register-email"
                     label="Email address"
                     hint="you@example.com"
                     value={value}
@@ -328,6 +333,7 @@ export default function RegisterScreen() {
                 name="password"
                 render={({ field: { value, onChange } }) => (
                   <AppTextField
+                    testID="register-password"
                     label="Password"
                     hint="At least 6 characters"
                     value={value}
@@ -345,6 +351,7 @@ export default function RegisterScreen() {
                 name="confirmPassword"
                 render={({ field: { value, onChange } }) => (
                   <AppTextField
+                    testID="register-confirm-password"
                     label="Confirm password"
                     hint="Enter the password again"
                     value={value}
@@ -374,6 +381,7 @@ export default function RegisterScreen() {
                 </View>
               ) : (
                 <GradientActionButton
+                  testID="register-submit"
                   label="Create account"
                   onPress={handlePress}
                   icon={<MaterialIcons name="arrow-forward" size={20} color={colors.onPrimary} />}

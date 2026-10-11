@@ -125,6 +125,7 @@ export default function WelcomeScreen() {
           </View>
           <View style={{ height: spacing.x8 }} />
           <GradientActionButton
+            testID="welcome-get-started"
             label="Get Started"
             onPress={handleGetStarted}
             icon={<MaterialIcons name="arrow-forward" size={20} color={colors.onPrimary} />}

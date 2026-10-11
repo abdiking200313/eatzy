@@ -153,6 +153,7 @@ export default function FoodHomeScreen() {
         renderItem={({ item }) => (
           <View style={{ paddingHorizontal: spacing.screenX }}>
             <StoreRowCard
+              testID={`food-restaurant-${item.id}`}
               imageUrl={item.logoUrl}
               fallbackIcon="restaurant"
               name={item.name}
