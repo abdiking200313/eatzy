@@ -16,6 +16,9 @@ module.exports = {
   // Order matters: more specific patterns must come before the broader
   // "@/*" alias below, or they'd never be reached (e.g. "@/global.css"
   // matches both the alias and the ".css$" rule — the first match wins).
+  // FlashList (issue #417) renders no rows without a native layout pass;
+  // see jest-flash-list-setup.js.
+  setupFiles: ['<rootDir>/jest-flash-list-setup.js'],
   moduleNameMapper: {
     '\\.css$': '<rootDir>/jest-style-mock.js',
     '^@/assets/(.*)$': '<rootDir>/assets/$1',

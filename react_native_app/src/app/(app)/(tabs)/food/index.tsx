@@ -25,7 +25,8 @@
  */
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { ActivityIndicator, FlatList, Text, View } from 'react-native';
+import { FlashList } from '@shopify/flash-list';
+import { ActivityIndicator, Text, View } from 'react-native';
 
 import { CartAppBarAction } from '@/components/cart-app-bar-action';
 import { CategoriesSection } from '@/components/categories-section';
@@ -97,7 +98,7 @@ export default function FoodHomeScreen() {
           service="food"
         />
       }>
-      <FlatList
+      <FlashList
         testID="food-restaurant-list"
         data={restaurants}
         keyExtractor={(restaurant) => restaurant.id}
@@ -149,7 +150,7 @@ export default function FoodHomeScreen() {
             )}
           </View>
         }
-        ItemSeparatorComponent={() => <View style={{ height: spacing.x4 }} />}
+        ItemSeparatorComponent={RestaurantSeparator}
         renderItem={({ item }) => (
           <View style={{ paddingHorizontal: spacing.screenX }}>
             <StoreRowCard
@@ -183,4 +184,9 @@ function emptyMessage(searchQuery: string, selectedCategoryId: string | null): s
     return `No restaurants match "${trimmedQuery}".`;
   }
   return 'No restaurants found in this category.';
+}
+
+/** Hoisted so the list keeps one stable separator component across renders (issue #417). */
+function RestaurantSeparator() {
+  return <View style={{ height: spacing.x4 }} />;
 }

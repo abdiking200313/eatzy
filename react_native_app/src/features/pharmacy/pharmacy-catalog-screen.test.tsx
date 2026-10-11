@@ -100,6 +100,29 @@ describe('PharmacyCatalogScreen', () => {
     expect(router.push).toHaveBeenCalledWith('/pharmacy/stores/legacy-pharmacy/product/pain-paracetamol');
   });
 
+  it('back pops when there is history, and falls back to /app (AppRoutes.mainApp) when there is none', async () => {
+    (router.back as jest.Mock).mockClear();
+    (router.replace as jest.Mock).mockClear();
+    const { getByText, getByLabelText } = await renderWithProviders(
+      <PharmacyCatalogScreen
+        storeId={SEEDED_PHARMACY_STORE_ID}
+        catalogStore={createPharmacyCatalogStore({ repository: createInMemoryPharmacyRepository() })}
+        cartStore={buildCartStore()}
+      />,
+    );
+    await waitFor(() => expect(getByText('Paracetamol')).toBeOnTheScreen());
+
+    (router.canGoBack as jest.Mock).mockReturnValueOnce(true);
+    await fireEvent.press(getByLabelText('Back'));
+    expect(router.back).toHaveBeenCalledTimes(1);
+    expect(router.replace).not.toHaveBeenCalled();
+
+    (router.canGoBack as jest.Mock).mockReturnValueOnce(false);
+    await fireEvent.press(getByLabelText('Back'));
+    expect(router.replace).toHaveBeenCalledWith('/app');
+    expect(router.back).toHaveBeenCalledTimes(1);
+  });
+
   it('pulling to refresh reloads the pharmacy catalog', async () => {
     const { repository, counter } = countingRepository();
     const { getByText, getByTestId } = await renderWithProviders(

@@ -65,7 +65,7 @@ describe('AppScaffold', () => {
     expect(router.replace).not.toHaveBeenCalled();
   });
 
-  it("falls back to router.replace('/') when it cannot go back", async () => {
+  it("falls back to router.replace('/app') (AppRoutes.mainApp) when it cannot go back", async () => {
     (router.canGoBack as jest.Mock).mockReturnValue(false);
 
     const { getByLabelText } = await renderWithProviders(
@@ -76,7 +76,7 @@ describe('AppScaffold', () => {
 
     await fireEvent.press(getByLabelText('Back'));
 
-    expect(router.replace).toHaveBeenCalledWith('/');
+    expect(router.replace).toHaveBeenCalledWith('/app');
     expect(router.back).not.toHaveBeenCalled();
   });
 

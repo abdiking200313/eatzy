@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { Pressable, View } from 'react-native';
+import { Pressable, View, type AccessibilityActionEvent, type AccessibilityActionInfo } from 'react-native';
 
 import { useSemanticColors } from '@/hooks/use-semantic-colors';
 import { radius, shadows, spacing } from '@/theme/tokens';
@@ -13,6 +13,19 @@ export type OutlinedCardProps = {
   borderWidth?: number;
   onPress?: () => void;
   testID?: string;
+  /** Overrides the name a screen reader announces for a pressable card
+   * (defaults to the concatenated text of its children). */
+  accessibilityLabel?: string;
+  /** What activating a pressable card does, e.g. "Opens item details". */
+  accessibilityHint?: string;
+  /**
+   * Custom screen-reader actions for a pressable card. A pressable card is
+   * one focusable element on iOS, so a nested button (e.g. a row's
+   * add-to-cart button) is not separately reachable by VoiceOver — expose
+   * it here as a named action instead (issue #416).
+   */
+  accessibilityActions?: readonly AccessibilityActionInfo[];
+  onAccessibilityAction?: (event: AccessibilityActionEvent) => void;
 };
 
 /**
@@ -30,6 +43,10 @@ export function OutlinedCard({
   borderWidth = 1,
   onPress,
   testID,
+  accessibilityLabel,
+  accessibilityHint,
+  accessibilityActions,
+  onAccessibilityAction,
 }: OutlinedCardProps) {
   const colors = useSemanticColors();
   const style = [
@@ -53,7 +70,16 @@ export function OutlinedCard({
   }
 
   return (
-    <Pressable testID={testID} accessibilityRole="button" onPress={onPress} style={style} className="active:opacity-80">
+    <Pressable
+      testID={testID}
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel}
+      accessibilityHint={accessibilityHint}
+      accessibilityActions={accessibilityActions}
+      onAccessibilityAction={onAccessibilityAction}
+      onPress={onPress}
+      style={style}
+      className="active:opacity-80">
       {children}
     </Pressable>
   );

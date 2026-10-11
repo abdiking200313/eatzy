@@ -1,6 +1,10 @@
+// Imported first so its module-load timestamp approximates "JS bundle
+// started" for the dev-only startup measurement (issue #417).
+import { markFirstScreenReady } from '@/platform/startup/startup-timing';
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
+import { useEffect } from 'react';
 import { useColorScheme } from 'react-native';
 
 import { AnimatedSplashOverlay } from '@/components/animated-icon';
@@ -47,6 +51,12 @@ void configureErrorReporting();
 export default function RootLayout() {
   const colorScheme = useColorScheme();
   const { status } = useStartupGate();
+
+  // Dev-only: logs app start -> first screen ready once the gate opens (the
+  // same moment the splash overlay mounts and hides the native splash).
+  useEffect(() => {
+    if (status === 'ready') markFirstScreenReady();
+  }, [status]);
 
   return (
     <ErrorBoundary>

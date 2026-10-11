@@ -17,7 +17,8 @@
  */
 import { router } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Alert, FlatList, RefreshControl, Text, View } from 'react-native';
+import { FlashList } from '@shopify/flash-list';
+import { ActivityIndicator, Alert, RefreshControl, Text, View } from 'react-native';
 
 import { AddToCartButton } from '@/components/add-to-cart-button';
 import { AppScaffold } from '@/components/app-scaffold';
@@ -33,7 +34,7 @@ import { StoreHeroAppBar } from '@/components/store-hero-app-bar';
 import { useCartSnackbar } from '@/hooks/use-cart-snackbar';
 import { useSemanticColors } from '@/hooks/use-semantic-colors';
 import { formatCents } from '@/platform/money/format';
-import { pharmacyProductDetails } from '@/platform/navigation/app-routes';
+import { AppRoutes, pharmacyProductDetails } from '@/platform/navigation/app-routes';
 import {
   isPharmacyProductAvailable,
   isPharmacyProductLowStock,
@@ -209,11 +210,11 @@ export function PharmacyCatalogScreen({
         imageUrl={storeImageUrl}
         fallbackIcon="storefront"
         showBackButton
-        onBackPress={() => (router.canGoBack() ? router.back() : router.replace('/'))}
+        onBackPress={() => (router.canGoBack() ? router.back() : router.replace(AppRoutes.mainApp))}
         service="pharmacy"
         actions={cartAction}
       />
-      <FlatList
+      <FlashList
         testID="pharmacy-catalog-list"
         data={visibleProducts}
         keyExtractor={(product) => product.id}
@@ -245,7 +246,7 @@ export function PharmacyCatalogScreen({
             </View>
           </View>
         }
-        ItemSeparatorComponent={() => <View style={{ height: spacing.x3 }} />}
+        ItemSeparatorComponent={ProductSeparator}
         ListEmptyComponent={
           isLoading ? null : (
             <View style={{ paddingTop: spacing.x8, alignItems: 'center' }}>
@@ -348,4 +349,9 @@ function PharmacyProductCard({
       </View>
     </OutlinedCard>
   );
+}
+
+/** Hoisted so the list keeps one stable separator component across renders (issue #417). */
+function ProductSeparator() {
+  return <View style={{ height: spacing.x3 }} />;
 }

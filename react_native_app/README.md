@@ -217,6 +217,49 @@ timestamp order, since `schema.sql` alone is known to drift — see
 `AGENTS.md` at the repo root) and leave a comment on exactly what changed and
 why, the same way the current file documents its own provenance at the top.
 
+## Merchant order flow (Maestro E2E)
+
+`e2e/merchant-order.yaml` is a [Maestro](https://docs.maestro.dev) flow for
+the main merchant path: a merchant signs in, opens an incoming order on the
+**Orders** tab, accepts it, and advances it through every forward status
+until it is delivered. Like any Maestro flow it drives a real installed build
+on an Android emulator (or device), so it is not part of `npm test` or CI.
+
+### Prerequisites
+
+1. **Maestro CLI**: `curl -Ls "https://get.maestro.mobile.dev" | bash`
+   (needs Java 17+).
+2. **A dev Supabase project, never production.** The build under test takes
+   its project from `EXPO_PUBLIC_SUPABASE_URL` /
+   `EXPO_PUBLIC_SUPABASE_ANON_KEY` (`.env.development` or the EAS build
+   profile). Nothing about the project is hardcoded in the flow.
+3. **A merchant account** on that project: a `profiles.role` of `merchant`
+   (an `admin` lands on the Accounts screen instead) that owns a store
+   (food, grocery or pharmacy -- the flow only asserts labels shared by all
+   three).
+4. **At least one order in `confirmed` status** for that store. The easiest
+   way is to place one as a customer first (for example with the customer
+   E2E flow, or by hand in the app). Each run moves that order to
+   `delivered`, so every run needs a fresh one.
+5. A running Android emulator with a build of this app (`com.zivo.app`)
+   installed: a `development` build with Metro running, or a `preview` APK.
+
+### Running it
+
+```bash
+npm run e2e:merchant -- \
+  -e E2E_MERCHANT_EMAIL='<merchant account email>' \
+  -e E2E_MERCHANT_PASSWORD='<its password>'
+```
+
+Optional: `-e E2E_ORDER_ID=<full order uuid>` to work on one specific
+`confirmed` order (it then also checks the list shows it as Delivered
+afterwards); without it the flow opens the first order whose status is
+Confirmed. Never commit real passwords or project keys; pass them on the
+command line or from your shell/CI secrets.
+`maestro check-syntax e2e/merchant-order.yaml` validates the flow without a
+device.
+
 ## Learn more
 
 To learn more about developing your project with Expo, look at the following resources:

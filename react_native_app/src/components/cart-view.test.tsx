@@ -222,12 +222,12 @@ describe('CartView', () => {
     alertSpy.mockRestore();
   });
 
-  it('falls back to router.replace when the back button cannot go back', async () => {
+  it('falls back to /app when the back button cannot go back', async () => {
     (router.canGoBack as jest.Mock).mockReturnValue(false);
     const { getByLabelText } = await renderWithProviders(<CartView {...baseProps} lines={makeLines()} />);
 
     await fireEvent.press(getByLabelText('Back'));
 
-    expect(router.replace).toHaveBeenCalledWith('/');
+    expect(router.replace).toHaveBeenCalledWith('/app');
   });
 });

@@ -61,7 +61,13 @@ export function GroceryProductCard({ product, onAdd, onPress, slug }: GroceryPro
       backgroundColor={isAvailable ? colors.card : rawColors.stone100}
       borderColor={isAvailable ? colors.border : rawColors.stone300}
       onPress={onPress}
-      testID={`grocery-product-card-${product.id}`}>
+      testID={`grocery-product-card-${product.id}`}
+      // Same reason as MenuItemCard: the nested add button isn't separately
+      // focusable on iOS inside a pressable card (issue #416).
+      accessibilityActions={isAvailable ? [{ name: 'addToCart', label: `Add ${product.name}` }] : undefined}
+      onAccessibilityAction={(event) => {
+        if (event.nativeEvent.actionName === 'addToCart' && isAvailable) onAdd();
+      }}>
       <View className="flex-row items-start">
         <PhotoThumbnail
           imageUrl={product.imageUrl}

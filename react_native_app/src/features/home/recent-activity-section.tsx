@@ -51,11 +51,11 @@ export function RecentActivitySection({ items, onViewAll, onItemPress }: RecentA
  */
 function RecentActivityListCard({ items, onItemPress }: { items: ActivityItem[]; onItemPress: (item: ActivityItem) => void }) {
   return (
-    <View style={{ backgroundColor: rawColors.white, borderRadius: 12, paddingHorizontal: spacing.x3_5, paddingVertical: spacing.x1 }} className="shadow-card">
+    <View testID="recent-activity-card" style={{ backgroundColor: rawColors.white, borderRadius: 12, paddingHorizontal: spacing.x3_5, paddingVertical: spacing.x1 }} className="shadow-card">
       {items.map((item, index) => (
         <Fragment key={item.id}>
           <RecentActivityRow item={item} onPress={() => onItemPress(item)} />
-          {index < items.length - 1 && <View style={{ height: 1, backgroundColor: rawColors.stone200 }} />}
+          {index < items.length - 1 && <View testID="recent-activity-divider" style={{ height: 1, backgroundColor: rawColors.stone200 }} />}
         </Fragment>
       ))}
     </View>

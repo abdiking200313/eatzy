@@ -120,7 +120,7 @@ describe('GroceryStoreScreen', () => {
         product({ id: 'baguette', name: 'Baguette', categoryName: 'Bread & bakery', categorySortOrder: 5 }),
       ],
     };
-    const { getByText, getByTestId, queryByTestId, getByPlaceholderText } = await renderWithProviders(
+    const { getByText, getByTestId, getAllByTestId, queryByTestId, getByPlaceholderText } = await renderWithProviders(
       <GroceryStoreScreen storeId="bakaal-fresh" storeLoader={loaderFor(store)} />,
     );
 
@@ -128,10 +128,11 @@ describe('GroceryStoreScreen', () => {
     expect(getByText('2 items')).toBeOnTheScreen();
     expect(getByTestId('grocery-category-Other')).toBeOnTheScreen();
 
-    const catalog = getByTestId('grocery-store-catalog');
-    const headerOrder = (catalog.props.data as { kind: string; name?: string }[])
-      .filter((row) => row.kind === 'sectionHeader')
-      .map((row) => row.name);
+    // The catalog is a FlashList (issue #417), whose host element carries no
+    // `data` prop -- read the order off the rendered section headers instead.
+    const headerOrder = getAllByTestId(/^grocery-category-/).map((header) =>
+      String(header.props.testID).replace('grocery-category-', ''),
+    );
     expect(headerOrder).toEqual(['Fruits & vegetables', 'Bread & bakery', 'Other']);
 
     // A search that only matches one category drops the lone section's header.
@@ -148,6 +149,23 @@ describe('GroceryStoreScreen', () => {
 
     await fireEvent.press(getByText('Bananas'));
     expect(router.push).toHaveBeenCalledWith('/grocery/stores/bakaal-fresh/product/bakaal-bananas');
+  });
+
+  it('back pops when there is history, and falls back to /app (AppRoutes.mainApp) when there is none', async () => {
+    const { getByText, getByLabelText } = await renderWithProviders(
+      <GroceryStoreScreen storeId="bakaal-fresh" storeLoader={loaderFor(bakaalFresh)} />,
+    );
+    await waitFor(() => expect(getByText('Bananas')).toBeOnTheScreen());
+
+    (router.canGoBack as jest.Mock).mockReturnValueOnce(true);
+    await fireEvent.press(getByLabelText('Back'));
+    expect(router.back).toHaveBeenCalledTimes(1);
+    expect(router.replace).not.toHaveBeenCalled();
+
+    (router.canGoBack as jest.Mock).mockReturnValueOnce(false);
+    await fireEvent.press(getByLabelText('Back'));
+    expect(router.replace).toHaveBeenCalledWith('/app');
+    expect(router.back).toHaveBeenCalledTimes(1);
   });
 
   it('a Fresh Meat store adds to the Fresh Meat cart and links to Fresh Meat routes', async () => {

@@ -70,6 +70,7 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
+    "e2e:merchant": "maestro test e2e/merchant-order.yaml",
     "lint": "expo lint",
     "typecheck": "tsc --noEmit",
     "gen:types": "supabase gen types typescript --project-id jzubookmbrtslocuzepe --schema public > src/types/database.ts",
