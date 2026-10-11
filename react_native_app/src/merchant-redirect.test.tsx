@@ -95,7 +95,7 @@ describe('merchant-session gate (merchant/_layout.tsx, (auth)/_layout.tsx, (app)
 
     await renderRoute('/merchant');
 
-    expect(await screen.findByText('/merchant — not yet implemented')).toBeTruthy();
+    expect(await screen.findByText('Zivo Merchant')).toBeTruthy();
   });
 
   it('confines a signed-in merchant/admin anywhere outside /merchant to the dashboard', async () => {
@@ -114,7 +114,7 @@ describe('merchant-session gate (merchant/_layout.tsx, (auth)/_layout.tsx, (app)
 
     const { result } = await renderRoute('/merchant');
 
-    expect(screen.queryByText('/merchant — not yet implemented')).toBeNull();
+    expect(screen.queryByText('Zivo Merchant')).toBeNull();
     expect(screen.queryByText('/app — not yet implemented')).toBeNull();
     expect(result.getPathname()).toBe('/merchant');
   });
