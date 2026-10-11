@@ -15,7 +15,7 @@
  * constructed synchronously, at module load, by `src/platform/supabase/
  * client.ts` -- issue #346 -- well before any gate could run), the
  * food/grocery/pharmacy cart loads and activity load (no RN cart/activity
- * ports exist yet), push notifications, and Crashlytics configuration
+ * ports exist yet), and Crashlytics configuration
  * (already wired unconditionally at root-layout module load by
  * `configure-error-reporting.ts`, issue #351). None of those block this
  * app's first redirect the way session-restore and onboarding-seen state
@@ -33,9 +33,22 @@
  * loading/retry cases) has no equivalent here for the reason above, so
  * there is nothing left in this app's startup path for a retry screen to
  * retry.
+ *
+ * ## Push-notification permission (issue #405)
+ *
+ * `runStartupSequence` also asks for notification permission before the
+ * first screen renders (its best-effort `PushNotifications.initialize`
+ * step). That *is* ported here, so the system dialog appears at the same
+ * point in the flow as Flutter's: while the splash is still up, once the
+ * restored session is known (it reads the signed-in user's saved
+ * preference). It runs once per app launch -- not again on a later sign-in,
+ * matching Flutter -- and `status` stays `'loading'` until it settles. It
+ * never fails the gate: {@link requestStartupPushPermission} is best-effort
+ * and individually timed out, like Flutter's `_runBestEffort` step.
  */
-import { useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
+import { requestStartupPushPermission } from '@/platform/notifications/request-startup-push-permission';
 import { useSessionStore } from '@/stores/session-store';
 import { useOnboardingStore } from '@/stores/onboarding-store';
 
@@ -46,7 +59,8 @@ export interface StartupGateState {
    * `'loading'` until both the session store has resolved past its own
    * initial `'loading'` status *and* the onboarding store has finished
    * (successfully or not -- see this file's top comment) loading the
-   * persisted onboarding-seen flag.
+   * persisted onboarding-seen flag, *and* the once-per-launch push
+   * permission step has settled (see this file's top comment).
    */
   status: StartupGateStatus;
   isLoggedIn: boolean;
@@ -71,8 +85,16 @@ export function useStartupGate(): StartupGateState {
     void load();
   }, [load]);
 
+  const pushStepStarted = useRef(false);
+  const [pushStepDone, setPushStepDone] = useState(false);
+  useEffect(() => {
+    if (sessionStatus === 'loading' || pushStepStarted.current) return;
+    pushStepStarted.current = true;
+    void requestStartupPushPermission({ userId }).finally(() => setPushStepDone(true));
+  }, [sessionStatus, userId]);
+
   const status: StartupGateStatus =
-    sessionStatus === 'loading' || onboardingStatus !== 'ready' ? 'loading' : 'ready';
+    sessionStatus === 'loading' || onboardingStatus !== 'ready' || !pushStepDone ? 'loading' : 'ready';
 
   return {
     status,
