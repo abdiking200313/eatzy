@@ -170,8 +170,12 @@ Without it, obfuscated crash reports can't be symbolicated.
 ### Other platforms
 
 - **Web:** `flutter build web`
-- **iOS:** not yet verified end to end. Signing team and Pods setup are still
-  open (issue #55).
+- **iOS:** not yet verified end to end; code signing is still open (issue #55).
+  The `iOS build` workflow (`.github/workflows/ios-build.yml`, run manually
+  from the Actions tab or on changes to `ios/` or `pubspec.*`) builds
+  `flutter build ios --no-codesign --release` on macOS. To commit the Pods
+  setup, download the run's `ios-podfiles` artifact and copy `Podfile` and
+  `Podfile.lock` into `flutter_app/ios/`.
 - Desktop runners exist in the repo but aren't a supported target.
 
 ## Status and known gaps
