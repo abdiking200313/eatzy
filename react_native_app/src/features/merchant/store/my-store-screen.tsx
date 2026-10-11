@@ -9,12 +9,13 @@
  * with "Try again" when the load fails and no store is held; the
  * create-store empty state; and the edit form once a store is loaded.
  *
- * Photos: the existing store photo is shown read-only and passed through
- * unchanged on save. Picking/cropping/uploading (Dart's
- * `MerchantPhotoField` + `MerchantMediaStore`) lands in P9-06.
+ * Photos (issue #411 / P9-06): both the create and edit forms use the shared
+ * `MerchantPhotoField` to pick, crop (16:9 banner) and upload a store
+ * photo; a `MerchantPhotoSession` deletes replaced uploads after a save and
+ * abandoned ones when the form goes away. Saving is held off while an
+ * upload is in flight, as in Dart.
  */
 import { MaterialIcons } from '@expo/vector-icons';
-import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, Switch, Text, View } from 'react-native';
@@ -28,6 +29,9 @@ import { useSemanticColors } from '@/hooks/use-semantic-colors';
 import { AppRoutes } from '@/platform/navigation/app-routes';
 import { radius, spacing } from '@/theme/tokens';
 
+import { SupabaseMerchantMediaStore, type MerchantMediaStore } from '../shared/merchant-media-store';
+import { MerchantPhotoField, useMerchantPhotoSession } from '../shared/merchant-photo-field';
+import type { MerchantPhotoPicker } from '../shared/pick-merchant-photo';
 import type { MerchantStore } from './api/merchant-store';
 import { MERCHANT_VERTICALS, MERCHANT_VERTICAL_CONFIG, type MerchantVertical } from './api/merchant-vertical';
 import { MerchantStoreController, useMerchantStoreState } from './merchant-store-controller';
@@ -37,11 +41,17 @@ export type MyStoreScreenProps = {
   ownerId: string;
   /** Overridable for tests (and for a shell that shares one controller); defaults to a Supabase-backed controller. */
   controller?: MerchantStoreController;
+  /** Overridable for tests; defaults to the Supabase `merchant_media` bucket. */
+  media?: MerchantMediaStore;
+  /** Overridable for tests; defaults to the device picker + crop. */
+  photoPicker?: MerchantPhotoPicker;
 };
 
 const NAME_REQUIRED_MESSAGE = 'Enter a store name.';
 
-export function MyStoreScreen({ ownerId, controller: controllerProp }: MyStoreScreenProps) {
+export function MyStoreScreen({ ownerId, controller: controllerProp, media: mediaProp, photoPicker }: MyStoreScreenProps) {
+  const [ownMedia] = useState<MerchantMediaStore>(() => mediaProp ?? new SupabaseMerchantMediaStore());
+  const media = mediaProp ?? ownMedia;
   const [ownController] = useState(() => (controllerProp ? null : new MerchantStoreController()));
   const controller = controllerProp ?? ownController!;
   const state = useMerchantStoreState(controller);
@@ -59,7 +69,15 @@ export function MyStoreScreen({ ownerId, controller: controllerProp }: MyStoreSc
   } else if (state.loadError != null && state.store == null) {
     body = <ErrorState message={state.loadError} onRetry={() => void controller.load(ownerId)} />;
   } else if (state.store == null) {
-    body = <CreateStoreView controller={controller} ownerId={ownerId} onCreated={() => snackbar.show('Store created.')} />;
+    body = (
+      <CreateStoreView
+        controller={controller}
+        ownerId={ownerId}
+        media={media}
+        photoPicker={photoPicker}
+        onCreated={() => snackbar.show('Store created.')}
+      />
+    );
   } else {
     body = (
       <StoreForm
@@ -67,6 +85,8 @@ export function MyStoreScreen({ ownerId, controller: controllerProp }: MyStoreSc
         controller={controller}
         store={state.store}
         ownerId={ownerId}
+        media={media}
+        photoPicker={photoPicker}
         onSaved={() => snackbar.show('Store saved.')}
       />
     );
@@ -83,6 +103,8 @@ export function MyStoreScreen({ ownerId, controller: controllerProp }: MyStoreSc
 type CreateStoreViewProps = {
   controller: MerchantStoreController;
   ownerId: string;
+  media: MerchantMediaStore;
+  photoPicker?: MerchantPhotoPicker;
   onCreated: () => void;
 };
 
@@ -91,7 +113,7 @@ type CreateStoreViewProps = {
  * pick a vertical and create one -- required so a brand-new merchant
  * account has any way to reach the catalog screen at all.
  */
-function CreateStoreView({ controller, ownerId, onCreated }: CreateStoreViewProps) {
+function CreateStoreView({ controller, ownerId, media, photoPicker, onCreated }: CreateStoreViewProps) {
   const colors = useSemanticColors();
   const { isSaving, saveError } = useMerchantStoreState(controller);
   const [vertical, setVertical] = useState<MerchantVertical>('food');
@@ -99,6 +121,9 @@ function CreateStoreView({ controller, ownerId, onCreated }: CreateStoreViewProp
   const [location, setLocation] = useState('');
   const [description, setDescription] = useState('');
   const [nameError, setNameError] = useState<string | null>(null);
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const photos = useMerchantPhotoSession(media, null);
   const config = MERCHANT_VERTICAL_CONFIG[vertical];
 
   const submit = async () => {
@@ -107,14 +132,16 @@ function CreateStoreView({ controller, ownerId, onCreated }: CreateStoreViewProp
       return;
     }
     setNameError(null);
-    const succeeded = await controller.createStore({
-      vertical,
-      ownerId,
-      name,
-      location,
-      description: config.storeSupportsDescription ? description : null,
-      imageUrl: null,
-    });
+    const succeeded = await photos.save(imageUrl, () =>
+      controller.createStore({
+        vertical,
+        ownerId,
+        name,
+        location,
+        description: config.storeSupportsDescription ? description : null,
+        imageUrl,
+      }),
+    );
     if (succeeded) onCreated();
   };
 
@@ -152,10 +179,23 @@ function CreateStoreView({ controller, ownerId, onCreated }: CreateStoreViewProp
         )}
       </View>
 
+      <View style={{ marginTop: spacing.x4 }}>
+        <MerchantPhotoField
+          testID="store-photo"
+          label="Store photo"
+          imageUrl={imageUrl}
+          folder="store"
+          session={photos}
+          picker={photoPicker}
+          onChange={setImageUrl}
+          onUploadingChange={setIsUploading}
+        />
+      </View>
+
       <FieldError message={saveError} />
 
       <View style={{ marginTop: spacing.x6 }}>
-        <FilledButton label="Create store" busy={isSaving} onPress={() => void submit()} />
+        <FilledButton label="Create store" busy={isSaving} disabled={isUploading} onPress={() => void submit()} />
       </View>
     </ScrollView>
   );
@@ -165,11 +205,13 @@ type StoreFormProps = {
   controller: MerchantStoreController;
   store: MerchantStore;
   ownerId: string;
+  media: MerchantMediaStore;
+  photoPicker?: MerchantPhotoPicker;
   onSaved: () => void;
 };
 
 /** Loaded state: edit the merchant's existing store. */
-function StoreForm({ controller, store, ownerId, onSaved }: StoreFormProps) {
+function StoreForm({ controller, store, ownerId, media, photoPicker, onSaved }: StoreFormProps) {
   const colors = useSemanticColors();
   const { isSaving, saveError } = useMerchantStoreState(controller);
   const [name, setName] = useState(store.name);
@@ -177,6 +219,9 @@ function StoreForm({ controller, store, ownerId, onSaved }: StoreFormProps) {
   const [description, setDescription] = useState(store.description ?? '');
   const [isOpen, setIsOpen] = useState(store.isOpen);
   const [nameError, setNameError] = useState<string | null>(null);
+  const [imageUrl, setImageUrl] = useState<string | null>(store.imageUrl);
+  const [isUploading, setIsUploading] = useState(false);
+  const photos = useMerchantPhotoSession(media, store.imageUrl);
   const config = MERCHANT_VERTICAL_CONFIG[store.vertical];
 
   const submit = async () => {
@@ -185,15 +230,16 @@ function StoreForm({ controller, store, ownerId, onSaved }: StoreFormProps) {
       return;
     }
     setNameError(null);
-    const succeeded = await controller.updateStore({
-      ownerId,
-      name,
-      location,
-      isOpen,
-      description: config.storeSupportsDescription ? description : null,
-      // Uploading/replacing the photo lands in P9-06; keep the saved one.
-      imageUrl: store.imageUrl,
-    });
+    const succeeded = await photos.save(imageUrl, () =>
+      controller.updateStore({
+        ownerId,
+        name,
+        location,
+        isOpen,
+        description: config.storeSupportsDescription ? description : null,
+        imageUrl,
+      }),
+    );
     if (succeeded) onSaved();
   };
 
@@ -225,7 +271,16 @@ function StoreForm({ controller, store, ownerId, onSaved }: StoreFormProps) {
       </View>
 
       <View style={{ marginTop: spacing.x4 }}>
-        <StorePhotoPreview imageUrl={store.imageUrl} />
+        <MerchantPhotoField
+          testID="store-photo"
+          label="Store photo"
+          imageUrl={imageUrl}
+          folder="store"
+          session={photos}
+          picker={photoPicker}
+          onChange={setImageUrl}
+          onUploadingChange={setIsUploading}
+        />
       </View>
 
       <View style={{ marginTop: spacing.x2, paddingVertical: spacing.x2 }} className="flex-row items-center">
@@ -247,7 +302,7 @@ function StoreForm({ controller, store, ownerId, onSaved }: StoreFormProps) {
       <FieldError message={saveError} />
 
       <View style={{ marginTop: spacing.x6 }}>
-        <FilledButton label="Save changes" busy={isSaving} onPress={() => void submit()} />
+        <FilledButton label="Save changes" busy={isSaving} disabled={isUploading} onPress={() => void submit()} />
       </View>
       <View style={{ marginTop: spacing.x3 }}>
         <OutlinedButton
@@ -294,48 +349,6 @@ function VerticalPicker({ value, onChange }: { value: MerchantVertical; onChange
   );
 }
 
-/**
- * Read-only stand-in for the Dart `MerchantPhotoField`'s preview: the saved
- * store photo (16:9, cover-cropped), or a placeholder. The change/remove
- * controls arrive with photo uploads in P9-06.
- */
-function StorePhotoPreview({ imageUrl }: { imageUrl: string | null }) {
-  const colors = useSemanticColors();
-  const url = imageUrl?.trim() ?? '';
-  const [failed, setFailed] = useState(false);
-  const showImage = url.length > 0 && !failed;
-
-  return (
-    <View>
-      <Text style={{ marginBottom: spacing.x2 }} className="text-textSm font-outfitMedium text-text">
-        Store photo
-      </Text>
-      <View
-        style={{ aspectRatio: 16 / 9, borderRadius: radius.lg, backgroundColor: colors.searchFill }}
-        className="items-center justify-center overflow-hidden">
-        {showImage ? (
-          <Image
-            testID="store-photo"
-            accessibilityLabel="Store photo"
-            source={{ uri: url }}
-            style={{ width: '100%', height: '100%' }}
-            contentFit="cover"
-            cachePolicy="memory-disk"
-            onError={() => setFailed(true)}
-          />
-        ) : (
-          <MaterialIcons
-            testID="store-photo-placeholder"
-            name={url.length > 0 ? 'broken-image' : 'add-photo-alternate'}
-            size={36}
-            color={colors.textMuted}
-          />
-        )}
-      </View>
-    </View>
-  );
-}
-
 function FieldError({ message }: { message: string | null }) {
   if (message == null) return null;
   return (
@@ -345,17 +358,32 @@ function FieldError({ message }: { message: string | null }) {
   );
 }
 
-/** Mirrors the Dart `FilledButton` whose child swaps to a small spinner (and which disables) while saving. */
-function FilledButton({ label, busy, onPress }: { label: string; busy: boolean; onPress: () => void }) {
+/**
+ * Mirrors the Dart `FilledButton` whose child swaps to a small spinner (and
+ * which disables) while saving; `disabled` alone (an upload in flight)
+ * disables it without the spinner.
+ */
+function FilledButton({
+  label,
+  busy,
+  disabled = false,
+  onPress,
+}: {
+  label: string;
+  busy: boolean;
+  disabled?: boolean;
+  onPress: () => void;
+}) {
   const colors = useSemanticColors();
+  const isDisabled = busy || disabled;
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={label}
-      accessibilityState={{ disabled: busy, busy }}
-      disabled={busy}
+      accessibilityState={{ disabled: isDisabled, busy }}
+      disabled={isDisabled}
       onPress={onPress}
-      style={{ backgroundColor: colors.primary, paddingVertical: spacing.x4, opacity: busy ? 0.7 : 1 }}
+      style={{ backgroundColor: colors.primary, paddingVertical: spacing.x4, opacity: isDisabled ? 0.7 : 1 }}
       className="items-center justify-center rounded-xl active:opacity-80">
       {busy ? (
         <ActivityIndicator size="small" color={colors.onPrimary} />

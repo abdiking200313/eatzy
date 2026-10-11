@@ -8,13 +8,12 @@
  * The Dart `DropdownButtonFormField`s (grocery pricing unit, pharmacy
  * category) become radio-style option rows, like My Store's vertical picker.
  *
- * Photos: an existing item photo is shown read-only and passed through
- * unchanged on save. Picking/cropping/uploading (Dart's
- * `MerchantPhotoField` + `MerchantMediaStore`) lands in P9-06, as for
- * My Store.
+ * Photos (issue #411 / P9-06): the shared `MerchantPhotoField` picks, crops
+ * (square) and uploads an item photo; a `MerchantPhotoSession` deletes
+ * replaced uploads after a save and abandoned ones when the form closes.
+ * Saving is held off while an upload is in flight, as in Dart.
  */
 import { MaterialIcons } from '@expo/vector-icons';
-import { Image } from 'expo-image';
 import { useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, Switch, Text, View } from 'react-native';
 
@@ -23,6 +22,9 @@ import { useSemanticColors } from '@/hooks/use-semantic-colors';
 import { parseToCents } from '@/platform/money/format';
 import { radius, spacing } from '@/theme/tokens';
 
+import type { MerchantMediaStore } from '../shared/merchant-media-store';
+import { MerchantPhotoField, useMerchantPhotoSession } from '../shared/merchant-photo-field';
+import type { MerchantPhotoPicker } from '../shared/pick-merchant-photo';
 import type { MerchantVertical } from '../store/api/merchant-vertical';
 import {
   GROCERY_PRICING_UNIT_LABEL,
@@ -41,6 +43,10 @@ export type CatalogItemFormProps = {
   controller: MerchantCatalogController;
   vertical: MerchantVertical;
   storeId: string;
+  /** Where item photos are uploaded/deleted. */
+  media: MerchantMediaStore;
+  /** Overridable for tests; defaults to the device picker + crop. */
+  photoPicker?: MerchantPhotoPicker;
   /** `null`/omitted when adding a new item; the existing item when editing. */
   initial?: MerchantCatalogItem | null;
   /** Called after a successful save -- the Dart `Navigator.pop()`. */
@@ -69,7 +75,15 @@ function parseInteger(text: string): number | null {
   return /^[+-]?\d+$/.test(trimmed) ? Number.parseInt(trimmed, 10) : null;
 }
 
-export function CatalogItemForm({ controller, vertical, storeId, initial = null, onDone }: CatalogItemFormProps) {
+export function CatalogItemForm({
+  controller,
+  vertical,
+  storeId,
+  media,
+  photoPicker,
+  initial = null,
+  onDone,
+}: CatalogItemFormProps) {
   const colors = useSemanticColors();
   const { isSaving, saveError, pharmacyCategories } = useMerchantCatalogState(controller);
   const isEditing = initial != null;
@@ -85,7 +99,9 @@ export function CatalogItemForm({ controller, vertical, storeId, initial = null,
   const [pricingUnit, setPricingUnit] = useState<GroceryPricingUnit>(initial?.pricingUnit ?? 'each');
   const [categoryId, setCategoryId] = useState<string | null>(initial?.categoryId ?? null);
   const [errors, setErrors] = useState<FieldErrors>({});
-  const imageUrl = initial?.imageUrl ?? null;
+  const [imageUrl, setImageUrl] = useState<string | null>(initial?.imageUrl ?? null);
+  const [isUploading, setIsUploading] = useState(false);
+  const photos = useMerchantPhotoSession(media, initial?.imageUrl);
 
   const submit = async () => {
     const priceCents = parseToCents(price);
@@ -120,9 +136,12 @@ export function CatalogItemForm({ controller, vertical, storeId, initial = null,
       stockQuantity: vertical === 'pharmacy' ? (parsedStock ?? 0) : null,
     };
 
-    const succeeded = isEditing ? await controller.updateItem(draft) : await controller.createItem(draft);
+    const succeeded = await photos.save(imageUrl, () =>
+      isEditing ? controller.updateItem(draft) : controller.createItem(draft),
+    );
     if (succeeded) onDone();
   };
+  const submitDisabled = isSaving || isUploading;
 
   const priceLabel = vertical === 'grocery' ? 'Price (per unit, USD)' : 'Price (USD)';
   const submitLabel = isEditing ? 'Save item' : 'Add item';
@@ -161,7 +180,16 @@ export function CatalogItemForm({ controller, vertical, storeId, initial = null,
       </View>
 
       <View style={{ marginTop: spacing.x4 }}>
-        <ItemPhotoPreview imageUrl={imageUrl} />
+        <MerchantPhotoField
+          testID="item-photo"
+          label="Item photo"
+          imageUrl={imageUrl}
+          folder="items"
+          session={photos}
+          picker={photoPicker}
+          onChange={setImageUrl}
+          onUploadingChange={setIsUploading}
+        />
       </View>
 
       {vertical === 'grocery' && (
@@ -232,10 +260,10 @@ export function CatalogItemForm({ controller, vertical, storeId, initial = null,
             testID="catalog-item-submit"
             accessibilityRole="button"
             accessibilityLabel={submitLabel}
-            accessibilityState={{ disabled: isSaving, busy: isSaving }}
-            disabled={isSaving}
+            accessibilityState={{ disabled: submitDisabled, busy: isSaving }}
+            disabled={submitDisabled}
             onPress={() => void submit()}
-            style={{ backgroundColor: colors.primary, paddingVertical: spacing.x4, opacity: isSaving ? 0.7 : 1 }}
+            style={{ backgroundColor: colors.primary, paddingVertical: spacing.x4, opacity: submitDisabled ? 0.7 : 1 }}
             className="items-center justify-center rounded-xl active:opacity-80">
             {isSaving ? (
               <ActivityIndicator size="small" color={colors.onPrimary} />
@@ -311,44 +339,6 @@ function OptionGroup({
               </Pressable>
             );
           })
-        )}
-      </View>
-    </View>
-  );
-}
-
-/** Read-only stand-in for the Dart `MerchantPhotoField` preview until P9-06. */
-function ItemPhotoPreview({ imageUrl }: { imageUrl: string | null }) {
-  const colors = useSemanticColors();
-  const url = imageUrl?.trim() ?? '';
-  const [failed, setFailed] = useState(false);
-  const showImage = url.length > 0 && !failed;
-
-  return (
-    <View>
-      <Text style={{ marginBottom: spacing.x2 }} className="text-textSm font-outfitMedium text-text">
-        Item photo
-      </Text>
-      <View
-        style={{ aspectRatio: 16 / 9, borderRadius: radius.lg, backgroundColor: colors.searchFill }}
-        className="items-center justify-center overflow-hidden">
-        {showImage ? (
-          <Image
-            testID="item-photo"
-            accessibilityLabel="Item photo"
-            source={{ uri: url }}
-            style={{ width: '100%', height: '100%' }}
-            contentFit="cover"
-            cachePolicy="memory-disk"
-            onError={() => setFailed(true)}
-          />
-        ) : (
-          <MaterialIcons
-            testID="item-photo-placeholder"
-            name={url.length > 0 ? 'broken-image' : 'add-photo-alternate'}
-            size={36}
-            color={colors.textMuted}
-          />
         )}
       </View>
     </View>

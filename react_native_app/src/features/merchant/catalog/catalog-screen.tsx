@@ -15,7 +15,8 @@
  * view with "Try again" when the load fails and no items are held; the
  * "No items yet" empty state with an add action; and the item list with
  * pull-to-refresh. The add/edit form opens in a modal sheet; delete asks
- * for confirmation first.
+ * for confirmation first, and -- as in Dart -- a deleted item's own uploaded
+ * photo is then removed from storage (best-effort, issue #411 / P9-06).
  */
 import { MaterialIcons } from '@expo/vector-icons';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -34,6 +35,8 @@ import type { MerchantVertical } from '../store/api/merchant-vertical';
 import { MerchantStoreController, useMerchantStoreState } from '../store/merchant-store-controller';
 import type { MerchantCatalogItem } from './api/merchant-catalog-item';
 import type { MerchantCatalogRepository } from './api/merchant-catalog-repository';
+import { deleteIfOwnedQuietly, SupabaseMerchantMediaStore, type MerchantMediaStore } from '../shared/merchant-media-store';
+import type { MerchantPhotoPicker } from '../shared/pick-merchant-photo';
 import { CatalogItemForm } from './catalog-item-form';
 import { MerchantCatalogController, useMerchantCatalogState } from './merchant-catalog-controller';
 
@@ -50,6 +53,10 @@ export type CatalogScreenProps = {
   catalogRepository?: MerchantCatalogRepository;
   /** When supplied, the screen reads straight from it. */
   controller?: MerchantCatalogController;
+  /** Overridable for tests; defaults to the Supabase `merchant_media` bucket. */
+  media?: MerchantMediaStore;
+  /** Overridable for tests; defaults to the device picker + crop. */
+  photoPicker?: MerchantPhotoPicker;
 };
 
 type FormState = { open: false } | { open: true; initial: MerchantCatalogItem | null };
@@ -62,7 +69,11 @@ export function CatalogScreen({
   storeController: storeControllerProp,
   catalogRepository,
   controller: controllerProp,
+  media: mediaProp,
+  photoPicker,
 }: CatalogScreenProps) {
+  const [ownMedia] = useState<MerchantMediaStore>(() => mediaProp ?? new SupabaseMerchantMediaStore());
+  const media = mediaProp ?? ownMedia;
   const needsOwnStore = controllerProp == null && (verticalProp == null || storeIdProp == null);
   const [ownStoreController] = useState(() =>
     needsOwnStore && storeControllerProp == null ? new MerchantStoreController() : null,
@@ -113,7 +124,7 @@ export function CatalogScreen({
       body = storeState.hasLoaded ? <NoStoreView /> : <LoadingState />;
     }
   } else {
-    body = <CatalogBody controller={controller} onAdd={() => openForm()} onEdit={openForm} />;
+    body = <CatalogBody controller={controller} media={media} onAdd={() => openForm()} onEdit={openForm} />;
   }
 
   return (
@@ -134,6 +145,8 @@ export function CatalogScreen({
               controller={controller}
               vertical={vertical}
               storeId={storeId}
+              media={media}
+              photoPicker={photoPicker}
               initial={form.initial}
               onDone={closeForm}
             />
@@ -159,11 +172,12 @@ const PLACEHOLDER_STORE_CONTROLLER = new MerchantStoreController({
 
 type CatalogBodyProps = {
   controller: MerchantCatalogController;
+  media: MerchantMediaStore;
   onAdd: () => void;
   onEdit: (item: MerchantCatalogItem) => void;
 };
 
-function CatalogBody({ controller, onAdd, onEdit }: CatalogBodyProps) {
+function CatalogBody({ controller, media, onAdd, onEdit }: CatalogBodyProps) {
   const colors = useSemanticColors();
   const state = useMerchantCatalogState(controller);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -180,10 +194,19 @@ function CatalogBody({ controller, onAdd, onEdit }: CatalogBodyProps) {
     (item: MerchantCatalogItem) => {
       Alert.alert('Delete item?', `"${item.name}" will be removed from your catalog.`, [
         { text: 'Cancel', style: 'cancel' },
-        { text: 'Delete', style: 'destructive', onPress: () => void controller.deleteItem(item) },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: () => {
+            void controller.deleteItem(item).then((deleted) => {
+              // Best-effort: a leftover file never blocks the merchant.
+              if (deleted && item.imageUrl != null) deleteIfOwnedQuietly(media, item.imageUrl);
+            });
+          },
+        },
       ]);
     },
-    [controller],
+    [controller, media],
   );
 
   if (!state.hasLoaded && (state.isLoading || state.loadError == null)) {

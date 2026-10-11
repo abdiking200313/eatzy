@@ -2,7 +2,8 @@
  * Ports `flutter_app/test/my_store_screen_test.dart` (issue #407 / P9-02):
  * "My Store"'s loading/empty/error/loaded states against the in-memory
  * `FakeMerchantStoreRepository`, plus RN-only cases (create flow, name
- * validation, vertical-specific fields, read-only photo, Manage catalog).
+ * validation, vertical-specific fields, store photo, Manage catalog). Photo
+ * upload itself is covered by `../shared/merchant-photo-upload.test.tsx`.
  *
  * The Dart `find.byType(CircularProgressIndicator)` becomes the shared
  * `LoadingState`'s `testID`; `find.widgetWithText(TextFormField, 'Store
@@ -175,14 +176,15 @@ describe('MyStoreScreen (RN-only cases)', () => {
     expect(screen.queryByPlaceholderText('Description')).toBeNull();
   });
 
-  it('shows the existing store photo (read-only until P9-06)', async () => {
+  it('shows the existing store photo with change/remove actions', async () => {
     const withPhoto = { ...dinerStore, imageUrl: 'https://example.com/logo.png' };
     await render(<MyStoreScreen ownerId="merchant-1" controller={controllerFor(new FakeMerchantStoreRepository({ initialStore: withPhoto }))} />);
 
     // expo-image normalizes `source` to an array internally.
     expect([(await screen.findByTestId('store-photo')).props.source].flat()).toContainEqual({ uri: 'https://example.com/logo.png' });
     expect(screen.queryByTestId('store-photo-placeholder')).toBeNull();
-    expect(screen.queryByText(/Upload photo|Change photo/)).toBeNull();
+    expect(screen.getByRole('button', { name: 'Change photo' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Remove' })).toBeTruthy();
   });
 
   it('keeps the existing photo when saving', async () => {
