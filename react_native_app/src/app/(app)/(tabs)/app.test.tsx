@@ -121,6 +121,47 @@ describe('SuperAppHomeScreen', () => {
     expect(await getByText('Confirmed')).toBeOnTheScreen();
   });
 
+  it('Recent Activity preview is one list card with row dividers, not one card per row', async () => {
+    const items: ActivityItem[] = [
+      {
+        id: 'grocery-preview',
+        serviceId: 'grocery',
+        title: 'Bakaara groceries',
+        status: 'Confirmed',
+        occurredAt: new Date('2026-07-27T00:00:00.000Z'),
+        amount: 2400,
+        detailsRoute: '/grocery',
+      },
+      {
+        id: 'food-preview',
+        serviceId: 'food',
+        title: 'Lunch order',
+        status: 'Delivered',
+        occurredAt: new Date('2026-07-28T00:00:00.000Z'),
+        amount: 1200,
+        detailsRoute: '/food',
+      },
+    ];
+
+    const { findByText, getByText, getAllByTestId, getByTestId } = await renderWithProviders(
+      <SuperAppHomeScreen storeListingLoader={noStores} fetchActivityPreview={async () => items} />,
+    );
+
+    expect(await findByText('Lunch order')).toBeOnTheScreen();
+    expect(getByText('Bakaara groceries')).toBeOnTheScreen();
+
+    // One card holds every recent-activity row -- this would regress to 2
+    // (one per row) if the list ever went back to a per-item card, per the
+    // "one card per list, not one card per row" rule.
+    expect(getAllByTestId('recent-activity-card')).toHaveLength(1);
+    const card = getByTestId('recent-activity-card');
+    // A single divider separates the two rows inside that one card.
+    expect(getAllByTestId('recent-activity-divider')).toHaveLength(1);
+    expect(card).toContainElement(getByTestId('recent-activity-divider'));
+    expect(card).toContainElement(getByText('Bakaara groceries'));
+    expect(card).toContainElement(getByText('Lunch order'));
+  });
+
   it('shows the Popular Stores error state with a working retry, instead of silently disappearing (issue #286)', async () => {
     let attempts = 0;
     const loader = async (): Promise<StoreListing[]> => {

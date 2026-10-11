@@ -2,8 +2,10 @@
  * Ports the `CategoriesScreen`-specific cases from
  * `flutter_app/test/categories_screen_test.dart` (issue #374 / P4-03).
  *
- * Not ported: the file's `CategoriesSection`/`SectionHeader` cases (food
- * home-screen widgets unrelated to this screen) and the narrow/large-text
+ * Not ported here: the file's `CategoriesSection`/`SectionHeader` cases
+ * (food home-screen widgets unrelated to this screen -- ported instead in
+ * `@/components/categories-section.test.tsx` and
+ * `@/components/section-header.test.tsx`, issue #544) and the narrow/large-text
  * overflow case (a Flutter `RenderFlex` overflow assertion with no React
  * Native equivalent -- RN's flexbox layout doesn't fail the same way).
  */
