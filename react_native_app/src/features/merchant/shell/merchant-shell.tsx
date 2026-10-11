@@ -41,7 +41,7 @@ import { useSemanticColors } from '@/hooks/use-semantic-colors';
 import { AppRoutes } from '@/platform/navigation/app-routes';
 import { useMerchantSessionGateStore } from '@/stores/merchant-session-gate';
 import { useSessionStore } from '@/stores/session-store';
-import { spacing } from '@/theme/tokens';
+import { maxFontScale, spacing } from '@/theme/tokens';
 
 /** The slice of `AuthService` this shell needs -- just sign-out. */
 export interface MerchantShellSignOut {
@@ -158,6 +158,11 @@ function MerchantNavigationBar({ selectedIndex, onSelect }: { selectedIndex: num
               <MaterialIcons name={destination.icon} size={24} color={tintColor} />
               <Text
                 style={{ marginTop: 2 }}
+                // The bar is a fixed `navBarContentHeight` tall: cap large
+                // accessibility text sizes so labels can't overflow it (the
+                // tab's accessibilityLabel still carries the full name).
+                maxFontSizeMultiplier={maxFontScale.navLabel}
+                numberOfLines={1}
                 className={isSelected ? 'text-textXs font-outfitBold text-primary' : 'text-textXs font-outfitMedium text-textMuted'}>
                 {destination.label}
               </Text>

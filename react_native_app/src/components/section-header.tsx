@@ -20,7 +20,7 @@ export type SectionHeaderProps =
 export function SectionHeader({ title, actionLabel, onPress }: SectionHeaderProps) {
   return (
     <View className="flex-row items-center justify-between">
-      <Text className="flex-1 text-sectionTitle font-outfitSemiBold text-text" numberOfLines={1}>
+      <Text accessibilityRole="header" className="flex-1 text-sectionTitle font-outfitSemiBold text-text" numberOfLines={1}>
         {title}
       </Text>
       {actionLabel != null && (

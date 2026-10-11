@@ -25,7 +25,7 @@ export type SectionHeaderProps = {
 export function SectionHeader({ title, actionLabel, onPress }: SectionHeaderProps) {
   return (
     <View style={{ paddingTop: spacing.sectionGap, paddingBottom: spacing.headerToContent }} className="flex-row items-center">
-      <Text className="flex-1 text-sectionTitle font-outfitSemiBold text-text" numberOfLines={1}>
+      <Text accessibilityRole="header" className="flex-1 text-sectionTitle font-outfitSemiBold text-text" numberOfLines={1}>
         {title}
       </Text>
       <Pressable accessibilityRole="button" onPress={onPress} style={{ minHeight: 44, minWidth: 44 }} className="items-center justify-center active:opacity-70">

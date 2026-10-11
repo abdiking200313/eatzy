@@ -25,7 +25,13 @@ export function LoadingState({ message }: LoadingStateProps) {
 
   return (
     <View className="flex-1 items-center justify-center p-x8" testID="loading-state">
-      <ActivityIndicator size="large" color={colors.primary} />
+      <ActivityIndicator
+        size="large"
+        color={colors.primary}
+        accessible
+        accessibilityRole="progressbar"
+        accessibilityLabel={message ?? 'Loading'}
+      />
       {message && (
         <Text className="mt-x4 text-center text-textSm font-outfitRegular text-textMuted">
           {message}

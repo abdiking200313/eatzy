@@ -40,9 +40,21 @@ const THUMBNAIL_SIZE = 100;
  */
 export function MenuItemCard({ item, onPress, onAddToCart }: MenuItemCardProps) {
   const trimmedDescription = item.description.trim();
+  const addLabel = `Add ${item.name} to cart`;
 
   return (
-    <OutlinedCard borderRadius={radius.card} padding={spacing.x3} onPress={onPress} testID={`menu-item-card-${item.id}`}>
+    <OutlinedCard
+      borderRadius={radius.card}
+      padding={spacing.x3}
+      onPress={onPress}
+      testID={`menu-item-card-${item.id}`}
+      accessibilityHint="Opens item details"
+      // The nested add-to-cart button isn't separately focusable inside a
+      // pressable card on iOS, so expose it as a VoiceOver/TalkBack action.
+      accessibilityActions={[{ name: 'addToCart', label: addLabel }]}
+      onAccessibilityAction={(event) => {
+        if (event.nativeEvent.actionName === 'addToCart') onAddToCart();
+      }}>
       <View className="flex-row items-center">
         <PhotoThumbnail
           imageUrl={item.imageUrl}
@@ -65,7 +77,7 @@ export function MenuItemCard({ item, onPress, onAddToCart }: MenuItemCardProps) 
             <Text style={{ flex: 1 }} className="text-fontBoldBase font-outfitSemiBold text-primary">
               {formatCents(item.price)}
             </Text>
-            <AddToCartButton tooltip={`Add ${item.name} to cart`} onPress={onAddToCart} />
+            <AddToCartButton tooltip={addLabel} onPress={onAddToCart} />
           </View>
         </View>
       </View>
