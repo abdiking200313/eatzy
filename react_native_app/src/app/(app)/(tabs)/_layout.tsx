@@ -4,6 +4,8 @@ import { useState, type ComponentProps } from 'react';
 import { Pressable, Text, View } from 'react-native';
 
 import { useSemanticColors } from '@/hooks/use-semantic-colors';
+import { useActivityStore } from '@/stores/activity-store';
+import { useSessionStore } from '@/stores/session-store';
 import { maxFontScale, spacing } from '@/theme/tokens';
 
 // The persistent bottom-nav shell (issue #358's router skeleton; this issue,
@@ -62,6 +64,25 @@ const NAV_ITEMS: readonly NavItem[] = [
 ];
 
 /**
+ * Ports `MainAppScreen.onDestinationSelected`'s `isSwitchingToActivity`
+ * branch (issue #541): switching *to* the Activity tab from any other
+ * branch (a primary tab or a hidden vertical -- Dart compares against
+ * `navigationShell.currentIndex`, which is the vertical's own index there,
+ * hence `activeRouteName` rather than the highlighted `selectedIndex`
+ * below) reloads the feed, so an order placed on another device or a
+ * missed Realtime event shows up without a pull-to-refresh. Re-tapping the
+ * already-active Activity tab does not. Unlike Dart's unconditional
+ * `ActivityController.instance.load`, this skips the load while signed out,
+ * matching `useActivityFeed`'s own "signed out: nothing is loaded" rule.
+ * `load` itself is a no-op while a load is already running, so this can't
+ * stack on top of the screen's own first-mount load.
+ */
+function reloadActivityFeed() {
+  if (useSessionStore.getState().userId == null) return;
+  void useActivityStore.getState().load();
+}
+
+/**
  * Custom `tabBar` for the `Tabs` navigator below. The default tab bar
  * (driven entirely by `state.index`) has no way to keep a primary tab
  * highlighted while a hidden food/grocery/pharmacy branch is active --
@@ -107,6 +128,9 @@ function MainAppTabBar({ state, navigation, insets }: BottomTabBarProps) {
             const event = navigation.emit({ type: 'tabPress', target: route.key, canPreventDefault: true });
             if (!isFocused && !event.defaultPrevented) {
               navigation.navigate(route.name);
+            }
+            if (item.name === 'activity' && activeRouteName !== 'activity' && !event.defaultPrevented) {
+              reloadActivityFeed();
             }
           };
 
