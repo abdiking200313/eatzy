@@ -5,3 +5,4 @@ export * from './fake-supabase-client';
 export * from './memory-cart-storage';
 export * from './memory-notification-preferences-storage';
 export * from './render-with-providers';
+export * from './fake-merchant-store-repository';

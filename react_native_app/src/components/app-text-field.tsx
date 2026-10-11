@@ -29,6 +29,9 @@ export type AppTextFieldProps = {
   onSubmitted?: (text: string) => void;
   readOnly?: boolean;
   onPress?: () => void;
+  /** Mirrors Dart's `maxLines: n > 1` (e.g. a description field): grows to `numberOfLines` rows. */
+  multiline?: boolean;
+  numberOfLines?: number;
 };
 
 /**
@@ -56,6 +59,8 @@ export function AppTextField({
   onSubmitted,
   readOnly = false,
   onPress,
+  multiline = false,
+  numberOfLines,
 }: AppTextFieldProps) {
   const colors = useSemanticColors();
   const [isFocused, setIsFocused] = useState(false);
@@ -90,6 +95,10 @@ export function AppTextField({
         autoCapitalize={autoCapitalize}
         onSubmitEditing={(event) => onSubmitted?.(event.nativeEvent.text)}
         readOnly={readOnly}
+        multiline={multiline}
+        numberOfLines={multiline ? numberOfLines : undefined}
+        textAlignVertical={multiline ? 'top' : undefined}
+        style={multiline && numberOfLines ? { minHeight: numberOfLines * 22 } : undefined}
         onFocus={() => setIsFocused(true)}
         onBlur={() => setIsFocused(false)}
         placeholder={hint}

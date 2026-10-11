@@ -49,6 +49,8 @@ export const AppRoutes = {
   // role check itself in `src/stores/merchant-session-gate.ts` (issue
   // #363). This file only carries the path itself.
   merchantDashboard: '/merchant',
+  // Mirrors `AppRoutes.merchantCatalog` (`'$merchantDashboard/catalog'`).
+  merchantCatalog: '/merchant/catalog',
 
   food: '/food',
   foodRestaurants: '/food/restaurants',

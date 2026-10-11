@@ -17,9 +17,10 @@
  * own state across tab switches.
  *
  * The Dart shell also owns one `MerchantStoreController` shared by both
- * destinations so "my store" is only resolved once. That controller has no
- * RN port yet -- it lands with the real screens in P9-02/P9-03 (#407/#408),
- * which can share it through TanStack Query's cache instead.
+ * destinations so "my store" is only resolved once. The controller is
+ * ported (P9-02, #407) and `MyStoreScreen` accepts one via its `controller`
+ * prop, but until the real Orders screen lands (P9-03, #408) there is
+ * nothing to share it with, so `MyStoreScreen` builds its own.
  *
  * `ownerId`/`isAdmin`/`auth` are this component's test seams, mirroring the
  * Dart constructor's `ownerId`/`isAdmin`/`authService` parameters.
