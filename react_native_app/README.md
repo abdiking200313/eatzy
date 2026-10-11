@@ -123,7 +123,8 @@ them interactively.
 
 [Maestro](https://docs.maestro.dev) flows live in `e2e/`. They drive a real
 installed build of the app on an Android emulator (or device), so they are
-not part of `npm test` or CI.
+not part of `npm test` or the PR checks (see "Running E2E in CI" for the
+manual workflow).
 
 `e2e/customer-food-order.yaml` covers the main customer path: a brand-new
 customer signs up, opens Food, orders one menu item from a seeded
@@ -223,7 +224,8 @@ why, the same way the current file documents its own provenance at the top.
 the main merchant path: a merchant signs in, opens an incoming order on the
 **Orders** tab, accepts it, and advances it through every forward status
 until it is delivered. Like any Maestro flow it drives a real installed build
-on an Android emulator (or device), so it is not part of `npm test` or CI.
+on an Android emulator (or device), so it is not part of `npm test` or the PR checks (see "Running E2E in CI" for the
+manual workflow).
 
 ### Prerequisites
 
@@ -259,6 +261,49 @@ Confirmed. Never commit real passwords or project keys; pass them on the
 command line or from your shell/CI secrets.
 `maestro check-syntax e2e/merchant-order.yaml` validates the flow without a
 device.
+
+## Running E2E in CI
+
+Both Maestro flows can run in GitHub Actions on an Android emulator via
+`.github/workflows/e2e-maestro.yml`. It is **manual only** (it needs secrets
+and creates real data on the dev project), so it never runs on pull requests
+and is not a required check. Run it from the **Actions** tab:
+*E2E (Maestro)* → *Run workflow*, choose `customer`, `merchant` or `all`, and optionally give
+the merchant flow a full `order_id`. The job builds a release APK
+(`expo prebuild` + `./gradlew assembleRelease`) against the dev project,
+boots an API 34 emulator, runs the selected flow(s) and uploads Maestro's
+debug output, screenshots, JUnit reports and logcat as an artifact.
+
+Repository secrets (Settings > Secrets and variables > Actions). The job
+fails immediately, naming any that are missing for the chosen flow:
+
+| Secret | Needed by | Value |
+| --- | --- | --- |
+| `E2E_SUPABASE_URL` | all | Dev project URL (the job refuses the production project) |
+| `E2E_SUPABASE_ANON_KEY` | all | Dev project **anon/publishable** key, never a service-role key |
+| `E2E_PASSWORD` | customer | Throwaway customer password, 6+ characters |
+| `E2E_RESTAURANT_NAME` | customer | Exact display name of a seeded open restaurant |
+| `E2E_MENU_ITEM_NAME` | customer | Exact name of an available menu item on it |
+| `E2E_EMAIL_DOMAIN` | customer (optional) | Domain for `e2e+<timestamp>@...` sign-ups (default `example.com`) |
+| `E2E_MERCHANT_EMAIL` | merchant | Email of a dev-project account with role `merchant` |
+| `E2E_MERCHANT_PASSWORD` | merchant | That account's password |
+
+Dev-project prerequisites (same as the local runs above):
+
+- **Email confirmation turned off** (Authentication > Sign In / Providers >
+  Email > "Confirm email"), so the customer sign-up gets a session.
+- An **open restaurant** with at least one **available menu item**, matching
+  `E2E_RESTAURANT_NAME` / `E2E_MENU_ITEM_NAME`.
+- A **merchant account** (`profiles.role = merchant`, not `admin`) that owns a
+  store.
+- At least one order for that store in **`confirmed`** status before each
+  merchant run (each run moves it to `delivered`). With `all`, the customer
+  flow runs first and places a fresh order; that only feeds the merchant flow
+  if the seeded restaurant belongs to the merchant account and new orders
+  reach `confirmed` status.
+
+Every run leaves a new `e2e+<timestamp>@...` account and real orders on the
+dev project; clean them up there periodically.
 
 ## Learn more
 
