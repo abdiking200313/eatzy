@@ -11,8 +11,9 @@
  * database appears without a pull-to-refresh (which stays as a fallback).
  */
 import { router } from 'expo-router';
-import { Fragment, useCallback } from 'react';
-import { Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
+import { useCallback } from 'react';
+import { FlashList } from '@shopify/flash-list';
+import { Pressable, RefreshControl, Text, View } from 'react-native';
 import type { StoreApi, UseBoundStore } from 'zustand';
 
 import { AppScaffold } from '@/components/app-scaffold';
@@ -59,18 +60,17 @@ export default function ActivityScreen({ title = 'Activity', store = useActivity
     body = <ErrorState message={loadError} onRetry={refresh} />;
   } else {
     body = (
-      <ScrollView
+      <FlashList
         testID="activity-list"
+        data={items}
+        keyExtractor={(item) => item.id}
         contentContainerStyle={
           items.length === 0 ? { flexGrow: 1 } : { paddingHorizontal: spacing.x5, paddingTop: spacing.x5, paddingBottom: spacing.x6 }
         }
-        refreshControl={<RefreshControl refreshing={isLoading} onRefresh={refresh} />}>
-        {items.length === 0 ? (
-          <EmptyState icon="receipt-long" title="No activity yet" message="Your orders and bookings will appear here." />
-        ) : (
-          <ActivityListCard items={items} />
-        )}
-      </ScrollView>
+        refreshControl={<RefreshControl refreshing={isLoading} onRefresh={refresh} />}
+        ListEmptyComponent={<EmptyState icon="receipt-long" title="No activity yet" message="Your orders and bookings will appear here." />}
+        renderItem={({ item, index }) => <ActivityListSegment item={item} isFirst={index === 0} isLast={index === items.length - 1} />}
+      />
     );
   }
 
@@ -78,20 +78,28 @@ export default function ActivityScreen({ title = 'Activity', store = useActivity
 }
 
 /**
- * The feed as a single card containing every record, with internal dividers
- * between rows ("one card per list, not one card per row"). Per-service
- * accent stays confined to each row's icon chip, pill and amount.
+ * One row of the feed's single card ("one card per list, not one card per
+ * row"). The list is virtualized (issue #417), so the card can no longer be
+ * one wrapping `View`: each row paints its own slice of the card -- rounded
+ * top corners on the first row, rounded bottom corners plus no trailing
+ * divider on the last -- which composes back into the same single card.
+ * Per-service accent stays confined to each row's icon chip, pill and amount.
  */
-function ActivityListCard({ items }: { items: ActivityItem[] }) {
+function ActivityListSegment({ item, isFirst, isLast }: { item: ActivityItem; isFirst: boolean; isLast: boolean }) {
   const colors = useSemanticColors();
   return (
-    <View style={{ backgroundColor: colors.card, borderRadius: 12, overflow: 'hidden' }} className="shadow-card">
-      {items.map((item, index) => (
-        <Fragment key={item.id}>
-          <ActivityRow item={item} />
-          {index < items.length - 1 && <View style={{ height: 1, backgroundColor: colors.border }} />}
-        </Fragment>
-      ))}
+    <View
+      style={{
+        backgroundColor: colors.card,
+        borderTopLeftRadius: isFirst ? 12 : 0,
+        borderTopRightRadius: isFirst ? 12 : 0,
+        borderBottomLeftRadius: isLast ? 12 : 0,
+        borderBottomRightRadius: isLast ? 12 : 0,
+        overflow: 'hidden',
+      }}
+      className="shadow-card">
+      <ActivityRow item={item} />
+      {!isLast && <View style={{ height: 1, backgroundColor: colors.border }} />}
     </View>
   );
 }

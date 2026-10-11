@@ -21,7 +21,8 @@
  */
 import { router } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { FlatList, RefreshControl, ScrollView, Text, View } from 'react-native';
+import { FlashList } from '@shopify/flash-list';
+import { RefreshControl, ScrollView, Text, View } from 'react-native';
 
 import { EmptyState } from '@/components/empty-state';
 import { ErrorState } from '@/components/error-state';
@@ -141,7 +142,7 @@ function OrdersListView({ controller, store, onOpenOrder }: OrdersListViewProps)
     );
   } else {
     body = (
-      <FlatList
+      <FlashList
         testID="merchant-orders-list"
         data={state.orders}
         keyExtractor={(order) => order.id}

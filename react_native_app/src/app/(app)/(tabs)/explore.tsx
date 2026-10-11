@@ -16,6 +16,7 @@
  */
 import { router } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
+import { FlashList } from '@shopify/flash-list';
 import { FlatList, Pressable, Text, View } from 'react-native';
 
 import { AppScaffold } from '@/components/app-scaffold';
@@ -113,11 +114,11 @@ export default function ExploreScreen({ storeListingLoader = defaultStoreListing
         ) : filteredStores.length === 0 ? (
           <EmptyState icon="storefront" title="No stores match your search." />
         ) : (
-          <FlatList
+          <FlashList
             data={filteredStores}
             keyExtractor={(store) => store.id}
             contentContainerStyle={{ paddingHorizontal: spacing.x5, paddingBottom: spacing.x6 }}
-            ItemSeparatorComponent={() => <View style={{ height: spacing.x3 }} />}
+            ItemSeparatorComponent={StoreSeparator}
             renderItem={({ item }) => (
               <StoreListCard
                 name={item.name}
@@ -175,4 +176,9 @@ function FilterChipsRow({ selected, onSelect }: { selected: ExploreFilter; onSel
       }}
     />
   );
+}
+
+/** Hoisted so the list keeps one stable separator component across renders (issue #417). */
+function StoreSeparator() {
+  return <View style={{ height: spacing.x3 }} />;
 }
