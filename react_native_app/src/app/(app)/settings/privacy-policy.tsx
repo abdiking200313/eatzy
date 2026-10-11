@@ -1,12 +1,9 @@
-import { Text, View } from 'react-native';
+import { LegalDocumentScreen } from '@/features/legal/legal-document-screen';
+import { PRIVACY_POLICY } from '@/features/legal/privacy-policy-document';
 
-// Ports AppRoutes.privacyPolicy ('/settings/privacy-policy') from
-// flutter_app/lib/app/app_routes.dart / app_router.dart (issue #358: route
-// skeleton only -- real screen content lands in a later issue).
-export default function PrivacyPolicyScreen() {
-  return (
-    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 }}>
-      <Text>/settings/privacy-policy — not yet implemented</Text>
-    </View>
-  );
+// Ports AppRoutes.privacyPolicy ('/settings/privacy-policy') ->
+// flutter_app/lib/features/legal/presentation/privacy_policy_screen.dart
+// (issue #404 / P8-08).
+export default function PrivacyPolicyRoute() {
+  return <LegalDocumentScreen document={PRIVACY_POLICY} />;
 }
