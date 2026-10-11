@@ -15,8 +15,8 @@
  * (or a status change made elsewhere) shows up without a refresh. The
  * subscription is torn down on unmount.
  *
- * Tapping an order opens `/merchant/orders/:orderId` (the detail screen
- * itself is P9-04, #409). Dart reloads the list when that pushed route pops;
+ * Tapping an order opens `/merchant/orders/:orderId` (`OrderDetailScreen`,
+ * issue #409). Dart reloads the list when that pushed route pops;
  * here the realtime UPDATE event for the changed row covers that instead.
  */
 import { router } from 'expo-router';
