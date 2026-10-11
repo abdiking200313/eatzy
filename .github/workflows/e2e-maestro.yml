@@ -1,0 +1,227 @@
+name: E2E (Maestro)
+
+# Manual-only Maestro end-to-end run on an Android emulator (issues #413,
+# #414). It needs repository secrets and creates real data (a throwaway
+# customer account and orders) on the *dev* Supabase project, so it has no
+# pull_request/push trigger and is not a required check. Run it from the
+# Actions tab: "E2E (Maestro)" > "Run workflow".
+#
+# Secrets (Settings > Secrets and variables > Actions):
+#   E2E_SUPABASE_URL        dev project URL (never production)
+#   E2E_SUPABASE_ANON_KEY   dev project anon/publishable key (never service-role)
+#   customer flow: E2E_PASSWORD, E2E_RESTAURANT_NAME, E2E_MENU_ITEM_NAME
+#                  (optional: E2E_EMAIL_DOMAIN)
+#   merchant flow: E2E_MERCHANT_EMAIL, E2E_MERCHANT_PASSWORD
+# See react_native_app/README.md ("Running E2E in CI").
+on:
+  workflow_dispatch:
+    inputs:
+      flow:
+        description: Which Maestro flow(s) to run
+        type: choice
+        options:
+          - customer
+          - merchant
+          - all
+        default: customer
+      order_id:
+        description: "Optional: full uuid of the confirmed order the merchant flow should work on (E2E_ORDER_ID)"
+        type: string
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+
+concurrency:
+  # Runs share one dev project and its seeded orders; never overlap them.
+  group: e2e-maestro
+  cancel-in-progress: false
+
+jobs:
+  e2e-maestro:
+    name: e2e-maestro
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      E2E_FLOW: ${{ inputs.flow }}
+      MAESTRO_VERSION: "2.11.0"
+      E2E_ARTIFACTS: ${{ github.workspace }}/e2e-artifacts
+    defaults:
+      run:
+        working-directory: react_native_app
+    steps:
+      - name: Check required secrets
+        working-directory: .
+        shell: bash
+        env:
+          E2E_SUPABASE_URL: ${{ secrets.E2E_SUPABASE_URL }}
+          E2E_SUPABASE_ANON_KEY: ${{ secrets.E2E_SUPABASE_ANON_KEY }}
+          E2E_PASSWORD: ${{ secrets.E2E_PASSWORD }}
+          E2E_RESTAURANT_NAME: ${{ secrets.E2E_RESTAURANT_NAME }}
+          E2E_MENU_ITEM_NAME: ${{ secrets.E2E_MENU_ITEM_NAME }}
+          E2E_MERCHANT_EMAIL: ${{ secrets.E2E_MERCHANT_EMAIL }}
+          E2E_MERCHANT_PASSWORD: ${{ secrets.E2E_MERCHANT_PASSWORD }}
+          E2E_ORDER_ID: ${{ inputs.order_id }}
+        run: |
+          required="E2E_SUPABASE_URL E2E_SUPABASE_ANON_KEY"
+          case "$E2E_FLOW" in
+            customer) required="$required E2E_PASSWORD E2E_RESTAURANT_NAME E2E_MENU_ITEM_NAME" ;;
+            merchant) required="$required E2E_MERCHANT_EMAIL E2E_MERCHANT_PASSWORD" ;;
+            all) required="$required E2E_PASSWORD E2E_RESTAURANT_NAME E2E_MENU_ITEM_NAME E2E_MERCHANT_EMAIL E2E_MERCHANT_PASSWORD" ;;
+            *) echo "::error::Unknown flow input '$E2E_FLOW' (expected customer, merchant or all)."; exit 1 ;;
+          esac
+          missing=""
+          for name in $required; do
+            if [ -z "$(printenv "$name" | tr -d '[:space:]')" ]; then
+              missing="$missing $name"
+            fi
+          done
+          if [ -n "$missing" ]; then
+            echo "::error::Missing required repository secret(s) for flow '$E2E_FLOW':$missing. Add them under Settings > Secrets and variables > Actions (see react_native_app/README.md, 'Running E2E in CI')."
+            exit 1
+          fi
+          # The production project must never receive E2E data.
+          if echo "$E2E_SUPABASE_URL" | grep -q 'jzubookmbrtslocuzepe'; then
+            echo "::error::E2E_SUPABASE_URL points at the production Supabase project. Use a separate dev project."
+            exit 1
+          fi
+          if [ -n "$E2E_ORDER_ID" ] && ! echo "$E2E_ORDER_ID" | grep -Eq '^[0-9a-fA-F-]{36}$'; then
+            echo "::error::order_id must be a full order uuid (36 characters)."
+            exit 1
+          fi
+          echo "All required secrets for flow '$E2E_FLOW' are set."
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Enable KVM
+        working-directory: .
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: react_native_app/package-lock.json
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Release APK with the JS bundle embedded (no Metro needed on the
+      # runner). Expo's prebuild template signs release builds with the debug
+      # keystore, which is fine for an emulator. EXPO_PUBLIC_* values are
+      # inlined into the JS bundle at build time; app.config.ts fails the
+      # build if either is missing.
+      - name: Build Android release APK
+        env:
+          APP_ENV: development
+          EXPO_PUBLIC_SUPABASE_URL: ${{ secrets.E2E_SUPABASE_URL }}
+          EXPO_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.E2E_SUPABASE_ANON_KEY }}
+        run: |
+          npx expo prebuild --platform android --no-install --clean
+          cd android
+          ./gradlew assembleRelease --no-daemon -PreactNativeArchitectures=x86_64
+          ls -la app/build/outputs/apk/release/
+
+      - name: Install Maestro CLI
+        working-directory: .
+        run: |
+          # The installer honours MAESTRO_VERSION (set at job level).
+          curl -fsSL "https://get.maestro.mobile.dev" | bash
+          echo "$HOME/.maestro/bin" >> "$GITHUB_PATH"
+          "$HOME/.maestro/bin/maestro" --version
+
+      # android-emulator-runner runs each `script` line in its own shell, so
+      # the multi-step logic lives in a bash script written here.
+      - name: Write emulator run script
+        working-directory: .
+        run: |
+          cat > "$RUNNER_TEMP/run-e2e.sh" <<'SCRIPT'
+          #!/usr/bin/env bash
+          set -euo pipefail
+          cd "$GITHUB_WORKSPACE/react_native_app"
+          mkdir -p "$E2E_ARTIFACTS"
+          adb install -r android/app/build/outputs/apk/release/app-release.apk
+          adb logcat -c || true
+          (adb logcat > "$E2E_ARTIFACTS/logcat.txt" 2>&1 &)
+
+          status=0
+          run_customer() {
+            local args=(-e "E2E_PASSWORD=$E2E_PASSWORD"
+                        -e "E2E_RESTAURANT_NAME=$E2E_RESTAURANT_NAME"
+                        -e "E2E_MENU_ITEM_NAME=$E2E_MENU_ITEM_NAME")
+            if [ -n "${E2E_EMAIL_DOMAIN:-}" ]; then
+              args+=(-e "E2E_EMAIL_DOMAIN=$E2E_EMAIL_DOMAIN")
+            fi
+            npm run e2e:customer -- "${args[@]}" \
+              --format junit --output "$E2E_ARTIFACTS/customer-junit.xml" \
+              --debug-output "$E2E_ARTIFACTS/customer"
+          }
+          run_merchant() {
+            local args=(-e "E2E_MERCHANT_EMAIL=$E2E_MERCHANT_EMAIL"
+                        -e "E2E_MERCHANT_PASSWORD=$E2E_MERCHANT_PASSWORD")
+            if [ -n "${E2E_ORDER_ID:-}" ]; then
+              args+=(-e "E2E_ORDER_ID=$E2E_ORDER_ID")
+            fi
+            npm run e2e:merchant -- "${args[@]}" \
+              --format junit --output "$E2E_ARTIFACTS/merchant-junit.xml" \
+              --debug-output "$E2E_ARTIFACTS/merchant"
+          }
+
+          case "$E2E_FLOW" in
+            customer) run_customer || status=1 ;;
+            merchant) run_merchant || status=1 ;;
+            all)
+              # The merchant flow needs a `confirmed` order; the customer run
+              # places one, so run it first and keep going either way.
+              run_customer || status=1
+              run_merchant || status=1
+              ;;
+          esac
+          exit "$status"
+          SCRIPT
+          chmod +x "$RUNNER_TEMP/run-e2e.sh"
+
+      - name: Run Maestro on Android emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        env:
+          E2E_PASSWORD: ${{ secrets.E2E_PASSWORD }}
+          E2E_RESTAURANT_NAME: ${{ secrets.E2E_RESTAURANT_NAME }}
+          E2E_MENU_ITEM_NAME: ${{ secrets.E2E_MENU_ITEM_NAME }}
+          E2E_EMAIL_DOMAIN: ${{ secrets.E2E_EMAIL_DOMAIN }}
+          E2E_MERCHANT_EMAIL: ${{ secrets.E2E_MERCHANT_EMAIL }}
+          E2E_MERCHANT_PASSWORD: ${{ secrets.E2E_MERCHANT_PASSWORD }}
+          E2E_ORDER_ID: ${{ inputs.order_id }}
+        with:
+          api-level: 34
+          arch: x86_64
+          target: google_apis
+          profile: pixel_6
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -no-snapshot
+          script: bash "$RUNNER_TEMP/run-e2e.sh"
+
+      - name: Upload Maestro output
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: maestro-e2e-${{ inputs.flow }}-${{ github.run_id }}
+          path: |
+            e2e-artifacts/
+            ~/.maestro/tests/
+          if-no-files-found: ignore
+          retention-days: 14
