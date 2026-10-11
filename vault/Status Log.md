@@ -11,7 +11,7 @@ Reverse-chronological. Each session/major chunk of work gets an entry.
 ## 2026-10-11, 5th run (board worker: nothing eligible)
 
 - No eligible issues: #29/#52 are tracking; #55 has open PR #558 (CI running from another session); #414/#557 `waiting-on-you` with no human reply.
-- 0 merged. PRs #558/#561 and vault PR #521 still open.
+- 0 merged. PR #558 and vault PR #521 still open.
 
 ## 2026-10-11, 4th run (owner decisions applied, 3 issues closed, 3 PRs opened)
 
