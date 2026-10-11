@@ -74,7 +74,9 @@
     "lint": "expo lint",
     "typecheck": "tsc --noEmit",
     "gen:types": "supabase gen types typescript --project-id jzubookmbrtslocuzepe --schema public > src/types/database.ts",
-    "test": "jest"
+    "test": "jest",
+    "e2e:customer": "maestro test e2e/customer-food-order.yaml",
+    "e2e:check": "maestro check-syntax e2e/customer-food-order.yaml"
   },
   "private": true
 }
