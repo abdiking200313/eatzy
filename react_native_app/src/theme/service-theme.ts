@@ -55,7 +55,8 @@ export const ServiceThemes = {
   },
 
   food: {
-    accent: '#C2410C',
+    // orange-800; orange-700 (#C2410C) on `soft` was 4.40:1, under AA (#416).
+    accent: '#9A3412',
     onAccent: '#FFFFFF',
     soft: '#FFE8DC',
     background: '#FFF9F5',

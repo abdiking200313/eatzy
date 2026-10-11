@@ -3,12 +3,12 @@
  * #416). AA requires 4.5:1 for normal-size text and 3:1 for large text
  * (>= 24px regular / ~18.7px bold) and non-text UI components.
  *
- * `MAIN_TEXT_PAIRS` must meet AA for normal text. `KNOWN_GAPS` lists the
- * token pairs that are used for text today but only reach the 3:1 large-text
- * / UI floor. They are pinned here so they stay visible (and can't silently
- * get worse) until design decides on a fix — see the issue #416 PR for why
- * each one wasn't changed in this pass. Fixing one should move it from
- * `KNOWN_GAPS` into `MAIN_TEXT_PAIRS`.
+ * Every pair in `MAIN_TEXT_PAIRS` must meet AA for normal text. The four
+ * pairs that only reached the 3:1 large-text/UI floor when #416 was first
+ * audited (dark onPrimary on primary, dark primary on card/cardMuted, light
+ * error on errorSoft, food accent on soft) were fixed by token changes and
+ * are now asserted at 4.5:1 like everything else — there is no known-gap
+ * allowlist.
  */
 import { ServiceThemes } from '@/theme/service-theme';
 import { colors } from '@/theme/tokens';
@@ -45,7 +45,6 @@ function blend(hex: string, alpha: number, base: string): string {
 }
 
 const AA_NORMAL = 4.5;
-const AA_LARGE_OR_UI = 3;
 
 type Pair = [label: string, foreground: string, background: string];
 
@@ -63,6 +62,12 @@ const MAIN_TEXT_PAIRS: Pair[] = [
   ['light text on searchFill', colors.light.text, colors.light.searchFill],
   ['light textMuted on searchFill', colors.light.textMuted, colors.light.searchFill],
   ['light onPrimary on primary', colors.light.onPrimary, colors.light.primary],
+  ['light onPrimary on primaryFill', colors.light.onPrimary, colors.light.primaryFill],
+  ['light error on errorSoft', colors.light.error, colors.light.errorSoft],
+  // Dark mode splits the brand blue (#416): `primary` (blue400) for text and
+  // links on dark surfaces, `primaryFill` (blue600) behind white button labels.
+  ['dark onPrimary on primaryFill', colors.dark.onPrimary, colors.dark.primaryFill],
+  ...surfaces.map((bg): Pair => [`dark primary on ${bg}`, colors.dark.primary, colors.dark[bg]]),
   ['light primary on primarySoft', colors.light.primary, colors.light.primarySoft],
   // grocery-product-card.tsx's in-stock pill: #0F7A54 on tertiary @ 0x24 over the white card.
   ['light in-stock pill', '#0F7A54', blend(colors.light.tertiary, 0x24 / 255, colors.light.card)],
@@ -70,25 +75,8 @@ const MAIN_TEXT_PAIRS: Pair[] = [
     [`${name} onAccent on accent`, palette.onAccent, palette.accent],
     [`${name} accent on background`, palette.accent, palette.background],
     [`${name} accent on card`, palette.accent, palette.card],
-    // Food's accent-on-soft is a known gap (below); every other palette passes.
-    ...(name === 'food' ? [] : [[`${name} accent on soft`, palette.accent, palette.soft] as Pair]),
+    [`${name} accent on soft`, palette.accent, palette.soft],
   ]),
-];
-
-const KNOWN_GAPS: Pair[] = [
-  // Dark palette is this port's own (not from Flutter) and flagged for
-  // design review in tokens.ts. White button labels on blue500, and blue500
-  // links on the dark card, sit between 3:1 and 4.5:1.
-  ['dark onPrimary on primary', colors.dark.onPrimary, colors.dark.primary],
-  ['dark primary on card', colors.dark.primary, colors.dark.card],
-  ['dark primary on cardMuted', colors.dark.primary, colors.dark.cardMuted],
-  // Out-of-stock pill / destructive chip: error (red600) text on errorSoft
-  // (red100). Ported 1:1 from Flutter's TwColors.
-  ['light error on errorSoft', colors.light.error, colors.light.errorSoft],
-  // Unselected food category chips (category-chip-bar.tsx) and other
-  // accent-on-soft tints: orange-700 on the food soft peach is ~4.4:1.
-  // Fixing it means changing the food brand accent or soft tint, a design call.
-  ['food accent on soft', ServiceThemes.food.accent, ServiceThemes.food.soft],
 ];
 
 describe('theme token color contrast (WCAG AA)', () => {
@@ -99,13 +87,16 @@ describe('theme token color contrast (WCAG AA)', () => {
     expect(contrastRatio('#0066CC', '#FFFFFF')).toBeCloseTo(contrastRatio('#FFFFFF', '#0066CC'), 10);
   });
 
+  it('pins the #416 fixes at their audited ratios', () => {
+    expect(contrastRatio(colors.dark.onPrimary, colors.dark.primaryFill)).toBeCloseTo(5.57, 2);
+    expect(contrastRatio(colors.dark.primary, colors.dark.card)).toBeCloseTo(6.56, 2);
+    expect(contrastRatio(colors.dark.primary, colors.dark.cardMuted)).toBeCloseTo(5.85, 2);
+    expect(contrastRatio(colors.light.error, colors.light.errorSoft)).toBeCloseTo(5.3, 2);
+    expect(contrastRatio(ServiceThemes.food.accent, ServiceThemes.food.soft)).toBeCloseTo(6.2, 2);
+  });
+
   it.each(MAIN_TEXT_PAIRS)('%s meets 4.5:1', (_label, foreground, background) => {
     expect(contrastRatio(foreground, background)).toBeGreaterThanOrEqual(AA_NORMAL);
   });
 
-  it.each(KNOWN_GAPS)('%s (known gap) still meets the 3:1 large-text/UI floor', (_label, foreground, background) => {
-    const ratio = contrastRatio(foreground, background);
-    expect(ratio).toBeGreaterThanOrEqual(AA_LARGE_OR_UI);
-    expect(ratio).toBeLessThan(AA_NORMAL);
-  });
 });

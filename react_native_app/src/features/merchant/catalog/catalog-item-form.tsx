@@ -263,7 +263,7 @@ export function CatalogItemForm({
             accessibilityState={{ disabled: submitDisabled, busy: isSaving }}
             disabled={submitDisabled}
             onPress={() => void submit()}
-            style={{ backgroundColor: colors.primary, paddingVertical: spacing.x4, opacity: submitDisabled ? 0.7 : 1 }}
+            style={{ backgroundColor: colors.primaryFill, paddingVertical: spacing.x4, opacity: submitDisabled ? 0.7 : 1 }}
             className="items-center justify-center rounded-xl active:opacity-80">
             {isSaving ? (
               <ActivityIndicator size="small" color={colors.onPrimary} />

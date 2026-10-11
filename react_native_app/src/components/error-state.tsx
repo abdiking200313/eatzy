@@ -30,7 +30,7 @@ export function ErrorState({ message, onRetry, retryLabel = 'Try again' }: Error
       <Pressable
         accessibilityRole="button"
         onPress={onRetry}
-        className="mt-x4 rounded-lg bg-primary px-x5 py-x3 active:opacity-80">
+        className="mt-x4 rounded-lg bg-primaryFill px-x5 py-x3 active:opacity-80">
         <Text className="text-button font-outfitSemiBold text-onPrimary">{retryLabel}</Text>
       </Pressable>
     </View>

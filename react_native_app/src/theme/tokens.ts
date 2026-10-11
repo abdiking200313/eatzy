@@ -53,6 +53,7 @@ export const semanticColorsLight = {
   text: rawColors.slate900,
   textMuted: rawColors.slate600,
   primary: rawColors.blue600,
+  primaryFill: rawColors.blue600,
   primaryHover: rawColors.blue700,
   primarySoft: rawColors.blue50,
   primaryAccent: rawColors.blue500,
@@ -60,7 +61,9 @@ export const semanticColorsLight = {
   secondary: rawColors.blue500,
   secondarySoft: rawColors.blue50,
   tertiary: '#10B981',
-  error: rawColors.red600,
+  // red700, not Flutter's red600: red600 on red100 (out-of-stock pill /
+  // destructive chip) is only 3.95:1; red700 reaches 5.30:1 (issue #416).
+  error: rawColors.red700,
   errorSoft: rawColors.red100,
 } as const;
 
@@ -71,8 +74,14 @@ export const semanticColorsLight = {
  * primary/secondary/accent brand hues are shifted one step lighter on their
  * own Tailwind-style scale (blue600 -> blue500, blue500 -> blue400) purely
  * for contrast against a dark surface. Must stay in sync with the
- * `@media (prefers-color-scheme: dark)` block in src/global.css. Flag for
- * design review before this palette is treated as final.
+ * `@media (prefers-color-scheme: dark)` block in src/global.css.
+ *
+ * Issue #416 (WCAG AA 4.5:1): dark `primary` is used both as link/tint text
+ * on dark cards and as solid button fill under white `onPrimary` labels, and
+ * no single blue passes both. So `primary` (text, borders, tints) is blue400
+ * (6.56:1 on card), and solid filled buttons use `primaryFill` (blue600,
+ * white label 5.57:1). In light mode both are blue600. Must stay in sync with the
+ * same block. Flag for design review before this palette is treated as final.
  */
 export const semanticColorsDark = {
   bg: '#0B1220',
@@ -84,7 +93,8 @@ export const semanticColorsDark = {
   borderStrong: '#3A4664',
   text: '#F1F5F9',
   textMuted: '#94A3B8',
-  primary: rawColors.blue500,
+  primary: rawColors.blue400,
+  primaryFill: rawColors.blue600,
   primaryHover: rawColors.blue400,
   primarySoft: rawColors.blue900,
   primaryAccent: rawColors.blue400,
