@@ -8,6 +8,13 @@ Reverse-chronological. Each session/major chunk of work gets an entry.
 
 ---
 
+## 2026-10-11, 1st run (board worker — 5 RN issues merged, P8 done, P9 merchant 1-4)
+
+- #55 still `waiting-on-you` (no human reply). Reclaimed #405 (stale `agent-in-progress`, no branch/PR).
+- Merged #405 (push permission prompt via `expo-notifications`, Android-only like Flutter, PR #528), #406 (merchant shell, #530), #407 (store profile, #531), #408 (merchant orders list, #532), #409 (order detail + status transitions, #533). Self-merge worked this run.
+- Follow-ups: #408's realtime needs `20261004000000_enable_realtime_on_order_tables.sql` applied live; pharmacy orders have no store column, so that channel relies on RLS only. Flutter's admin Accounts view is ported as a placeholder only; no migration issue covers it.
+- Still open from earlier: vault PR #521 (8th run, 2026-10-10) is unmerged.
+
 ## 2026-10-10, 7th run (board worker — 5 PRs opened, none merged: self-merge blocked)
 
 - **Self-merge denied again by the auto-mode classifier ("Merge Without Review")**, so every issue stops at an open, green PR for the owner to merge: #508 (#390 grocery store screen), #509 (#394 pharmacy list/catalog), #510 (#397 activity feed + realtime + order-again), #511 (#399 profile), #513 (#403 support). Issues stay `agent-in-progress` until merged.
