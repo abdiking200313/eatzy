@@ -21,7 +21,8 @@
  */
 import { router } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Alert, FlatList, RefreshControl, Text, View } from 'react-native';
+import { FlashList } from '@shopify/flash-list';
+import { Alert, RefreshControl, Text, View } from 'react-native';
 
 import { AppScaffold } from '@/components/app-scaffold';
 import { AppSearchBar } from '@/components/app-search-bar';
@@ -183,10 +184,11 @@ export function GroceryStoreScreen({ storeId, storeType = 'grocery', storeLoader
         slug={meta.slug}
         actions={cartAction}
       />
-      <FlatList
+      <FlashList
         testID="grocery-store-catalog"
         data={rows}
         keyExtractor={(row) => row.key}
+        getItemType={(row) => row.kind}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refresh} />}
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={{ paddingHorizontal: spacing.screenX, paddingTop: spacing.screenX, paddingBottom: spacing.x6 }}

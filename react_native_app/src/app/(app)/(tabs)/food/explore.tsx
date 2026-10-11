@@ -22,7 +22,8 @@
  */
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
-import { FlatList, Text, View } from 'react-native';
+import { FlashList } from '@shopify/flash-list';
+import { Text, View } from 'react-native';
 
 import { AppScaffold } from '@/components/app-scaffold';
 import { AppSearchBar } from '@/components/app-search-bar';
@@ -85,7 +86,7 @@ export default function FoodExploreScreen() {
 
   return (
     <AppScaffold title={title} showBackButton>
-      <FlatList
+      <FlashList
         testID="food-explore-list"
         data={restaurants}
         keyExtractor={(restaurant) => restaurant.id}
@@ -111,7 +112,7 @@ export default function FoodExploreScreen() {
             </Text>
           </View>
         }
-        ItemSeparatorComponent={() => <View style={{ height: spacing.x3 }} />}
+        ItemSeparatorComponent={RestaurantSeparator}
         renderItem={({ item }) => (
           <StoreRowCard
             imageUrl={item.logoUrl}
@@ -132,4 +133,9 @@ function visibleRestaurants(restaurants: Restaurant[], trimmedQuery: string): Re
   const query = trimmedQuery.toLowerCase();
   if (!query) return restaurants;
   return restaurants.filter((restaurant) => restaurant.name.toLowerCase().includes(query));
+}
+
+/** Hoisted so the list keeps one stable separator component across renders (issue #417). */
+function RestaurantSeparator() {
+  return <View style={{ height: spacing.x3 }} />;
 }

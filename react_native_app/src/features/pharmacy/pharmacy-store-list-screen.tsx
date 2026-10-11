@@ -10,7 +10,8 @@
  */
 import { router } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, FlatList, Text, View } from 'react-native';
+import { FlashList } from '@shopify/flash-list';
+import { ActivityIndicator, Text, View } from 'react-native';
 
 import { AppScaffold } from '@/components/app-scaffold';
 import { AppSearchBar } from '@/components/app-search-bar';
@@ -165,7 +166,7 @@ export function PharmacyStoreListScreen({
       ) : stores.status === 'error' ? (
         <ErrorState message={LOAD_ERROR_MESSAGE} onRetry={retry} />
       ) : (
-        <FlatList
+        <FlashList
           testID="pharmacy-store-list"
           data={visibleStores}
           keyExtractor={(store) => store.id}
@@ -184,7 +185,7 @@ export function PharmacyStoreListScreen({
               <View style={{ height: spacing.headerToContent }} />
             </View>
           }
-          ItemSeparatorComponent={() => <View style={{ height: spacing.x3 }} />}
+          ItemSeparatorComponent={StoreSeparator}
           ListEmptyComponent={renderEmpty}
           renderItem={({ item }) => (
             <StoreRowCard
@@ -201,4 +202,9 @@ export function PharmacyStoreListScreen({
       )}
     </AppScaffold>
   );
+}
+
+/** Hoisted so the list keeps one stable separator component across renders (issue #417). */
+function StoreSeparator() {
+  return <View style={{ height: spacing.x3 }} />;
 }

@@ -20,7 +20,8 @@
  */
 import { MaterialIcons } from '@expo/vector-icons';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Alert, FlatList, Modal, Pressable, RefreshControl, Switch, Text, View } from 'react-native';
+import { FlashList } from '@shopify/flash-list';
+import { Alert, Modal, Pressable, RefreshControl, Switch, Text, View } from 'react-native';
 
 import { AppScaffold } from '@/components/app-scaffold';
 import { EmptyState } from '@/components/empty-state';
@@ -237,7 +238,7 @@ function CatalogBody({ controller, media, onAdd, onEdit }: CatalogBodyProps) {
   }
 
   return (
-    <FlatList
+    <FlashList
       testID="catalog-list"
       data={state.items}
       keyExtractor={(item) => item.id}
@@ -245,8 +246,10 @@ function CatalogBody({ controller, media, onAdd, onEdit }: CatalogBodyProps) {
         paddingHorizontal: spacing.screenX,
         paddingTop: spacing.x4,
         paddingBottom: spacing.x12 * 2,
-        gap: spacing.x2,
       }}
+      // FlashList lays rows out itself and ignores `contentContainerStyle.gap`,
+      // so the FlatList-era 8pt gap between tiles is a separator instead.
+      ItemSeparatorComponent={CatalogItemSeparator}
       refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={refresh} />}
       renderItem={({ item }) => (
         <CatalogItemTile
@@ -266,6 +269,10 @@ type CatalogItemTileProps = {
   onDelete: () => void;
   onToggleAvailability: () => void;
 };
+
+function CatalogItemSeparator() {
+  return <View style={{ height: spacing.x2 }} />;
+}
 
 function CatalogItemTile({ item, onEdit, onDelete, onToggleAvailability }: CatalogItemTileProps) {
   const colors = useSemanticColors();

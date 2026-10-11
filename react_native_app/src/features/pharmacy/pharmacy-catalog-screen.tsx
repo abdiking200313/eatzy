@@ -17,7 +17,8 @@
  */
 import { router } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Alert, FlatList, RefreshControl, Text, View } from 'react-native';
+import { FlashList } from '@shopify/flash-list';
+import { ActivityIndicator, Alert, RefreshControl, Text, View } from 'react-native';
 
 import { AddToCartButton } from '@/components/add-to-cart-button';
 import { AppScaffold } from '@/components/app-scaffold';
@@ -213,7 +214,7 @@ export function PharmacyCatalogScreen({
         service="pharmacy"
         actions={cartAction}
       />
-      <FlatList
+      <FlashList
         testID="pharmacy-catalog-list"
         data={visibleProducts}
         keyExtractor={(product) => product.id}
@@ -245,7 +246,7 @@ export function PharmacyCatalogScreen({
             </View>
           </View>
         }
-        ItemSeparatorComponent={() => <View style={{ height: spacing.x3 }} />}
+        ItemSeparatorComponent={ProductSeparator}
         ListEmptyComponent={
           isLoading ? null : (
             <View style={{ paddingTop: spacing.x8, alignItems: 'center' }}>
@@ -348,4 +349,9 @@ function PharmacyProductCard({
       </View>
     </OutlinedCard>
   );
+}
+
+/** Hoisted so the list keeps one stable separator component across renders (issue #417). */
+function ProductSeparator() {
+  return <View style={{ height: spacing.x3 }} />;
 }
