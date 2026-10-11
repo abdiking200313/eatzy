@@ -357,7 +357,7 @@ function ActionButton({ variant, label, onPress, disabled, busy = false, testID 
         paddingVertical: spacing.x3,
         paddingHorizontal: spacing.x3,
         borderRadius: 999,
-        backgroundColor: filled ? colors.primary : 'transparent',
+        backgroundColor: filled ? colors.primaryFill : 'transparent',
         borderWidth: filled ? 0 : 1,
         borderColor: colors.error,
         opacity: disabled && !busy ? 0.5 : 1,

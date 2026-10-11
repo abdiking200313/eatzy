@@ -149,13 +149,14 @@ describe('route reachability (ports route_reachability_test.dart, issue #71/#358
   // and the `'AppRoutes.forgotPassword/resetPassword/services/mainApp/
   // explore/food/grocery/foodRestaurant ... resolves to its real screen'`
   // cases just below (same posture for all eleven) for their own coverage.
-  const staticRoutes: [name: string, path: string][] = [
-    ['addresses', '/addresses'],
-  ];
+  //
+  // `addresses` ('/addresses') was the last entry in that placeholder table;
+  // issue #545 ported its real screen (case just below), so the table is gone.
 
-  test.each(staticRoutes)('AppRoutes.%s (%s) resolves to its placeholder screen', async (_name, path) => {
-    await renderRoute(path);
-    expect(await screen.findByText(`${path} — not yet implemented`)).toBeTruthy();
+  // AppRoutes.addresses (/addresses) resolves to its real screen since issue #545.
+  test('AppRoutes.addresses (/addresses) resolves to its real screen', async () => {
+    await renderRoute('/addresses');
+    expect(await screen.findByText('Saved Addresses')).toBeTruthy();
   });
 
   // AppRoutes.settings (/settings) resolves to its real screen since issue #400.
@@ -457,7 +458,7 @@ describe('route reachability (ports route_reachability_test.dart, issue #71/#358
 
   // Legacy-alias `AppRoutes` paths (route_reachability_test.dart's
   // `_deepLinkOnlyRoutes`, excluding `profile`/`addresses`/`trackOrder` —
-  // those are real placeholder screens above, not redirects): each must
+  // those are real screens above, not redirects): each must
   // redirect to the same destination app_routes.dart documents.
   const legacyRedirects: [name: string, from: string, to: string][] = [
     ['root', '/', '/welcome'],

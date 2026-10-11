@@ -235,6 +235,7 @@ export function ProductDetailsView({
         )}
         <View style={{ flex: 1 }}>
           <GradientActionButton
+            testID="product-add-to-cart"
             label={canAdd ? 'Add to cart' : unavailableLabel}
             onPress={canAdd ? handleAdd : null}
             icon={<MaterialIcons name="shopping-cart" size={18} color={colors.onPrimary} />}

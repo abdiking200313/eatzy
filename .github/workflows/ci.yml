@@ -1,5 +1,8 @@
 name: Flutter CI
 
+# verify and android-build are required checks on master, so they run on every
+# PR; the "Detect relevant changes" step skips the heavy steps unless
+# flutter_app/ or .github/ changed.
 on:
   pull_request:
   push:
@@ -16,8 +19,43 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          # Full history so the PR diff against the base branch can be computed.
+          fetch-depth: 0
+
+      # Required checks must always report on PRs (branch ruleset), so the
+      # job always runs and only skips its heavy steps when nothing relevant
+      # changed. Pushes, manual runs, and any diff failure run everything.
+      # Changes under .github/ count as relevant to every job.
+      - name: Detect relevant changes
+        id: changes
+        working-directory: .
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BASE_REF: ${{ github.base_ref }}
+          PATTERN: '^(flutter_app/|\.github/)'
+        run: |
+          if [ "$EVENT_NAME" != "pull_request" ]; then
+            echo "relevant=true" >> "$GITHUB_OUTPUT"
+            echo "Not a pull_request event; running all steps."
+            exit 0
+          fi
+          if ! files=$(git diff --name-only "origin/${BASE_REF}...HEAD"); then
+            echo "relevant=true" >> "$GITHUB_OUTPUT"
+            echo "::warning::Could not diff against origin/${BASE_REF}; running all steps."
+            exit 0
+          fi
+          echo "Changed files:"; echo "$files"
+          if echo "$files" | grep -Eq "$PATTERN"; then
+            echo "relevant=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "relevant=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::No relevant changes; skipping heavy steps and reporting success."
+          fi
 
       - name: Set up Flutter
+        if: steps.changes.outputs.relevant == 'true'
         uses: subosito/flutter-action@v2
         with:
           flutter-version-file: flutter_app/.tool-versions
@@ -25,15 +63,19 @@ jobs:
           cache: true
 
       - name: Install dependencies
+        if: steps.changes.outputs.relevant == 'true'
         run: flutter pub get
 
       - name: Check formatting
+        if: steps.changes.outputs.relevant == 'true'
         run: dart format --output=none --set-exit-if-changed lib test
 
       - name: Analyze
+        if: steps.changes.outputs.relevant == 'true'
         run: flutter analyze
 
       - name: Run tests
+        if: steps.changes.outputs.relevant == 'true'
         run: flutter test
 
   android-build:
@@ -45,8 +87,43 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          # Full history so the PR diff against the base branch can be computed.
+          fetch-depth: 0
+
+      # Required checks must always report on PRs (branch ruleset), so the
+      # job always runs and only skips its heavy steps when nothing relevant
+      # changed. Pushes, manual runs, and any diff failure run everything.
+      # Changes under .github/ count as relevant to every job.
+      - name: Detect relevant changes
+        id: changes
+        working-directory: .
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BASE_REF: ${{ github.base_ref }}
+          PATTERN: '^(flutter_app/|\.github/)'
+        run: |
+          if [ "$EVENT_NAME" != "pull_request" ]; then
+            echo "relevant=true" >> "$GITHUB_OUTPUT"
+            echo "Not a pull_request event; running all steps."
+            exit 0
+          fi
+          if ! files=$(git diff --name-only "origin/${BASE_REF}...HEAD"); then
+            echo "relevant=true" >> "$GITHUB_OUTPUT"
+            echo "::warning::Could not diff against origin/${BASE_REF}; running all steps."
+            exit 0
+          fi
+          echo "Changed files:"; echo "$files"
+          if echo "$files" | grep -Eq "$PATTERN"; then
+            echo "relevant=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "relevant=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::No relevant changes; skipping heavy steps and reporting success."
+          fi
 
       - name: Set up JDK 17
+        if: steps.changes.outputs.relevant == 'true'
         uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -57,6 +134,7 @@ jobs:
             flutter_app/android/**/gradle-wrapper.properties
 
       - name: Set up Flutter
+        if: steps.changes.outputs.relevant == 'true'
         uses: subosito/flutter-action@v2
         with:
           flutter-version-file: flutter_app/.tool-versions
@@ -64,7 +142,9 @@ jobs:
           cache: true
 
       - name: Install dependencies
+        if: steps.changes.outputs.relevant == 'true'
         run: flutter pub get
 
       - name: Build debug APK
+        if: steps.changes.outputs.relevant == 'true'
         run: flutter build apk --debug

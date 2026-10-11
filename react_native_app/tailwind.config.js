@@ -75,6 +75,7 @@ module.exports = {
         text: withAlpha('--color-text'),
         textMuted: withAlpha('--color-text-muted'),
         primary: withAlpha('--color-primary'),
+        primaryFill: withAlpha('--color-primary-fill'),
         primaryHover: withAlpha('--color-primary-hover'),
         primarySoft: withAlpha('--color-primary-soft'),
         primaryAccent: withAlpha('--color-primary-accent'),

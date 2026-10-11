@@ -119,6 +119,51 @@ No signing secrets (keystores, provisioning profiles, API keys) are committed
 to this repository — EAS stores them for you, encrypted, once you provide
 them interactively.
 
+## End-to-end tests (Maestro)
+
+[Maestro](https://docs.maestro.dev) flows live in `e2e/`. They drive a real
+installed build of the app on an Android emulator (or device), so they are
+not part of `npm test` or CI.
+
+`e2e/customer-food-order.yaml` covers the main customer path: a brand-new
+customer signs up, opens Food, orders one menu item from a seeded
+restaurant, places the order (pay on delivery, so there is no payment step)
+and lands on the live order-tracking screen.
+
+### Prerequisites
+
+1. **Maestro CLI**: `curl -Ls "https://get.maestro.mobile.dev" | bash`
+   (needs Java 17+).
+2. **A dev Supabase project, never production.** The build under test takes
+   its project from `EXPO_PUBLIC_SUPABASE_URL` /
+   `EXPO_PUBLIC_SUPABASE_ANON_KEY` (`.env.development` or the EAS build
+   profile). Nothing about the project is hardcoded in the flow.
+3. **Email confirmation turned off** on that dev project (Authentication >
+   Sign In / Providers > Email > "Confirm email"). With it on, sign-up returns
+   no session and the app shows "Confirm your email" instead of continuing.
+4. **Seeded data**: an open restaurant with at least one available menu item.
+   You pass their display names to the flow (see below).
+5. A running Android emulator with a build of this app (`com.zivo.app`)
+   installed: a `development` build with Metro running, or a `preview` APK.
+
+### Running it
+
+```bash
+npm run e2e:customer -- \
+  -e E2E_PASSWORD='<throwaway password, 6+ chars>' \
+  -e E2E_RESTAURANT_NAME='<seeded restaurant name>' \
+  -e E2E_MENU_ITEM_NAME='<menu item on that restaurant>'
+```
+
+Optional: `-e E2E_EMAIL_DOMAIN=...` (default `example.com`; use a domain your
+dev project accepts), `E2E_FIRST_NAME`, `E2E_LAST_NAME`, `E2E_PHONE`.
+
+Each run signs up a new `e2e+<timestamp>@<domain>` account and places one
+real order on the dev project, so clean those up there periodically. Never
+commit real passwords or project keys; pass them on the command line or
+from your shell/CI secrets. `npm run e2e:check` validates the flow syntax
+without a device.
+
 ## Get a fresh project
 
 When you're ready, run:

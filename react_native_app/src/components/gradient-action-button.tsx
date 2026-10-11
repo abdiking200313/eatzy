@@ -56,7 +56,7 @@ export function GradientActionButton({
         style={[
           shadows.button,
           {
-            backgroundColor: colors.primary,
+            backgroundColor: colors.primaryFill,
             borderRadius,
             paddingVertical,
             paddingHorizontal,

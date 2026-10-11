@@ -23,7 +23,7 @@
  * block is this port's own choice (issue #352): neutrals/surfaces are
  * inverted for a dark background, while the blue/green/red *brand* hues
  * (primary/secondary/tertiary/error) are shifted one step lighter on their
- * own Tailwind-style scale — e.g. primary moves from blue600 to blue500 —
+ * own Tailwind-style scale — e.g. primary text moves from blue600 to blue400 (see the #416 note below) —
  * purely for contrast against a dark surface, matching common dark-theme
  * practice. Flag for design review if a different dark palette is wanted.
  */
@@ -39,6 +39,7 @@
     --color-text: 15 23 42; /* #0F172A (slate900) */
     --color-text-muted: 71 85 105; /* #475569 (slate600) */
     --color-primary: 0 102 204; /* #0066CC (blue600) */
+    --color-primary-fill: 0 102 204; /* #0066CC (blue600) */
     --color-primary-hover: 0 82 163; /* #0052A3 (blue700) */
     --color-primary-soft: 240 247 255; /* #F0F7FF (blue50) */
     --color-primary-accent: 0 127 255; /* #007FFF (blue500) */
@@ -46,7 +47,7 @@
     --color-secondary: 0 127 255; /* #007FFF (blue500) */
     --color-secondary-soft: 240 247 255; /* #F0F7FF (blue50) */
     --color-tertiary: 16 185 129; /* #10B981 */
-    --color-error: 220 38 38; /* #DC2626 (red600) */
+    --color-error: 185 28 28; /* #B91C1C (red700; red600 failed AA on error-soft, #416) */
     --color-error-soft: 254 226 226; /* #FEE2E2 (red100) */
   }
 
@@ -61,7 +62,10 @@
       --color-border-strong: 58 70 100; /* #3A4664 */
       --color-text: 241 245 249; /* #F1F5F9 */
       --color-text-muted: 148 163 184; /* #94A3B8 */
-      --color-primary: 0 127 255; /* #007FFF (blue500, one step lighter) */
+      /* #416: text/link primary is blue400 (AA on dark cards); solid
+         button fills use primary-fill (blue600) so white labels pass AA. */
+      --color-primary: 102 168 255; /* #66A8FF (blue400) */
+      --color-primary-fill: 0 102 204; /* #0066CC (blue600) */
       --color-primary-hover: 102 168 255; /* #66A8FF (blue400) */
       --color-primary-soft: 22 52 92; /* #16345C (blue900) */
       --color-primary-accent: 102 168 255; /* #66A8FF (blue400) */

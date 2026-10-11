@@ -32,6 +32,9 @@ export type AppTextFieldProps = {
   /** Mirrors Dart's `maxLines: n > 1` (e.g. a description field): grows to `numberOfLines` rows. */
   multiline?: boolean;
   numberOfLines?: number;
+  /** Stable selector for tests and Maestro E2E flows (`e2e/**`). Lands on the
+   * `TextInput`, or on the tappable wrapper when `onPress` is set. */
+  testID?: string;
 };
 
 /**
@@ -61,6 +64,7 @@ export function AppTextField({
   onPress,
   multiline = false,
   numberOfLines,
+  testID,
 }: AppTextFieldProps) {
   const colors = useSemanticColors();
   const [isFocused, setIsFocused] = useState(false);
@@ -91,6 +95,7 @@ export function AppTextField({
         />
       )}
       <TextInput
+        testID={onPress ? undefined : testID}
         // A screen reader announces the visible caption (or, with none,
         // the hint) as the field's name rather than only the placeholder,
         // which TalkBack/VoiceOver drop once the field has a value.
@@ -141,6 +146,7 @@ export function AppTextField({
       )}
       {onPress ? (
         <Pressable
+          testID={testID}
           accessibilityRole="button"
           accessibilityLabel={accessibleName}
           accessibilityValue={value ? { text: value } : undefined}

@@ -25,7 +25,7 @@ export function TrackOrderMessage({ icon, title, message, actionLabel, onAction 
       <Text className="mt-x3 text-center text-fontBoldBase font-outfitSemiBold text-text">{title}</Text>
       <Text className="mt-x2 text-center text-textSm font-outfitRegular text-textMuted">{message}</Text>
       {actionLabel != null && onAction != null && (
-        <Pressable accessibilityRole="button" onPress={onAction} className="mt-x4 rounded-full bg-primary px-x5 py-x3 active:opacity-80">
+        <Pressable accessibilityRole="button" onPress={onAction} className="mt-x4 rounded-full bg-primaryFill px-x5 py-x3 active:opacity-80">
           <Text className="text-button font-outfitSemiBold text-onPrimary">{actionLabel}</Text>
         </Pressable>
       )}

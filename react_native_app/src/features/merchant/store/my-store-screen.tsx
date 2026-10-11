@@ -383,7 +383,7 @@ function FilledButton({
       accessibilityState={{ disabled: isDisabled, busy }}
       disabled={isDisabled}
       onPress={onPress}
-      style={{ backgroundColor: colors.primary, paddingVertical: spacing.x4, opacity: isDisabled ? 0.7 : 1 }}
+      style={{ backgroundColor: colors.primaryFill, paddingVertical: spacing.x4, opacity: isDisabled ? 0.7 : 1 }}
       className="items-center justify-center rounded-xl active:opacity-80">
       {busy ? (
         <ActivityIndicator size="small" color={colors.onPrimary} />

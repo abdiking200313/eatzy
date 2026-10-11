@@ -1,0 +1,169 @@
+# Customer happy path (issue #413 / P10-01): sign up as a brand-new customer,
+# order one food item, and land on the live order-tracking screen.
+#
+# Runs against a *dev* Supabase project baked into the build under test
+# (EXPO_PUBLIC_SUPABASE_URL / EXPO_PUBLIC_SUPABASE_ANON_KEY in
+# .env.development or the EAS build profile) -- never production. That
+# project must have email confirmation turned off, and must already contain
+# an open restaurant with an available menu item. See README.md ("End-to-end tests") for the
+# full prerequisites and the run command.
+#
+# Required env (maestro test -e NAME=value ...):
+#   E2E_PASSWORD          password for the throwaway customer (>= 6 chars)
+#   E2E_RESTAURANT_NAME   exact display name of a seeded restaurant
+#   E2E_MENU_ITEM_NAME    exact display name of an available item on its menu
+# Optional env:
+#   E2E_EMAIL_DOMAIN      domain for the generated e2e+<timestamp>@ address
+#                         (default example.com)
+#   E2E_FIRST_NAME, E2E_LAST_NAME, E2E_PHONE
+appId: com.zivo.app
+name: Customer signs up, orders food, and tracks it
+tags:
+  - customer
+  - food
+---
+- runScript: scripts/customer-setup.js
+
+# Fresh install state: no session, onboarding not yet seen -> /welcome.
+- launchApp:
+    clearState: true
+    clearKeychain: true
+
+# --- Sign up -----------------------------------------------------------------
+- extendedWaitUntil:
+    visible:
+      id: welcome-get-started
+    timeout: 30000
+- tapOn:
+    id: welcome-get-started
+- assertVisible: Create your account
+
+- tapOn:
+    id: register-first-name
+- inputText: ${output.customer.firstName}
+- tapOn:
+    id: register-last-name
+- inputText: ${output.customer.lastName}
+- tapOn:
+    id: register-phone
+- inputText: ${output.customer.phone}
+- hideKeyboard
+
+# Date of birth: the native Android date picker opens pre-set to 18 years
+# ago (register.tsx's `eighteenYearsAgo`), which is all this flow needs --
+# just confirm it.
+- tapOn:
+    id: register-dob
+- tapOn: OK
+
+- scrollUntilVisible:
+    element:
+      id: register-email
+    direction: DOWN
+- tapOn:
+    id: register-email
+- inputText: ${output.customer.email}
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: register-password
+    direction: DOWN
+- tapOn:
+    id: register-password
+- inputText: ${output.customer.password}
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: register-confirm-password
+    direction: DOWN
+- tapOn:
+    id: register-confirm-password
+- inputText: ${output.customer.password}
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: register-submit
+    direction: DOWN
+- tapOn:
+    id: register-submit
+
+# With email confirmation disabled, sign-up returns a session and
+# register.tsx replaces the stack with the super-app home (/app). If this
+# instead shows "Confirm your email", the dev project still has
+# confirmations on -- see README.md ("End-to-end tests").
+- extendedWaitUntil:
+    visible:
+      id: service-food
+    timeout: 30000
+
+# --- Order food --------------------------------------------------------------
+- tapOn:
+    id: service-food
+- extendedWaitUntil:
+    visible:
+      id: food-restaurant-list
+    timeout: 20000
+- scrollUntilVisible:
+    element:
+      text: ${output.customer.restaurantName}
+    direction: DOWN
+    timeout: 20000
+- tapOn: ${output.customer.restaurantName}
+
+- extendedWaitUntil:
+    visible:
+      id: restaurant-menu-list
+    timeout: 20000
+- scrollUntilVisible:
+    element:
+      text: ${output.customer.menuItemName}
+    direction: DOWN
+    timeout: 20000
+- tapOn: ${output.customer.menuItemName}
+
+# Item details: quantity defaults to 1. "Add to cart" pops back to the menu.
+- tapOn:
+    id: product-add-to-cart
+- extendedWaitUntil:
+    visible:
+      id: restaurant-cart-fab
+    timeout: 10000
+- tapOn:
+    id: restaurant-cart-fab
+
+# Cart -> checkout. There is no address or payment step (pay on delivery).
+- extendedWaitUntil:
+    visible:
+      id: cart-checkout
+    timeout: 10000
+- assertVisible: ${output.customer.menuItemName}
+- tapOn:
+    id: cart-checkout
+- extendedWaitUntil:
+    visible:
+      id: checkout-place-order
+    timeout: 10000
+- tapOn:
+    id: checkout-place-order
+
+# checkout.tsx shows an "Order placed" alert, then replaces the route with
+# /track-order/food/<orderId>.
+- extendedWaitUntil:
+    visible: Order placed
+    timeout: 30000
+- tapOn: OK
+
+# --- Track it ----------------------------------------------------------------
+- extendedWaitUntil:
+    visible:
+      id: tracking-card
+    timeout: 20000
+- assertVisible: Track order
+- assertVisible:
+    id: timeline-step
+- assertVisible: Confirmed
+- scrollUntilVisible:
+    element:
+      id: items-card
+    direction: DOWN
+- assertVisible: ${output.customer.menuItemName}

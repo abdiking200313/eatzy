@@ -23,6 +23,7 @@ export function ThemeTokenGallery() {
           <Swatch className="bg-border" label="border" />
           <Swatch className="bg-borderStrong" label="borderStrong" />
           <Swatch className="bg-primary" label="primary" dark />
+          <Swatch className="bg-primaryFill" label="primaryFill" dark />
           <Swatch className="bg-primaryHover" label="primaryHover" dark />
           <Swatch className="bg-primarySoft" label="primarySoft" />
           <Swatch className="bg-primaryAccent" label="primaryAccent" dark />
@@ -73,7 +74,7 @@ export function ThemeTokenGallery() {
             <Text className="text-textXs font-outfitMedium text-textMuted">hero</Text>
           </View>
         </View>
-        <View className="items-center justify-center rounded-lg bg-primary px-x4 py-x3 shadow-button">
+        <View className="items-center justify-center rounded-lg bg-primaryFill px-x4 py-x3 shadow-button">
           <Text className="text-button font-outfitSemiBold text-onPrimary">Primary button</Text>
         </View>
       </View>

@@ -29,7 +29,7 @@ export function PrimaryButton({
   fullWidth = true,
 }: PrimaryButtonProps) {
   const colors = useSemanticColors();
-  const resolvedColor = color ?? colors.primary;
+  const resolvedColor = color ?? colors.primaryFill;
   // Matches the Dart ternary: an explicit `foregroundColor` only applies
   // when `color` is also overridden — otherwise the resolved foreground
   // always follows the theme's `onPrimary`.
