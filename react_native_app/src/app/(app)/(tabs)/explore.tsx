@@ -5,12 +5,10 @@
  * simple vertical picker reached from the home grid's "More" tile), per
  * that Dart file's own doc comment.
  *
- * The Dart source also renders a food-category chip row sourced from
- * `CategoryRepository`, which has no react_native_app port yet (phase 6,
- * issue #385+) and isn't among this issue's own "Ports from Flutter"
- * files -- left out here. Every case in `explore_screen_test.dart` renders
- * this screen with an empty category list anyway, so the row would render
- * nothing either way; add it back once a real category data source exists.
+ * The food-category chip row (`_CategoryChipsRow`, issue #542) reads the
+ * shared `useFoodCategories()` query (`use-food-browse.ts`, issue #385) in
+ * place of the Dart `categoryRepository` constructor seam; tests mock
+ * `category-repository.ts` the same way `food/categories.test.tsx` does.
  *
  * Mirrors `(tabs)/app.tsx`'s `storeListingLoader`-prop test-seam pattern.
  */
@@ -22,6 +20,8 @@ import { FlatList, Pressable, Text, View } from 'react-native';
 import { AppScaffold } from '@/components/app-scaffold';
 import { AppSearchBar } from '@/components/app-search-bar';
 import { EmptyState } from '@/components/empty-state';
+import type { Category } from '@/features/food/api/category';
+import { useFoodCategories } from '@/features/food/api/use-food-browse';
 import { LoadingState } from '@/components/loading-state';
 import { StoreListCard } from '@/components/store-list-card';
 import { useSemanticColors } from '@/hooks/use-semantic-colors';
@@ -106,6 +106,10 @@ export default function ExploreScreen({ storeListingLoader = defaultStoreListing
       <View style={{ marginTop: spacing.x4 }}>
         <FilterChipsRow selected={filter} onSelect={selectFilter} />
       </View>
+      <View style={{ marginTop: spacing.x3 }}>
+        {/* Matches the Dart `onSelected`: the category name replaces the search text. */}
+        <CategoryChipsRow onSelect={setQuery} />
+      </View>
       <View style={{ flex: 1, marginTop: spacing.x3 }}>
         {storesState.status === 'loading' ? (
           <LoadingState />
@@ -177,6 +181,53 @@ function FilterChipsRow({ selected, onSelect }: { selected: ExploreFilter; onSel
     />
   );
 }
+
+/**
+ * Ports `_CategoryChipsRow`: a fixed-height (36) horizontal row of food
+ * category chips. Like the Dart `FutureBuilder`, it renders no chips while
+ * loading, on error, or when the list is empty -- but keeps its 36px slot
+ * either way, since the Dart `SizedBox(height: 36)` wraps the builder.
+ */
+function CategoryChipsRow({ onSelect }: { onSelect: (name: string) => void }) {
+  const colors = useSemanticColors();
+  const categories: Category[] = useFoodCategories().data ?? [];
+
+  return (
+    <View testID="explore-category-chips" style={{ height: CATEGORY_ROW_HEIGHT }}>
+      {categories.length > 0 ? (
+        <FlatList
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          data={categories}
+          keyExtractor={(category) => category.id}
+          contentContainerStyle={{ paddingHorizontal: spacing.x5, gap: spacing.x2 }}
+          renderItem={({ item }) => (
+            <Pressable
+              testID={`explore-category-chip-${item.id}`}
+              accessibilityRole="button"
+              onPress={() => onSelect(item.name)}
+              style={{
+                height: CATEGORY_ROW_HEIGHT,
+                paddingHorizontal: spacing.x3,
+                borderRadius: radius.full,
+                borderWidth: 1,
+                borderColor: colors.border,
+                backgroundColor: colors.card,
+                justifyContent: 'center',
+              }}>
+              <Text style={{ color: colors.textMuted }} className="text-textXs">
+                {item.name}
+              </Text>
+            </Pressable>
+          )}
+        />
+      ) : null}
+    </View>
+  );
+}
+
+/** The Dart `_CategoryChipsRow`'s `SizedBox(height: 36)`. */
+const CATEGORY_ROW_HEIGHT = 36;
 
 /** Hoisted so the list keeps one stable separator component across renders (issue #417). */
 function StoreSeparator() {
