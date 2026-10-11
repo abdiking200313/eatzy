@@ -13,6 +13,7 @@ export type SectionTitleProps = {
 export function SectionTitle({ title, color, fontSize }: SectionTitleProps) {
   return (
     <Text
+      accessibilityRole="header"
       style={{ color, fontSize }}
       className={color ? 'text-sectionTitle font-outfitSemiBold' : 'text-sectionTitle font-outfitSemiBold text-text'}>
       {title}

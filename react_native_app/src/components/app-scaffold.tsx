@@ -77,6 +77,7 @@ export function AppScaffold({
             </Pressable>
           )}
           <Text
+            accessibilityRole="header"
             style={{ marginLeft: showBackButton ? 0 : 16 }}
             className="flex-1 text-textXl font-outfitBold text-text"
             numberOfLines={1}>

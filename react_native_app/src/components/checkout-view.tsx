@@ -174,6 +174,7 @@ export function CheckoutDeliveryNote({ note, onNoteChange }: CheckoutDeliveryNot
         </Text>
         <TextInput
           testID="checkout-delivery-note"
+          accessibilityLabel="Delivery note / landmark (optional)"
           value={note}
           onChangeText={onNoteChange}
           multiline

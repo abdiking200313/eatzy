@@ -32,7 +32,7 @@ export function RestaurantHeaderSection({ name, description, itemCount, category
 
   return (
     <View style={{ paddingHorizontal: spacing.screenX, paddingTop: spacing.x6, paddingBottom: spacing.x5 }}>
-      <Text className="text-text2xl font-outfitBold text-text">{name}</Text>
+      <Text accessibilityRole="header" className="text-text2xl font-outfitBold text-text">{name}</Text>
       {trimmedDescription.length > 0 && (
         <>
           <View style={{ height: spacing.x2 }} />

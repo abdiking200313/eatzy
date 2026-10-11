@@ -276,3 +276,15 @@ export type RadiusToken = keyof typeof radius;
 export type ShadowToken = keyof typeof shadows;
 export type TypographyToken = keyof typeof typography;
 export type FontFamilyToken = keyof typeof fontFamily;
+
+/**
+ * `maxFontSizeMultiplier` caps for text inside fixed-height chrome (issue
+ * #416). Text everywhere else scales freely with the OS font size; only
+ * labels whose container height is a fixed token (e.g. the bottom nav's
+ * `spacing.navBarContentHeight`) are capped, so the largest accessibility
+ * sizes can't push them out of their bar. Not a Flutter token — Flutter's
+ * `NavigationBar` applies its own internal clamp.
+ */
+export const maxFontScale = {
+  navLabel: 1.3,
+} as const;

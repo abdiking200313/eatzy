@@ -4,7 +4,7 @@ import { useState, type ComponentProps } from 'react';
 import { Pressable, Text, View } from 'react-native';
 
 import { useSemanticColors } from '@/hooks/use-semantic-colors';
-import { spacing } from '@/theme/tokens';
+import { maxFontScale, spacing } from '@/theme/tokens';
 
 // The persistent bottom-nav shell (issue #358's router skeleton; this issue,
 // #370, is the "real tab-bar UI" #358's own top comment deferred). Mirrors
@@ -96,7 +96,7 @@ function MainAppTabBar({ state, navigation, insets }: BottomTabBarProps) {
 
   return (
     <View style={{ backgroundColor: colors.white, borderTopWidth: 1, borderTopColor: colors.border, paddingBottom: insets.bottom }}>
-      <View style={{ flexDirection: 'row', height: spacing.navBarContentHeight }}>
+      <View accessibilityRole="tablist" style={{ flexDirection: 'row', height: spacing.navBarContentHeight }}>
         {NAV_ITEMS.map((item, index) => {
           const isFocused = index === selectedIndex;
           const route = state.routes.find((candidate) => candidate.name === item.name);
@@ -121,6 +121,11 @@ function MainAppTabBar({ state, navigation, insets }: BottomTabBarProps) {
               <MaterialIcons name={item.icon} size={24} color={tintColor} />
               <Text
                 style={{ marginTop: 2 }}
+                // The bar is a fixed `navBarContentHeight` tall: cap large
+                // accessibility text sizes so labels can't overflow it (the
+                // tab's accessibilityLabel still carries the full name).
+                maxFontSizeMultiplier={maxFontScale.navLabel}
+                numberOfLines={1}
                 className={isFocused ? 'text-textXs font-outfitBold text-primary' : 'text-textXs font-outfitMedium text-textMuted'}>
                 {item.label}
               </Text>

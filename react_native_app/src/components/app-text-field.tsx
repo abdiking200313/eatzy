@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 
 import { useSemanticColors } from '@/hooks/use-semantic-colors';
-import { radius, rawColors, spacing } from '@/theme/tokens';
+import { radius, spacing } from '@/theme/tokens';
 
 export type AppTextFieldProps = {
   hint: string;
@@ -65,11 +65,16 @@ export function AppTextField({
   const colors = useSemanticColors();
   const [isFocused, setIsFocused] = useState(false);
   const [isHidden, setIsHidden] = useState(obscureText);
+  const accessibleName = label ?? hint;
 
   const field = (
     <View
       style={{
-        backgroundColor: rawColors.white,
+        // Flutter's `fillColor: Colors.white`. `colors.card` is that same
+        // white in light mode; in dark mode a hard-coded white fill put the
+        // light `text-text`/`textMuted` input text on white (~1.1:1
+        // contrast, unreadable — issue #416), so follow the themed card.
+        backgroundColor: colors.card,
         borderRadius: radius.xl,
         borderWidth: isFocused ? 1.5 : 1,
         borderColor: isFocused ? colors.primary : colors.borderStrong,
@@ -86,6 +91,10 @@ export function AppTextField({
         />
       )}
       <TextInput
+        // A screen reader announces the visible caption (or, with none,
+        // the hint) as the field's name rather than only the placeholder,
+        // which TalkBack/VoiceOver drop once the field has a value.
+        accessibilityLabel={accessibleName}
         value={value}
         onChangeText={onChangeText}
         keyboardType={keyboardType}
@@ -131,7 +140,11 @@ export function AppTextField({
         </Text>
       )}
       {onPress ? (
-        <Pressable accessibilityRole="button" onPress={onPress}>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={accessibleName}
+          accessibilityValue={value ? { text: value } : undefined}
+          onPress={onPress}>
           {field}
         </Pressable>
       ) : (
