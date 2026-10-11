@@ -7,3 +7,4 @@ export * from './memory-notification-preferences-storage';
 export * from './render-with-providers';
 export * from './fake-merchant-store-repository';
 export * from './fake-merchant-orders-repository';
+export * from './fake-admin-accounts-repository';
