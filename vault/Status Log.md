@@ -8,22 +8,11 @@ Reverse-chronological. Each session/major chunk of work gets an entry.
 
 ---
 
-## 2026-10-11, 7th run (board worker: nothing eligible)
+## 2026-10-11, 5th-8th runs (board worker: nothing eligible, 4 runs merged into one entry)
 
-- No eligible issues: the only open `todo` issues are `tracking` (#29, #52).
-- Still `waiting-on-you`, no human reply since the bot's last ask: #55 (Apple Team ID; unsigned iOS build is green since #558), #414 (E2E_* secrets, then run e2e-maestro), #557 (on-device QA).
-- Vault PR #521 (2026-10-10 8th run) is still open, green but now conflicting with `master`.
-
-## 2026-10-11, 6th run (board worker: nothing eligible)
-
-- No eligible issues: every open `todo` is `tracking` (#29, #52); #418/#419/#420/#455 are `needs-approval`; #11, #300, #441 are unlabeled.
-- Still waiting on the owner, with no human reply since the bot's last ask: #55 (Apple Team ID for signed iOS builds), #414 (add E2E_* secrets, then run the e2e-maestro workflow), #557 (on-device screen-reader and performance QA).
-- The previous run's vault PR #521 is still open and unmerged.
-
-## 2026-10-11, 5th run (board worker: nothing eligible)
-
-- No eligible issues: #29/#52 are tracking; #55 has open PR #558 (CI running from another session); #414/#557 `waiting-on-you` with no human reply.
-- 0 merged. PR #558 and vault PR #521 still open.
+- No eligible issues: the only open `todo` issues are `tracking` (#29, #52); #418/#419/#420/#455 are `needs-approval`.
+- Still `waiting-on-you`, no human reply since the bot's last ask: #55 (Apple Team ID; the unsigned iOS build is green since #558), #414 (add E2E_* secrets, then run e2e-maestro, #561), #557 (on-device QA).
+- 0 merged. Vault PR #521 (2026-10-10 8th run) is still open and conflicting with `master`.
 
 ## 2026-10-11, 4th run (owner decisions applied, 3 issues closed, 3 PRs opened)
 
