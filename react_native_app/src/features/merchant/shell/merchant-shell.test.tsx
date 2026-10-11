@@ -75,6 +75,16 @@ describe('MerchantShell (merchant_shell_test.dart)', () => {
     expect(screen.queryByText(ORDERS_PLACEHOLDER)).toBeNull();
   });
 
+  it('gives each destination a stable testID for the Maestro merchant flow (e2e/merchant-order.yaml)', async () => {
+    await render(<MerchantShell ownerId="merchant-1" auth={fakeAuth()} />);
+
+    expect(screen.getByTestId('merchant-nav-store')).toBe(screen.getByRole('tab', { name: 'My Store' }));
+    expect(screen.getByTestId('merchant-nav-orders')).toBe(screen.getByRole('tab', { name: 'Orders' }));
+
+    await fireEvent.press(screen.getByTestId('merchant-nav-orders'));
+    expect(screen.getByText(ORDERS_PLACEHOLDER)).toBeVisible();
+  });
+
   it('switching to Orders shows the Orders destination', async () => {
     await render(<MerchantShell ownerId="merchant-1" auth={fakeAuth()} />);
     await screen.findByText(MY_STORE_EMPTY_STATE);

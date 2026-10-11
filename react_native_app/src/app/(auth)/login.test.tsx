@@ -160,6 +160,14 @@ describe('LoginScreen', () => {
       expect(getByText('Sign in')).toBeOnTheScreen();
     });
 
+    test('exposes the stable selectors the Maestro merchant flow relies on (e2e/merchant-order.yaml)', async () => {
+      const { getByTestId, getByPlaceholderText } = await renderLogin();
+
+      expect(getByTestId('login-submit')).toBeOnTheScreen();
+      expect(getByPlaceholderText('you@example.com')).toBeOnTheScreen();
+      expect(getByPlaceholderText('Enter your password')).toBeOnTheScreen();
+    });
+
     test('shows a combined message for empty email/password, with no per-field text', async () => {
       const { getByText, queryByText } = await renderLogin();
 
