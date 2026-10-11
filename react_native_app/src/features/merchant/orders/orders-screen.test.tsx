@@ -10,14 +10,20 @@
  *
  * The Dart file's last two cases ("tapping an order opens detail and
  * accepting it advances it", "a rejected transition shows a clear error
- * banner") drive the order *detail* screen, which is P9-04 (#409). Here the
- * tap is ported up to the navigation boundary (the right order id is
- * opened); accept/reject on the detail screen lands with #409. The
- * controller-level accept/reject/illegal-transition cases are ported in
- * `merchant-orders-controller.test.ts`.
+ * banner") drive the order detail screen through a real `GoRouter`. Here
+ * `OrdersHarness` stands in for the expo-router stack: the list's
+ * `onOpenOrder` pushes `OrderDetailScreen` on top (self-resolving from the
+ * same store controller + orders repository, as the
+ * `/merchant/orders/:orderId` route does), and "back" pops it. The
+ * default tap -> `router.push('/merchant/orders/:id')` wiring is covered
+ * separately below. Dart reloads the list on pop; in RN the list stays
+ * mounted and the realtime UPDATE event the RPC's write produces refreshes
+ * it, simulated with `emitChange()`.
  */
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 import { router } from 'expo-router';
+import { useState } from 'react';
+import { Pressable, Text, View } from 'react-native';
 
 import { FakeMerchantOrdersRepository } from '@/test-utils/fake-merchant-orders-repository';
 import { FakeMerchantStoreRepository } from '@/test-utils/fake-merchant-store-repository';
@@ -27,9 +33,11 @@ import type { MerchantStoreRepository } from '../store/api/merchant-store-reposi
 import { MerchantStoreController } from '../store/merchant-store-controller';
 import { merchantOrderFromRow, type MerchantOrder } from './api/merchant-order';
 import type { MerchantOrdersRepository } from './api/merchant-orders-repository';
+import { OrderStatusTransitionError } from './api/order-status-transition-error';
+import { OrderDetailScreen } from './order-detail-screen';
 import { OrdersScreen } from './orders-screen';
 
-jest.mock('expo-router', () => ({ router: { push: jest.fn() } }));
+jest.mock('expo-router', () => ({ router: { push: jest.fn(), back: jest.fn(), canGoBack: jest.fn(() => true) } }));
 jest.mock('@/platform/supabase/client', () => ({ supabase: {} }));
 jest.mock('@/platform/error-reporting/error-reporter', () => ({ ErrorReporting: { instance: { reportError: jest.fn() } } }));
 
@@ -116,6 +124,30 @@ beforeEach(() => {
   jest.clearAllMocks();
 });
 
+/**
+ * Stand-in for the merchant stack (the Dart `buildOrdersApp`): the Orders
+ * list underneath, with the detail route pushed on top when an order is
+ * tapped. The list stays mounted while the detail is open, as in a stack.
+ */
+function OrdersHarness({ storeController, ordersRepository }: { storeController: MerchantStoreController; ordersRepository: MerchantOrdersRepository }) {
+  const [openOrderId, setOpenOrderId] = useState<string | null>(null);
+  return (
+    <View style={{ flex: 1 }}>
+      <View style={{ flex: 1, display: openOrderId == null ? 'flex' : 'none' }} testID="orders-route">
+        <OrdersScreen ownerId="merchant-1" storeController={storeController} ordersRepository={ordersRepository} onOpenOrder={setOpenOrderId} />
+      </View>
+      {openOrderId != null && (
+        <View style={{ flex: 1 }} testID="order-detail-route">
+          <Pressable testID="pop-route" onPress={() => setOpenOrderId(null)}>
+            <Text>Pop route</Text>
+          </Pressable>
+          <OrderDetailScreen orderId={openOrderId} ownerId="merchant-1" storeController={storeController} ordersRepository={ordersRepository} />
+        </View>
+      )}
+    </View>
+  );
+}
+
 describe('OrdersScreen (orders_screen_test.dart)', () => {
   it('shows a loading indicator while the store loads', async () => {
     const storeRepository = new NeverCompletingStoreRepository();
@@ -197,6 +229,53 @@ describe('OrdersScreen (orders_screen_test.dart)', () => {
     await fireEvent.press(await screen.findByText('Order #order-1-'));
 
     expect(router.push).toHaveBeenCalledWith('/merchant/orders/order-1-abcdef');
+  });
+});
+
+describe('OrdersScreen -> OrderDetailScreen (orders_screen_test.dart)', () => {
+  it('tapping an order opens detail and accepting it advances it', async () => {
+    const ordersRepository = new FakeMerchantOrdersRepository({ initialOrders: [confirmedOrder] });
+    await render(<OrdersHarness storeController={storeControllerWith(store)} ordersRepository={ordersRepository} />);
+
+    await fireEvent.press(await screen.findByText('Order #order-1-'));
+
+    // Navigation actually reached the order-detail route.
+    expect(screen.getByTestId('order-detail-route')).toBeTruthy();
+    // Line items and address/contact info are shown on the detail screen.
+    expect(await screen.findByText('Sambusa')).toBeTruthy();
+    expect(screen.getByText('Amina')).toBeTruthy();
+    expect(screen.getByText(/Main St/)).toBeTruthy();
+
+    await fireEvent.press(screen.getByRole('button', { name: 'Accept order' }));
+
+    // The pill on the detail screen reflects the new status immediately.
+    expect(screen.getAllByText('Preparing').length).toBeGreaterThan(0);
+
+    // The Dart `tester.pageBack()`.
+    await fireEvent.press(screen.getByTestId('pop-route'));
+    // The RPC's UPDATE reaches the still-mounted list over realtime.
+    await act(async () => ordersRepository.emitChange());
+
+    expect(screen.queryByTestId('order-detail-route')).toBeNull();
+    expect(await screen.findByText('Preparing')).toBeTruthy();
+    expect(screen.queryByText('Confirmed')).toBeNull();
+  });
+
+  it('a rejected transition shows a clear error banner, not a silent no-op', async () => {
+    const ordersRepository = new FakeMerchantOrdersRepository({ initialOrders: [confirmedOrder] });
+    await render(<OrdersHarness storeController={storeControllerWith(store)} ordersRepository={ordersRepository} />);
+
+    await fireEvent.press(await screen.findByText('Order #order-1-'));
+    expect(screen.getByTestId('order-detail-route')).toBeTruthy();
+    await screen.findByRole('button', { name: 'Accept order' });
+
+    // Set the failure only now, so the initial loads still succeed.
+    ordersRepository.failureToThrow = new OrderStatusTransitionError('Illegal food order status transition: confirmed -> preparing');
+    await fireEvent.press(screen.getByRole('button', { name: 'Accept order' }));
+
+    expect(await screen.findByText('Illegal food order status transition: confirmed -> preparing')).toBeTruthy();
+    // The status must not have silently changed.
+    expect(screen.getAllByText('Confirmed').length).toBeGreaterThan(0);
   });
 });
 

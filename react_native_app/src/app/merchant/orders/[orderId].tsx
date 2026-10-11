@@ -1,14 +1,16 @@
 import { useLocalSearchParams } from 'expo-router';
-import { Text, View } from 'react-native';
+
+import { OrderDetailScreen } from '@/features/merchant/orders/order-detail-screen';
+import { useSessionStore } from '@/stores/session-store';
 
 // Ports AppRoutes.merchantOrderDetail ('/merchant/orders/:orderId') from
-// flutter_app/lib/app/app_routes.dart / app_router.dart (issue #358: route
-// skeleton only -- real screen content lands in a later issue).
-export default function OrderDetailScreen() {
+// flutter_app/lib/app/app_router.dart, which builds
+// `OrderDetailScreen(orderId: ...)` and lets it resolve the signed-in
+// merchant's own store and orders (issue #409). Reached from a tap on the
+// Orders list (`merchantOrderDetailPath`) or a deep link; the merchant-role
+// gate lives in `merchant/_layout.tsx`.
+export default function MerchantOrderDetailRoute() {
   const { orderId } = useLocalSearchParams<{ orderId: string }>();
-  return (
-    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 }}>
-      <Text>/merchant/orders/:orderId ({orderId}) — not yet implemented</Text>
-    </View>
-  );
+  const ownerId = useSessionStore((state) => state.userId);
+  return <OrderDetailScreen orderId={String(orderId ?? '')} ownerId={ownerId} />;
 }
