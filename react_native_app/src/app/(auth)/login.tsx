@@ -204,6 +204,7 @@ export default function LoginScreen() {
               ) : (
                 <GradientActionButton
                   label="Sign in"
+                  testID="login-submit"
                   onPress={handlePress}
                   icon={<MaterialIcons name="arrow-forward" size={20} color={colors.onPrimary} />}
                 />

@@ -59,13 +59,15 @@ export type MerchantShellProps = {
 
 type Destination = {
   label: string;
+  /** Stable selector for tests and Maestro E2E flows (`e2e/merchant-order.yaml`). */
+  testID: string;
   icon: ComponentProps<typeof MaterialIcons>['name'];
 };
 
 /** Mirrors the Dart `NavigationBar`'s two destinations (`Icons.storefront_*` / `Icons.receipt_long_*`). */
 const DESTINATIONS: readonly Destination[] = [
-  { label: 'My Store', icon: 'storefront' },
-  { label: 'Orders', icon: 'receipt-long' },
+  { label: 'My Store', testID: 'merchant-nav-store', icon: 'storefront' },
+  { label: 'Orders', testID: 'merchant-nav-orders', icon: 'receipt-long' },
 ];
 
 export function MerchantShell({ ownerId: ownerIdProp, isAdmin: isAdminProp, auth = authService }: MerchantShellProps = {}) {
@@ -147,6 +149,7 @@ function MerchantNavigationBar({ selectedIndex, onSelect }: { selectedIndex: num
           return (
             <Pressable
               key={destination.label}
+              testID={destination.testID}
               accessibilityRole="tab"
               accessibilityState={{ selected: isSelected }}
               accessibilityLabel={destination.label}

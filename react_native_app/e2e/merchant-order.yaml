@@ -1,0 +1,167 @@
+# Merchant happy path (issue #414 / P10-02): a merchant signs in, opens an
+# incoming order, accepts it and advances it through every forward status
+# until it is delivered.
+#
+# Runs against a *dev* Supabase project baked into the build under test
+# (EXPO_PUBLIC_SUPABASE_URL / EXPO_PUBLIC_SUPABASE_ANON_KEY in
+# .env.development or the EAS build profile) -- never production. That
+# project must already contain a `merchant` account that owns a store, and
+# that store must have at least one order still in `confirmed` status (for
+# example one just placed by e2e/customer-food-order.yaml). See README.md
+# ("Merchant order flow") for the full prerequisites and the run command.
+#
+# The flow only uses status labels shared by every vertical ("Accept order",
+# "Mark as Out for delivery", "Mark as Delivered"), so it works for a food,
+# grocery or pharmacy store alike; the in-between step (Preparing / Shopping /
+# Packing) is advanced without asserting its vertical-specific name.
+#
+# Required env (maestro test -e NAME=value ...):
+#   E2E_MERCHANT_EMAIL     email of a dev-project account with role `merchant`
+#   E2E_MERCHANT_PASSWORD  that account's password
+# Optional env:
+#   E2E_ORDER_ID           full uuid of the `confirmed` order to work on;
+#                          without it the flow opens the first order in the
+#                          list whose status is Confirmed
+appId: com.zivo.app
+name: Merchant accepts and advances an order
+tags:
+  - merchant
+---
+- runScript: scripts/merchant-setup.js
+
+# Fresh install state: no session, onboarding not yet seen -> /welcome.
+- launchApp:
+    clearState: true
+    clearKeychain: true
+
+# --- Sign in -----------------------------------------------------------------
+- extendedWaitUntil:
+    visible: Log In
+    timeout: 30000
+- tapOn: Log In
+- extendedWaitUntil:
+    visible: Welcome back
+    timeout: 10000
+
+# The login fields are selected by their placeholder (AppTextField `hint`).
+- tapOn: you@example.com
+- inputText: ${output.merchant.email}
+- hideKeyboard
+- tapOn: Enter your password
+- inputText: ${output.merchant.password}
+- hideKeyboard
+- tapOn:
+    id: login-submit
+
+# login.tsx resolves the merchant role and replaces the route with
+# /merchant (the merchant shell, "My Store" tab first). A customer account
+# would land on the customer home instead and fail here.
+- extendedWaitUntil:
+    visible: Zivo Merchant
+    timeout: 30000
+
+# --- Open the order ----------------------------------------------------------
+- tapOn:
+    id: merchant-nav-orders
+- extendedWaitUntil:
+    visible:
+      id: merchant-orders-list
+    timeout: 20000
+
+- runFlow:
+    when:
+      true: ${output.merchant.orderId != ''}
+    commands:
+      - scrollUntilVisible:
+          element:
+            id: merchant-order-${output.merchant.orderId}
+          direction: DOWN
+          timeout: 20000
+      - tapOn:
+          id: merchant-order-${output.merchant.orderId}
+
+- runFlow:
+    when:
+      true: ${output.merchant.orderId == ''}
+    commands:
+      - scrollUntilVisible:
+          element:
+            text: Confirmed
+            childOf:
+              id: merchant-orders-list
+          direction: DOWN
+          timeout: 20000
+      - tapOn:
+          text: Confirmed
+          childOf:
+            id: merchant-orders-list
+
+# --- Accept ------------------------------------------------------------------
+# A `confirmed` order offers "Reject order" + "Accept order".
+- extendedWaitUntil:
+    visible:
+      id: merchant-order-detail
+    timeout: 20000
+- assertVisible:
+    id: order-detail-cancel
+    text: Reject order
+- assertVisible:
+    id: order-detail-advance
+    text: Accept order
+- tapOn:
+    id: order-detail-advance
+- extendedWaitUntil:
+    visible: Order marked as .*\.
+    timeout: 20000
+
+# --- Advance to out for delivery ---------------------------------------------
+# Second state (Preparing / Shopping / Packing): still cancellable, so the
+# outlined button now reads "Cancel order".
+- extendedWaitUntil:
+    visible:
+      id: order-detail-advance
+      text: Mark as Out for delivery
+    timeout: 20000
+- assertVisible:
+    id: order-detail-cancel
+    text: Cancel order
+- tapOn:
+    id: order-detail-advance
+- extendedWaitUntil:
+    visible: Order marked as Out for delivery\.
+    timeout: 20000
+
+# --- Advance to delivered ----------------------------------------------------
+# Out for delivery can no longer be cancelled -- only advanced.
+- extendedWaitUntil:
+    visible:
+      id: order-detail-advance
+      text: Mark as Delivered
+    timeout: 20000
+- assertNotVisible:
+    id: order-detail-cancel
+- tapOn:
+    id: order-detail-advance
+- extendedWaitUntil:
+    visible: Order marked as Delivered\.
+    timeout: 20000
+- assertVisible: This order is complete\. No further action is available\.
+- assertNotVisible:
+    id: order-detail-advance
+
+# --- Back to the list --------------------------------------------------------
+- tapOn: Back
+- extendedWaitUntil:
+    visible:
+      id: merchant-orders-list
+    timeout: 10000
+- runFlow:
+    when:
+      true: ${output.merchant.orderId != ''}
+    commands:
+      - extendedWaitUntil:
+          visible:
+            text: Delivered
+            childOf:
+              id: merchant-order-${output.merchant.orderId}
+          timeout: 20000
