@@ -1,0 +1,79 @@
+name: iOS build
+
+# Unsigned iOS build (issue #55). Verifies the Flutter app compiles for iOS
+# and publishes the generated ios/Podfile + ios/Podfile.lock as an artifact so
+# they can be reviewed and committed. Code signing is intentionally out of
+# scope until an Apple Team ID is configured. Not a required check.
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - master
+    paths:
+      - "flutter_app/ios/**"
+      - "flutter_app/pubspec.*"
+      - ".github/workflows/ios-build.yml"
+  push:
+    branches:
+      - master
+    paths:
+      - "flutter_app/ios/**"
+      - "flutter_app/pubspec.*"
+      - ".github/workflows/ios-build.yml"
+
+concurrency:
+  group: ios-build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ios-build:
+    name: ios-build
+    runs-on: macos-15
+    timeout-minutes: 45
+    env:
+      # Firebase iOS SDK 12 (firebase_core 4.x) requires iOS 15.0+.
+      IOS_PODS_PLATFORM: "15.0"
+    defaults:
+      run:
+        working-directory: flutter_app
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version-file: flutter_app/.tool-versions
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Generate Xcode config and Podfile
+        # Creates ios/Podfile from the Flutter template when it is missing.
+        # A pod install failure here is retried by the full build below.
+        continue-on-error: true
+        run: flutter build ios --config-only --no-codesign --release
+
+      - name: Pin CocoaPods iOS platform
+        run: |
+          if [ -f ios/Podfile ] && grep -q "^# platform :ios" ios/Podfile; then
+            sed -i '' "s/^# platform :ios, .*/platform :ios, '${IOS_PODS_PLATFORM}'/" ios/Podfile
+          fi
+          grep -n "platform :ios" ios/Podfile || true
+
+      - name: Build iOS (no code signing)
+        run: flutter build ios --no-codesign --release
+
+      - name: Upload Podfile and Podfile.lock
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-podfiles
+          path: |
+            flutter_app/ios/Podfile
+            flutter_app/ios/Podfile.lock
+          if-no-files-found: warn
+          retention-days: 30
