@@ -276,7 +276,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "\"${OBJROOT%/Build/*}/SourcePackages/checkouts/firebase-ios-sdk/Crashlytics/run\"";
+			shellScript = "# flutter build clones Swift packages into $FLUTTER_APPLICATION_PATH/build/ios/SourcePackages\n# (-clonedSourcePackagesDirPath); plain Xcode builds use DerivedData/<project>/SourcePackages.\nfor dir in \"${FLUTTER_APPLICATION_PATH}/build/ios/SourcePackages\" \"${BUILD_DIR%/Build/*}/SourcePackages\"; do\n  if [ -x \"${dir}/checkouts/firebase-ios-sdk/Crashlytics/run\" ]; then\n    exec \"${dir}/checkouts/firebase-ios-sdk/Crashlytics/run\"\n  fi\ndone\necho \"error: firebase-ios-sdk Crashlytics/run not found in Swift package checkouts\"\nexit 1\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
