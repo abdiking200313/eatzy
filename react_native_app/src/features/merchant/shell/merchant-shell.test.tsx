@@ -10,8 +10,10 @@
  * unconfigured queries resolve to no rows, so it lands on the same "no
  * store yet" empty state. `OrdersScreen` is real since P9-03 (#408) and,
  * sharing the shell's store controller, lands on the Dart test's same "Set
- * up your store first" state. `AdminAccountsScreen` is still a placeholder
- * (the unscheduled Accounts port), so those cases assert on its own copy.
+ * up your store first" state. `AdminAccountsScreen` is real since P9-07
+ * (#412): with the fake client's unconfigured `admin_list_profiles` RPC
+ * resolving to no rows, it lands on its "Accounts" header and "No accounts
+ * yet." empty state.
  *
  * `expo-router` is mocked the same way `profile.test.tsx` mocks it, and the
  * two stores the shell reads its defaults from are mocked the same way
@@ -42,7 +44,7 @@ const mockedUseMerchantSessionGateStore = useMerchantSessionGateStore as unknown
 
 const MY_STORE_EMPTY_STATE = "You don't have a store yet";
 const ORDERS_PLACEHOLDER = 'Set up your store first';
-const ACCOUNTS_PLACEHOLDER = 'Account management is coming soon';
+const ACCOUNTS_PLACEHOLDER = 'No accounts yet.';
 
 function setStores(session: Partial<SessionState>, gate: Partial<MerchantSessionGateState>) {
   const sessionState: SessionState = { status: 'signedIn', session: null, userId: null, ...session };
@@ -95,6 +97,7 @@ describe('MerchantShell (merchant_shell_test.dart)', () => {
     expect(screen.getByRole('tab', { name: 'My Store' })).toBeTruthy();
     expect(screen.getByRole('tab', { name: 'Orders' })).toBeTruthy();
     expect(screen.queryByText(ACCOUNTS_PLACEHOLDER, { includeHiddenElements: true })).toBeNull();
+    expect(screen.queryByPlaceholderText('Search by name or email', { includeHiddenElements: true })).toBeNull();
     expect(screen.getByText('Zivo Merchant')).toBeTruthy();
     expect(screen.queryByText('Zivo Admin')).toBeNull();
   });
@@ -103,7 +106,8 @@ describe('MerchantShell (merchant_shell_test.dart)', () => {
     await render(<MerchantShell ownerId="admin-1" isAdmin auth={fakeAuth()} />);
 
     expect(screen.getByText('Zivo Admin')).toBeTruthy();
-    expect(screen.getByText(ACCOUNTS_PLACEHOLDER)).toBeTruthy();
+    expect(screen.getByRole('header', { name: 'Accounts' })).toBeTruthy();
+    expect(await screen.findByText(ACCOUNTS_PLACEHOLDER)).toBeTruthy();
     expect(screen.getByRole('button', { name: 'Sign out' })).toBeTruthy();
 
     // None of the merchant destinations exist for an admin.
@@ -144,7 +148,7 @@ describe('MerchantShell (RN-only cases)', () => {
     await render(<MerchantShell auth={fakeAuth()} />);
 
     expect(screen.getByText('Zivo Admin')).toBeTruthy();
-    expect(screen.getByText(ACCOUNTS_PLACEHOLDER)).toBeTruthy();
+    expect(await screen.findByText(ACCOUNTS_PLACEHOLDER)).toBeTruthy();
   });
 
   it('defaults to the merchant destinations for a resolved non-admin merchant', async () => {
