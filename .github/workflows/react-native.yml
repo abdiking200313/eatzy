@@ -22,7 +22,7 @@ jobs:
         working-directory: react_native_app
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           # Full history so the PR diff against the base branch can be computed.
           fetch-depth: 0
