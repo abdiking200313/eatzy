@@ -8,10 +8,10 @@
  * real `AdminAccountsScreen` list. `MyStoreScreen` is real since P9-02
  * (#407): the Supabase client is mocked with the shared fake client, whose
  * unconfigured queries resolve to no rows, so it lands on the same "no
- * store yet" empty state. `OrdersScreen`/`AdminAccountsScreen` are still
- * placeholders (P9-03 and the unscheduled Accounts port), so those cases
- * assert on the placeholders' own copy instead -- same intent: the right
- * destination is showing.
+ * store yet" empty state. `OrdersScreen` is real since P9-03 (#408) and,
+ * sharing the shell's store controller, lands on the Dart test's same "Set
+ * up your store first" state. `AdminAccountsScreen` is still a placeholder
+ * (the unscheduled Accounts port), so those cases assert on its own copy.
  *
  * `expo-router` is mocked the same way `profile.test.tsx` mocks it, and the
  * two stores the shell reads its defaults from are mocked the same way
@@ -21,6 +21,8 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react-nativ
 import { router } from 'expo-router';
 import { Alert } from 'react-native';
 
+import { supabase } from '@/platform/supabase/client';
+import type { FakeSupabaseClient } from '@/test-utils/fake-supabase-client';
 import { useMerchantSessionGateStore, type MerchantSessionGateState } from '@/stores/merchant-session-gate';
 import { useSessionStore, type SessionState } from '@/stores/session-store';
 
@@ -39,7 +41,7 @@ const mockedUseSessionStore = useSessionStore as unknown as jest.Mock;
 const mockedUseMerchantSessionGateStore = useMerchantSessionGateStore as unknown as jest.Mock;
 
 const MY_STORE_EMPTY_STATE = "You don't have a store yet";
-const ORDERS_PLACEHOLDER = 'Incoming orders are coming soon';
+const ORDERS_PLACEHOLDER = 'Set up your store first';
 const ACCOUNTS_PLACEHOLDER = 'Account management is coming soon';
 
 function setStores(session: Partial<SessionState>, gate: Partial<MerchantSessionGateState>) {
@@ -124,6 +126,18 @@ describe('MerchantShell (merchant_shell_test.dart)', () => {
 });
 
 describe('MerchantShell (RN-only cases)', () => {
+  it('shares one store controller between My Store and Orders, so the store is fetched once', async () => {
+    const fake = supabase as unknown as FakeSupabaseClient;
+    const callsBefore = fake.calls.filter((call) => call.name === 'restaurants').length;
+    await render(<MerchantShell ownerId="merchant-1" auth={fakeAuth()} />);
+    await screen.findByText(MY_STORE_EMPTY_STATE);
+
+    await fireEvent.press(screen.getByRole('tab', { name: 'Orders' }));
+    expect(screen.getByText(ORDERS_PLACEHOLDER)).toBeVisible();
+
+    expect(fake.calls.filter((call) => call.name === 'restaurants').length - callsBefore).toBe(1);
+  });
+
   it('defaults ownerId and isAdmin from the session store and merchant-session gate', async () => {
     setStores({ userId: 'admin-1' }, { resolvedUserId: 'admin-1', isMerchantRole: true, isAdmin: true });
 
