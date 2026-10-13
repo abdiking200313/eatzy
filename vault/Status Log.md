@@ -8,16 +8,10 @@ Reverse-chronological. Each session/major chunk of work gets an entry.
 
 ---
 
-## 2026-10-13, 7th run (board worker: nothing eligible)
+## 2026-10-13, 1st-7th runs (board worker: nothing eligible, 7 runs merged into one entry)
 
-- No eligible issues; the only `todo` items are tracking issues #29, #52.
-- Waiting on owner (no reply since the bot's question): #55 (Apple DEVELOPMENT_TEAM ID), #414 (E2E_* secrets + seeded confirmed order, then run `e2e-maestro`), #557 (on-device screen-reader/perf QA checklist).
-- Open PRs still needing a decision/merge: #499 (P6-02 restaurant screen), #521 (2026-10-10 vault log), plus dependabot PRs.
-
-## 2026-10-13, 1st-6th runs (board worker: nothing eligible, 6 runs merged into one entry)
-
-- Same picture as 2026-10-12: `todo` only holds tracking #29/#52; `waiting-on-you` #55/#414/#557 still have no human reply after the bot's last comment, so all were skipped. 0 issues processed in any of the 6 runs.
-- Still open: vault PR #521, duplicate PR #499. #441 is still unlabeled.
+- Same picture as 2026-10-12: `todo` only holds tracking #29/#52; `waiting-on-you` #55/#414/#557 still have no human reply after the bot's last comment, so all were skipped. 0 issues processed in any of the 7 runs.
+- Still open: vault PR #521, duplicate PR #499, plus dependabot PRs. #441 is still unlabeled.
 
 ## 2026-10-12, 1st-24th runs (board worker: nothing eligible, 24 runs merged into one entry)
 
