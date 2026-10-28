@@ -8,6 +8,10 @@ Reverse-chronological. Each session/major chunk of work gets an entry.
 
 ---
 
+## 2026-10-28 (board worker: nothing eligible)
+
+- Unchanged since 2026-10-13: the only `todo` issues are tracking issues #29 and #52. #55, #414 and #557 are `waiting-on-you` with no human reply after the bot's last comment, so all three were skipped. 0 issues processed.
+
 ## 2026-10-13, 1st-17th runs (board worker: nothing eligible, 17 runs merged into one entry)
 
 - Same picture as 2026-10-12: `todo` only holds tracking #29/#52; `waiting-on-you` #55/#414/#557 still have no human reply after the bot's last comment, so all were skipped. 0 issues processed in any of the 17 runs (17th re-checked at 16:19 UTC, unchanged).
