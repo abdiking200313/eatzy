@@ -1,0 +1,1537 @@
+{
+  "about": "Zivo React Native migration issues. Create them in `order`. Replace {{DEPENDS_ON}} in each body with links to the already-created issues listed in depends_on, or 'None' if empty. Already-done plan items (not included): P0-01, P0-02, P0-06.",
+  "repo": "abdiking200313/eatzy",
+  "labels": [
+    {
+      "name": "app:react-native",
+      "color": "61DAFB",
+      "description": "React Native app (react_native_app/)"
+    },
+    {
+      "name": "app:flutter",
+      "color": "02569B",
+      "description": "Flutter app (flutter_app/)"
+    },
+    {
+      "name": "phase:0",
+      "color": "C5DEF5",
+      "description": "RN migration phase 0: Foundation"
+    },
+    {
+      "name": "phase:1",
+      "color": "C5DEF5",
+      "description": "RN migration phase 1: Design system"
+    },
+    {
+      "name": "phase:2",
+      "color": "C5DEF5",
+      "description": "RN migration phase 2: Navigation and session"
+    },
+    {
+      "name": "phase:3",
+      "color": "C5DEF5",
+      "description": "RN migration phase 3: Auth and onboarding"
+    },
+    {
+      "name": "phase:4",
+      "color": "C5DEF5",
+      "description": "RN migration phase 4: Super-app shell"
+    },
+    {
+      "name": "phase:5",
+      "color": "C5DEF5",
+      "description": "RN migration phase 5: Shared commerce"
+    },
+    {
+      "name": "phase:6",
+      "color": "C5DEF5",
+      "description": "RN migration phase 6: Food"
+    },
+    {
+      "name": "phase:7",
+      "color": "C5DEF5",
+      "description": "RN migration phase 7: Grocery and pharmacy"
+    },
+    {
+      "name": "phase:8",
+      "color": "C5DEF5",
+      "description": "RN migration phase 8: Orders and account"
+    },
+    {
+      "name": "phase:9",
+      "color": "C5DEF5",
+      "description": "RN migration phase 9: Merchant"
+    },
+    {
+      "name": "phase:10",
+      "color": "C5DEF5",
+      "description": "RN migration phase 10: Quality and release"
+    },
+    {
+      "name": "type:setup",
+      "color": "BFD4F2",
+      "description": "Tooling, config, CI, infrastructure"
+    },
+    {
+      "name": "type:feature",
+      "color": "A2EEEF",
+      "description": "Ports a screen or flow"
+    },
+    {
+      "name": "type:test",
+      "color": "D4C5F9",
+      "description": "Test-only work"
+    },
+    {
+      "name": "type:backend",
+      "color": "F9D0C4",
+      "description": "Supabase migration or setting change"
+    },
+    {
+      "name": "area:platform",
+      "color": "EDEDED",
+      "description": "Area: platform"
+    },
+    {
+      "name": "area:auth",
+      "color": "EDEDED",
+      "description": "Area: auth"
+    },
+    {
+      "name": "area:food",
+      "color": "EDEDED",
+      "description": "Area: food"
+    },
+    {
+      "name": "area:grocery",
+      "color": "EDEDED",
+      "description": "Area: grocery"
+    },
+    {
+      "name": "area:pharmacy",
+      "color": "EDEDED",
+      "description": "Area: pharmacy"
+    },
+    {
+      "name": "area:merchant",
+      "color": "EDEDED",
+      "description": "Area: merchant"
+    },
+    {
+      "name": "size:S",
+      "color": "C2E0C6",
+      "description": "About 1 day"
+    },
+    {
+      "name": "size:M",
+      "color": "FEF2C0",
+      "description": "2 to 3 days"
+    },
+    {
+      "name": "size:L",
+      "color": "F9D0C4",
+      "description": "4 to 5 days"
+    },
+    {
+      "name": "needs-approval",
+      "color": "FBCA04",
+      "description": "Proposed; board worker never acts on it"
+    }
+  ],
+  "milestones": [
+    "RN Phase 0 – Foundation",
+    "RN Phase 1 – Design system",
+    "RN Phase 2 – Navigation and session",
+    "RN Phase 3 – Auth and onboarding",
+    "RN Phase 4 – Super-app shell",
+    "RN Phase 5 – Shared commerce",
+    "RN Phase 6 – Food",
+    "RN Phase 7 – Grocery and pharmacy",
+    "RN Phase 8 – Orders and account",
+    "RN Phase 9 – Merchant",
+    "RN Phase 10 – Quality and release"
+  ],
+  "issues": [
+    {
+      "order": 1,
+      "id": "P0-03",
+      "title": "[P0-03] Env config for dev and prod",
+      "labels": [
+        "needs-approval",
+        "app:react-native",
+        "phase:0",
+        "type:setup",
+        "area:platform",
+        "size:S"
+      ],
+      "milestone": "RN Phase 0 – Foundation",
+      "depends_on": [],
+      "body": "<!-- rn-migration-id: P0-03 -->\n**Order:** 1 of 75 · **Phase 0:** Foundation · **Size:** S\n\n## Goal\nThe app reads its Supabase URL and key from per-environment config, and development never points at production by accident.\n\n## Ports from Flutter\n- `flutter_app/lib/config/env.dart`\n\n## Flutter tests to port or match\n- `flutter_app/test/env_test.dart`\n\n## Tasks\n- [ ] Add `app.config.ts` that reads `EXPO_PUBLIC_SUPABASE_URL` and `EXPO_PUBLIC_SUPABASE_ANON_KEY` (and an `APP_ENV` of `development` or `production`)\n- [ ] Commit `.env.example` with placeholder values; keep real `.env.development` / `.env.production` git-ignored\n- [ ] Expose a typed `env` object from `src/platform/config/env.ts` that throws a clear error when a value is missing\n- [ ] Log a visible warning in development builds when the URL matches the production project, mirroring the Flutter env checks\n\n## Acceptance criteria\n- [ ] Starting the app without env values shows a clear error naming the missing variable\n- [ ] No Supabase URL or key is committed to git\n- [ ] Port the cases in `env_test.dart`\n\n## Depends on\n{{DEPENDS_ON}}\n\n## Definition of done\n- Work only in `react_native_app/`; never edit `flutter_app/`.\n- `npm run lint` and `npm run typecheck` pass.\n- Behavior matches the Flutter files above, checked side by side.\n- Full checklist: *Conventions* section of the migration plan and `react_native_app/AGENTS.md`."
+    },
+    {
+      "order": 2,
+      "id": "P0-04",
+      "title": "[P0-04] Supabase client and data-layer foundation",
+      "labels": [
+        "needs-approval",
+        "app:react-native",
+        "phase:0",
+        "type:setup",
+        "area:platform",
+        "size:M"
+      ],
+      "milestone": "RN Phase 0 – Foundation",
+      "depends_on": [
+        "P0-03"
+      ],
+      "body": "<!-- rn-migration-id: P0-04 -->\n**Order:** 2 of 75 · **Phase 0:** Foundation · **Size:** M\n\n## Goal\nOne shared Supabase client with a persisted, auto-refreshing session, plus the TanStack Query and Zustand foundations every feature will use.\n\n## Ports from Flutter\n- `flutter_app/lib/main.dart`\n- `flutter_app/lib/platform/session/secure_session_storage.dart`\n\n## Flutter tests to port or match\n- `flutter_app/test/secure_session_storage_test.dart`\n\n## Tasks\n- [ ] `npx expo install @supabase/supabase-js react-native-url-polyfill expo-secure-store @react-native-async-storage/async-storage @tanstack/react-query zustand`\n- [ ] Create `src/platform/supabase/client.ts` with session persistence. SecureStore values are limited to about 2 KB, so store the session encrypted in AsyncStorage with the key in SecureStore (or an equivalent safe pattern)\n- [ ] Start and stop `supabase.auth.startAutoRefresh()` on AppState changes\n- [ ] Add a `QueryClientProvider` in the root layout with sensible defaults (retry, stale time)\n\n## Acceptance criteria\n- [ ] Logging in, killing the app, and reopening keeps the user signed in\n- [ ] Tokens refresh while the app is in the foreground\n- [ ] Port the cases in `secure_session_storage_test.dart`\n\n## Depends on\n{{DEPENDS_ON}}\n\n## Definition of done\n- Work only in `react_native_app/`; never edit `flutter_app/`.\n- `npm run lint` and `npm run typecheck` pass.\n- Behavior matches the Flutter files above, checked side by side.\n- Full checklist: *Conventions* section of the migration plan and `react_native_app/AGENTS.md`."
+    },
+    {
+      "order": 3,
+      "id": "P0-05",
+      "title": "[P0-05] Generated Supabase types and gen:types script",
+      "labels": [
+        "needs-approval",
+        "app:react-native",
+        "phase:0",
+        "type:setup",
+        "area:platform",
+        "size:S"
+      ],
+      "milestone": "RN Phase 0 – Foundation",
+      "depends_on": [
+        "P0-04"
+      ],
+      "body": "<!-- rn-migration-id: P0-05 -->\n**Order:** 3 of 75 · **Phase 0:** Foundation · **Size:** S\n\n## Goal\nAll database access is typed from the real schema.\n\n## Tasks\n- [ ] Add `npm run gen:types` generating `src/types/database.ts` from the Supabase project (or local schema)\n- [ ] Type the client as `createClient<Database>()`\n- [ ] Document in the README when to regenerate (after every migration)\n\n## Acceptance criteria\n- [ ] `src/types/database.ts` is committed and covers all public tables and RPCs\n- [ ] Calling a non-existent table or RPC is a type error\n\n## Depends on\n{{DEPENDS_ON}}\n\n## Definition of done\n- Work only in `react_native_app/`; never edit `flutter_app/`.\n- `npm run lint` and `npm run typecheck` pass.\n- Behavior matches the Flutter files above, checked side by side.\n- Full checklist: *Conventions* section of the migration plan and `react_native_app/AGENTS.md`."
+    },
+    {
+      "order": 4,
+      "id": "P0-07",
+      "title": "[P0-07] Jest + React Native Testing Library setup with a fake Supabase helper, and npm test in CI",
+      "labels": [
+        "needs-approval",
+        "app:react-native",
+        "phase:0",
+        "type:test",
+        "area:platform",
+        "size:M"
+      ],
+      "milestone": "RN Phase 0 – Foundation",
+      "depends_on": [
+        "P0-04"
+      ],
+      "body": "<!-- rn-migration-id: P0-07 -->\n**Order:** 4 of 75 · **Phase 0:** Foundation · **Size:** M\n\n## Goal\nEvery later issue can write unit and component tests without touching a real database.\n\n## Flutter tests to port or match\n- `flutter_app/test/helpers/`\n\n## Tasks\n- [ ] Install `jest-expo`, `@testing-library/react-native`, and types; add `npm test`\n- [ ] Create `src/test-utils/` with a fake Supabase client (query builder and `rpc` mocks) and a `renderWithProviders` helper (QueryClient, router)\n- [ ] Port the useful parts of the Flutter `test/helpers/`\n- [ ] Add an `npm test` step to `.github/workflows/react-native.yml`\n\n## Acceptance criteria\n- [ ] `npm test` runs a sample unit test and a sample component test\n- [ ] CI runs tests on React Native pull requests\n\n## Depends on\n{{DEPENDS_ON}}\n\n## Definition of done\n- Work only in `react_native_app/`; never edit `flutter_app/`.\n- `npm run lint` and `npm run typecheck` pass, and `npm test` once P0-07 is merged.\n- Behavior matches the Flutter files above, checked side by side.\n- Full checklist: *Conventions* section of the migration plan and `react_native_app/AGENTS.md`."
+    },
+    {
+      "order": 5,
+      "id": "P0-08",
+      "title": "[P0-08] EAS config and development builds",
+      "labels": [
+        "needs-approval",
+        "app:react-native",
+        "phase:0",
+        "type:setup",
+        "area:platform",
+        "size:M"
+      ],
+      "milestone": "RN Phase 0 – Foundation",
+      "depends_on": [],
+      "body": "<!-- rn-migration-id: P0-08 -->\n**Order:** 5 of 75 · **Phase 0:** Foundation · **Size:** M\n\n## Goal\nThe app builds as a development build on Android and iOS with the existing bundle ID, ready for native modules like Firebase.\n\n## Tasks\n- [ ] Add `eas.json` with `development`, `preview`, and `production` profiles\n- [ ] `npx expo install expo-dev-client`\n- [ ] Confirm `com.zivo.app` on both platforms and document signing: the Play listing's app signing key (Play App Signing) and the same Apple developer team must be used\n- [ ] Document how to build and install a development build in the README\n\n## Acceptance criteria\n- [ ] A development build installs and starts on an Android emulator and an iOS simulator\n- [ ] No signing secrets are committed\n\n## Depends on\n{{DEPENDS_ON}}\n\n## Definition of done\n- Work only in `react_native_app/`; never edit `flutter_app/`.\n- `npm run lint` and `npm run typecheck` pass, and `npm test` once P0-07 is merged.\n- Behavior matches the Flutter files above, checked side by side.\n- Full checklist: *Conventions* section of the migration plan and `react_native_app/AGENTS.md`."
+    },
+    {
+      "order": 6,
+      "id": "P0-09",
+      "title": "[P0-09] Crashlytics error reporter and root error boundary",
+      "labels": [
+        "needs-approval",
+        "app:react-native",
+        "phase:0",
+        "type:feature",
+        "area:platform",
+        "size:M"
+      ],
+      "milestone": "RN Phase 0 – Foundation",
+      "depends_on": [
+        "P0-08"
+      ],
+      "body": "<!-- rn-migration-id: P0-09 -->\n**Order:** 6 of 75 · **Phase 0:** Foundation · **Size:** M\n\n## Goal\nCrashes and caught errors are reported to the same Firebase project as the Flutter app, and a crash shows a friendly fallback instead of a blank screen.\n\n## Ports from Flutter\n- `flutter_app/lib/platform/error_reporting/error_reporter.dart`\n- `flutter_app/lib/platform/error_reporting/crashlytics_error_reporter.dart`\n- `flutter_app/lib/widgets/error_fallback.dart`\n\n## Flutter tests to port or match\n- `flutter_app/test/error_reporter_test.dart`\n- `flutter_app/test/crashlytics_error_reporter_test.dart`\n\n## Tasks\n- [ ] `npx expo install @react-native-firebase/app @react-native-firebase/crashlytics` and add the config plugins\n- [ ] Reuse the Firebase config from `flutter_app/android/app/google-services.json` and `flutter_app/ios/Runner/GoogleService-Info.plist`\n- [ ] Create an `ErrorReporter` interface with a Crashlytics implementation and a no-op one for tests and development\n- [ ] Wrap the root layout in an error boundary that shows the ported fallback UI\n\n## Acceptance criteria\n- [ ] A forced test crash shows up in Crashlytics for a development build\n- [ ] A render error shows the fallback screen\n- [ ] Port the cases in both error-reporter tests\n\n## Depends on\n{{DEPENDS_ON}}\n\n## Definition of done\n- Work only in `react_native_app/`; never edit `flutter_app/`.\n- `npm run lint` and `npm run typecheck` pass, and `npm test` once P0-07 is merged.\n- Behavior matches the Flutter files above, checked side by side.\n- Full checklist: *Conventions* section of the migration plan and `react_native_app/AGENTS.md`."
+    },
+    {
+      "order": 7,
+      "id": "P1-01",
+      "title": "[P1-01] Theme tokens with NativeWind, light and dark",
+      "labels": [
+        "needs-approval",
+        "app:react-native",
+        "phase:1",
+        "type:setup",
+        "area:platform",
+        "size:M"
+      ],
+      "milestone": "RN Phase 1 – Design system",
+      "depends_on": [],
+      "body": "<!-- rn-migration-id: P1-01 -->\n**Order:** 7 of 75 · **Phase 1:** Design system · **Size:** M\n\n## Goal\nAll colors, spacing, radii, and shadows from the Flutter design system are available as tokens in both light and dark mode.\n\n## Ports from Flutter\n- `flutter_app/lib/config/tailwind.dart`\n- `flutter_app/lib/config/theme.dart`\n\n## Tasks\n- [ ] Install NativeWind v4 and Tailwind with `npx expo install` and set up Babel/Metro per the NativeWind docs\n- [ ] Copy every token from `tailwind.dart` into `tailwind.config.js` with the same names\n- [ ] Add light and dark values matching `theme.dart`\n- [ ] Export the same tokens as `src/theme/tokens.ts` for places that need JS values (charts, status bar)\n\n## Acceptance criteria\n- [ ] A sample view renders correctly in light and dark mode\n- [ ] No token from `tailwind.dart` is missing or renamed\n\n## Depends on\n{{DEPENDS_ON}}\n\n## Definition of done\n- Work only in `react_native_app/`; never edit `flutter_app/`.\n- `npm run lint` and `npm run typecheck` pass, and `npm test` once P0-07 is merged.\n- Behavior matches the Flutter files above, checked side by side.\n- Full checklist: *Conventions* section of the migration plan and `react_native_app/AGENTS.md`."
+    },
+    {
+      "order": 8,
+      "id": "P1-02",
+      "title": "[P1-02] Outfit fonts",
+      "labels": [
+        "needs-approval",
+        "app:react-native",
+        "phase:1",
+        "type:setup",
+        "area:platform",
+        "size:S"
+      ],
+      "milestone": "RN Phase 1 – Design system",
+      "depends_on": [
+        "P0-08",
+        "P1-01"
+      ],
+      "body": "<!-- rn-migration-id: P1-02 -->\n**Order:** 8 of 75 · **Phase 1:** Design system · **Size:** S\n\n## Goal\nText uses the same Outfit typeface and type scale as the Flutter app.\n\n## Ports from Flutter\n- `flutter_app/lib/config/theme.dart`\n\n## Tasks\n- [ ] Copy the four Outfit `.ttf` files from `flutter_app/assets/fonts/` to `assets/fonts/`\n- [ ] Embed them with the `expo-font` config plugin\n- [ ] Add font-family and type-scale tokens matching the Flutter text theme\n\n## Acceptance criteria\n- [ ] Headings and body text render in Outfit on both platforms\n\n## Depends on\n{{DEPENDS_ON}}\n\n## Definition of done\n- Work only in `react_native_app/`; never edit `flutter_app/`.\n- `npm run lint` and `npm run typecheck` pass, and `npm test` once P0-07 is merged.\n- Behavior matches the Flutter files above, checked side by side.\n- Full checklist: *Conventions* section of the migration plan and `react_native_app/AGENTS.md`."
+    },
+    {
+      "order": 9,
+      "id": "P1-03",
+      "title": "[P1-03] Per-service theming",
+      "labels": [
+        "needs-approval",
+        "app:react-native",
+        "phase:1",
+        "type:feature",
+        "area:platform",
+        "size:S"
+      ],
+      "milestone": "RN Phase 1 – Design system",
+      "depends_on": [
+        "P1-01"
+      ],
+      "body": "<!-- rn-migration-id: P1-03 -->\n**Order:** 9 of 75 · **Phase 1:** Design system · **Size:** S\n\n## Goal\nFood, grocery (including fresh meat and electronics), and pharmacy screens use their own accent colors, as in the Flutter app.\n\n## Ports from Flutter\n- `flutter_app/lib/config/service_theme.dart`\n\n## Tasks\n- [ ] Create `src/theme/service-theme.ts` with every service's colors\n- [ ] Add a `useServiceTheme(service)` hook or provider\n\n## Acceptance criteria\n- [ ] Each service's accent colors match the Flutter app\n\n## Depends on\n{{DEPENDS_ON}}\n\n## Definition of done\n- Work only in `react_native_app/`; never edit `flutter_app/`.\n- `npm run lint` and `npm run typecheck` pass, and `npm test` once P0-07 is merged.\n- Behavior matches the Flutter files above, checked side by side.\n- Full checklist: *Conventions* section of the migration plan and `react_native_app/AGENTS.md`."
+    },
+    {
+      "order": 10,
+      "id": "P1-04",
+      "title": "[P1-04] Shared UI components",
+      "labels": [
+        "needs-approval",
+        "app:react-native",
+        "phase:1",
+        "type:feature",
+        "area:platform",
+        "size:L"
+      ],
+      "milestone": "RN Phase 1 – Design system",
+      "depends_on": [
+        "P1-01",
+        "P1-02"
+      ],
+      "body": "<!-- rn-migration-id: P1-04 -->\n**Order:** 10 of 75 · **Phase 1:** Design system · **Size:** L\n\n## Goal\nThe reusable building blocks every screen needs exist and match the Flutter widgets.\n\n## Ports from Flutter\n- `flutter_app/lib/widgets/app_cards.dart`\n- `flutter_app/lib/widgets/app_misc.dart`\n- `flutter_app/lib/widgets/app_scaffold.dart`\n- `flutter_app/lib/widgets/app_search_bar.dart`\n- `flutter_app/lib/widgets/app_widgets.dart`\n- `flutter_app/lib/widgets/zivo_logo.dart`\n- `flutter_app/lib/widgets/add_to_cart_button.dart`\n- `flutter_app/lib/widgets/cart_app_bar_action.dart`\n\n## Flutter tests to port or match\n- `flutter_app/test/layout_test.dart`\n\n## Tasks\n- [ ] Port each widget to a component in `src/components/`\n- [ ] Use theme tokens only; no hardcoded colors or sizes\n- [ ] Use `@expo/vector-icons` MaterialIcons with the same icon names as Flutter\n\n## Acceptance criteria\n- [ ] Each component matches its Flutter widget side by side, in light and dark mode\n- [ ] Component tests cover the main variants\n\n## Depends on\n{{DEPENDS_ON}}\n\n## Definition of done\n- Work only in `react_native_app/`; never edit `flutter_app/`.\n- `npm run lint` and `npm run typecheck` pass, and `npm test` once P0-07 is merged.\n- Behavior matches the Flutter files above, checked side by side.\n- Full checklist: *Conventions* section of the migration plan and `react_native_app/AGENTS.md`."
+    },
+    {
+      "order": 11,
+      "id": "P1-05",
+      "title": "[P1-05] Money and date formatting",
+      "labels": [
+        "needs-approval",
+        "app:react-native",
+        "phase:1",
+        "type:feature",
+        "area:platform",
+        "size:S"
+      ],
+      "milestone": "RN Phase 1 – Design system",
+      "depends_on": [
+        "P0-07"
+      ],
+      "body": "<!-- rn-migration-id: P1-05 -->\n**Order:** 11 of 75 · **Phase 1:** Design system · **Size:** S\n\n## Goal\nPrices display exactly like the Flutter app, with money kept as integer cents everywhere.\n\n## Ports from Flutter\n- `flutter_app/lib/platform/localization/app_money.dart`\n\n## Flutter tests to port or match\n- `flutter_app/test/app_money_test.dart`\n\n## Tasks\n- [ ] Create `src/platform/money/format.ts` with `formatCents` and helpers using the `Intl` API\n- [ ] Add date and time formatting used across order screens\n\n## Acceptance criteria\n- [ ] Every case in `app_money_test.dart` is ported and passes\n\n## Depends on\n{{DEPENDS_ON}}\n\n## Definition of done\n- Work only in `react_native_app/`; never edit `flutter_app/`.\n- `npm run lint` and `npm run typecheck` pass, and `npm test` once P0-07 is merged.\n- Behavior matches the Flutter files above, checked side by side.\n- Full checklist: *Conventions* section of the migration plan and `react_native_app/AGENTS.md`."
+    },
+    {
+      "order": 12,
+      "id": "P1-06",
+      "title": "[P1-06] Loading, empty, and error states plus a dev gallery",
+      "labels": [
+        "needs-approval",
+        "app:react-native",
+        "phase:1",
+        "type:feature",
+        "area:platform",
+        "size:S"
+      ],
+      "milestone": "RN Phase 1 – Design system",
+      "depends_on": [
+        "P1-04"
+      ],
+      "body": "<!-- rn-migration-id: P1-06 -->\n**Order:** 12 of 75 · **Phase 1:** Design system · **Size:** S\n\n## Goal\nEvery screen can show consistent loading, empty, and error states, and all shared components can be reviewed on one dev-only screen.\n\n## Ports from Flutter\n- `flutter_app/lib/services/shared/presentation/loadable_state_mixin.dart`\n\n## Tasks\n- [ ] Add `LoadingState`, `EmptyState`, and `ErrorState` (with retry) components\n- [ ] Add a dev-only gallery route showing every shared component, hidden in production builds\n\n## Acceptance criteria\n- [ ] The gallery shows all components in light and dark mode\n- [ ] The gallery route is unreachable in production builds\n\n## Depends on\n{{DEPENDS_ON}}\n\n## Definition of done\n- Work only in `react_native_app/`; never edit `flutter_app/`.\n- `npm run lint` and `npm run typecheck` pass, and `npm test` once P0-07 is merged.\n- Behavior matches the Flutter files above, checked side by side.\n- Full checklist: *Conventions* section of the migration plan and `react_native_app/AGENTS.md`."
+    },
+    {
+      "order": 13,
+      "id": "P2-01",
+      "title": "[P2-01] Router skeleton with every screen as a placeholder",
+      "labels": [
+        "needs-approval",
+        "app:react-native",
+        "phase:2",
+        "type:setup",
+        "area:platform",
+        "size:M"
+      ],
+      "milestone": "RN Phase 2 – Navigation and session",
+      "depends_on": [],
+      "body": "<!-- rn-migration-id: P2-01 -->\n**Order:** 13 of 75 · **Phase 2:** Navigation and session · **Size:** M\n\n## Goal\nEvery Flutter screen has a matching Expo Router route, so later issues only fill in screens.\n\n## Ports from Flutter\n- `flutter_app/lib/app/app_routes.dart`\n- `flutter_app/lib/app/app_router.dart`\n- `flutter_app/lib/app/not_found_screen.dart`\n\n## Flutter tests to port or match\n- `flutter_app/test/route_reachability_test.dart`\n\n## Tasks\n- [ ] Create route files under `src/app/` for every screen in `app_routes.dart`, grouped as `(auth)`, `(app)` with `(tabs)`, and `merchant`\n- [ ] Add the legacy redirects from `app_router.dart` (`/` → welcome, `/home` → main app, `/categories` → services, `/cart` → food cart, `/checkout` → food checkout, `/restaurants` → food, and the parameterized ones)\n- [ ] Port the not-found screen as `+not-found.tsx`\n- [ ] Use typed route params\n\n## Acceptance criteria\n- [ ] Every route in `app_routes.dart` is reachable\n- [ ] Legacy paths redirect like in Flutter\n\n## Depends on\n{{DEPENDS_ON}}\n\n## Definition of done\n- Work only in `react_native_app/`; never edit `flutter_app/`.\n- `npm run lint` and `npm run typecheck` pass, and `npm test` once P0-07 is merged.\n- Behavior matches the Flutter files above, checked side by side.\n- Full checklist: *Conventions* section of the migration plan and `react_native_app/AGENTS.md`."
+    },
+    {
+      "order": 14,
+      "id": "P2-02",
+      "title": "[P2-02] Session store and auth redirects",
+      "labels": [
+        "needs-approval",
+        "app:react-native",
+        "phase:2",
+        "type:feature",
+        "area:auth",
+        "size:M"
+      ],
+      "milestone": "RN Phase 2 – Navigation and session",
+      "depends_on": [
+        "P0-04",
+        "P2-01"
+      ],
+      "body": "<!-- rn-migration-id: P2-02 -->\n**Order:** 14 of 75 · **Phase 2:** Navigation and session · **Size:** M\n\n## Goal\nSigned-out users only reach auth screens, signed-in users only reach the app, and signing out clears all per-user state.\n\n## Ports from Flutter\n- `flutter_app/lib/app/app_router.dart`\n- `flutter_app/lib/app/app_scope.dart`\n- `flutter_app/lib/platform/session/account_state_coordinator.dart`\n- `flutter_app/lib/platform/session/session_reset_registry.dart`\n\n## Flutter tests to port or match\n- `flutter_app/test/app_router_test.dart`\n- `flutter_app/test/account_state_coordinator_test.dart`\n- `flutter_app/test/app_scope_test.dart`\n\n## Tasks\n- [ ] Create a Zustand session store fed by `supabase.auth.onAuthStateChange`\n- [ ] Add redirects in the `(auth)` and `(app)` `_layout.tsx` files matching `_redirect` in `app_router.dart`\n- [ ] Add a reset registry so carts, caches, and stores clear on sign-out, like `session_reset_registry.dart`\n\n## Acceptance criteria\n- [ ] Redirect behavior matches the cases in `app_router_test.dart`\n- [ ] After sign-out, no previous user's data is visible\n\n## Depends on\n{{DEPENDS_ON}}\n\n## Definition of done\n- Work only in `react_native_app/`; never edit `flutter_app/`.\n- `npm run lint` and `npm run typecheck` pass, and `npm test` once P0-07 is merged.\n- Behavior matches the Flutter files above, checked side by side.\n- Full checklist: *Conventions* section of the migration plan and `react_native_app/AGENTS.md`."
+    },
+    {
+      "order": 15,
+      "id": "P2-03",
+      "title": "[P2-03] Startup gate",
+      "labels": [
+        "needs-approval",
+        "app:react-native",
+        "phase:2",
+        "type:feature",
+        "area:platform",
+        "size:S"
+      ],
+      "milestone": "RN Phase 2 – Navigation and session",
+      "depends_on": [
+        "P2-02"
+      ],
+      "body": "<!-- rn-migration-id: P2-03 -->\n**Order:** 15 of 75 · **Phase 2:** Navigation and session · **Size:** S\n\n## Goal\nThe splash screen stays up until the session and onboarding state are known, so users never see a flash of the wrong screen.\n\n## Ports from Flutter\n- `flutter_app/lib/platform/startup/startup_gate.dart`\n\n## Flutter tests to port or match\n- `flutter_app/test/startup_gate_test.dart`\n\n## Tasks\n- [ ] Hold the native splash with `expo-splash-screen` until session and onboarding state load\n- [ ] Route to welcome, onboarding, or the main app accordingly\n\n## Acceptance criteria\n- [ ] Cold start never flashes the wrong screen\n- [ ] Port the cases in `startup_gate_test.dart`\n\n## Depends on\n{{DEPENDS_ON}}\n\n## Definition of done\n- Work only in `react_native_app/`; never edit `flutter_app/`.\n- `npm run lint` and `npm run typecheck` pass, and `npm test` once P0-07 is merged.\n- Behavior matches the Flutter files above, checked side by side.\n- Full checklist: *Conventions* section of the migration plan and `react_native_app/AGENTS.md`."
+    },
+    {
+      "order": 16,
+      "id": "P2-04",
+      "title": "[P2-04] Deep links for password reset and order tracking",
+      "labels": [
+        "needs-approval",
+        "app:react-native",
+        "phase:2",
+        "type:feature",
+        "area:platform",
+        "size:M"
+      ],
+      "milestone": "RN Phase 2 – Navigation and session",
+      "depends_on": [
+        "P2-01"
+      ],
+      "body": "<!-- rn-migration-id: P2-04 -->\n**Order:** 16 of 75 · **Phase 2:** Navigation and session · **Size:** M\n\n## Goal\nLinks like `zivo://reset-password` and `zivo://track-order/<id>` open the right screen.\n\n## Ports from Flutter\n- `flutter_app/lib/features/auth/data/auth_service.dart`\n- `flutter_app/lib/app/app_router.dart`\n\n## Tasks\n- [ ] Handle the `zivo://` scheme (already set in `app.json`) with Expo Router\n- [ ] Handle the Supabase password-recovery link: read the token or code from the URL and set the session\n- [ ] Route `track-order/<id>` links to the tracking screen\n\n## Acceptance criteria\n- [ ] Opening `zivo://track-order/123` on a device opens that route\n- [ ] A password-reset link opens the reset screen with a valid session\n\n## Depends on\n{{DEPENDS_ON}}\n\n## Definition of done\n- Work only in `react_native_app/`; never edit `flutter_app/`.\n- `npm run lint` and `npm run typecheck` pass, and `npm test` once P0-07 is merged.\n- Behavior matches the Flutter files above, checked side by side.\n- Full checklist: *Conventions* section of the migration plan and `react_native_app/AGENTS.md`."
+    },
+    {
+      "order": 17,
+      "id": "SB-01",
+      "title": "[SB-01] Add the app's deep-link URLs to Supabase Auth redirect URLs",
+      "labels": [
+        "needs-approval",
+        "app:react-native",
+        "phase:2",
+        "type:backend",
+        "area:auth",
+        "size:S"
+      ],
+      "milestone": "RN Phase 2 – Navigation and session",
+      "depends_on": [
+        "P2-04"
+      ],
+      "body": "<!-- rn-migration-id: SB-01 -->\n**Order:** 17 of 75 · **Phase 2:** Navigation and session · **Size:** S\n\n## Goal\nSupabase accepts the React Native app's links as auth redirect targets, so password-reset emails can open the app.\n\n## Tasks\n- [ ] Add `zivo://reset-password` (and the Expo development URL pattern) to `additional_redirect_urls` in `supabase/config.toml`\n- [ ] Write down the exact dashboard change (Authentication → URL Configuration) in the PR description: a human must apply it to the live project\n- [ ] Keep the Flutter app's existing redirect URLs; do not remove anything\n\n## Acceptance criteria\n- [ ] `config.toml` lists the new URLs alongside the existing ones\n- [ ] The PR description contains the dashboard steps for the owner\n\n## Depends on\n{{DEPENDS_ON}}\n\n## Definition of done\n- Work only in `react_native_app/` and `supabase/`; never edit `flutter_app/`.\n- `npm run lint` and `npm run typecheck` pass, and `npm test` once P0-07 is merged.\n- Behavior matches the Flutter files above, checked side by side.\n- Full checklist: *Conventions* section of the migration plan and `react_native_app/AGENTS.md`."
+    },
+    {
+      "order": 18,
+      "id": "P2-05",
+      "title": "[P2-05] Merchant session gate with role check",
+      "labels": [
+        "needs-approval",
+        "app:react-native",
+        "phase:2",
+        "type:feature",
+        "area:merchant",
+        "size:S"
+      ],
+      "milestone": "RN Phase 2 – Navigation and session",
+      "depends_on": [
+        "P2-02"
+      ],
+      "body": "<!-- rn-migration-id: P2-05 -->\n**Order:** 18 of 75 · **Phase 2:** Navigation and session · **Size:** S\n\n## Goal\nOnly merchant accounts can open the merchant area, as in the Flutter app.\n\n## Ports from Flutter\n- `flutter_app/lib/app/merchant_session_gate.dart`\n- `flutter_app/lib/features/merchant/auth/data/merchant_role_service.dart`\n\n## Flutter tests to port or match\n- `flutter_app/test/merchant_session_gate_test.dart`\n- `flutter_app/test/merchant_role_service_test.dart`\n\n## Tasks\n- [ ] Add a role check in `src/app/merchant/_layout.tsx` using a ported role service\n- [ ] Redirect non-merchants the same way Flutter does\n\n## Acceptance criteria\n- [ ] Port the cases in both tests\n\n## Depends on\n{{DEPENDS_ON}}\n\n## Definition of done\n- Work only in `react_native_app/`; never edit `flutter_app/`.\n- `npm run lint` and `npm run typecheck` pass, and `npm test` once P0-07 is merged.\n- Behavior matches the Flutter files above, checked side by side.\n- Full checklist: *Conventions* section of the migration plan and `react_native_app/AGENTS.md`."
+    },
+    {
+      "order": 19,
+      "id": "P3-01",
+      "title": "[P3-01] Onboarding pages and persistence",
+      "labels": [
+        "needs-approval",
+        "app:react-native",
+        "phase:3",
+        "type:feature",
+        "area:auth",
+        "size:M"
+      ],
+      "milestone": "RN Phase 3 – Auth and onboarding",
+      "depends_on": [
+        "P1-04",
+        "P2-03"
+      ],
+      "body": "<!-- rn-migration-id: P3-01 -->\n**Order:** 19 of 75 · **Phase 3:** Auth and onboarding · **Size:** M\n\n## Goal\nNew users see the welcome and onboarding pages once, and can revisit them from the auth screens.\n\n## Ports from Flutter\n- `flutter_app/lib/features/onboarding/presentation/welcome_screen.dart`\n- `flutter_app/lib/features/onboarding/presentation/onboarding_page_1.dart`\n- `flutter_app/lib/features/onboarding/presentation/onboarding_page_2.dart`\n- `flutter_app/lib/features/onboarding/presentation/onboarding_page_3.dart`\n- `flutter_app/lib/features/onboarding/presentation/widgets/onboarding_page.dart`\n- `flutter_app/lib/features/onboarding/data/onboarding_preferences.dart`\n\n## Flutter tests to port or match\n- `flutter_app/test/onboarding_screen_test.dart`\n- `flutter_app/test/onboarding_preferences_test.dart`\n- `flutter_app/test/auth_back_to_onboarding_test.dart`\n\n## Tasks\n- [ ] Port the welcome screen and the three onboarding pages with their imagery\n- [ ] Persist the seen-onboarding flag\n- [ ] Support the revisit link from the auth screens\n\n## Acceptance criteria\n- [ ] Onboarding shows once per install and can be revisited\n- [ ] Port the cases in all three tests\n\n## Depends on\n{{DEPENDS_ON}}\n\n## Definition of done\n- Work only in `react_native_app/`; never edit `flutter_app/`.\n- `npm run lint` and `npm run typecheck` pass, and `npm test` once P0-07 is merged.\n- Behavior matches the Flutter files above, checked side by side.\n- Full checklist: *Conventions* section of the migration plan and `react_native_app/AGENTS.md`."
+    },
+    {
+      "order": 20,
+      "id": "P3-02",
+      "title": "[P3-02] Login screen",
+      "labels": [
+        "needs-approval",
+        "app:react-native",
+        "phase:3",
+        "type:feature",
+        "area:auth",
+        "size:M"
+      ],
+      "milestone": "RN Phase 3 – Auth and onboarding",
+      "depends_on": [
+        "P2-02",
+        "P1-04"
+      ],
+      "body": "<!-- rn-migration-id: P3-02 -->\n**Order:** 20 of 75 · **Phase 3:** Auth and onboarding · **Size:** M\n\n## Goal\nUsers can log in with email and password, with the same validation and error messages as Flutter.\n\n## Ports from Flutter\n- `flutter_app/lib/features/auth/presentation/login_screen.dart`\n- `flutter_app/lib/features/auth/data/auth_service.dart`\n- `flutter_app/lib/features/auth/data/auth_error_message.dart`\n\n## Flutter tests to port or match\n- `flutter_app/test/login_screen_test.dart`\n- `flutter_app/test/auth_service_test.dart`\n\n## Tasks\n- [ ] Port the login form with react-hook-form and zod\n- [ ] Port `auth_error_message.dart` so errors read the same\n- [ ] Port the sign-in parts of `auth_service.dart` into `src/features/auth/api/`\n\n## Acceptance criteria\n- [ ] A real account can log in and lands on the main app\n- [ ] Wrong credentials show the same message as Flutter\n\n## Depends on\n{{DEPENDS_ON}}\n\n## Definition of done\n- Work only in `react_native_app/`; never edit `flutter_app/`.\n- `npm run lint` and `npm run typecheck` pass, and `npm test` once P0-07 is merged.\n- Behavior matches the Flutter files above, checked side by side.\n- Full checklist: *Conventions* section of the migration plan and `react_native_app/AGENTS.md`."
+    },
+    {
+      "order": 21,
+      "id": "P3-03",
+      "title": "[P3-03] Register screen",
+      "labels": [
+        "needs-approval",
+        "app:react-native",
+        "phase:3",
+        "type:feature",
+        "area:auth",
+        "size:M"
+      ],
+      "milestone": "RN Phase 3 – Auth and onboarding",
+      "depends_on": [
+        "P2-02",
+        "P1-04"
+      ],
+      "body": "<!-- rn-migration-id: P3-03 -->\n**Order:** 21 of 75 · **Phase 3:** Auth and onboarding · **Size:** M\n\n## Goal\nNew users can sign up with the same fields (including date of birth) and signup metadata as Flutter, so the profile trigger fills in correctly.\n\n## Ports from Flutter\n- `flutter_app/lib/features/auth/presentation/register_screen.dart`\n- `flutter_app/lib/features/auth/data/auth_service.dart`\n\n## Flutter tests to port or match\n- `flutter_app/test/register_screen_test.dart`\n\n## Tasks\n- [ ] Port the register form and validation\n- [ ] Send the same signup metadata keys as Flutter (the `handle_new_user` trigger reads them)\n\n## Acceptance criteria\n- [ ] A new signup creates a profile row with the same fields as a Flutter signup\n- [ ] Port the cases in `register_screen_test.dart`\n\n## Depends on\n{{DEPENDS_ON}}\n\n## Definition of done\n- Work only in `react_native_app/`; never edit `flutter_app/`.\n- `npm run lint` and `npm run typecheck` pass, and `npm test` once P0-07 is merged.\n- Behavior matches the Flutter files above, checked side by side.\n- Full checklist: *Conventions* section of the migration plan and `react_native_app/AGENTS.md`."
+    },
+    {
+      "order": 22,
+      "id": "SB-02",
+      "title": "[SB-02] Check the password-reset email template",
+      "labels": [
+        "needs-approval",
+        "app:react-native",
+        "phase:3",
+        "type:backend",
+        "area:auth",
+        "size:S"
+      ],
+      "milestone": "RN Phase 3 – Auth and onboarding",
+      "depends_on": [
+        "SB-01"
+      ],
+      "body": "<!-- rn-migration-id: SB-02 -->\n**Order:** 22 of 75 · **Phase 3:** Auth and onboarding · **Size:** S\n\n## Goal\nThe password-reset email links to a URL the React Native app can open.\n\n## Tasks\n- [ ] Check the recovery email template and redirect settings in `supabase/config.toml` and the dashboard\n- [ ] Make the reset flow pass `redirectTo` per app (Flutter keeps its URL, React Native uses `zivo://reset-password`) rather than changing a shared default\n- [ ] Document any dashboard change for the owner in the PR description\n\n## Acceptance criteria\n- [ ] A reset email requested from each app opens that app\n\n## Depends on\n{{DEPENDS_ON}}\n\n## Definition of done\n- Work only in `react_native_app/` and `supabase/`; never edit `flutter_app/`.\n- `npm run lint` and `npm run typecheck` pass, and `npm test` once P0-07 is merged.\n- Behavior matches the Flutter files above, checked side by side.\n- Full checklist: *Conventions* section of the migration plan and `react_native_app/AGENTS.md`."
+    },
+    {
+      "order": 23,
+      "id": "P3-04",
+      "title": "[P3-04] Forgot password and reset password",
+      "labels": [
+        "needs-approval",
+        "app:react-native",
+        "phase:3",
+        "type:feature",
+        "area:auth",
+        "size:M"
+      ],
+      "milestone": "RN Phase 3 – Auth and onboarding",
+      "depends_on": [
+        "P2-04",
+        "SB-01",
+        "SB-02"
+      ],
+      "body": "<!-- rn-migration-id: P3-04 -->\n**Order:** 23 of 75 · **Phase 3:** Auth and onboarding · **Size:** M\n\n## Goal\nUsers can request a reset email and set a new password from the link.\n\n## Ports from Flutter\n- `flutter_app/lib/features/auth/presentation/forgot_password_screen.dart`\n- `flutter_app/lib/features/auth/presentation/reset_password_screen.dart`\n- `flutter_app/lib/features/auth/data/auth_service.dart`\n\n## Tasks\n- [ ] Port both screens\n- [ ] Request the reset with `redirectTo: 'zivo://reset-password'`\n- [ ] On the reset screen, update the password with the session from the deep link\n\n## Acceptance criteria\n- [ ] The full flow works on a real device: request, open email link, set password, log in\n\n## Depends on\n{{DEPENDS_ON}}\n\n## Definition of done\n- Work only in `react_native_app/`; never edit `flutter_app/`.\n- `npm run lint` and `npm run typecheck` pass, and `npm test` once P0-07 is merged.\n- Behavior matches the Flutter files above, checked side by side.\n- Full checklist: *Conventions* section of the migration plan and `react_native_app/AGENTS.md`."
+    },
+    {
+      "order": 24,
+      "id": "P3-05",
+      "title": "[P3-05] Auth test parity check",
+      "labels": [
+        "needs-approval",
+        "app:react-native",
+        "phase:3",
+        "type:test",
+        "area:auth",
+        "size:S"
+      ],
+      "milestone": "RN Phase 3 – Auth and onboarding",
+      "depends_on": [
+        "P3-01",
+        "P3-02",
+        "P3-03",
+        "P3-04"
+      ],
+      "body": "<!-- rn-migration-id: P3-05 -->\n**Order:** 24 of 75 · **Phase 3:** Auth and onboarding · **Size:** S\n\n## Goal\nEvery Flutter auth and onboarding test case has a React Native equivalent.\n\n## Flutter tests to port or match\n- `flutter_app/test/auth_service_test.dart`\n- `flutter_app/test/login_screen_test.dart`\n- `flutter_app/test/register_screen_test.dart`\n- `flutter_app/test/auth_back_to_onboarding_test.dart`\n- `flutter_app/test/onboarding_screen_test.dart`\n\n## Tasks\n- [ ] Compare each Flutter test case with the React Native tests from P3-01 to P3-04 and add any that are missing\n\n## Acceptance criteria\n- [ ] A table in the PR maps each Flutter test case to its React Native test\n\n## Depends on\n{{DEPENDS_ON}}\n\n## Definition of done\n- Work only in `react_native_app/`; never edit `flutter_app/`.\n- `npm run lint` and `npm run typecheck` pass, and `npm test` once P0-07 is merged.\n- Behavior matches the Flutter files above, checked side by side.\n- Full checklist: *Conventions* section of the migration plan and `react_native_app/AGENTS.md`."
+    },
+    {
+      "order": 25,
+      "id": "P4-01",
+      "title": "[P4-01] Bottom tabs: home, services, activity, profile",
+      "labels": [
+        "needs-approval",
+        "app:react-native",
+        "phase:4",
+        "type:feature",
+        "area:platform",
+        "size:M"
+      ],
+      "milestone": "RN Phase 4 – Super-app shell",
+      "depends_on": [
+        "P2-02",
+        "P1-04"
+      ],
+      "body": "<!-- rn-migration-id: P4-01 -->\n**Order:** 25 of 75 · **Phase 4:** Super-app shell · **Size:** M\n\n## Goal\nSigned-in users land on a tab bar with the same four tabs as the Flutter app.\n\n## Ports from Flutter\n- `flutter_app/lib/app/main_app_screen.dart`\n\n## Flutter tests to port or match\n- `flutter_app/test/main_app_screen_test.dart`\n\n## Tasks\n- [ ] Create the `(tabs)` layout with the four tabs, icons, and labels from Flutter\n- [ ] Keep placeholder content for tabs whose screens come later\n\n## Acceptance criteria\n- [ ] Tabs match Flutter's order, icons, and labels\n- [ ] Port the cases in `main_app_screen_test.dart`\n\n## Depends on\n{{DEPENDS_ON}}\n\n## Definition of done\n- Work only in `react_native_app/`; never edit `flutter_app/`.\n- `npm run lint` and `npm run typecheck` pass, and `npm test` once P0-07 is merged.\n- Behavior matches the Flutter files above, checked side by side.\n- Full checklist: *Conventions* section of the migration plan and `react_native_app/AGENTS.md`."
+    },
+    {
+      "order": 26,
+      "id": "P4-05",
+      "title": "[P4-05] Service registry",
+      "labels": [
+        "needs-approval",
+        "app:react-native",
+        "phase:4",
+        "type:feature",
+        "area:platform",
+        "size:S"
+      ],
+      "milestone": "RN Phase 4 – Super-app shell",
+      "depends_on": [
+        "P4-01"
+      ],
+      "body": "<!-- rn-migration-id: P4-05 -->\n**Order:** 26 of 75 · **Phase 4:** Super-app shell · **Size:** S\n\n## Goal\nOne config lists every service (food, grocery, fresh meat, electronics, pharmacy, and coming-soon tiles), so home and categories render from the same source.\n\n## Ports from Flutter\n- `flutter_app/lib/app/service_module.dart`\n- `flutter_app/lib/app/app_services.dart`\n\n## Flutter tests to port or match\n- `flutter_app/test/service_registry_test.dart`\n- `flutter_app/test/app_services_test.dart`\n\n## Tasks\n- [ ] Port the registry to `src/platform/services/registry.ts` with the same entries, routes, and coming-soon flags\n\n## Acceptance criteria\n- [ ] Port the cases in both tests\n\n## Depends on\n{{DEPENDS_ON}}\n\n## Definition of done\n- Work only in `react_native_app/`; never edit `flutter_app/`.\n- `npm run lint` and `npm run typecheck` pass, and `npm test` once P0-07 is merged.\n- Behavior matches the Flutter files above, checked side by side.\n- Full checklist: *Conventions* section of the migration plan and `react_native_app/AGENTS.md`."
+    },
+    {
+      "order": 27,
+      "id": "P4-06",
+      "title": "[P4-06] Persist the query cache across launches",
+      "labels": [
+        "needs-approval",
+        "app:react-native",
+        "phase:4",
+        "type:feature",
+        "area:platform",
+        "size:S"
+      ],
+      "milestone": "RN Phase 4 – Super-app shell",
+      "depends_on": [
+        "P0-04"
+      ],
+      "body": "<!-- rn-migration-id: P4-06 -->\n**Order:** 27 of 75 · **Phase 4:** Super-app shell · **Size:** S\n\n## Goal\nCatalog data shows instantly on the next launch while fresh data loads, as in the Flutter query cache.\n\n## Ports from Flutter\n- `flutter_app/lib/platform/cache/query_cache.dart`\n- `flutter_app/lib/platform/cache/catalog_queries.dart`\n\n## Flutter tests to port or match\n- `flutter_app/test/query_cache_test.dart`\n\n## Tasks\n- [ ] Add the TanStack Query persister with AsyncStorage\n- [ ] Persist only the same catalog queries Flutter caches, with the same expiry\n- [ ] Clear the cache on sign-out through the reset registry\n\n## Acceptance criteria\n- [ ] Relaunching offline still shows the last catalog data\n- [ ] Port the cases in `query_cache_test.dart`\n\n## Depends on\n{{DEPENDS_ON}}\n\n## Definition of done\n- Work only in `react_native_app/`; never edit `flutter_app/`.\n- `npm run lint` and `npm run typecheck` pass, and `npm test` once P0-07 is merged.\n- Behavior matches the Flutter files above, checked side by side.\n- Full checklist: *Conventions* section of the migration plan and `react_native_app/AGENTS.md`."
+    },
+    {
+      "order": 28,
+      "id": "P4-02",
+      "title": "[P4-02] Super-app home screen",
+      "labels": [
+        "needs-approval",
+        "app:react-native",
+        "phase:4",
+        "type:feature",
+        "area:platform",
+        "size:L"
+      ],
+      "milestone": "RN Phase 4 – Super-app shell",
+      "depends_on": [
+        "P4-01",
+        "P4-05"
+      ],
+      "body": "<!-- rn-migration-id: P4-02 -->\n**Order:** 28 of 75 · **Phase 4:** Super-app shell · **Size:** L\n\n## Goal\nThe home tab matches the Flutter home: header, promo banner, service grid, popular stores, and recent activity.\n\n## Ports from Flutter\n- `flutter_app/lib/features/super_app/presentation/super_app_home_screen.dart`\n- `flutter_app/lib/features/super_app/presentation/widgets/home_header.dart`\n- `flutter_app/lib/features/super_app/presentation/widgets/promo_banner.dart`\n- `flutter_app/lib/features/super_app/presentation/widgets/service_grid.dart`\n- `flutter_app/lib/features/super_app/presentation/widgets/popular_stores_section.dart`\n- `flutter_app/lib/features/super_app/presentation/widgets/recent_activity_section.dart`\n- `flutter_app/lib/features/super_app/presentation/widgets/section_header.dart`\n- `flutter_app/lib/platform/discovery/store_listing.dart`\n- `flutter_app/lib/platform/discovery/store_listing_repository.dart`\n- `flutter_app/lib/platform/activity/data/activity_repository.dart`\n\n## Flutter tests to port or match\n- `flutter_app/test/super_app_home_test.dart`\n- `flutter_app/test/store_listing_repository_test.dart`\n\n## Tasks\n- [ ] Port the home screen and its widgets\n- [ ] Port the store listing API for popular stores\n- [ ] Port the read path of `activity_repository.dart` to `src/platform/activity/api/` for the recent-activity section (P8-01 reuses it)\n\n## Acceptance criteria\n- [ ] Home matches Flutter side by side with real data\n- [ ] Port the cases in both tests\n\n## Depends on\n{{DEPENDS_ON}}\n\n## Definition of done\n- Work only in `react_native_app/`; never edit `flutter_app/`.\n- `npm run lint` and `npm run typecheck` pass, and `npm test` once P0-07 is merged.\n- Behavior matches the Flutter files above, checked side by side.\n- Full checklist: *Conventions* section of the migration plan and `react_native_app/AGENTS.md`."
+    },
+    {
+      "order": 29,
+      "id": "P4-03",
+      "title": "[P4-03] Services and categories screen",
+      "labels": [
+        "needs-approval",
+        "app:react-native",
+        "phase:4",
+        "type:feature",
+        "area:platform",
+        "size:M"
+      ],
+      "milestone": "RN Phase 4 – Super-app shell",
+      "depends_on": [
+        "P4-05"
+      ],
+      "body": "<!-- rn-migration-id: P4-03 -->\n**Order:** 29 of 75 · **Phase 4:** Super-app shell · **Size:** M\n\n## Goal\nThe services tab lists every service from the registry, as in Flutter.\n\n## Ports from Flutter\n- `flutter_app/lib/features/super_app/presentation/categories_screen.dart`\n\n## Flutter tests to port or match\n- `flutter_app/test/categories_screen_test.dart`\n\n## Tasks\n- [ ] Port the screen, rendering from the service registry\n\n## Acceptance criteria\n- [ ] Port the cases in `categories_screen_test.dart`\n\n## Depends on\n{{DEPENDS_ON}}\n\n## Definition of done\n- Work only in `react_native_app/`; never edit `flutter_app/`.\n- `npm run lint` and `npm run typecheck` pass, and `npm test` once P0-07 is merged.\n- Behavior matches the Flutter files above, checked side by side.\n- Full checklist: *Conventions* section of the migration plan and `react_native_app/AGENTS.md`."
+    },
+    {
+      "order": 30,
+      "id": "P4-04",
+      "title": "[P4-04] Explore and discovery screen",
+      "labels": [
+        "needs-approval",
+        "app:react-native",
+        "phase:4",
+        "type:feature",
+        "area:platform",
+        "size:M"
+      ],
+      "milestone": "RN Phase 4 – Super-app shell",
+      "depends_on": [
+        "P4-02"
+      ],
+      "body": "<!-- rn-migration-id: P4-04 -->\n**Order:** 30 of 75 · **Phase 4:** Super-app shell · **Size:** M\n\n## Goal\nUsers can browse and search stores across services, as in Flutter.\n\n## Ports from Flutter\n- `flutter_app/lib/platform/discovery/presentation/explore_screen.dart`\n\n## Flutter tests to port or match\n- `flutter_app/test/explore_screen_test.dart`\n\n## Tasks\n- [ ] Port the explore screen using the store listing API from P4-02\n\n## Acceptance criteria\n- [ ] Port the cases in `explore_screen_test.dart`\n\n## Depends on\n{{DEPENDS_ON}}\n\n## Definition of done\n- Work only in `react_native_app/`; never edit `flutter_app/`.\n- `npm run lint` and `npm run typecheck` pass, and `npm test` once P0-07 is merged.\n- Behavior matches the Flutter files above, checked side by side.\n- Full checklist: *Conventions* section of the migration plan and `react_native_app/AGENTS.md`."
+    },
+    {
+      "order": 31,
+      "id": "P5-01",
+      "title": "[P5-01] Cart store per vertical with persistence",
+      "labels": [
+        "needs-approval",
+        "app:react-native",
+        "phase:5",
+        "type:feature",
+        "area:platform",
+        "size:L"
+      ],
+      "milestone": "RN Phase 5 – Shared commerce",
+      "depends_on": [
+        "P0-07",
+        "P2-02"
+      ],
+      "body": "<!-- rn-migration-id: P5-01 -->\n**Order:** 31 of 75 · **Phase 5:** Shared commerce · **Size:** L\n\n## Goal\nFood, grocery, and pharmacy carts work exactly like Flutter's and survive app restarts.\n\n## Ports from Flutter\n- `flutter_app/lib/services/shared/data/cart_storage.dart`\n- `flutter_app/lib/services/food/presentation/cart_controller.dart`\n- `flutter_app/lib/services/food/models/cart_item.dart`\n- `flutter_app/lib/services/grocery/presentation/grocery_cart.dart`\n- `flutter_app/lib/services/pharmacy/models/pharmacy_cart_item.dart`\n\n## Flutter tests to port or match\n- `flutter_app/test/cart_controller_test.dart`\n- `flutter_app/test/cart_storage_test.dart`\n\n## Tasks\n- [ ] Create a generic Zustand cart store factory with persistence, one store per vertical\n- [ ] Keep every Flutter cart rule (quantities, store switching, totals in cents)\n- [ ] Register each cart with the sign-out reset registry\n\n## Acceptance criteria\n- [ ] Every case in `cart_controller_test.dart` and `cart_storage_test.dart` is ported and passes\n\n## Depends on\n{{DEPENDS_ON}}\n\n## Definition of done\n- Work only in `react_native_app/`; never edit `flutter_app/`.\n- `npm run lint` and `npm run typecheck` pass, and `npm test` once P0-07 is merged.\n- Behavior matches the Flutter files above, checked side by side.\n- Full checklist: *Conventions* section of the migration plan and `react_native_app/AGENTS.md`."
+    },
+    {
+      "order": 32,
+      "id": "P5-02",
+      "title": "[P5-02] Service pricing for fees",
+      "labels": [
+        "needs-approval",
+        "app:react-native",
+        "phase:5",
+        "type:feature",
+        "area:platform",
+        "size:S"
+      ],
+      "milestone": "RN Phase 5 – Shared commerce",
+      "depends_on": [
+        "P0-05"
+      ],
+      "body": "<!-- rn-migration-id: P5-02 -->\n**Order:** 32 of 75 · **Phase 5:** Shared commerce · **Size:** S\n\n## Goal\nDelivery and service fees come from the same pricing table as Flutter.\n\n## Ports from Flutter\n- `flutter_app/lib/services/shared/data/service_pricing_repository.dart`\n- `flutter_app/lib/services/shared/models/service_pricing.dart`\n\n## Tasks\n- [ ] Port the pricing API and a `useServicePricing(service)` hook\n\n## Acceptance criteria\n- [ ] Fees shown match Flutter for each service\n\n## Depends on\n{{DEPENDS_ON}}\n\n## Definition of done\n- Work only in `react_native_app/`; never edit `flutter_app/`.\n- `npm run lint` and `npm run typecheck` pass, and `npm test` once P0-07 is merged.\n- Behavior matches the Flutter files above, checked side by side.\n- Full checklist: *Conventions* section of the migration plan and `react_native_app/AGENTS.md`."
+    },
+    {
+      "order": 33,
+      "id": "P5-03",
+      "title": "[P5-03] Idempotency keys and RPC error mapping",
+      "labels": [
+        "needs-approval",
+        "app:react-native",
+        "phase:5",
+        "type:feature",
+        "area:platform",
+        "size:S"
+      ],
+      "milestone": "RN Phase 5 – Shared commerce",
+      "depends_on": [
+        "P0-05"
+      ],
+      "body": "<!-- rn-migration-id: P5-03 -->\n**Order:** 33 of 75 · **Phase 5:** Shared commerce · **Size:** S\n\n## Goal\nOrder placement can never create duplicates, and RPC errors turn into the same user messages as Flutter.\n\n## Ports from Flutter\n- `flutter_app/lib/services/shared/data/idempotency_key.dart`\n- `flutter_app/lib/services/shared/data/rpc_helpers.dart`\n\n## Flutter tests to port or match\n- `flutter_app/test/placed_order_test.dart`\n\n## Tasks\n- [ ] Port idempotency-key generation and the RPC error mapping\n\n## Acceptance criteria\n- [ ] Unit tests cover key generation and every mapped error\n\n## Depends on\n{{DEPENDS_ON}}\n\n## Definition of done\n- Work only in `react_native_app/`; never edit `flutter_app/`.\n- `npm run lint` and `npm run typecheck` pass, and `npm test` once P0-07 is merged.\n- Behavior matches the Flutter files above, checked side by side.\n- Full checklist: *Conventions* section of the migration plan and `react_native_app/AGENTS.md`."
+    },
+    {
+      "order": 34,
+      "id": "P5-04",
+      "title": "[P5-04] Shared cart, checkout, and product-detail views",
+      "labels": [
+        "needs-approval",
+        "app:react-native",
+        "phase:5",
+        "type:feature",
+        "area:platform",
+        "size:L"
+      ],
+      "milestone": "RN Phase 5 – Shared commerce",
+      "depends_on": [
+        "P5-01",
+        "P1-04"
+      ],
+      "body": "<!-- rn-migration-id: P5-04 -->\n**Order:** 34 of 75 · **Phase 5:** Shared commerce · **Size:** L\n\n## Goal\nThe shared views every vertical uses for cart, checkout, and product details match Flutter's shared widgets.\n\n## Ports from Flutter\n- `flutter_app/lib/widgets/cart_view.dart`\n- `flutter_app/lib/widgets/checkout_view.dart`\n- `flutter_app/lib/widgets/product_details_view.dart`\n- `flutter_app/lib/services/shared/presentation/confirm_order_flow.dart`\n\n## Flutter tests to port or match\n- `flutter_app/test/cart_screens_test.dart`\n- `flutter_app/test/checkout_screens_test.dart`\n\n## Tasks\n- [ ] Port the three views and the confirm-order flow as shared components\n- [ ] Keep them service-agnostic: no restaurant-specific concepts\n\n## Acceptance criteria\n- [ ] The shared parts of `cart_screens_test.dart` and `checkout_screens_test.dart` are ported and pass\n\n## Depends on\n{{DEPENDS_ON}}\n\n## Definition of done\n- Work only in `react_native_app/`; never edit `flutter_app/`.\n- `npm run lint` and `npm run typecheck` pass, and `npm test` once P0-07 is merged.\n- Behavior matches the Flutter files above, checked side by side.\n- Full checklist: *Conventions* section of the migration plan and `react_native_app/AGENTS.md`."
+    },
+    {
+      "order": 35,
+      "id": "P5-05",
+      "title": "[P5-05] Store list and store header components",
+      "labels": [
+        "needs-approval",
+        "app:react-native",
+        "phase:5",
+        "type:feature",
+        "area:platform",
+        "size:M"
+      ],
+      "milestone": "RN Phase 5 – Shared commerce",
+      "depends_on": [
+        "P1-04"
+      ],
+      "body": "<!-- rn-migration-id: P5-05 -->\n**Order:** 35 of 75 · **Phase 5:** Shared commerce · **Size:** M\n\n## Goal\nStore rows and store headers look the same in every vertical.\n\n## Ports from Flutter\n- `flutter_app/lib/widgets/store_row_card.dart`\n- `flutter_app/lib/widgets/store_hero_app_bar.dart`\n\n## Flutter tests to port or match\n- `flutter_app/test/store_list_card_test.dart`\n\n## Tasks\n- [ ] Port both components\n\n## Acceptance criteria\n- [ ] Port the cases in `store_list_card_test.dart`\n\n## Depends on\n{{DEPENDS_ON}}\n\n## Definition of done\n- Work only in `react_native_app/`; never edit `flutter_app/`.\n- `npm run lint` and `npm run typecheck` pass, and `npm test` once P0-07 is merged.\n- Behavior matches the Flutter files above, checked side by side.\n- Full checklist: *Conventions* section of the migration plan and `react_native_app/AGENTS.md`."
+    },
+    {
+      "order": 36,
+      "id": "P5-06",
+      "title": "[P5-06] Delivery note at checkout and missing name or phone handling",
+      "labels": [
+        "needs-approval",
+        "app:react-native",
+        "phase:5",
+        "type:feature",
+        "area:platform",
+        "size:S"
+      ],
+      "milestone": "RN Phase 5 – Shared commerce",
+      "depends_on": [
+        "P5-04"
+      ],
+      "body": "<!-- rn-migration-id: P5-06 -->\n**Order:** 36 of 75 · **Phase 5:** Shared commerce · **Size:** S\n\n## Goal\nCheckout collects an optional delivery note, and users without a name or phone are told to add them in Settings, as in Flutter.\n\n## Ports from Flutter\n- `flutter_app/lib/services/shared/models/delivery_details.dart`\n\n## Tasks\n- [ ] Port the delivery-note field and the profile name and phone check\n- [ ] Show the same \"add your name and phone in Settings\" message with a link to Settings\n\n## Acceptance criteria\n- [ ] Checkout is blocked with a clear message when name or phone is missing\n\n## Depends on\n{{DEPENDS_ON}}\n\n## Definition of done\n- Work only in `react_native_app/`; never edit `flutter_app/`.\n- `npm run lint` and `npm run typecheck` pass, and `npm test` once P0-07 is merged.\n- Behavior matches the Flutter files above, checked side by side.\n- Full checklist: *Conventions* section of the migration plan and `react_native_app/AGENTS.md`."
+    },
+    {
+      "order": 37,
+      "id": "P6-01",
+      "title": "[P6-01] Food home screen",
+      "labels": [
+        "needs-approval",
+        "app:react-native",
+        "phase:6",
+        "type:feature",
+        "area:food",
+        "size:M"
+      ],
+      "milestone": "RN Phase 6 – Food",
+      "depends_on": [
+        "P4-02",
+        "P1-03"
+      ],
+      "body": "<!-- rn-migration-id: P6-01 -->\n**Order:** 37 of 75 · **Phase 6:** Food · **Size:** M\n\n## Goal\nThe food tab matches Flutter's food home with categories and restaurants.\n\n## Ports from Flutter\n- `flutter_app/lib/services/food/presentation/food_home_screen.dart`\n- `flutter_app/lib/services/food/presentation/food_controller.dart`\n- `flutter_app/lib/services/food/data/food_repository.dart`\n- `flutter_app/lib/services/food/models/food_models.dart`\n- `flutter_app/lib/services/food/presentation/widgets/categories_section.dart`\n- `flutter_app/lib/services/food/presentation/widgets/category_card.dart`\n- `flutter_app/lib/services/food/presentation/widgets/section_header.dart`\n\n## Flutter tests to port or match\n- `flutter_app/test/food_home_screen_test.dart`\n- `flutter_app/test/food_controller_test.dart`\n\n## Tasks\n- [ ] Port the food API, hooks, and screen\n\n## Acceptance criteria\n- [ ] Port the cases in both tests\n\n## Depends on\n{{DEPENDS_ON}}\n\n## Definition of done\n- Work only in `react_native_app/`; never edit `flutter_app/`.\n- `npm run lint` and `npm run typecheck` pass, and `npm test` once P0-07 is merged.\n- Behavior matches the Flutter files above, checked side by side.\n- Full checklist: *Conventions* section of the migration plan and `react_native_app/AGENTS.md`."
+    },
+    {
+      "order": 38,
+      "id": "P6-02",
+      "title": "[P6-02] Restaurant screen with menu",
+      "labels": [
+        "needs-approval",
+        "app:react-native",
+        "phase:6",
+        "type:feature",
+        "area:food",
+        "size:L"
+      ],
+      "milestone": "RN Phase 6 – Food",
+      "depends_on": [
+        "P5-05",
+        "P6-01"
+      ],
+      "body": "<!-- rn-migration-id: P6-02 -->\n**Order:** 38 of 75 · **Phase 6:** Food · **Size:** L\n\n## Goal\nUsers can open a restaurant and browse its menu by category, as in Flutter.\n\n## Ports from Flutter\n- `flutter_app/lib/services/food/data/restaurant_repository.dart`\n- `flutter_app/lib/services/food/data/restaurant_menu_repository.dart`\n- `flutter_app/lib/services/food/models/restaurant.dart`\n- `flutter_app/lib/services/food/models/restaurant_menu.dart`\n- `flutter_app/lib/services/food/presentation/restaurant_screen.dart`\n- `flutter_app/lib/services/food/presentation/widgets/restaurant_header_section.dart`\n- `flutter_app/lib/services/food/presentation/widgets/restaurant_menu_view.dart`\n- `flutter_app/lib/services/food/presentation/widgets/category_header_delegate.dart`\n- `flutter_app/lib/services/food/presentation/widgets/menu_item_card.dart`\n- `flutter_app/lib/services/food/presentation/widgets/restaurant_status_views.dart`\n- `flutter_app/lib/services/food/presentation/widgets/restaurant_cart_fab.dart`\n\n## Flutter tests to port or match\n- `flutter_app/test/restaurant_screen_test.dart`\n\n## Tasks\n- [ ] Port the restaurant and menu APIs\n- [ ] Port the screen with sticky category headers and the cart button\n- [ ] Use FlashList for long menus\n\n## Acceptance criteria\n- [ ] Port the cases in `restaurant_screen_test.dart`\n\n## Depends on\n{{DEPENDS_ON}}\n\n## Definition of done\n- Work only in `react_native_app/`; never edit `flutter_app/`.\n- `npm run lint` and `npm run typecheck` pass, and `npm test` once P0-07 is merged.\n- Behavior matches the Flutter files above, checked side by side.\n- Full checklist: *Conventions* section of the migration plan and `react_native_app/AGENTS.md`."
+    },
+    {
+      "order": 39,
+      "id": "P6-03",
+      "title": "[P6-03] Menu item details and add to cart",
+      "labels": [
+        "needs-approval",
+        "app:react-native",
+        "phase:6",
+        "type:feature",
+        "area:food",
+        "size:M"
+      ],
+      "milestone": "RN Phase 6 – Food",
+      "depends_on": [
+        "P6-02",
+        "P5-04"
+      ],
+      "body": "<!-- rn-migration-id: P6-03 -->\n**Order:** 39 of 75 · **Phase 6:** Food · **Size:** M\n\n## Goal\nUsers can open a menu item and add it to the food cart.\n\n## Ports from Flutter\n- `flutter_app/lib/services/food/presentation/menu_item_details_screen.dart`\n\n## Tasks\n- [ ] Port the screen using the shared product-detail view and the food cart store\n\n## Acceptance criteria\n- [ ] Adding an item updates the cart badge and persists\n\n## Depends on\n{{DEPENDS_ON}}\n\n## Definition of done\n- Work only in `react_native_app/`; never edit `flutter_app/`.\n- `npm run lint` and `npm run typecheck` pass, and `npm test` once P0-07 is merged.\n- Behavior matches the Flutter files above, checked side by side.\n- Full checklist: *Conventions* section of the migration plan and `react_native_app/AGENTS.md`."
+    },
+    {
+      "order": 40,
+      "id": "P6-04",
+      "title": "[P6-04] Food categories and food explore screens",
+      "labels": [
+        "needs-approval",
+        "app:react-native",
+        "phase:6",
+        "type:feature",
+        "area:food",
+        "size:M"
+      ],
+      "milestone": "RN Phase 6 – Food",
+      "depends_on": [
+        "P6-01"
+      ],
+      "body": "<!-- rn-migration-id: P6-04 -->\n**Order:** 40 of 75 · **Phase 6:** Food · **Size:** M\n\n## Goal\nUsers can browse food by category and explore restaurants.\n\n## Ports from Flutter\n- `flutter_app/lib/services/food/presentation/food_categories_screen.dart`\n- `flutter_app/lib/services/food/presentation/food_explore_screen.dart`\n- `flutter_app/lib/services/food/data/category_repository.dart`\n- `flutter_app/lib/services/food/models/category.dart`\n\n## Flutter tests to port or match\n- `flutter_app/test/food_categories_screen_test.dart`\n- `flutter_app/test/food_explore_screen_test.dart`\n\n## Tasks\n- [ ] Port both screens and the category API\n\n## Acceptance criteria\n- [ ] Port the cases in both tests\n\n## Depends on\n{{DEPENDS_ON}}\n\n## Definition of done\n- Work only in `react_native_app/`; never edit `flutter_app/`.\n- `npm run lint` and `npm run typecheck` pass, and `npm test` once P0-07 is merged.\n- Behavior matches the Flutter files above, checked side by side.\n- Full checklist: *Conventions* section of the migration plan and `react_native_app/AGENTS.md`."
+    },
+    {
+      "order": 41,
+      "id": "P6-05",
+      "title": "[P6-05] Food cart screen",
+      "labels": [
+        "needs-approval",
+        "app:react-native",
+        "phase:6",
+        "type:feature",
+        "area:food",
+        "size:S"
+      ],
+      "milestone": "RN Phase 6 – Food",
+      "depends_on": [
+        "P5-04",
+        "P6-03"
+      ],
+      "body": "<!-- rn-migration-id: P6-05 -->\n**Order:** 41 of 75 · **Phase 6:** Food · **Size:** S\n\n## Goal\nThe food cart screen matches Flutter's.\n\n## Ports from Flutter\n- `flutter_app/lib/services/food/presentation/food_cart_screen.dart`\n\n## Flutter tests to port or match\n- `flutter_app/test/cart_screens_test.dart`\n\n## Tasks\n- [ ] Port the screen using the shared cart view\n\n## Acceptance criteria\n- [ ] The food cases in `cart_screens_test.dart` are ported and pass\n\n## Depends on\n{{DEPENDS_ON}}\n\n## Definition of done\n- Work only in `react_native_app/`; never edit `flutter_app/`.\n- `npm run lint` and `npm run typecheck` pass, and `npm test` once P0-07 is merged.\n- Behavior matches the Flutter files above, checked side by side.\n- Full checklist: *Conventions* section of the migration plan and `react_native_app/AGENTS.md`."
+    },
+    {
+      "order": 42,
+      "id": "P6-06",
+      "title": "[P6-06] Food checkout calling place_food_order",
+      "labels": [
+        "needs-approval",
+        "app:react-native",
+        "phase:6",
+        "type:feature",
+        "area:food",
+        "size:M"
+      ],
+      "milestone": "RN Phase 6 – Food",
+      "depends_on": [
+        "P5-02",
+        "P5-03",
+        "P5-06",
+        "P6-05"
+      ],
+      "body": "<!-- rn-migration-id: P6-06 -->\n**Order:** 42 of 75 · **Phase 6:** Food · **Size:** M\n\n## Goal\nUsers can place a real food order that the server prices and stores.\n\n## Ports from Flutter\n- `flutter_app/lib/services/food/presentation/checkout_screen.dart`\n- `flutter_app/lib/services/food/models/food_models.dart`\n\n## Flutter tests to port or match\n- `flutter_app/test/checkout_screens_test.dart`\n- `flutter_app/test/food_order_request_test.dart`\n- `flutter_app/test/placed_order_test.dart`\n\n## Tasks\n- [ ] Build the order request exactly like `food_order_request_test.dart` expects\n- [ ] Call `place_food_order` with an idempotency key\n- [ ] Clear the cart and open order tracking on success\n\n## Acceptance criteria\n- [ ] The order appears in the database with server-computed prices\n- [ ] Double-tapping \"Place order\" creates one order\n- [ ] The food cases in the three tests are ported and pass\n\n## Depends on\n{{DEPENDS_ON}}\n\n## Definition of done\n- Work only in `react_native_app/`; never edit `flutter_app/`.\n- `npm run lint` and `npm run typecheck` pass, and `npm test` once P0-07 is merged.\n- Behavior matches the Flutter files above, checked side by side.\n- Full checklist: *Conventions* section of the migration plan and `react_native_app/AGENTS.md`."
+    },
+    {
+      "order": 43,
+      "id": "P6-07",
+      "title": "[P6-07] Food test parity check",
+      "labels": [
+        "needs-approval",
+        "app:react-native",
+        "phase:6",
+        "type:test",
+        "area:food",
+        "size:S"
+      ],
+      "milestone": "RN Phase 6 – Food",
+      "depends_on": [
+        "P6-04",
+        "P6-06"
+      ],
+      "body": "<!-- rn-migration-id: P6-07 -->\n**Order:** 43 of 75 · **Phase 6:** Food · **Size:** S\n\n## Goal\nEvery Flutter food test case has a React Native equivalent.\n\n## Flutter tests to port or match\n- `flutter_app/test/food_home_screen_test.dart`\n- `flutter_app/test/food_controller_test.dart`\n- `flutter_app/test/restaurant_screen_test.dart`\n- `flutter_app/test/food_categories_screen_test.dart`\n- `flutter_app/test/food_explore_screen_test.dart`\n- `flutter_app/test/checkout_screens_test.dart`\n- `flutter_app/test/food_order_request_test.dart`\n\n## Tasks\n- [ ] Compare each Flutter test case with the React Native tests from Phase 6 and add any that are missing\n\n## Acceptance criteria\n- [ ] A table in the PR maps each Flutter test case to its React Native test\n\n## Depends on\n{{DEPENDS_ON}}\n\n## Definition of done\n- Work only in `react_native_app/`; never edit `flutter_app/`.\n- `npm run lint` and `npm run typecheck` pass, and `npm test` once P0-07 is merged.\n- Behavior matches the Flutter files above, checked side by side.\n- Full checklist: *Conventions* section of the migration plan and `react_native_app/AGENTS.md`."
+    },
+    {
+      "order": 44,
+      "id": "P7-01",
+      "title": "[P7-01] Grocery home and store list",
+      "labels": [
+        "needs-approval",
+        "app:react-native",
+        "phase:7",
+        "type:feature",
+        "area:grocery",
+        "size:M"
+      ],
+      "milestone": "RN Phase 7 – Grocery and pharmacy",
+      "depends_on": [
+        "P5-05",
+        "P1-03"
+      ],
+      "body": "<!-- rn-migration-id: P7-01 -->\n**Order:** 44 of 75 · **Phase 7:** Grocery and pharmacy · **Size:** M\n\n## Goal\nThe grocery tab lists grocery stores, as in Flutter.\n\n## Ports from Flutter\n- `flutter_app/lib/services/grocery/presentation/grocery_screen.dart`\n- `flutter_app/lib/services/grocery/presentation/grocery_controller.dart`\n- `flutter_app/lib/services/grocery/data/grocery_repository.dart`\n- `flutter_app/lib/services/grocery/models/grocery_models.dart`\n\n## Flutter tests to port or match\n- `flutter_app/test/grocery_screens_test.dart`\n- `flutter_app/test/grocery_controller_test.dart`\n- `flutter_app/test/grocery_store_type_test.dart`\n\n## Tasks\n- [ ] Port the grocery API, store types, hooks, and screen\n\n## Acceptance criteria\n- [ ] The store-list cases in the three tests are ported and pass\n\n## Depends on\n{{DEPENDS_ON}}\n\n## Definition of done\n- Work only in `react_native_app/`; never edit `flutter_app/`.\n- `npm run lint` and `npm run typecheck` pass, and `npm test` once P0-07 is merged.\n- Behavior matches the Flutter files above, checked side by side.\n- Full checklist: *Conventions* section of the migration plan and `react_native_app/AGENTS.md`."
+    },
+    {
+      "order": 45,
+      "id": "P7-02",
+      "title": "[P7-02] Grocery store screen with categories",
+      "labels": [
+        "needs-approval",
+        "app:react-native",
+        "phase:7",
+        "type:feature",
+        "area:grocery",
+        "size:M"
+      ],
+      "milestone": "RN Phase 7 – Grocery and pharmacy",
+      "depends_on": [
+        "P7-01"
+      ],
+      "body": "<!-- rn-migration-id: P7-02 -->\n**Order:** 45 of 75 · **Phase 7:** Grocery and pharmacy · **Size:** M\n\n## Goal\nUsers can open a grocery store and browse its products by category.\n\n## Ports from Flutter\n- `flutter_app/lib/services/grocery/presentation/grocery_store_screen.dart`\n- `flutter_app/lib/services/grocery/presentation/grocery_catalog.dart`\n- `flutter_app/lib/services/grocery/presentation/widgets/grocery_product_card.dart`\n\n## Flutter tests to port or match\n- `flutter_app/test/grocery_screens_test.dart`\n\n## Tasks\n- [ ] Port the store screen, catalog, and product card\n\n## Acceptance criteria\n- [ ] The store-screen cases in `grocery_screens_test.dart` are ported and pass\n\n## Depends on\n{{DEPENDS_ON}}\n\n## Definition of done\n- Work only in `react_native_app/`; never edit `flutter_app/`.\n- `npm run lint` and `npm run typecheck` pass, and `npm test` once P0-07 is merged.\n- Behavior matches the Flutter files above, checked side by side.\n- Full checklist: *Conventions* section of the migration plan and `react_native_app/AGENTS.md`."
+    },
+    {
+      "order": 46,
+      "id": "P7-03",
+      "title": "[P7-03] Grocery product details",
+      "labels": [
+        "needs-approval",
+        "app:react-native",
+        "phase:7",
+        "type:feature",
+        "area:grocery",
+        "size:S"
+      ],
+      "milestone": "RN Phase 7 – Grocery and pharmacy",
+      "depends_on": [
+        "P7-02",
+        "P5-04"
+      ],
+      "body": "<!-- rn-migration-id: P7-03 -->\n**Order:** 46 of 75 · **Phase 7:** Grocery and pharmacy · **Size:** S\n\n## Goal\nUsers can open a grocery product and add it to the grocery cart.\n\n## Ports from Flutter\n- `flutter_app/lib/services/grocery/presentation/grocery_product_details_screen.dart`\n\n## Tasks\n- [ ] Port the screen using the shared product-detail view\n\n## Acceptance criteria\n- [ ] Adding a product updates the grocery cart\n\n## Depends on\n{{DEPENDS_ON}}\n\n## Definition of done\n- Work only in `react_native_app/`; never edit `flutter_app/`.\n- `npm run lint` and `npm run typecheck` pass, and `npm test` once P0-07 is merged.\n- Behavior matches the Flutter files above, checked side by side.\n- Full checklist: *Conventions* section of the migration plan and `react_native_app/AGENTS.md`."
+    },
+    {
+      "order": 47,
+      "id": "P7-04",
+      "title": "[P7-04] Grocery cart and checkout with delivery slots",
+      "labels": [
+        "needs-approval",
+        "app:react-native",
+        "phase:7",
+        "type:feature",
+        "area:grocery",
+        "size:L"
+      ],
+      "milestone": "RN Phase 7 – Grocery and pharmacy",
+      "depends_on": [
+        "P7-03",
+        "P6-06"
+      ],
+      "body": "<!-- rn-migration-id: P7-04 -->\n**Order:** 47 of 75 · **Phase 7:** Grocery and pharmacy · **Size:** L\n\n## Goal\nUsers can place a real grocery order with a delivery slot; slots that have already passed are rejected, as in Flutter.\n\n## Ports from Flutter\n- `flutter_app/lib/services/grocery/presentation/grocery_cart_screen.dart`\n- `flutter_app/lib/services/grocery/presentation/grocery_checkout_screen.dart`\n- `flutter_app/lib/services/grocery/presentation/grocery_checkout.dart`\n\n## Flutter tests to port or match\n- `flutter_app/test/grocery_controller_test.dart`\n- `flutter_app/test/checkout_screens_test.dart`\n\n## Tasks\n- [ ] Port the cart and checkout screens with slot selection\n- [ ] Call `place_grocery_order` with an idempotency key\n\n## Acceptance criteria\n- [ ] An order with a valid slot appears in the database\n- [ ] Choosing a slot that has passed is rejected with the same message as Flutter\n\n## Depends on\n{{DEPENDS_ON}}\n\n## Definition of done\n- Work only in `react_native_app/`; never edit `flutter_app/`.\n- `npm run lint` and `npm run typecheck` pass, and `npm test` once P0-07 is merged.\n- Behavior matches the Flutter files above, checked side by side.\n- Full checklist: *Conventions* section of the migration plan and `react_native_app/AGENTS.md`."
+    },
+    {
+      "order": 48,
+      "id": "P7-05",
+      "title": "[P7-05] Fresh-meat and electronics sub-verticals",
+      "labels": [
+        "needs-approval",
+        "app:react-native",
+        "phase:7",
+        "type:feature",
+        "area:grocery",
+        "size:M"
+      ],
+      "milestone": "RN Phase 7 – Grocery and pharmacy",
+      "depends_on": [
+        "P7-04",
+        "P4-05"
+      ],
+      "body": "<!-- rn-migration-id: P7-05 -->\n**Order:** 48 of 75 · **Phase 7:** Grocery and pharmacy · **Size:** M\n\n## Goal\nFresh meat and electronics work as grocery sub-verticals with their own entry points and theming, reusing the grocery screens.\n\n## Ports from Flutter\n- `flutter_app/lib/services/grocery/models/grocery_models.dart`\n- `flutter_app/lib/app/service_module.dart`\n- `flutter_app/lib/config/service_theme.dart`\n\n## Flutter tests to port or match\n- `flutter_app/test/grocery_store_type_test.dart`\n\n## Tasks\n- [ ] Wire the fresh-meat and electronics routes and store types to the grocery screens\n- [ ] Apply their service themes\n\n## Acceptance criteria\n- [ ] Both sub-verticals can be browsed and ordered from end to end\n\n## Depends on\n{{DEPENDS_ON}}\n\n## Definition of done\n- Work only in `react_native_app/`; never edit `flutter_app/`.\n- `npm run lint` and `npm run typecheck` pass, and `npm test` once P0-07 is merged.\n- Behavior matches the Flutter files above, checked side by side.\n- Full checklist: *Conventions* section of the migration plan and `react_native_app/AGENTS.md`."
+    },
+    {
+      "order": 49,
+      "id": "P7-06",
+      "title": "[P7-06] Pharmacy store list and catalog",
+      "labels": [
+        "needs-approval",
+        "app:react-native",
+        "phase:7",
+        "type:feature",
+        "area:pharmacy",
+        "size:M"
+      ],
+      "milestone": "RN Phase 7 – Grocery and pharmacy",
+      "depends_on": [
+        "P5-05",
+        "P1-03"
+      ],
+      "body": "<!-- rn-migration-id: P7-06 -->\n**Order:** 49 of 75 · **Phase 7:** Grocery and pharmacy · **Size:** M\n\n## Goal\nUsers can browse pharmacies and their product catalogs by category.\n\n## Ports from Flutter\n- `flutter_app/lib/services/pharmacy/presentation/pharmacy_store_list_screen.dart`\n- `flutter_app/lib/services/pharmacy/presentation/pharmacy_catalog_screen.dart`\n- `flutter_app/lib/services/pharmacy/presentation/pharmacy_controller.dart`\n- `flutter_app/lib/services/pharmacy/data/pharmacy_repository.dart`\n- `flutter_app/lib/services/pharmacy/models/pharmacy_store.dart`\n- `flutter_app/lib/services/pharmacy/models/pharmacy_product.dart`\n\n## Flutter tests to port or match\n- `flutter_app/test/pharmacy_controller_test.dart`\n- `flutter_app/test/pharmacy_screens_test.dart`\n\n## Tasks\n- [ ] Port the pharmacy API, hooks, and both screens\n\n## Acceptance criteria\n- [ ] The list and catalog cases in both tests are ported and pass\n\n## Depends on\n{{DEPENDS_ON}}\n\n## Definition of done\n- Work only in `react_native_app/`; never edit `flutter_app/`.\n- `npm run lint` and `npm run typecheck` pass, and `npm test` once P0-07 is merged.\n- Behavior matches the Flutter files above, checked side by side.\n- Full checklist: *Conventions* section of the migration plan and `react_native_app/AGENTS.md`."
+    },
+    {
+      "order": 50,
+      "id": "P7-07",
+      "title": "[P7-07] Pharmacy product details, cart, and checkout",
+      "labels": [
+        "needs-approval",
+        "app:react-native",
+        "phase:7",
+        "type:feature",
+        "area:pharmacy",
+        "size:L"
+      ],
+      "milestone": "RN Phase 7 – Grocery and pharmacy",
+      "depends_on": [
+        "P7-06",
+        "P6-06"
+      ],
+      "body": "<!-- rn-migration-id: P7-07 -->\n**Order:** 50 of 75 · **Phase 7:** Grocery and pharmacy · **Size:** L\n\n## Goal\nUsers can place a real pharmacy order.\n\n## Ports from Flutter\n- `flutter_app/lib/services/pharmacy/presentation/pharmacy_product_details_screen.dart`\n- `flutter_app/lib/services/pharmacy/presentation/pharmacy_cart_screen.dart`\n- `flutter_app/lib/services/pharmacy/presentation/pharmacy_checkout_screen.dart`\n- `flutter_app/lib/services/pharmacy/models/pharmacy_checkout.dart`\n\n## Flutter tests to port or match\n- `flutter_app/test/pharmacy_screens_test.dart`\n\n## Tasks\n- [ ] Port the three screens using the shared views\n- [ ] Call `place_pharmacy_order` with an idempotency key\n\n## Acceptance criteria\n- [ ] A pharmacy order appears in the database with server-computed prices\n\n## Depends on\n{{DEPENDS_ON}}\n\n## Definition of done\n- Work only in `react_native_app/`; never edit `flutter_app/`.\n- `npm run lint` and `npm run typecheck` pass, and `npm test` once P0-07 is merged.\n- Behavior matches the Flutter files above, checked side by side.\n- Full checklist: *Conventions* section of the migration plan and `react_native_app/AGENTS.md`."
+    },
+    {
+      "order": 51,
+      "id": "P7-08",
+      "title": "[P7-08] Grocery and pharmacy test parity check",
+      "labels": [
+        "needs-approval",
+        "app:react-native",
+        "phase:7",
+        "type:test",
+        "area:grocery",
+        "size:S"
+      ],
+      "milestone": "RN Phase 7 – Grocery and pharmacy",
+      "depends_on": [
+        "P7-05",
+        "P7-07"
+      ],
+      "body": "<!-- rn-migration-id: P7-08 -->\n**Order:** 51 of 75 · **Phase 7:** Grocery and pharmacy · **Size:** S\n\n## Goal\nEvery Flutter grocery and pharmacy test case has a React Native equivalent.\n\n## Flutter tests to port or match\n- `flutter_app/test/grocery_controller_test.dart`\n- `flutter_app/test/grocery_screens_test.dart`\n- `flutter_app/test/grocery_store_type_test.dart`\n- `flutter_app/test/pharmacy_controller_test.dart`\n- `flutter_app/test/pharmacy_screens_test.dart`\n\n## Tasks\n- [ ] Compare each Flutter test case with the React Native tests from Phase 7 and add any that are missing\n\n## Acceptance criteria\n- [ ] A table in the PR maps each Flutter test case to its React Native test\n\n## Depends on\n{{DEPENDS_ON}}\n\n## Definition of done\n- Work only in `react_native_app/`; never edit `flutter_app/`.\n- `npm run lint` and `npm run typecheck` pass, and `npm test` once P0-07 is merged.\n- Behavior matches the Flutter files above, checked side by side.\n- Full checklist: *Conventions* section of the migration plan and `react_native_app/AGENTS.md`."
+    },
+    {
+      "order": 52,
+      "id": "P8-01",
+      "title": "[P8-01] Activity feed with realtime updates",
+      "labels": [
+        "needs-approval",
+        "app:react-native",
+        "phase:8",
+        "type:feature",
+        "area:platform",
+        "size:L"
+      ],
+      "milestone": "RN Phase 8 – Orders and account",
+      "depends_on": [
+        "P4-01",
+        "P4-02"
+      ],
+      "body": "<!-- rn-migration-id: P8-01 -->\n**Order:** 52 of 75 · **Phase 8:** Orders and account · **Size:** L\n\n## Goal\nThe activity tab lists the user's orders across services and updates live, with order-again, as in Flutter.\n\n## Ports from Flutter\n- `flutter_app/lib/platform/activity/presentation/activity_screen.dart`\n- `flutter_app/lib/platform/activity/presentation/activity_controller.dart`\n- `flutter_app/lib/platform/activity/data/activity_repository.dart`\n- `flutter_app/lib/platform/activity/data/order_again_repository.dart`\n- `flutter_app/lib/platform/activity/presentation/order_again_service.dart`\n- `flutter_app/lib/platform/activity/models/activity_item.dart`\n- `flutter_app/lib/platform/activity/models/order_details.dart`\n\n## Flutter tests to port or match\n- `flutter_app/test/activity_controller_test.dart`\n- `flutter_app/test/activity_repository_test.dart`\n- `flutter_app/test/order_again_test.dart`\n\n## Tasks\n- [ ] Port the screen and the rest of the activity API\n- [ ] Subscribe to Supabase realtime on the order tables and refresh affected items\n- [ ] Port order-again\n\n## Acceptance criteria\n- [ ] A status change made in the database appears without a refresh\n- [ ] Port the cases in all three tests\n\n## Depends on\n{{DEPENDS_ON}}\n\n## Definition of done\n- Work only in `react_native_app/`; never edit `flutter_app/`.\n- `npm run lint` and `npm run typecheck` pass, and `npm test` once P0-07 is merged.\n- Behavior matches the Flutter files above, checked side by side.\n- Full checklist: *Conventions* section of the migration plan and `react_native_app/AGENTS.md`."
+    },
+    {
+      "order": 53,
+      "id": "P8-02",
+      "title": "[P8-02] Track order screen with status timeline and realtime",
+      "labels": [
+        "needs-approval",
+        "app:react-native",
+        "phase:8",
+        "type:feature",
+        "area:platform",
+        "size:L"
+      ],
+      "milestone": "RN Phase 8 – Orders and account",
+      "depends_on": [
+        "P8-01",
+        "P2-04"
+      ],
+      "body": "<!-- rn-migration-id: P8-02 -->\n**Order:** 53 of 75 · **Phase 8:** Orders and account · **Size:** L\n\n## Goal\nUsers can follow an order's progress live, as in Flutter.\n\n## Ports from Flutter\n- `flutter_app/lib/features/orders/presentation/track_order_screen.dart`\n- `flutter_app/lib/features/orders/presentation/widgets/tracking_card.dart`\n- `flutter_app/lib/features/orders/presentation/widgets/timeline_step_row.dart`\n- `flutter_app/lib/features/orders/presentation/widgets/delivery_card.dart`\n- `flutter_app/lib/features/orders/presentation/widgets/items_card.dart`\n- `flutter_app/lib/features/orders/presentation/widgets/amount_row.dart`\n- `flutter_app/lib/features/orders/presentation/widgets/order_details_content.dart`\n- `flutter_app/lib/features/orders/presentation/widgets/track_order_message.dart`\n\n## Flutter tests to port or match\n- `flutter_app/test/track_order_screen_test.dart`\n\n## Tasks\n- [ ] Port the screen and its widgets\n- [ ] Subscribe to realtime updates for this order\n- [ ] Do not add a customer cancel button: the Flutter app has none\n\n## Acceptance criteria\n- [ ] Advancing the order from the merchant side updates the timeline live\n- [ ] Port the cases in `track_order_screen_test.dart`\n\n## Depends on\n{{DEPENDS_ON}}\n\n## Definition of done\n- Work only in `react_native_app/`; never edit `flutter_app/`.\n- `npm run lint` and `npm run typecheck` pass, and `npm test` once P0-07 is merged.\n- Behavior matches the Flutter files above, checked side by side.\n- Full checklist: *Conventions* section of the migration plan and `react_native_app/AGENTS.md`."
+    },
+    {
+      "order": 54,
+      "id": "P8-03",
+      "title": "[P8-03] Profile screen",
+      "labels": [
+        "needs-approval",
+        "app:react-native",
+        "phase:8",
+        "type:feature",
+        "area:platform",
+        "size:M"
+      ],
+      "milestone": "RN Phase 8 – Orders and account",
+      "depends_on": [
+        "P4-01"
+      ],
+      "body": "<!-- rn-migration-id: P8-03 -->\n**Order:** 54 of 75 · **Phase 8:** Orders and account · **Size:** M\n\n## Goal\nThe profile tab matches Flutter's, including logout.\n\n## Ports from Flutter\n- `flutter_app/lib/features/profile/presentation/profile_screen.dart`\n- `flutter_app/lib/features/profile/presentation/widgets/profile_header.dart`\n- `flutter_app/lib/features/profile/presentation/widgets/profile_options_card.dart`\n- `flutter_app/lib/features/profile/presentation/models/profile_models.dart`\n- `flutter_app/lib/features/profile/data/profile_repository.dart`\n- `flutter_app/lib/features/profile/models/customer_profile.dart`\n\n## Flutter tests to port or match\n- `flutter_app/test/profile_screen_test.dart`\n- `flutter_app/test/profile_repository_test.dart`\n- `flutter_app/test/customer_profile_test.dart`\n\n## Tasks\n- [ ] Port the screen, profile API, and model\n- [ ] Show the same options as Flutter (no wallet, addresses, or coupons)\n\n## Acceptance criteria\n- [ ] Port the cases in all three tests\n\n## Depends on\n{{DEPENDS_ON}}\n\n## Definition of done\n- Work only in `react_native_app/`; never edit `flutter_app/`.\n- `npm run lint` and `npm run typecheck` pass, and `npm test` once P0-07 is merged.\n- Behavior matches the Flutter files above, checked side by side.\n- Full checklist: *Conventions* section of the migration plan and `react_native_app/AGENTS.md`."
+    },
+    {
+      "order": 55,
+      "id": "P8-04",
+      "title": "[P8-04] Settings: account editing and Coming soon rows",
+      "labels": [
+        "needs-approval",
+        "app:react-native",
+        "phase:8",
+        "type:feature",
+        "area:platform",
+        "size:L"
+      ],
+      "milestone": "RN Phase 8 – Orders and account",
+      "depends_on": [
+        "P8-03"
+      ],
+      "body": "<!-- rn-migration-id: P8-04 -->\n**Order:** 55 of 75 · **Phase 8:** Orders and account · **Size:** L\n\n## Goal\nUsers can edit their name, email, and phone (required before ordering) via `update_own_profile`, and Settings shows the same rows as Flutter, including the Coming soon ones.\n\n## Ports from Flutter\n- `flutter_app/lib/features/settings/presentation/settings_screen.dart`\n- `flutter_app/lib/features/settings/presentation/widgets/account_section.dart`\n- `flutter_app/lib/features/settings/presentation/widgets/edit_field_sheet.dart`\n- `flutter_app/lib/features/settings/presentation/widgets/name_edit_sheet.dart`\n- `flutter_app/lib/features/settings/presentation/widgets/email_edit_sheet.dart`\n- `flutter_app/lib/features/settings/presentation/widgets/phone_edit_sheet.dart`\n- `flutter_app/lib/features/settings/presentation/widgets/preferences_section.dart`\n- `flutter_app/lib/features/settings/presentation/widgets/support_section.dart`\n- `flutter_app/lib/features/settings/presentation/widgets/about_zivo_sheet.dart`\n- `flutter_app/lib/features/settings/presentation/widgets/setting_card.dart`\n- `flutter_app/lib/features/settings/presentation/widgets/toggle_card.dart`\n- `flutter_app/lib/features/profile/presentation/profile_edit_controller.dart`\n- `flutter_app/lib/features/profile/models/profile_field_validators.dart`\n\n## Flutter tests to port or match\n- `flutter_app/test/settings_screen_test.dart`\n- `flutter_app/test/profile_edit_controller_test.dart`\n- `flutter_app/test/profile_field_validators_test.dart`\n\n## Tasks\n- [ ] Port the screen, sections, and edit sheets\n- [ ] Save edits with `update_own_profile`\n- [ ] Port the Coming soon preference rows as they are\n\n## Acceptance criteria\n- [ ] Edits persist and are validated like Flutter\n- [ ] Port the cases in all three tests\n\n## Depends on\n{{DEPENDS_ON}}\n\n## Definition of done\n- Work only in `react_native_app/`; never edit `flutter_app/`.\n- `npm run lint` and `npm run typecheck` pass, and `npm test` once P0-07 is merged.\n- Behavior matches the Flutter files above, checked side by side.\n- Full checklist: *Conventions* section of the migration plan and `react_native_app/AGENTS.md`."
+    },
+    {
+      "order": 56,
+      "id": "P8-05",
+      "title": "[P8-05] Notification preferences",
+      "labels": [
+        "needs-approval",
+        "app:react-native",
+        "phase:8",
+        "type:feature",
+        "area:platform",
+        "size:M"
+      ],
+      "milestone": "RN Phase 8 – Orders and account",
+      "depends_on": [
+        "P8-04"
+      ],
+      "body": "<!-- rn-migration-id: P8-05 -->\n**Order:** 56 of 75 · **Phase 8:** Orders and account · **Size:** M\n\n## Goal\nUsers can toggle the same notification preferences as in Flutter.\n\n## Ports from Flutter\n- `flutter_app/lib/features/settings/data/notification_preferences_repository.dart`\n- `flutter_app/lib/features/settings/presentation/widgets/notifications_section.dart`\n\n## Flutter tests to port or match\n- `flutter_app/test/notification_preferences_repository_test.dart`\n\n## Tasks\n- [ ] Port the preferences API and section\n\n## Acceptance criteria\n- [ ] Port the cases in `notification_preferences_repository_test.dart`\n\n## Depends on\n{{DEPENDS_ON}}\n\n## Definition of done\n- Work only in `react_native_app/`; never edit `flutter_app/`.\n- `npm run lint` and `npm run typecheck` pass, and `npm test` once P0-07 is merged.\n- Behavior matches the Flutter files above, checked side by side.\n- Full checklist: *Conventions* section of the migration plan and `react_native_app/AGENTS.md`."
+    },
+    {
+      "order": 57,
+      "id": "P8-06",
+      "title": "[P8-06] Delete account",
+      "labels": [
+        "needs-approval",
+        "app:react-native",
+        "phase:8",
+        "type:feature",
+        "area:platform",
+        "size:S"
+      ],
+      "milestone": "RN Phase 8 – Orders and account",
+      "depends_on": [
+        "P8-04"
+      ],
+      "body": "<!-- rn-migration-id: P8-06 -->\n**Order:** 57 of 75 · **Phase 8:** Orders and account · **Size:** S\n\n## Goal\nUsers can delete their account via `delete_own_account`, as the stores require.\n\n## Ports from Flutter\n- `flutter_app/lib/features/settings/presentation/widgets/account_danger_zone.dart`\n\n## Tasks\n- [ ] Port the danger zone with its confirmation step\n- [ ] Call `delete_own_account`, then sign out and clear all local data\n\n## Acceptance criteria\n- [ ] After deletion the user is signed out and cannot log in again\n\n## Depends on\n{{DEPENDS_ON}}\n\n## Definition of done\n- Work only in `react_native_app/`; never edit `flutter_app/`.\n- `npm run lint` and `npm run typecheck` pass, and `npm test` once P0-07 is merged.\n- Behavior matches the Flutter files above, checked side by side.\n- Full checklist: *Conventions* section of the migration plan and `react_native_app/AGENTS.md`."
+    },
+    {
+      "order": 58,
+      "id": "P8-07",
+      "title": "[P8-07] Support screen",
+      "labels": [
+        "needs-approval",
+        "app:react-native",
+        "phase:8",
+        "type:feature",
+        "area:platform",
+        "size:S"
+      ],
+      "milestone": "RN Phase 8 – Orders and account",
+      "depends_on": [
+        "P4-01"
+      ],
+      "body": "<!-- rn-migration-id: P8-07 -->\n**Order:** 58 of 75 · **Phase 8:** Orders and account · **Size:** S\n\n## Goal\nThe support screen matches Flutter's.\n\n## Ports from Flutter\n- `flutter_app/lib/features/support/presentation/support_screen.dart`\n- `flutter_app/lib/features/support/presentation/widgets/support_cards.dart`\n- `flutter_app/lib/features/support/presentation/models/support_models.dart`\n\n## Tasks\n- [ ] Port the screen and cards\n\n## Acceptance criteria\n- [ ] Matches Flutter side by side\n\n## Depends on\n{{DEPENDS_ON}}\n\n## Definition of done\n- Work only in `react_native_app/`; never edit `flutter_app/`.\n- `npm run lint` and `npm run typecheck` pass, and `npm test` once P0-07 is merged.\n- Behavior matches the Flutter files above, checked side by side.\n- Full checklist: *Conventions* section of the migration plan and `react_native_app/AGENTS.md`."
+    },
+    {
+      "order": 59,
+      "id": "P8-08",
+      "title": "[P8-08] Privacy policy and terms screens",
+      "labels": [
+        "needs-approval",
+        "app:react-native",
+        "phase:8",
+        "type:feature",
+        "area:platform",
+        "size:S"
+      ],
+      "milestone": "RN Phase 8 – Orders and account",
+      "depends_on": [
+        "P2-01"
+      ],
+      "body": "<!-- rn-migration-id: P8-08 -->\n**Order:** 59 of 75 · **Phase 8:** Orders and account · **Size:** S\n\n## Goal\nUsers can read the privacy policy and terms, with the same text as the Flutter app.\n\n## Ports from Flutter\n- `flutter_app/lib/features/legal/presentation/legal_document_screen.dart`\n- `flutter_app/lib/features/legal/presentation/privacy_policy_screen.dart`\n- `flutter_app/lib/features/legal/presentation/terms_of_service_screen.dart`\n\n## Flutter tests to port or match\n- `flutter_app/test/legal_screens_test.dart`\n\n## Tasks\n- [ ] Port the screens with the same text (also in `docs/legal/`)\n\n## Acceptance criteria\n- [ ] Port the cases in `legal_screens_test.dart`\n\n## Depends on\n{{DEPENDS_ON}}\n\n## Definition of done\n- Work only in `react_native_app/`; never edit `flutter_app/`.\n- `npm run lint` and `npm run typecheck` pass, and `npm test` once P0-07 is merged.\n- Behavior matches the Flutter files above, checked side by side.\n- Full checklist: *Conventions* section of the migration plan and `react_native_app/AGENTS.md`."
+    },
+    {
+      "order": 60,
+      "id": "P8-10",
+      "title": "[P8-10] Notification permission prompt",
+      "labels": [
+        "needs-approval",
+        "app:react-native",
+        "phase:8",
+        "type:feature",
+        "area:platform",
+        "size:S"
+      ],
+      "milestone": "RN Phase 8 – Orders and account",
+      "depends_on": [
+        "P0-09"
+      ],
+      "body": "<!-- rn-migration-id: P8-10 -->\n**Order:** 60 of 75 · **Phase 8:** Orders and account · **Size:** S\n\n## Goal\nThe app asks for notification permission at the same moment as the Flutter app. Like Flutter, it does not store tokens or receive pushes yet.\n\n## Ports from Flutter\n- `flutter_app/lib/platform/notifications/push_notifications.dart`\n\n## Tasks\n- [ ] `npx expo install @react-native-firebase/messaging` and request permission the way Flutter does\n\n## Acceptance criteria\n- [ ] The permission prompt appears at the same point in the flow as Flutter\n\n## Depends on\n{{DEPENDS_ON}}\n\n## Definition of done\n- Work only in `react_native_app/`; never edit `flutter_app/`.\n- `npm run lint` and `npm run typecheck` pass, and `npm test` once P0-07 is merged.\n- Behavior matches the Flutter files above, checked side by side.\n- Full checklist: *Conventions* section of the migration plan and `react_native_app/AGENTS.md`."
+    },
+    {
+      "order": 61,
+      "id": "P9-01",
+      "title": "[P9-01] Merchant shell and navigation",
+      "labels": [
+        "needs-approval",
+        "app:react-native",
+        "phase:9",
+        "type:feature",
+        "area:merchant",
+        "size:M"
+      ],
+      "milestone": "RN Phase 9 – Merchant",
+      "depends_on": [
+        "P2-05",
+        "P1-04"
+      ],
+      "body": "<!-- rn-migration-id: P9-01 -->\n**Order:** 61 of 75 · **Phase 9:** Merchant · **Size:** M\n\n## Goal\nMerchants get the same navigation shell as in Flutter.\n\n## Ports from Flutter\n- `flutter_app/lib/features/merchant/shell/presentation/merchant_shell.dart`\n\n## Flutter tests to port or match\n- `flutter_app/test/merchant_shell_test.dart`\n\n## Tasks\n- [ ] Port the shell layout under `src/app/merchant/`\n\n## Acceptance criteria\n- [ ] Port the cases in `merchant_shell_test.dart`\n\n## Depends on\n{{DEPENDS_ON}}\n\n## Definition of done\n- Work only in `react_native_app/`; never edit `flutter_app/`.\n- `npm run lint` and `npm run typecheck` pass, and `npm test` once P0-07 is merged.\n- Behavior matches the Flutter files above, checked side by side.\n- Full checklist: *Conventions* section of the migration plan and `react_native_app/AGENTS.md`."
+    },
+    {
+      "order": 62,
+      "id": "P9-02",
+      "title": "[P9-02] Merchant store profile editing",
+      "labels": [
+        "needs-approval",
+        "app:react-native",
+        "phase:9",
+        "type:feature",
+        "area:merchant",
+        "size:M"
+      ],
+      "milestone": "RN Phase 9 – Merchant",
+      "depends_on": [
+        "P9-01"
+      ],
+      "body": "<!-- rn-migration-id: P9-02 -->\n**Order:** 62 of 75 · **Phase 9:** Merchant · **Size:** M\n\n## Goal\nMerchants can view and edit their store details.\n\n## Ports from Flutter\n- `flutter_app/lib/features/merchant/store/presentation/my_store_screen.dart`\n- `flutter_app/lib/features/merchant/store/presentation/merchant_store_controller.dart`\n- `flutter_app/lib/features/merchant/store/data/merchant_store_repository.dart`\n- `flutter_app/lib/features/merchant/store/models/merchant_store.dart`\n- `flutter_app/lib/features/merchant/store/models/merchant_vertical.dart`\n\n## Flutter tests to port or match\n- `flutter_app/test/my_store_screen_test.dart`\n- `flutter_app/test/merchant_store_controller_test.dart`\n- `flutter_app/test/merchant_store_repository_test.dart`\n\n## Tasks\n- [ ] Port the screen, store API, and models\n- [ ] Show existing photos; uploading comes in P9-06\n\n## Acceptance criteria\n- [ ] Port the cases in all three tests\n\n## Depends on\n{{DEPENDS_ON}}\n\n## Definition of done\n- Work only in `react_native_app/`; never edit `flutter_app/`.\n- `npm run lint` and `npm run typecheck` pass, and `npm test` once P0-07 is merged.\n- Behavior matches the Flutter files above, checked side by side.\n- Full checklist: *Conventions* section of the migration plan and `react_native_app/AGENTS.md`."
+    },
+    {
+      "order": 63,
+      "id": "P9-03",
+      "title": "[P9-03] Merchant order list with realtime",
+      "labels": [
+        "needs-approval",
+        "app:react-native",
+        "phase:9",
+        "type:feature",
+        "area:merchant",
+        "size:L"
+      ],
+      "milestone": "RN Phase 9 – Merchant",
+      "depends_on": [
+        "P9-01"
+      ],
+      "body": "<!-- rn-migration-id: P9-03 -->\n**Order:** 63 of 75 · **Phase 9:** Merchant · **Size:** L\n\n## Goal\nMerchants see their incoming orders across verticals, updating live.\n\n## Ports from Flutter\n- `flutter_app/lib/features/merchant/orders/presentation/orders_screen.dart`\n- `flutter_app/lib/features/merchant/orders/presentation/merchant_orders_controller.dart`\n- `flutter_app/lib/features/merchant/orders/data/merchant_orders_repository.dart`\n- `flutter_app/lib/features/merchant/orders/models/merchant_order.dart`\n- `flutter_app/lib/features/merchant/orders/models/merchant_order_vertical.dart`\n\n## Flutter tests to port or match\n- `flutter_app/test/orders_screen_test.dart`\n- `flutter_app/test/merchant_orders_controller_test.dart`\n- `flutter_app/test/merchant_order_test.dart`\n\n## Tasks\n- [ ] Port the screen, orders API, and models\n- [ ] Subscribe to realtime on the order tables for this merchant's store\n\n## Acceptance criteria\n- [ ] A new customer order appears without a refresh\n- [ ] Port the cases in all three tests\n\n## Depends on\n{{DEPENDS_ON}}\n\n## Definition of done\n- Work only in `react_native_app/`; never edit `flutter_app/`.\n- `npm run lint` and `npm run typecheck` pass, and `npm test` once P0-07 is merged.\n- Behavior matches the Flutter files above, checked side by side.\n- Full checklist: *Conventions* section of the migration plan and `react_native_app/AGENTS.md`."
+    },
+    {
+      "order": 64,
+      "id": "P9-04",
+      "title": "[P9-04] Merchant order detail and status changes",
+      "labels": [
+        "needs-approval",
+        "app:react-native",
+        "phase:9",
+        "type:feature",
+        "area:merchant",
+        "size:M"
+      ],
+      "milestone": "RN Phase 9 – Merchant",
+      "depends_on": [
+        "P9-03"
+      ],
+      "body": "<!-- rn-migration-id: P9-04 -->\n**Order:** 64 of 75 · **Phase 9:** Merchant · **Size:** M\n\n## Goal\nMerchants can move an order through its statuses via `advance_*_order_status`, with the same allowed transitions as Flutter.\n\n## Ports from Flutter\n- `flutter_app/lib/features/merchant/orders/presentation/order_detail_screen.dart`\n\n## Flutter tests to port or match\n- `flutter_app/test/order_detail_screen_test.dart`\n- `flutter_app/test/order_status_transition_client_test.dart`\n\n## Tasks\n- [ ] Port the screen\n- [ ] Call the right `advance_*_order_status` RPC per vertical, and only offer transitions the server allows\n\n## Acceptance criteria\n- [ ] Each status change shows up live on the customer's tracking screen\n- [ ] Port the cases in both tests\n\n## Depends on\n{{DEPENDS_ON}}\n\n## Definition of done\n- Work only in `react_native_app/`; never edit `flutter_app/`.\n- `npm run lint` and `npm run typecheck` pass, and `npm test` once P0-07 is merged.\n- Behavior matches the Flutter files above, checked side by side.\n- Full checklist: *Conventions* section of the migration plan and `react_native_app/AGENTS.md`."
+    },
+    {
+      "order": 65,
+      "id": "P9-05",
+      "title": "[P9-05] Merchant catalog: list, create, edit items",
+      "labels": [
+        "needs-approval",
+        "app:react-native",
+        "phase:9",
+        "type:feature",
+        "area:merchant",
+        "size:L"
+      ],
+      "milestone": "RN Phase 9 – Merchant",
+      "depends_on": [
+        "P9-01"
+      ],
+      "body": "<!-- rn-migration-id: P9-05 -->\n**Order:** 65 of 75 · **Phase 9:** Merchant · **Size:** L\n\n## Goal\nMerchants can manage their catalog items.\n\n## Ports from Flutter\n- `flutter_app/lib/features/merchant/catalog/presentation/catalog_screen.dart`\n- `flutter_app/lib/features/merchant/catalog/presentation/catalog_item_form.dart`\n- `flutter_app/lib/features/merchant/catalog/presentation/merchant_catalog_controller.dart`\n- `flutter_app/lib/features/merchant/catalog/data/merchant_catalog_repository.dart`\n- `flutter_app/lib/features/merchant/catalog/models/merchant_catalog_item.dart`\n\n## Flutter tests to port or match\n- `flutter_app/test/catalog_screen_test.dart`\n- `flutter_app/test/merchant_catalog_controller_test.dart`\n\n## Tasks\n- [ ] Port the screen, item form, catalog API, and model\n\n## Acceptance criteria\n- [ ] Created and edited items appear in the customer app\n- [ ] Port the cases in both tests\n\n## Depends on\n{{DEPENDS_ON}}\n\n## Definition of done\n- Work only in `react_native_app/`; never edit `flutter_app/`.\n- `npm run lint` and `npm run typecheck` pass, and `npm test` once P0-07 is merged.\n- Behavior matches the Flutter files above, checked side by side.\n- Full checklist: *Conventions* section of the migration plan and `react_native_app/AGENTS.md`."
+    },
+    {
+      "order": 66,
+      "id": "P9-06",
+      "title": "[P9-06] Merchant photo upload with crop",
+      "labels": [
+        "needs-approval",
+        "app:react-native",
+        "phase:9",
+        "type:feature",
+        "area:merchant",
+        "size:M"
+      ],
+      "milestone": "RN Phase 9 – Merchant",
+      "depends_on": [
+        "P9-05",
+        "P9-02"
+      ],
+      "body": "<!-- rn-migration-id: P9-06 -->\n**Order:** 66 of 75 · **Phase 9:** Merchant · **Size:** M\n\n## Goal\nMerchants can pick, crop, and upload photos to the media bucket for store and catalog items.\n\n## Ports from Flutter\n- `flutter_app/lib/features/merchant/shared/merchant_media_store.dart`\n- `flutter_app/lib/features/merchant/shared/merchant_photo_field.dart`\n- `flutter_app/lib/features/merchant/shared/merchant_slug_id.dart`\n\n## Flutter tests to port or match\n- `flutter_app/test/merchant_photo_upload_test.dart`\n\n## Tasks\n- [ ] `npx expo install expo-image-picker expo-image-manipulator`\n- [ ] Port the photo field and upload logic with the same bucket paths as Flutter\n- [ ] Use it in the store and catalog forms\n\n## Acceptance criteria\n- [ ] An uploaded photo shows in the customer app\n- [ ] Port the cases in `merchant_photo_upload_test.dart`\n\n## Depends on\n{{DEPENDS_ON}}\n\n## Definition of done\n- Work only in `react_native_app/`; never edit `flutter_app/`.\n- `npm run lint` and `npm run typecheck` pass, and `npm test` once P0-07 is merged.\n- Behavior matches the Flutter files above, checked side by side.\n- Full checklist: *Conventions* section of the migration plan and `react_native_app/AGENTS.md`."
+    },
+    {
+      "order": 67,
+      "id": "P9-07",
+      "title": "[P9-07] Admin tools: list profiles and set roles",
+      "labels": [
+        "needs-approval",
+        "app:react-native",
+        "phase:9",
+        "type:feature",
+        "area:merchant",
+        "size:M"
+      ],
+      "milestone": "RN Phase 9 – Merchant",
+      "depends_on": [
+        "P9-01"
+      ],
+      "body": "<!-- rn-migration-id: P9-07 -->\n**Order:** 67 of 75 · **Phase 9:** Merchant · **Size:** M\n\n## Goal\nAdmins can list accounts and change roles via `admin_list_profiles` and `admin_set_profile_role`.\n\n## Ports from Flutter\n- `flutter_app/lib/features/merchant/admin/presentation/admin_accounts_screen.dart`\n- `flutter_app/lib/features/merchant/admin/presentation/admin_accounts_controller.dart`\n- `flutter_app/lib/features/merchant/admin/data/admin_accounts_repository.dart`\n- `flutter_app/lib/features/merchant/admin/models/admin_account.dart`\n\n## Flutter tests to port or match\n- `flutter_app/test/admin_accounts_controller_test.dart`\n- `flutter_app/test/admin_accounts_screen_test.dart`\n\n## Tasks\n- [ ] Port the screen, API, and model\n\n## Acceptance criteria\n- [ ] Port the cases in both tests\n\n## Depends on\n{{DEPENDS_ON}}\n\n## Definition of done\n- Work only in `react_native_app/`; never edit `flutter_app/`.\n- `npm run lint` and `npm run typecheck` pass, and `npm test` once P0-07 is merged.\n- Behavior matches the Flutter files above, checked side by side.\n- Full checklist: *Conventions* section of the migration plan and `react_native_app/AGENTS.md`."
+    },
+    {
+      "order": 68,
+      "id": "P10-01",
+      "title": "[P10-01] Maestro E2E: sign up, order food, track it",
+      "labels": [
+        "needs-approval",
+        "app:react-native",
+        "phase:10",
+        "type:test",
+        "area:platform",
+        "size:M"
+      ],
+      "milestone": "RN Phase 10 – Quality and release",
+      "depends_on": [
+        "P8-02"
+      ],
+      "body": "<!-- rn-migration-id: P10-01 -->\n**Order:** 68 of 75 · **Phase 10:** Quality and release · **Size:** M\n\n## Goal\nThe main customer flow is covered by an automated end-to-end test.\n\n## Tasks\n- [ ] Add Maestro and an `e2e/customer-food-order.yaml` flow against a dev Supabase project\n\n## Acceptance criteria\n- [ ] The flow passes on an Android emulator\n\n## Depends on\n{{DEPENDS_ON}}\n\n## Definition of done\n- Work only in `react_native_app/`; never edit `flutter_app/`.\n- `npm run lint` and `npm run typecheck` pass, and `npm test` once P0-07 is merged.\n- Behavior matches the Flutter files above, checked side by side.\n- Full checklist: *Conventions* section of the migration plan and `react_native_app/AGENTS.md`."
+    },
+    {
+      "order": 69,
+      "id": "P10-02",
+      "title": "[P10-02] Maestro E2E: merchant accepts and advances an order",
+      "labels": [
+        "needs-approval",
+        "app:react-native",
+        "phase:10",
+        "type:test",
+        "area:merchant",
+        "size:M"
+      ],
+      "milestone": "RN Phase 10 – Quality and release",
+      "depends_on": [
+        "P9-04"
+      ],
+      "body": "<!-- rn-migration-id: P10-02 -->\n**Order:** 69 of 75 · **Phase 10:** Quality and release · **Size:** M\n\n## Goal\nThe main merchant flow is covered by an automated end-to-end test.\n\n## Tasks\n- [ ] Add `e2e/merchant-order.yaml`\n\n## Acceptance criteria\n- [ ] The flow passes on an Android emulator\n\n## Depends on\n{{DEPENDS_ON}}\n\n## Definition of done\n- Work only in `react_native_app/`; never edit `flutter_app/`.\n- `npm run lint` and `npm run typecheck` pass, and `npm test` once P0-07 is merged.\n- Behavior matches the Flutter files above, checked side by side.\n- Full checklist: *Conventions* section of the migration plan and `react_native_app/AGENTS.md`."
+    },
+    {
+      "order": 70,
+      "id": "P10-03",
+      "title": "[P10-03] Parity checklist: route-by-route sign-off",
+      "labels": [
+        "needs-approval",
+        "app:react-native",
+        "phase:10",
+        "type:test",
+        "area:platform",
+        "size:M"
+      ],
+      "milestone": "RN Phase 10 – Quality and release",
+      "depends_on": [
+        "P8-10",
+        "P9-07"
+      ],
+      "body": "<!-- rn-migration-id: P10-03 -->\n**Order:** 70 of 75 · **Phase 10:** Quality and release · **Size:** M\n\n## Goal\nEvery Flutter screen has been checked against its React Native version.\n\n## Flutter tests to port or match\n- `flutter_app/test/route_reachability_test.dart`\n\n## Tasks\n- [ ] Create a checklist of every route in `app_routes.dart` with columns for layout, states, behavior, and tests\n- [ ] Open follow-up issues for any gap found\n\n## Acceptance criteria\n- [ ] Every row is signed off or has a linked follow-up issue\n\n## Depends on\n{{DEPENDS_ON}}\n\n## Definition of done\n- Work only in `react_native_app/`; never edit `flutter_app/`.\n- `npm run lint` and `npm run typecheck` pass, and `npm test` once P0-07 is merged.\n- Behavior matches the Flutter files above, checked side by side.\n- Full checklist: *Conventions* section of the migration plan and `react_native_app/AGENTS.md`."
+    },
+    {
+      "order": 71,
+      "id": "P10-04",
+      "title": "[P10-04] Accessibility pass",
+      "labels": [
+        "needs-approval",
+        "app:react-native",
+        "phase:10",
+        "type:feature",
+        "area:platform",
+        "size:M"
+      ],
+      "milestone": "RN Phase 10 – Quality and release",
+      "depends_on": [
+        "P10-03"
+      ],
+      "body": "<!-- rn-migration-id: P10-04 -->\n**Order:** 71 of 75 · **Phase 10:** Quality and release · **Size:** M\n\n## Goal\nThe app works with screen readers and large text.\n\n## Tasks\n- [ ] Add accessibility labels and roles, check font scaling and color contrast\n\n## Acceptance criteria\n- [ ] Main flows work with TalkBack and VoiceOver\n\n## Depends on\n{{DEPENDS_ON}}\n\n## Definition of done\n- Work only in `react_native_app/`; never edit `flutter_app/`.\n- `npm run lint` and `npm run typecheck` pass, and `npm test` once P0-07 is merged.\n- Behavior matches the Flutter files above, checked side by side.\n- Full checklist: *Conventions* section of the migration plan and `react_native_app/AGENTS.md`."
+    },
+    {
+      "order": 72,
+      "id": "P10-05",
+      "title": "[P10-05] Performance pass",
+      "labels": [
+        "needs-approval",
+        "app:react-native",
+        "phase:10",
+        "type:feature",
+        "area:platform",
+        "size:M"
+      ],
+      "milestone": "RN Phase 10 – Quality and release",
+      "depends_on": [
+        "P10-03"
+      ],
+      "body": "<!-- rn-migration-id: P10-05 -->\n**Order:** 72 of 75 · **Phase 10:** Quality and release · **Size:** M\n\n## Goal\nLong lists scroll smoothly and startup is fast.\n\n## Tasks\n- [ ] Use FlashList for long lists, check image caching, measure startup time\n\n## Acceptance criteria\n- [ ] No dropped-frame jank on long lists on a mid-range Android phone\n\n## Depends on\n{{DEPENDS_ON}}\n\n## Definition of done\n- Work only in `react_native_app/`; never edit `flutter_app/`.\n- `npm run lint` and `npm run typecheck` pass, and `npm test` once P0-07 is merged.\n- Behavior matches the Flutter files above, checked side by side.\n- Full checklist: *Conventions* section of the migration plan and `react_native_app/AGENTS.md`."
+    },
+    {
+      "order": 73,
+      "id": "P10-06",
+      "title": "[P10-06] Store listings: screenshots, descriptions, privacy labels",
+      "labels": [
+        "needs-approval",
+        "app:react-native",
+        "phase:10",
+        "type:setup",
+        "area:platform",
+        "size:M"
+      ],
+      "milestone": "RN Phase 10 – Quality and release",
+      "depends_on": [
+        "P10-03"
+      ],
+      "body": "<!-- rn-migration-id: P10-06 -->\n**Order:** 73 of 75 · **Phase 10:** Quality and release · **Size:** M\n\n## Goal\nStore listings are ready for the React Native release.\n\n## Tasks\n- [ ] Prepare new screenshots and update privacy labels and data-safety forms\n\n## Acceptance criteria\n- [ ] Listings are ready for submission\n\n## Depends on\n{{DEPENDS_ON}}\n\n## Definition of done\n- Work only in `react_native_app/`; never edit `flutter_app/`.\n- `npm run lint` and `npm run typecheck` pass, and `npm test` once P0-07 is merged.\n- Behavior matches the Flutter files above, checked side by side.\n- Full checklist: *Conventions* section of the migration plan and `react_native_app/AGENTS.md`."
+    },
+    {
+      "order": 74,
+      "id": "P10-07",
+      "title": "[P10-07] Internal beta on TestFlight and Play internal testing",
+      "labels": [
+        "needs-approval",
+        "app:react-native",
+        "phase:10",
+        "type:setup",
+        "area:platform",
+        "size:S"
+      ],
+      "milestone": "RN Phase 10 – Quality and release",
+      "depends_on": [
+        "P10-01",
+        "P10-02",
+        "P10-04",
+        "P10-05",
+        "P10-06"
+      ],
+      "body": "<!-- rn-migration-id: P10-07 -->\n**Order:** 74 of 75 · **Phase 10:** Quality and release · **Size:** S\n\n## Goal\nThe team and a few merchants test the release build.\n\n## Tasks\n- [ ] Build with EAS, submit to TestFlight and Play internal testing, collect feedback\n\n## Acceptance criteria\n- [ ] No open blocker issues from the beta\n\n## Depends on\n{{DEPENDS_ON}}\n\n## Definition of done\n- Work only in `react_native_app/`; never edit `flutter_app/`.\n- `npm run lint` and `npm run typecheck` pass, and `npm test` once P0-07 is merged.\n- Behavior matches the Flutter files above, checked side by side.\n- Full checklist: *Conventions* section of the migration plan and `react_native_app/AGENTS.md`."
+    },
+    {
+      "order": 75,
+      "id": "P10-08",
+      "title": "[P10-08] Production release and removal of flutter_app/",
+      "labels": [
+        "needs-approval",
+        "app:react-native",
+        "phase:10",
+        "type:setup",
+        "area:platform",
+        "size:S"
+      ],
+      "milestone": "RN Phase 10 – Quality and release",
+      "depends_on": [
+        "P10-07"
+      ],
+      "body": "<!-- rn-migration-id: P10-08 -->\n**Order:** 75 of 75 · **Phase 10:** Quality and release · **Size:** S\n\n## Goal\nThe React Native app replaces the Flutter app in both stores, and the Flutter app is retired.\n\n## Tasks\n- [ ] Bump the version above the last Flutter release, then roll out in stages (Android 10% → 50% → 100%, iOS phased release)\n- [ ] Two weeks after 100%, remove `flutter_app/` and its CI workflow\n\n## Acceptance criteria\n- [ ] Crash-free rate stays above 99.5% through the rollout\n\n## Depends on\n{{DEPENDS_ON}}\n\n## Definition of done\n- Work only in `react_native_app/`; never edit `flutter_app/`.\n- `npm run lint` and `npm run typecheck` pass, and `npm test` once P0-07 is merged.\n- Behavior matches the Flutter files above, checked side by side.\n- Full checklist: *Conventions* section of the migration plan and `react_native_app/AGENTS.md`."
+    }
+  ]
+}
